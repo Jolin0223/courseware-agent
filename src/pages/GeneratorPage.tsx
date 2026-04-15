@@ -434,7 +434,7 @@ export default function GeneratorPage() {
     if (!hasMessages && phase === 'input') {
       return (
         <div style={styles.welcomeSection}>
-          <h1 style={styles.welcomeTitle}>欢迎使用 AIGC <span style={{ background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动课件</span></h1>
+          <h1 style={styles.welcomeTitle}>欢迎使用 互动课件 <span style={{ background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI Agent</span></h1>
           <p style={styles.welcomeSubtitle}>一句话生成教学互动游戏，让课堂更精彩</p>
           <div style={{ width: '100%', maxWidth: 720 }}>
             <ChatInput onSend={handleSend} centered disabled={isGenerating} placeholder="在这里输入你想要的互动游戏，比如生成一个字母大小写配对游戏" />

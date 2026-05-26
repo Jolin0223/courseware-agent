@@ -167,7 +167,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                 boxShadow: '0 4px 16px rgba(0,0,0,0.12)', padding: '14px 16px', width: 280,
               }}>
                 <div style={{ fontSize: 12, color: '#334155', fontWeight: 500, marginBottom: 12, lineHeight: 1.5 }}>
-                  更新发布后所有使用到此游戏的都会自动同步更新，确定更新发布吗？
+                  发布后所有引用此互动页面的课件都会同步更新，确定更新发布吗？
                 </div>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <button onClick={() => setShowPublishConfirm(false)} style={{

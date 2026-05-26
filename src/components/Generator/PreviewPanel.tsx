@@ -247,10 +247,10 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
           <div style={panelStyle.deviceSwitcher}>
             {(['web', 'bigscreen', 'tablet', 'cloud-teacher', 'cloud-student'] as const).map(device => {
               const labels: Record<string, string> = {
-                'web': '网页端',
-                'bigscreen': '大屏授课端',
-                'tablet': '学习机小屏端',
-                'cloud-teacher': '云教室授课端',
+                'web': 'iTeach 网页',
+                'bigscreen': '大屏老师好课',
+                'tablet': '学生小屏',
+                'cloud-teacher': '云教室老师端',
                 'cloud-student': '云教室学生端',
               };
               const icons: Record<string, React.ReactNode> = {
@@ -282,7 +282,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
           <div style={panelStyle.previewContainer}>
             {previewDevice === 'web' ? (
               <div style={panelStyle.webFrame}>
-                <iframe title="课件预览" srcDoc={srcDoc} style={panelStyle.iframe} sandbox="allow-scripts allow-same-origin" />
+                <img src="/images/iteach-web-preview.png" alt="iTeach 网页预览" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
             ) : previewDevice === 'bigscreen' ? (
               <div style={panelStyle.bigscreenFrame}>
@@ -297,7 +297,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                 <div style={{ fontSize: 48, marginBottom: 12 }}>🚧</div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: '#334155' }}>敬请期待</div>
                 <div style={{ fontSize: 13, color: '#94A3B8', marginTop: 6 }}>
-                  {previewDevice === 'cloud-teacher' ? '云教室授课端' : '云教室学生端'}预览正在开发中
+                  {previewDevice === 'cloud-teacher' ? '云教室老师端' : '云教室学生端'}预览正在开发中
                 </div>
               </div>
             )}

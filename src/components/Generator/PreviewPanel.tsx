@@ -5,7 +5,6 @@ import { useUIStore } from '../../store/uiStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
 import PublishModal from '../Library/PublishModal';
 import toast from '../../utils/toast';
-import type { CoursewareVersion } from '../../types';
 
 interface PreviewPanelProps {
   coursewareId: number | null;
@@ -25,6 +24,26 @@ const previewDevices: Array<{ id: PreviewDevice; label: string; icon: React.Reac
   { id: 'cloud-student', label: '云教室学生端', icon: <GraduationCap size={15} /> },
 ];
 
+type PublishMode = 'publish' | 'update' | 'new-game';
+
+interface SessionHtmlVersion {
+  version: string;
+  sessionNumber: number;
+  title: string;
+  htmlContent?: string;
+  createdAt: string;
+  publishTargetId?: string;
+  isCurrentPublished?: boolean;
+  isHistoricalPublished?: boolean;
+}
+
+interface PublishedGameTarget {
+  id: string;
+  name: string;
+  currentVersion: string;
+  urlLabel: string;
+}
+
 export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProps) {
   const { coursewares, updateCourseware } = useCoursewareStore();
   const { appMode, insertCourseware } = useUIStore();
@@ -35,49 +54,80 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
       || mockCoursewares.find(c => c.id === coursewareId);
   }, [coursewareId, coursewares]);
 
-  const [versions, setVersions] = useState<CoursewareVersion[]>(() => {
+  const [versions, setVersions] = useState<SessionHtmlVersion[]>(() => {
     if (!courseware) return [];
-    const isPublished = !!courseware.isPublished;
+    const baseHtml = courseware.htmlContent || '';
     return [
       {
         version: 'v1',
-        description: '初始版本',
-        htmlContent: courseware.htmlContent || '',
-        isPublished: false,
+        sessionNumber: 1,
+        title: '动物单词拼写游戏',
+        htmlContent: baseHtml,
+        publishTargetId: 'game-a',
+        isHistoricalPublished: true,
         createdAt: '2026-05-14 18:27',
       },
       {
         version: 'v2',
-        description: '优化交互',
-        htmlContent: courseware.htmlContent || '',
-        isPublished: false,
+        sessionNumber: 2,
+        title: '听音辨物游戏',
+        htmlContent: baseHtml,
+        publishTargetId: 'game-b',
+        isCurrentPublished: true,
         createdAt: '2026-05-15 10:30',
       },
       {
         version: 'v3',
-        description: '修复样式',
-        htmlContent: courseware.htmlContent || '',
-        isPublished,
+        sessionNumber: 3,
+        title: '动物单词拼写游戏',
+        htmlContent: baseHtml,
+        publishTargetId: 'game-a',
+        isCurrentPublished: true,
         createdAt: '2026-05-16 14:20',
+      },
+      {
+        version: 'v4',
+        sessionNumber: 4,
+        title: '听音辨物游戏优化版',
+        htmlContent: baseHtml,
+        createdAt: '2026-06-01 17:10',
       },
     ];
   });
 
-  const [selectedVersion, setSelectedVersion] = useState('v3');
+  const [publishedTargets, setPublishedTargets] = useState<PublishedGameTarget[]>([
+    {
+      id: 'game-a',
+      name: '动物单词拼写游戏',
+      currentVersion: 'v3',
+      urlLabel: '固定链接 A',
+    },
+    {
+      id: 'game-b',
+      name: '听音辨物游戏',
+      currentVersion: 'v2',
+      urlLabel: '固定链接 B',
+    },
+  ]);
+
+  const [selectedVersion, setSelectedVersion] = useState('v4');
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
-  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
-  const [publishMode, setPublishMode] = useState<'publish' | 'update' | 'new-game' | null>(null);
+  const [selectedUpdateTargetId, setSelectedUpdateTargetId] = useState<string | null>('game-b');
+  const [publishMode, setPublishMode] = useState<PublishMode | null>(null);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('default');
   const publishBtnRef = useRef<HTMLDivElement>(null);
   const versionScrollRef = useRef<HTMLDivElement>(null);
 
   const currentVersion = versions.find(v => v.version === selectedVersion);
   const latestVersion = versions[versions.length - 1];
-  const publishedVersion = versions.find(v => v.isPublished);
-  const hasNewerUnpublished = publishedVersion && latestVersion && publishedVersion.version !== latestVersion.version && !latestVersion.isPublished;
+  const selectedUpdateTarget = publishedTargets.find(target => target.id === selectedUpdateTargetId) || publishedTargets[0];
+  const hasPublishedTargets = publishedTargets.length > 0;
+  const hasMultiplePublishedGames = publishedTargets.length > 1;
+  const canUpdateCurrentDraft = hasPublishedTargets && latestVersion && selectedVersion === latestVersion.version && !currentVersion?.isCurrentPublished;
 
   const srcDoc = currentVersion?.htmlContent || PLACEHOLDER_HTML;
+  const currentTitle = currentVersion?.title || courseware?.title || '互动游戏';
 
   const handleFullscreen = () => {
     const win = window.open('', '_blank', 'width=1200,height=800');
@@ -105,11 +155,11 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
   const handleSaveEdit = () => {
     const newVersionNum = versions.length + 1;
-    const newVersion: CoursewareVersion = {
+    const newVersion: SessionHtmlVersion = {
       version: `v${newVersionNum}`,
-      description: `编辑版本`,
+      sessionNumber: newVersionNum,
+      title: currentVersion?.title || courseware?.title || '未命名互动游戏',
       htmlContent: editContent,
-      isPublished: false,
       createdAt: new Date().toISOString(),
     };
     setVersions(prev => [...prev, newVersion]);
@@ -129,44 +179,104 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
     setPublishMode('publish');
   };
 
-  const handlePublishConfirm = () => {
-    setShowPublishConfirm(false);
+  const handleUpdatePublishClick = () => {
+    setSelectedUpdateTargetId(selectedUpdateTargetId || publishedTargets[publishedTargets.length - 1]?.id || null);
     setPublishMode('update');
   };
 
   const handlePublishSuccess = () => {
-    if (publishMode === 'update' || publishMode === 'publish') {
+    if (publishMode === 'update' && selectedUpdateTarget) {
+      setVersions(prev => prev.map(v => {
+        if (v.version === selectedVersion) {
+          return {
+            ...v,
+            publishTargetId: selectedUpdateTarget.id,
+            isCurrentPublished: true,
+            isHistoricalPublished: false,
+          };
+        }
+        if (v.publishTargetId === selectedUpdateTarget.id && v.isCurrentPublished) {
+          return { ...v, isCurrentPublished: false, isHistoricalPublished: true };
+        }
+        return v;
+      }));
+      setPublishedTargets(prev => prev.map(target =>
+        target.id === selectedUpdateTarget.id
+          ? { ...target, currentVersion: selectedVersion, name: currentTitle }
+          : target
+      ));
+    }
+    if (publishMode === 'publish' || publishMode === 'new-game') {
+      const nextId = `game-${publishedTargets.length + 1}`;
+      const targetName = currentTitle;
+      setPublishedTargets(prev => [...prev, {
+        id: nextId,
+        name: targetName,
+        currentVersion: selectedVersion,
+        urlLabel: `固定链接 ${publishedTargets.length + 1}`,
+      }]);
       setVersions(prev => prev.map(v =>
         v.version === selectedVersion
-          ? { ...v, isPublished: true }
-          : { ...v, isPublished: false }
+          ? {
+              ...v,
+              publishTargetId: nextId,
+              isCurrentPublished: true,
+              isHistoricalPublished: false,
+            }
+          : v
       ));
     }
     setPublishMode(null);
+    setSelectedUpdateTargetId(null);
   };
 
   if (!courseware) return null;
 
-  const publishBtnText = hasNewerUnpublished && selectedVersion === latestVersion.version
+  const getVersionPublishLabel = (version: SessionHtmlVersion) => {
+    if (version.isCurrentPublished) return '当前发布';
+    if (version.isHistoricalPublished) return '历史版本';
+    return '未发布草稿';
+  };
+
+  const getVersionMainLabel = (version: SessionHtmlVersion) => {
+    const prefix = `会话第${version.sessionNumber}版`;
+    return hasMultiplePublishedGames ? `${prefix} · ${version.title}` : prefix;
+  };
+
+  const updateTargetOptions = publishedTargets.map(target => {
+    const linkedVersion = versions.find(v => v.version === target.currentVersion);
+    return {
+      id: target.id,
+      name: target.name,
+      currentSessionNumber: linkedVersion?.sessionNumber,
+      nextSessionNumber: currentVersion?.sessionNumber,
+      urlLabel: target.urlLabel,
+    };
+  });
+
+  const publishBtnText = canUpdateCurrentDraft
     ? '更新发布'
-    : currentVersion?.isPublished
+    : currentVersion?.isCurrentPublished
       ? '已发布'
       : '发布';
-  const publishBtnDisabled = currentVersion?.isPublished && !(hasNewerUnpublished && selectedVersion === latestVersion.version);
+  const publishBtnDisabled = currentVersion?.isCurrentPublished && !canUpdateCurrentDraft;
 
   return (
     <div style={panelStyle.container}>
       {/* Header */}
       <div style={panelStyle.header}>
         <div style={panelStyle.headerLeft}>
-          <span style={panelStyle.title}>{courseware.title}</span>
+          <div style={panelStyle.titleStack}>
+            <span style={panelStyle.title}>{currentTitle}</span>
+            <span style={panelStyle.subTitle}>会话第 {currentVersion?.sessionNumber || 1} 版 · {currentVersion ? getVersionPublishLabel(currentVersion) : '未发布草稿'}</span>
+          </div>
         </div>
         <div style={panelStyle.headerRight}>
           <div ref={publishBtnRef} style={{ position: 'relative', display: 'flex', gap: 6 }}>
-            {hasNewerUnpublished && selectedVersion === latestVersion.version ? (
+            {canUpdateCurrentDraft ? (
               <>
                 <button
-                  onClick={() => setShowPublishConfirm(true)}
+                  onClick={handleUpdatePublishClick}
                   style={{ ...panelStyle.actionBtn, background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', color: '#fff' }}
                   title="更新发布"
                 >
@@ -197,32 +307,6 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                 <Upload size={14} />
                 {publishBtnText}
               </button>
-            )}
-            {showPublishConfirm && (
-              <div style={{
-                position: 'absolute', top: '100%', right: 0, marginTop: 8, zIndex: 100,
-                background: '#fff', borderRadius: 8, border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.12)', padding: '14px 16px', width: 280,
-              }}>
-                <div style={{ fontSize: 12, color: '#334155', fontWeight: 500, marginBottom: 12, lineHeight: 1.5 }}>
-                  发布后所有引用此互动页面的课件都会同步更新，确定更新发布吗？
-                </div>
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                  <button onClick={() => setShowPublishConfirm(false)} style={{
-                    padding: '5px 14px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#fff',
-                    color: '#64748B', fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                  }}>
-                    取消
-                  </button>
-                  <button onClick={handlePublishConfirm} style={{
-                    padding: '5px 14px', borderRadius: 5, border: 'none',
-                    background: '#EF4444',
-                    color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                  }}>
-                    确定
-                  </button>
-                </div>
-              </div>
             )}
           </div>
           {isEmbedded && courseware && (
@@ -271,6 +355,9 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
           mode={publishMode}
           onClose={() => setPublishMode(null)}
           onPublishSuccess={handlePublishSuccess}
+          updateTargets={updateTargetOptions}
+          selectedUpdateTargetId={selectedUpdateTargetId}
+          onUpdateTargetChange={setSelectedUpdateTargetId}
         />
       )}
 
@@ -318,7 +405,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
               <div style={panelStyle.defaultFrame}>
                 <iframe
                   srcDoc={srcDoc}
-                  title={`${courseware.title} 默认预览`}
+                  title={`${currentTitle} 默认预览`}
                   sandbox="allow-scripts allow-same-origin"
                   style={panelStyle.defaultIframe}
                 />
@@ -348,7 +435,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
           {/* Version History Bar */}
           <div style={panelStyle.versionBar}>
-            <div style={panelStyle.versionLabel}>版本历史</div>
+            <div style={panelStyle.versionLabel}>会话版本历史</div>
             <div ref={versionScrollRef} style={panelStyle.versionScroll}>
               {versions.map(v => (
                 <button
@@ -361,7 +448,13 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                     border: v.version === selectedVersion ? '1.5px solid #00C9A7' : '1px solid #E2E8F0',
                   }}
                 >
-                  {v.version}-{courseware.title}
+                  <span style={panelStyle.versionMain}>{getVersionMainLabel(v)}</span>
+                  <span style={{
+                    ...panelStyle.versionBadge,
+                    color: v.isCurrentPublished ? '#047857' : v.isHistoricalPublished ? '#94A3B8' : '#F59E0B',
+                  }}>
+                    {getVersionPublishLabel(v)}
+                  </span>
                 </button>
               ))}
             </div>
@@ -421,6 +514,20 @@ const panelStyle: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     maxWidth: 200,
+  },
+  titleStack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    minWidth: 0,
+  },
+  subTitle: {
+    fontSize: 11,
+    color: '#64748B',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: 260,
   },
   actionBtn: {
     display: 'flex',
@@ -566,8 +673,13 @@ const panelStyle: Record<string, React.CSSProperties> = {
   },
   versionItem: {
     display: 'flex',
-    alignItems: 'center',
-    padding: '8px 16px',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    gap: 3,
+    minWidth: 168,
+    height: 44,
+    padding: '7px 12px',
     borderRadius: 8,
     fontSize: 12,
     fontWeight: 500,
@@ -576,6 +688,22 @@ const panelStyle: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap',
     flexShrink: 0,
     transition: 'all 0.15s',
+  },
+  versionMain: {
+    maxWidth: 150,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    lineHeight: 1.2,
+  },
+  versionBadge: {
+    fontSize: 10,
+    fontWeight: 600,
+    maxWidth: 150,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    lineHeight: 1.2,
   },
   scrollArrow: {
     width: 24,

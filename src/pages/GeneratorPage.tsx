@@ -848,7 +848,7 @@ function AssistantMessage({
       <div style={styles.messageAssistant}>
         <AIAvatar />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <CoursewareCard courseware={courseware} version={`v${versionNum}.0`} isLatest={isLatestVersion} />
+          <CoursewareCard courseware={courseware} version={`会话第${versionNum}版`} isLatest={isLatestVersion} />
         </div>
       </div>
     );

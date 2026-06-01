@@ -51,6 +51,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
   const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [showUsageNudge, setShowUsageNudge] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -59,6 +60,39 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
   const [stopTooltip, setStopTooltip] = useState(false);
 
   const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading)) && !disabled;
+  const imageFiles = attachedFiles.filter(file => file.type === 'image');
+  const documentFiles = attachedFiles.filter(file => file.type === 'document');
+
+  const materialUsagePlaceholder = (() => {
+    if (imageFiles.length > 0 && documentFiles.length > 0) {
+      return '请分别说明图片和文档的用途，例如：图片作为角色素材，文档用于提取题目内容';
+    }
+    if (imageFiles.length > 0) {
+      return '请描述这些图片要怎么用于互动游戏，例如：作为背景、角色、道具、题目素材或参考风格';
+    }
+    if (documentFiles.length > 0) {
+      return '请描述文档要怎么使用，例如：提取题目、作为知识内容、生成脚本或参考结构';
+    }
+    return placeholder;
+  })();
+
+  const usageNudgeText = imageFiles.length > 0 && documentFiles.length > 0
+    ? '当前包含图片和文档，建议分别说明用途，可减少后续确认步骤。'
+    : '补充材料用途后，生成结果会更准确，也可减少后续确认步骤。';
+
+  const hasClearMaterialUsage = useCallback((value: string) => {
+    if (attachedFiles.length === 0) return true;
+    const normalized = value.trim();
+    if (!normalized) return false;
+    const purposePattern = /(作为|用作|用于|拿来|提取|参考|生成|替换|补充|做成|做为|背景|角色|道具|素材|插图|题目|知识|脚本|结构|内容|风格|配图|封面|课件)/;
+    if (!purposePattern.test(normalized)) return false;
+    if (imageFiles.length > 0 && documentFiles.length > 0) {
+      const hasImageMention = /(图片|图像|照片|素材图|插图|背景图|配图)/.test(normalized);
+      const hasDocumentMention = /(文档|附件|文件|PDF|pdf|Word|word|md|材料)/.test(normalized);
+      return hasImageMention && hasDocumentMention;
+    }
+    return true;
+  }, [attachedFiles.length, documentFiles.length, imageFiles.length]);
 
   const resizeTextarea = useCallback(() => {
     const el = textareaRef.current;
@@ -72,14 +106,20 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
     resizeTextarea();
   }, [text, resizeTextarea]);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback((forceSend = false) => {
     const trimmed = text.trim();
     const readyFiles = attachedFiles.filter(f => !f.loading);
     if ((!trimmed && readyFiles.length === 0) || disabled) return;
+    if (!forceSend && readyFiles.length > 0 && !hasClearMaterialUsage(trimmed)) {
+      setShowUsageNudge(true);
+      textareaRef.current?.focus();
+      return;
+    }
     onSend(trimmed, readyFiles.map(({ id, type, name, url }) => ({ id, type, name, url })));
     setText('');
     setAttachedFiles([]);
-  }, [text, attachedFiles, disabled, onSend]);
+    setShowUsageNudge(false);
+  }, [text, attachedFiles, disabled, hasClearMaterialUsage, onSend]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -231,8 +271,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
     });
   };
 
-  const handleSendWithFiles = () => {
-    handleSend();
+  const handleSendWithFiles = (forceSend = false) => {
+    handleSend(forceSend);
   };
 
   const moveAttachedFile = (fromId: string, toId: string) => {
@@ -241,12 +281,122 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
       const fromIndex = prev.findIndex(file => file.id === fromId);
       const toIndex = prev.findIndex(file => file.id === toId);
       if (fromIndex < 0 || toIndex < 0) return prev;
+      if (prev[fromIndex].type !== prev[toIndex].type) {
+        toast('图片和文档需分别排序');
+        return prev;
+      }
       const next = [...prev];
       const [moved] = next.splice(fromIndex, 1);
       next.splice(toIndex, 0, moved);
       return next;
     });
   };
+
+  const getDocumentStyle = (name: string) => {
+    const ext = name.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') {
+      return { label: 'PDF', color: '#DC2626', background: '#FEF2F2', border: '#FECACA' };
+    }
+    if (ext === 'doc' || ext === 'docx') {
+      return { label: 'DOC', color: '#2563EB', background: '#EFF6FF', border: '#BFDBFE' };
+    }
+    if (ext === 'md') {
+      return { label: 'MD', color: '#7C3AED', background: '#F5F3FF', border: '#DDD6FE' };
+    }
+    return { label: 'FILE', color: '#64748B', background: '#F8FAFC', border: '#E2E8F0' };
+  };
+
+  const renderAttachmentItem = (file: AttachedFile, orderIndex: number) => (
+    (() => {
+      const docStyle = file.type === 'document' ? getDocumentStyle(file.name) : null;
+      return (
+        <div
+          key={file.id}
+          draggable={!file.loading}
+          onDragStart={() => { dragFileIdRef.current = file.id; }}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (dragFileIdRef.current) moveAttachedFile(dragFileIdRef.current, file.id);
+            dragFileIdRef.current = null;
+          }}
+          onDragEnd={() => { dragFileIdRef.current = null; }}
+          onMouseEnter={() => setHoveredFileId(file.id)}
+          onMouseLeave={() => setHoveredFileId(prev => prev === file.id ? null : prev)}
+          onClick={() => {
+            if (!file.loading && file.type === 'image' && file.url) {
+              setPreviewImage(file);
+            }
+          }}
+          title={file.type === 'image' ? '拖动可调整图片顺序，点击预览' : '拖动可调整文档顺序'}
+          style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: file.type === 'image' ? 'center' : 'flex-start',
+            gap: 7,
+            padding: file.type === 'image' ? 0 : '7px 8px',
+            background: docStyle?.background || '#F8FAFE',
+            borderRadius: 8,
+            border: `1px solid ${docStyle?.border || '#E2E8F0'}`,
+            overflow: 'hidden',
+            cursor: file.loading ? 'default' : file.type === 'image' ? 'zoom-in' : 'grab',
+            width: file.type === 'image' ? 64 : 132,
+            height: 64,
+            boxSizing: 'border-box',
+          }}
+        >
+          {!file.loading && hoveredFileId === file.id && (
+            <span style={styles.orderBadge}>{orderIndex + 1}</span>
+          )}
+          {file.loading ? (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '100%', height: '100%',
+            }}>
+              <div style={{
+                width: 18, height: 18, border: '2px solid #E2E8F0',
+                borderTopColor: '#00C9A7', borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite',
+              }} />
+            </div>
+          ) : file.type === 'image' && file.url ? (
+            <img src={file.url} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <>
+              <span style={{
+                ...styles.documentTypeBadge,
+                color: docStyle?.color,
+                borderColor: docStyle?.border,
+                background: '#FFFFFF',
+              }}>
+                {docStyle?.label}
+              </span>
+              <span style={styles.documentName}>{file.name}</span>
+            </>
+          )}
+          {!file.loading && hoveredFileId === file.id && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                removeAttachedFile(file.id);
+              }}
+              style={{
+                position: 'absolute', top: 2, right: 2,
+                width: 16, height: 16, borderRadius: '50%',
+                background: 'rgba(0,0,0,0.5)', border: 'none',
+                color: '#fff', fontSize: 10, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          )}
+        </div>
+      );
+    })()
+  );
 
   return (
     <>
@@ -291,102 +441,71 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
           )}
           {/* 已上传文件预览区 */}
           {attachedFiles.length > 0 && (
-            <div style={styles.attachmentTray}>
-              {attachedFiles.map((file, index) => (
-                <div
-                  key={file.id}
-                  draggable={!file.loading}
-                  onDragStart={() => { dragFileIdRef.current = file.id; }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (dragFileIdRef.current) moveAttachedFile(dragFileIdRef.current, file.id);
-                    dragFileIdRef.current = null;
-                  }}
-                  onDragEnd={() => { dragFileIdRef.current = null; }}
-                  onMouseEnter={() => setHoveredFileId(file.id)}
-                  onMouseLeave={() => setHoveredFileId(prev => prev === file.id ? null : prev)}
-                  onClick={() => {
-                    if (!file.loading && file.type === 'image' && file.url) {
-                      setPreviewImage(file);
-                    }
-                  }}
-                  title="拖动可调整材料顺序"
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: file.type === 'image' ? 'center' : 'flex-start',
-                    gap: 6,
-                    padding: file.type === 'image' ? 0 : '6px 10px',
-                    background: '#F8FAFE',
-                    borderRadius: 8,
-                    border: '1px solid #E2E8F0',
-                    overflow: 'hidden',
-                    cursor: file.loading ? 'default' : file.type === 'image' ? 'zoom-in' : 'grab',
-                    ...(file.type === 'image' ? { width: 64, height: 64 } : {}),
-                  }}
-                >
-                  {!file.loading && hoveredFileId === file.id && (
-                    <span style={styles.orderBadge}>{index + 1}</span>
+            <div style={styles.attachmentGroups}>
+              {imageFiles.length > 0 && (
+                <div style={styles.attachmentGroup}>
+                  {documentFiles.length > 0 && (
+                    <div style={styles.attachmentGroupLabel}>图片素材</div>
                   )}
-                  {file.loading ? (
-                    <div style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      width: '100%', height: '100%', minWidth: file.type === 'document' ? 80 : undefined,
-                    }}>
-                      <div style={{
-                        width: 18, height: 18, border: '2px solid #E2E8F0',
-                        borderTopColor: '#00C9A7', borderRadius: '50%',
-                        animation: 'spin 0.8s linear infinite',
-                      }} />
-                      {file.type === 'document' && (
-                        <span style={{ fontSize: 11, color: '#94A3B8', marginLeft: 6 }}>上传中...</span>
-                      )}
-                    </div>
-                  ) : file.type === 'image' && file.url ? (
-                    <img src={file.url} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <>
-                      <Paperclip size={14} color="#64748B" />
-                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <span style={{ fontSize: 12, color: '#334155', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                        <span style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>发送后识别用途</span>
-                      </div>
-                    </>
-                  )}
-                  {!file.loading && hoveredFileId === file.id && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeAttachedFile(file.id);
-                      }}
-                      style={{
-                        position: 'absolute', top: 2, right: 2,
-                        width: 16, height: 16, borderRadius: '50%',
-                        background: 'rgba(0,0,0,0.5)', border: 'none',
-                        color: '#fff', fontSize: 10, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        lineHeight: 1,
-                      }}
-                    >
-                      ×
-                    </button>
-                  )}
+                  <div style={styles.attachmentTray}>
+                    {imageFiles.map((file, index) => renderAttachmentItem(file, index))}
+                  </div>
                 </div>
-              ))}
+              )}
+              {documentFiles.length > 0 && (
+                <div style={styles.attachmentGroup}>
+                  {imageFiles.length > 0 && (
+                    <div style={styles.attachmentGroupLabel}>文档材料</div>
+                  )}
+                  <div style={styles.attachmentTray}>
+                    {documentFiles.map((file, index) => renderAttachmentItem(file, index))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {attachedFiles.length > 0 && (
+            <div style={showUsageNudge ? styles.usageNudgeActive : styles.usageNudge}>
+              <span>{usageNudgeText}</span>
+              {showUsageNudge && (
+                <div style={styles.usageNudgeActions}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowUsageNudge(false);
+                      textareaRef.current?.focus();
+                    }}
+                    style={styles.usageNudgeSecondary}
+                  >
+                    补充用途
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSendWithFiles(true)}
+                    style={styles.usageNudgePrimary}
+                  >
+                    继续发送
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           <textarea
             ref={textareaRef}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              if (showUsageNudge && hasClearMaterialUsage(e.target.value)) {
+                setShowUsageNudge(false);
+              }
+            }}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder={placeholder}
+            placeholder={materialUsagePlaceholder}
             disabled={disabled}
             rows={3}
             style={styles.textarea}
@@ -464,7 +583,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
                   cursor: canSend ? 'pointer' : 'not-allowed',
                 }}
                 disabled={!canSend}
-                onClick={handleSendWithFiles}
+                onClick={() => handleSendWithFiles()}
               >
                 <SendHorizontal size={18} color="#FFFFFF" />
               </button>
@@ -585,13 +704,118 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 700,
   },
+  attachmentGroups: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 12,
+    padding: '2px 0 8px',
+    marginBottom: 2,
+  },
+  attachmentGroup: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 8,
+    minWidth: 0,
+  },
+  attachmentGroupLabel: {
+    height: 22,
+    padding: '0 7px',
+    borderRadius: 999,
+    background: '#F1F5F9',
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: 700,
+    lineHeight: '22px',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+    marginTop: 4,
+  },
   attachmentTray: {
     display: 'flex',
     flexWrap: 'wrap',
     alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    minWidth: 0,
+  },
+  usageNudge: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 10,
-    padding: '2px 0 14px',
-    marginBottom: 2,
+    padding: '4px 0 8px',
+    color: '#94A3B8',
+    fontSize: 12,
+    lineHeight: 1.5,
+  },
+  usageNudgeActive: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    padding: '8px 10px',
+    margin: '2px 0 8px',
+    borderRadius: 8,
+    background: '#FFF7ED',
+    color: '#9A3412',
+    fontSize: 12,
+    lineHeight: 1.5,
+  },
+  usageNudgeActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 0,
+  },
+  usageNudgeSecondary: {
+    height: 26,
+    padding: '0 10px',
+    borderRadius: 6,
+    border: '1px solid #FDBA74',
+    background: '#FFFFFF',
+    color: '#C2410C',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  usageNudgePrimary: {
+    height: 26,
+    padding: '0 10px',
+    borderRadius: 6,
+    border: 'none',
+    background: '#F97316',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  documentTypeBadge: {
+    width: 34,
+    height: 22,
+    borderRadius: 5,
+    border: '1px solid #E2E8F0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: 0,
+    flexShrink: 0,
+  },
+  documentName: {
+    flex: 1,
+    minWidth: 0,
+    color: '#334155',
+    fontSize: 12,
+    fontWeight: 600,
+    lineHeight: '16px',
+    overflow: 'hidden',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    wordBreak: 'break-all',
   },
   orderBadge: {
     position: 'absolute',

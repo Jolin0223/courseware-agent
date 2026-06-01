@@ -140,7 +140,7 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
         }}>📚</div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>{courseware.title}</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 3 }}>{currentVersion} · 刚刚生成</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 3 }}>刚刚生成</div>
         </div>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 5,
@@ -148,7 +148,7 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
           padding: '6px 12px', borderRadius: 20, fontSize: 13, color: '#fff', fontWeight: 500,
         }}>
           <Sparkles size={14} />
-          生成完成
+          {currentVersion}
         </div>
       </div>
 

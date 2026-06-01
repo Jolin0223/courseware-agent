@@ -21,14 +21,33 @@ const grades = [
 
 type PublishMode = 'publish' | 'update' | 'new-game';
 
+interface UpdateTargetOption {
+  id: string;
+  name: string;
+  currentSessionNumber?: number;
+  nextSessionNumber?: number;
+  urlLabel?: string;
+}
+
 interface PublishModalProps {
   coursewareId: number;
   onClose: () => void;
   onPublishSuccess?: () => void;
   mode?: PublishMode;
+  updateTargets?: UpdateTargetOption[];
+  selectedUpdateTargetId?: string | null;
+  onUpdateTargetChange?: (id: string) => void;
 }
 
-export default function PublishModal({ coursewareId, onClose, onPublishSuccess, mode = 'publish' }: PublishModalProps) {
+export default function PublishModal({
+  coursewareId,
+  onClose,
+  onPublishSuccess,
+  mode = 'publish',
+  updateTargets = [],
+  selectedUpdateTargetId,
+  onUpdateTargetChange,
+}: PublishModalProps) {
   const { coursewares, addCourseware, updateCourseware } = useCoursewareStore();
 
   const courseware = useMemo(() => {
@@ -60,12 +79,17 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess, 
     return initial;
   });
   const tagDropdownRef = useRef<HTMLDivElement>(null);
+  const updateTargetDropdownRef = useRef<HTMLDivElement>(null);
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
+  const [updateTargetDropdownOpen, setUpdateTargetDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (tagDropdownRef.current && !tagDropdownRef.current.contains(e.target as Node)) {
         setTagDropdownOpen(false);
+      }
+      if (updateTargetDropdownRef.current && !updateTargetDropdownRef.current.contains(e.target as Node)) {
+        setUpdateTargetDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -124,6 +148,10 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess, 
       toast('请输入游戏名称');
       return;
     }
+    if (mode === 'update' && updateTargets.length > 1 && !selectedUpdateTargetId) {
+      toast('请选择要更新的互动游戏');
+      return;
+    }
     if (mode === 'new-game' && courseware) {
       const nextId = Math.max(...coursewares.map(item => item.id), coursewareId) + 1;
       addCourseware({
@@ -154,6 +182,8 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess, 
 
   const modalTitle = mode === 'update' ? '更新发布' : mode === 'new-game' ? '发布为新互动游戏' : '发布作品';
   const primaryText = mode === 'update' ? '确认更新发布' : mode === 'new-game' ? '确认发布为新游戏' : '确认发布';
+  const shouldShowUpdateTargets = mode === 'update' && updateTargets.length > 1;
+  const selectedUpdateTarget = updateTargets.find(target => target.id === selectedUpdateTargetId) || updateTargets[0];
 
   return (
     <motion.div
@@ -204,6 +234,65 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess, 
               <span style={styles.count}>{title.length} / 30</span>
             </div>
           </div>
+
+          {shouldShowUpdateTargets && selectedUpdateTarget && (
+            <div style={styles.field} ref={updateTargetDropdownRef}>
+              <label style={styles.label}><span style={styles.required}>*</span> 更新到哪个已发布游戏</label>
+              <button
+                type="button"
+                onClick={() => setUpdateTargetDropdownOpen(open => !open)}
+                style={{
+                  ...styles.updateTargetSelect,
+                  ...(updateTargetDropdownOpen ? styles.updateTargetSelectActive : {}),
+                }}
+              >
+                <span style={styles.updateTargetSelected}>
+                  <span style={styles.updateTargetName}>{selectedUpdateTarget.name}</span>
+                  <span style={styles.updateTargetMeta}>
+                    当前课件中使用：会话第 {selectedUpdateTarget.currentSessionNumber || '-'} 版；更新后替换为：会话第 {selectedUpdateTarget.nextSessionNumber || '-'} 版，原链接不变
+                  </span>
+                </span>
+                <ChevronDown
+                  size={16}
+                  color="#64748B"
+                  style={{
+                    flexShrink: 0,
+                    transform: updateTargetDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.15s',
+                  }}
+                />
+              </button>
+
+              {updateTargetDropdownOpen && (
+                <div style={styles.updateTargetDropdown}>
+                  {updateTargets.map(target => {
+                    const selected = selectedUpdateTargetId === target.id;
+                    return (
+                      <button
+                        key={target.id}
+                        type="button"
+                        onClick={() => {
+                          onUpdateTargetChange?.(target.id);
+                          setUpdateTargetDropdownOpen(false);
+                        }}
+                        style={{
+                          ...styles.updateTargetOption,
+                          ...(selected ? styles.updateTargetOptionActive : {}),
+                        }}
+                      >
+                        <span style={styles.updateTargetOptionTop}>
+                          <span style={styles.updateTargetName}>{target.name}</span>
+                          {selected && <Check size={15} color="#00A67D" strokeWidth={2.5} />}
+                        </span>
+                        <span style={styles.updateTargetMeta}>当前课件中使用：会话第 {target.currentSessionNumber || '-'} 版</span>
+                        <span style={styles.updateTargetMeta}>更新后替换为：会话第 {target.nextSessionNumber || '-'} 版，原链接不变</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* 科目 */}
           <div style={styles.field}>
@@ -457,6 +546,80 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     lineHeight: 1.5,
     marginBottom: 16,
+  },
+  updateTargetSelect: {
+    width: '100%',
+    minHeight: 52,
+    padding: '9px 12px',
+    borderRadius: 8,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'all 0.15s',
+  },
+  updateTargetSelectActive: {
+    borderColor: '#00C9A7',
+    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.08)',
+  },
+  updateTargetSelected: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 3,
+    minWidth: 0,
+    flex: 1,
+  },
+  updateTargetName: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#1E293B',
+    lineHeight: 1.35,
+  },
+  updateTargetMeta: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 1.45,
+  },
+  updateTargetDropdown: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    marginTop: 4,
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: 10,
+    boxShadow: '0 12px 28px rgba(15, 23, 42, 0.14)',
+    zIndex: 30,
+    maxHeight: 280,
+    overflowY: 'auto',
+    padding: 6,
+  },
+  updateTargetOption: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 4,
+    padding: '10px 12px',
+    borderRadius: 8,
+    border: 'none',
+    background: '#FFFFFF',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'background 0.12s',
+  },
+  updateTargetOptionActive: {
+    background: '#F0FDFA',
+  },
+  updateTargetOptionTop: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
   },
   inputWrap: {
     width: '100%',

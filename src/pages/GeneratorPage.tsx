@@ -10,11 +10,168 @@ import InspirationSection from '../components/Generator/InspirationSection';
 import { useConversationStore, simulateGeneration } from '../store/conversationStore';
 import { useUIStore } from '../store/uiStore';
 import { useCoursewareStore } from '../store/coursewareStore';
-import type { ConversationMessage, RequirementFramework, GenerationProgress, CoursewareResult, Courseware } from '../types';
+import type {
+  ConversationMessage,
+  RequirementFramework,
+  GenerationProgress,
+  CoursewareResult,
+  Courseware,
+  UploadedAttachment,
+  MaterialIntent,
+  MaterialIntentConfirmation,
+  MaterialIntentOption,
+  MaterialIntentResolution,
+  UserMaterialMessage,
+} from '../types';
 import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
 
 type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
+
+const imageIntentOptions: MaterialIntentOption[] = [
+  { intent: 'use-as-courseware-material', title: '作为课件素材', description: '直接用于背景、角色、道具或题目插图' },
+  { intent: 'use-as-style-reference', title: '作为风格参考', description: '只参考画风、配色和构图，不直接放进课件' },
+  { intent: 'extract-image-content', title: '提取图片内容', description: '识别图片中的文字、题目、知识点或版面信息' },
+];
+
+const documentIntentOptions: MaterialIntentOption[] = [
+  { intent: 'generate-from-document', title: '基于资料生成课件', description: '提取教学内容、知识点和练习，生成互动课件' },
+  { intent: 'use-as-requirement-doc', title: '作为需求说明', description: '读取老师写的流程、玩法、规则和设计要求' },
+  { intent: 'extract-document-questions', title: '提取题目', description: '只抽取题干、选项、答案和解析，用于题目互动' },
+];
+
+const getAttachmentLabel = (attachment: UploadedAttachment) => (
+  attachment.type === 'image' ? '图片' : '文档'
+);
+
+const buildAttachmentSummary = (attachments: UploadedAttachment[]) => {
+  const imageCount = attachments.filter(f => f.type === 'image').length;
+  const documentCount = attachments.filter(f => f.type === 'document').length;
+  const parts = [];
+  if (imageCount) parts.push(`${imageCount} 张图片`);
+  if (documentCount) parts.push(`${documentCount} 份文档`);
+  return parts.join('、');
+};
+
+const detectMaterialIntentForAttachment = (prompt: string, attachment: UploadedAttachment): MaterialIntentResolution | null => {
+  const text = prompt.toLowerCase();
+  if (attachment.type === 'image' && /(背景|角色|道具|素材|插图|放到|用这张图|用这个图|图片.*用|图.*作为|图片作为|图作为)/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'use-as-courseware-material',
+      title: '作为课件素材',
+      description: '直接用于背景、角色、道具或题目插图',
+      confidence: 0.88,
+      reason: 'prompt 中明确提到背景、角色、道具、素材或插图等用途',
+    };
+  }
+
+  if (attachment.type === 'image' && /(参考图片|参考这张图|参考这张图片|图片.*(风格|画风|配色|参考|类似|视觉)|图.*(风格|画风|配色|参考|类似|视觉)|(风格|画风|配色|视觉).*(图片|图|这张|照片)|像这张图|类似这张图)/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'use-as-style-reference',
+      title: '作为风格参考',
+      description: '只参考画风、配色和构图，不直接放进课件',
+      confidence: 0.86,
+      reason: 'prompt 中明确提到风格、画风、配色或参考',
+    };
+  }
+
+  if (attachment.type === 'image' && /((识别|提取|ocr).*(图片|图|这张|文字|题目|内容)|(图片|图|这张).*(文字|题目|内容|识别|提取))/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'extract-image-content',
+      title: '提取图片内容',
+      description: '识别图片中的文字、题目、知识点或版面信息',
+      confidence: 0.84,
+      reason: 'prompt 中明确提到识别、提取、文字或题目',
+    };
+  }
+
+  if (attachment.type === 'document' && /((文档|文件|word|pdf|讲义|教案|资料).*(题目|试题|练习|答案|解析|提取)|(题目|试题|练习|答案|解析).*(文档|文件|word|pdf|讲义|资料)|提取.*(题目|试题|练习|答案|解析))/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'extract-document-questions',
+      title: '提取题目',
+      description: '只抽取题干、选项、答案和解析，用于题目互动',
+      confidence: 0.9,
+      reason: 'prompt 中明确提到文档中的题目、练习、答案、解析或提取',
+    };
+  }
+
+  if (attachment.type === 'document' && /((文档|文件|word|pdf|需求|规则|玩法|说明|prd|流程|规范|评审反馈|修改意见).*(需求|规则|玩法|说明|prd|流程|规范|反馈|修改意见)|(pdf|word|文档|文件).*是.*(玩法|规则|需求|说明|反馈))/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'use-as-requirement-doc',
+      title: '作为需求说明',
+      description: '读取老师写的流程、玩法、规则和设计要求',
+      confidence: 0.86,
+      reason: 'prompt 中明确提到需求、规则、玩法、流程或规范',
+    };
+  }
+
+  if (attachment.type === 'document' && /((基于|根据|按照|用).*(这份|这个|文档|文件|pdf|word|讲义|教案|资料|知识点|教学内容|课程内容|课文|单词表).*(生成|做|制作|互动课件|游戏)|(讲义|教案|知识点|教学内容|课程内容|课文|单词表).*(生成|做成|制作|互动课件|游戏))/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'generate-from-document',
+      title: '基于资料生成课件',
+      description: '提取教学内容、知识点和练习，生成互动课件',
+      confidence: 0.88,
+      reason: 'prompt 中明确表达基于文档资料、讲义、教案或知识点生成课件',
+    };
+  }
+
+  if (text.trim().length === 0) return null;
+  return null;
+};
+
+const analyzeMaterialIntents = (prompt: string, attachments: UploadedAttachment[]) => {
+  const resolvedIntents: MaterialIntentResolution[] = [];
+  const pendingAttachments: UploadedAttachment[] = [];
+
+  attachments.forEach(attachment => {
+    const detected = detectMaterialIntentForAttachment(prompt, attachment);
+    if (detected) {
+      resolvedIntents.push(detected);
+    } else {
+      pendingAttachments.push(attachment);
+    }
+  });
+
+  return {
+    resolvedIntents,
+    pendingAttachments,
+  };
+};
+
+const buildIntentPrompt = (
+  prompt: string,
+  attachments: UploadedAttachment[],
+  resolutions: MaterialIntentResolution[],
+) => {
+  const intentLabels: Record<MaterialIntent, string> = {
+    'use-as-courseware-material': '将上传图片作为课件素材使用',
+    'use-as-style-reference': '将上传图片作为视觉风格参考',
+    'extract-image-content': '先提取图片中的文字、题目和知识点',
+    'generate-from-document': '基于上传文档中的教学资料生成互动课件',
+    'use-as-requirement-doc': '将上传文档作为需求说明和玩法规则补充',
+    'extract-document-questions': '先提取文档中的题目、答案和解析',
+    'custom': '按用户补充的其他用途处理',
+  };
+  const attachmentNames = attachments.map(f => `${getAttachmentLabel(f)}「${f.name}」`).join('、');
+  const usageLines = resolutions.map(item => {
+    const attachment = attachments.find(file => file.id === item.attachmentId);
+    return `${attachment ? `${getAttachmentLabel(attachment)}「${attachment.name}」` : '上传材料'}：${item.customText || intentLabels[item.intent]}`;
+  }).join('\n');
+  const originalPrompt = prompt.trim() || '请根据上传材料生成互动课件';
+  return `${originalPrompt}\n\n上传材料：${attachmentNames}\n材料用途：\n${usageLines}`;
+};
+
+const isUserMaterialMessage = (content: ConversationMessage['content']): content is UserMaterialMessage => (
+  typeof content === 'object'
+  && content !== null
+  && 'text' in content
+);
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -108,11 +265,355 @@ const styles: Record<string, React.CSSProperties> = {
   },
 };
 
-function UserMessage({ content }: { content: string }) {
+const intentCardStyles: Record<string, React.CSSProperties> = {
+  card: {
+    background: '#FFFFFF',
+    border: '1px solid #CFFAFE',
+    borderRadius: 12,
+    boxShadow: '0 8px 28px rgba(14, 165, 233, 0.08)',
+    padding: 16,
+    maxWidth: 720,
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  summary: {
+    fontSize: 13,
+    lineHeight: 1.5,
+    color: '#64748B',
+  },
+  badge: {
+    flexShrink: 0,
+    padding: '4px 8px',
+    borderRadius: 999,
+    background: '#FEF3C7',
+    color: '#B45309',
+    fontSize: 12,
+    fontWeight: 600,
+  },
+  pendingList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  },
+  pendingItem: {
+    padding: 12,
+    borderRadius: 10,
+    border: '1px solid #E2E8F0',
+    background: '#F8FAFC',
+  },
+  fileItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: 8,
+    borderRadius: 8,
+    background: '#F8FAFC',
+    border: '1px solid #E2E8F0',
+    minWidth: 0,
+  },
+  fileThumb: {
+    width: 36,
+    height: 36,
+    borderRadius: 6,
+    objectFit: 'cover',
+    flexShrink: 0,
+  },
+  fileIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 6,
+    background: 'linear-gradient(135deg, #E0F2FE, #CCFBF1)',
+    color: '#0284C7',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 13,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  fileName: {
+    fontSize: 13,
+    color: '#334155',
+    fontWeight: 600,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  fileType: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  options: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+    gap: 8,
+    marginTop: 10,
+  },
+  optionBtn: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
+    padding: '10px 12px',
+    borderRadius: 8,
+    border: '1px solid #A7F3D0',
+    background: '#F0FDF9',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'all 0.15s',
+  },
+  optionTitle: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#047857',
+  },
+  optionDesc: {
+    fontSize: 12,
+    lineHeight: 1.4,
+    color: '#64748B',
+  },
+  customRow: {
+    display: 'grid',
+    gridTemplateColumns: '88px 1fr',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  customLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    color: '#334155',
+    fontSize: 13,
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
+  },
+  customInput: {
+    width: '100%',
+    height: 34,
+    borderRadius: 8,
+    border: '1px solid #CBD5E1',
+    padding: '0 10px',
+    fontSize: 13,
+    color: '#0F172A',
+    outline: 'none',
+    background: '#FFFFFF',
+  },
+  footer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 14,
+    paddingTop: 12,
+    borderTop: '1px solid #E2E8F0',
+  },
+  footerHint: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 1.4,
+  },
+  confirmBtn: {
+    border: 'none',
+    borderRadius: 8,
+    padding: '9px 16px',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+};
+
+const userMessageStyles: Record<string, React.CSSProperties> = {
+  stack: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 8,
+    maxWidth: '80%',
+  },
+  imageGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  imageCard: {
+    width: 108,
+    height: 80,
+    padding: 0,
+    border: '2px solid #A7F3D0',
+    borderRadius: 10,
+    background: '#FFFFFF',
+    overflow: 'hidden',
+    cursor: 'zoom-in',
+    boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+  },
+  documentList: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 6,
+    width: '100%',
+  },
+  documentCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    maxWidth: 320,
+    padding: '9px 12px',
+    borderRadius: 10,
+    background: '#FFFFFF',
+    border: '1px solid #BAE6FD',
+    boxShadow: '0 6px 18px rgba(15, 23, 42, 0.06)',
+  },
+  documentIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    background: '#E0F2FE',
+    color: '#0284C7',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 13,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  documentName: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#0F172A',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  documentMeta: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  previewMask: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 3000,
+    background: 'rgba(15, 23, 42, 0.62)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  previewDialog: {
+    maxWidth: '78vw',
+    maxHeight: '84vh',
+    background: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    boxShadow: '0 24px 80px rgba(15, 23, 42, 0.28)',
+  },
+  previewImage: {
+    display: 'block',
+    maxWidth: '78vw',
+    maxHeight: '74vh',
+    objectFit: 'contain',
+  },
+  previewFooter: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    padding: '10px 12px',
+    fontSize: 13,
+    color: '#334155',
+    borderTop: '1px solid #E2E8F0',
+  },
+  previewClose: {
+    border: 'none',
+    borderRadius: 6,
+    padding: '6px 12px',
+    background: '#00C9A7',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+};
+
+function UserMessage({ content }: { content: string | UserMaterialMessage }) {
+  const [previewImage, setPreviewImage] = useState<UploadedAttachment | null>(null);
+  const message = typeof content === 'string' ? { text: content } : content;
+  const images = message.attachments?.filter(file => file.type === 'image') || [];
+  const documents = message.attachments?.filter(file => file.type === 'document') || [];
+
   return (
-    <div style={styles.messageUser}>
-      <div style={styles.userBubble}>{content}</div>
-    </div>
+    <>
+      <div style={styles.messageUser}>
+        <div style={userMessageStyles.stack}>
+          {images.length > 0 && (
+            <div style={userMessageStyles.imageGrid}>
+              {images.map(image => (
+                <button
+                  key={image.id}
+                  onClick={() => setPreviewImage(image)}
+                  style={userMessageStyles.imageCard}
+                  title="点击预览图片"
+                >
+                  <img src={image.url} alt={image.name} style={userMessageStyles.image} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {documents.length > 0 && (
+            <div style={userMessageStyles.documentList}>
+              {documents.map(doc => (
+                <div key={doc.id} style={userMessageStyles.documentCard}>
+                  <span style={userMessageStyles.documentIcon}>文</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={userMessageStyles.documentName}>{doc.name}</div>
+                    <div style={userMessageStyles.documentMeta}>PDF / Word 附件</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {message.text && (
+            <div style={{ ...styles.userBubble, whiteSpace: 'pre-wrap' }}>{message.text}</div>
+          )}
+        </div>
+      </div>
+
+      {previewImage?.url && (
+        <div style={userMessageStyles.previewMask} onClick={() => setPreviewImage(null)}>
+          <div style={userMessageStyles.previewDialog} onClick={e => e.stopPropagation()}>
+            <img src={previewImage.url} alt={previewImage.name} style={userMessageStyles.previewImage} />
+            <div style={userMessageStyles.previewFooter}>
+              <span>{previewImage.name}</span>
+              <button onClick={() => setPreviewImage(null)} style={userMessageStyles.previewClose}>关闭</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -151,7 +652,136 @@ const SimpleStreamText: React.FC<{ text: string; speed?: number }> = ({ text, sp
   );
 };
 
-function AssistantMessage({ message, phase, frameworkDone, onFrameworkStreamComplete, streamDuration, onRetry, onContinue }: { 
+function MaterialIntentCard({
+  confirmation,
+  onConfirm,
+}: {
+  confirmation: MaterialIntentConfirmation;
+  onConfirm?: (resolutions: MaterialIntentResolution[]) => void;
+}) {
+  const [selectedIntents, setSelectedIntents] = useState<Record<string, MaterialIntent>>({});
+  const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
+  const allSelected = confirmation.pendingAttachments.every(file => selectedIntents[file.id]);
+
+  const getOptions = (file: UploadedAttachment) => (
+    file.type === 'image' ? imageIntentOptions : documentIntentOptions
+  );
+
+  const handleConfirm = () => {
+    if (!allSelected) return;
+    const resolutions = confirmation.pendingAttachments.map(file => {
+      const intent = selectedIntents[file.id];
+      const option = getOptions(file).find(item => item.intent === intent);
+      const customText = customTexts[file.id]?.trim();
+      return {
+        attachmentId: file.id,
+        intent,
+        title: intent === 'custom' ? '其他用途' : option?.title || '按所选用途处理',
+        description: intent === 'custom' ? customText || '按用户输入的其他用途处理' : option?.description || '',
+        confidence: intent === 'custom' ? 1 : 0.96,
+        customText,
+        reason: '用户在用途确认卡中手动确认',
+      };
+    });
+    onConfirm?.(resolutions);
+  };
+
+  return (
+    <div style={intentCardStyles.card}>
+      <div style={intentCardStyles.header}>
+        <div>
+          <div style={intentCardStyles.title}>请确认上传材料的用途</div>
+          <div style={intentCardStyles.summary}>{confirmation.summary}</div>
+        </div>
+        <div style={intentCardStyles.badge}>需逐个确认</div>
+      </div>
+
+      <div style={intentCardStyles.pendingList}>
+        {confirmation.pendingAttachments.map(file => {
+          const selected = selectedIntents[file.id];
+          return (
+            <div key={file.id} style={intentCardStyles.pendingItem}>
+              <div style={intentCardStyles.fileItem}>
+                {file.type === 'image' && file.url ? (
+                  <img src={file.url} alt={file.name} style={intentCardStyles.fileThumb} />
+                ) : (
+                  <div style={intentCardStyles.fileIcon}>{file.type === 'image' ? '图' : '文'}</div>
+                )}
+                <div style={{ minWidth: 0 }}>
+                  <div style={intentCardStyles.fileName}>{file.name}</div>
+                  <div style={intentCardStyles.fileType}>{getAttachmentLabel(file)} · 请选择用途</div>
+                </div>
+              </div>
+
+              <div style={intentCardStyles.options}>
+                {getOptions(file).map(option => (
+                  <button
+                    key={option.intent}
+                    onClick={() => setSelectedIntents(prev => ({ ...prev, [file.id]: option.intent }))}
+                    style={{
+                      ...intentCardStyles.optionBtn,
+                      borderColor: selected === option.intent ? '#00C9A7' : '#A7F3D0',
+                      background: selected === option.intent ? '#CCFBF1' : '#F0FDF9',
+                    }}
+                  >
+                    <span style={intentCardStyles.optionTitle}>{option.title}</span>
+                    <span style={intentCardStyles.optionDesc}>{option.description}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div style={intentCardStyles.customRow}>
+                <label style={intentCardStyles.customLabel}>
+                  <input
+                    type="radio"
+                    checked={selected === 'custom'}
+                    onChange={() => setSelectedIntents(prev => ({ ...prev, [file.id]: 'custom' }))}
+                  />
+                  其他用途
+                </label>
+                <input
+                  value={customTexts[file.id] || ''}
+                  onChange={e => {
+                    setCustomTexts(prev => ({ ...prev, [file.id]: e.target.value }));
+                    setSelectedIntents(prev => ({ ...prev, [file.id]: 'custom' }));
+                  }}
+                  placeholder="例如：只用来补充例题语境、只参考版式，不参与生成..."
+                  style={intentCardStyles.customInput}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={intentCardStyles.footer}>
+        <span style={intentCardStyles.footerHint}>确认后，AI 会把每个材料的用途写入需求分析。</span>
+        <button
+          onClick={handleConfirm}
+          disabled={!allSelected}
+          style={{
+            ...intentCardStyles.confirmBtn,
+            background: allSelected ? '#00C9A7' : '#CBD5E1',
+            cursor: allSelected ? 'pointer' : 'not-allowed',
+          }}
+        >
+          确认用途并继续
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AssistantMessage({
+  message,
+  phase,
+  frameworkDone,
+  onFrameworkStreamComplete,
+  streamDuration,
+  onRetry,
+  onContinue,
+  onMaterialIntentConfirm,
+}: { 
   message: ConversationMessage; 
   phase?: string;
   frameworkDone?: boolean;
@@ -159,6 +789,7 @@ function AssistantMessage({ message, phase, frameworkDone, onFrameworkStreamComp
   streamDuration?: number;
   onRetry?: (stageIndex: number) => void;
   onContinue?: (stageIndex: number) => void;
+  onMaterialIntentConfirm?: (messageId: string, resolutions: MaterialIntentResolution[]) => void;
 }) {
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
@@ -218,6 +849,20 @@ function AssistantMessage({ message, phase, frameworkDone, onFrameworkStreamComp
         <AIAvatar />
         <div style={{ flex: 1, minWidth: 0 }}>
           <CoursewareCard courseware={courseware} version={`v${versionNum}.0`} isLatest={isLatestVersion} />
+        </div>
+      </div>
+    );
+  }
+
+  if (message.type === 'material-intent-confirmation') {
+    return (
+      <div style={styles.messageAssistant}>
+        <AIAvatar />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <MaterialIntentCard
+            confirmation={message.content as MaterialIntentConfirmation}
+            onConfirm={(resolutions) => onMaterialIntentConfirm?.(message.id, resolutions)}
+          />
         </div>
       </div>
     );
@@ -291,6 +936,25 @@ export default function GeneratorPage() {
   const hasMessages = activeConversation && activeConversation.messages.length > 0;
   const chatAreaRef = useRef<HTMLDivElement>(null);
 
+  const startRequirementFlow = useCallback((convId: string, promptForFramework: string) => {
+    setPhase('analyzing');
+    setFrameworkDone(false);
+
+    setTimeout(() => {
+      addAssistantMessage(convId, '我已理解您的需求，正在为您生成需求确认框架。', 'text');
+      setPhase('loading-framework');
+      
+      const framework = generateRequirementFromPrompt(promptForFramework);
+      pendingFrameworkRef.current = convId;
+
+      frameworkTimerRef.current = setTimeout(() => {
+        addAssistantMessage(convId, framework, 'requirement-framework');
+        setPhase('framework');
+        pendingFrameworkRef.current = null;
+      }, 10000);
+    }, 1500);
+  }, [addAssistantMessage]);
+
   useEffect(() => {
     if (chatAreaRef.current) {
       requestAnimationFrame(() => {
@@ -317,11 +981,11 @@ export default function GeneratorPage() {
     }
   }, [activeConversationId]);
   
-  const handleSend = useCallback((text: string) => {
+  const handleSend = useCallback((text: string, attachments: UploadedAttachment[] = []) => {
     let convId = activeConversationId;
     
     if (!convId) {
-      convId = createNewConversation(text);
+      convId = createNewConversation(text || '上传材料生成互动课件');
     }
 
     // 触发失败模拟：输入包含 "模拟失败" 或 "fail:" 关键词
@@ -333,25 +997,37 @@ export default function GeneratorPage() {
       failAtStageRef.current = undefined;
     }
     
-    addUserMessage(convId, text);
-    setPhase('analyzing');
-    setFrameworkDone(false);
-    
-    // 分析 loading → AI 文案 → 小圆点loading 30秒 → 需求框架（流式）
-    setTimeout(() => {
-      addAssistantMessage(convId!, '我已理解您的需求，正在为您生成需求确认框架。', 'text');
-      setPhase('loading-framework');
-      
-      const framework = generateRequirementFromPrompt(text);
-      pendingFrameworkRef.current = convId!;
+    addUserMessage(convId, {
+      text: text || '请帮我看看这些上传材料',
+      attachments,
+    });
 
-      frameworkTimerRef.current = setTimeout(() => {
-        addAssistantMessage(convId!, framework, 'requirement-framework');
-        setPhase('framework');
-        pendingFrameworkRef.current = null;
-      }, 10000);
-    }, 1500);
-  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage]);
+    if (attachments.length > 0) {
+      const { resolvedIntents, pendingAttachments } = analyzeMaterialIntents(text, attachments);
+      if (pendingAttachments.length > 0) {
+        addAssistantMessage(convId, {
+          prompt: text,
+          pendingAttachments,
+          resolvedIntents,
+          summary: resolvedIntents.length > 0
+            ? `已自动识别 ${resolvedIntents.length} 个材料用途，还有 ${pendingAttachments.length} 个材料需要你确认。`
+            : `已收到${buildAttachmentSummary(attachments)}，但还需要逐个确认用途。`,
+        }, 'material-intent-confirmation');
+        setPhase('input');
+        return;
+      }
+
+      addAssistantMessage(
+        convId,
+        `已识别 ${resolvedIntents.length} 个上传材料用途：\n${resolvedIntents.map(item => `- ${item.title}：${item.reason}`).join('\n')}\n接下来我会把这些用途带入需求分析。`,
+        'text'
+      );
+      startRequirementFlow(convId, buildIntentPrompt(text, attachments, resolvedIntents));
+      return;
+    }
+
+    startRequirementFlow(convId, text);
+  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, startRequirementFlow]);
   
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
@@ -552,6 +1228,42 @@ export default function GeneratorPage() {
     pendingFrameworkRef.current = null;
     handleConfirmFramework('我已跳过确认需求，直接生成吧~');
   }, [handleConfirmFramework]);
+
+  const handleMaterialIntentConfirm = useCallback((messageId: string, resolutions: MaterialIntentResolution[]) => {
+    if (!activeConversationId) return;
+    const message = activeConversation?.messages.find(m => m.id === messageId);
+    if (!message || message.type !== 'material-intent-confirmation') return;
+
+    const confirmation = message.content as MaterialIntentConfirmation;
+    const allAttachments = [
+      ...confirmation.pendingAttachments,
+      ...confirmation.resolvedIntents
+        .map(item => {
+          const userMessages = activeConversation?.messages.filter(m => m.role === 'user') || [];
+          for (const userMessage of userMessages) {
+            if (isUserMaterialMessage(userMessage.content)) {
+              const found = userMessage.content.attachments?.find((file: UploadedAttachment) => file.id === item.attachmentId);
+              if (found) return found;
+            }
+          }
+          return undefined;
+        })
+        .filter((item): item is UploadedAttachment => Boolean(item)),
+    ];
+    const allResolutions = [...confirmation.resolvedIntents, ...resolutions];
+    const originalPrompt = confirmation.prompt || '请根据上传材料生成互动课件';
+
+    addUserMessage(activeConversationId, {
+      text: `我已确认 ${resolutions.length} 个材料用途`,
+      resolvedIntents: allResolutions,
+    });
+    addAssistantMessage(
+      activeConversationId,
+      `好的，已确认全部上传材料用途：\n${allResolutions.map(item => `- ${item.title}：${item.customText || item.description}`).join('\n')}\n接下来我会把这些用途带入需求分析。`,
+      'text'
+    );
+    startRequirementFlow(activeConversationId, buildIntentPrompt(originalPrompt, allAttachments, allResolutions));
+  }, [activeConversationId, activeConversation, addUserMessage, addAssistantMessage, startRequirementFlow]);
   
   const renderContent = () => {
     if (!hasMessages && phase === 'input') {
@@ -593,6 +1305,7 @@ export default function GeneratorPage() {
                       streamDuration={activeConversation?.title.startsWith('同款-') ? 2000 : undefined}
                       onRetry={handleRetryStage}
                       onContinue={handleContinueStage}
+                      onMaterialIntentConfirm={handleMaterialIntentConfirm}
                     />
                   )}
                 </motion.div>

@@ -7,9 +7,10 @@ import {
   Square,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
+import type { UploadedAttachment } from '../../types';
 
 interface ChatInputProps {
-  onSend: (text: string) => void;
+  onSend: (text: string, attachments?: UploadedAttachment[]) => void;
   disabled?: boolean;
   isGenerating?: boolean;
   onStop?: () => void;
@@ -20,6 +21,9 @@ interface ChatInputProps {
 const LINE_HEIGHT = 22.5;
 const MAX_LINES = 5;
 const MAX_HEIGHT = LINE_HEIGHT * MAX_LINES;
+const MAX_IMAGE_COUNT = 10;
+const MAX_DOCUMENT_COUNT = 10;
+const SUPPORTED_DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'md'];
 
 const HOVER_CSS = `
   .ci-icon-btn:hover { color: #22C55E !important; background: #F0FDF4 !important; }
@@ -29,7 +33,7 @@ import toast from '../../utils/toast';
 
 interface AttachedFile {
   id: string;
-  type: 'image' | 'file';
+  type: 'image' | 'document';
   name: string;
   url?: string;
   loading?: boolean;
@@ -44,9 +48,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const dragFileIdRef = useRef<string | null>(null);
 
   const [stopTooltip, setStopTooltip] = useState(false);
 
@@ -66,10 +74,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
 
   const handleSend = useCallback(() => {
     const trimmed = text.trim();
-    if (!trimmed || disabled) return;
-    onSend(trimmed);
+    const readyFiles = attachedFiles.filter(f => !f.loading);
+    if ((!trimmed && readyFiles.length === 0) || disabled) return;
+    onSend(trimmed, readyFiles.map(({ id, type, name, url }) => ({ id, type, name, url })));
     setText('');
-  }, [text, disabled, onSend]);
+    setAttachedFiles([]);
+  }, [text, attachedFiles, disabled, onSend]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -86,10 +96,23 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
     fileInputRef.current?.click();
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    Array.from(files).forEach(file => {
+  const isSupportedDocument = (file: File) => {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    return SUPPORTED_DOCUMENT_EXTENSIONS.includes(ext);
+  };
+
+  const addImageFiles = (files: File[]) => {
+    const currentImageCount = attachedFiles.filter(f => f.type === 'image').length;
+    const availableSlots = MAX_IMAGE_COUNT - currentImageCount;
+    if (availableSlots <= 0) {
+      toast(`最多可上传 ${MAX_IMAGE_COUNT} 张图片`);
+      return;
+    }
+    const validFiles = files.filter(file => file.type.startsWith('image/'));
+    if (validFiles.length > availableSlots) {
+      toast(`最多可上传 ${MAX_IMAGE_COUNT} 张图片，本次仅添加前 ${availableSlots} 张`);
+    }
+    validFiles.slice(0, availableSlots).forEach(file => {
       if (!file.type.startsWith('image/')) return;
       const id = Date.now().toString() + Math.random();
       setAttachedFiles(prev => [...prev, { id, type: 'image', name: file.name, loading: true }]);
@@ -99,21 +122,51 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
         toast(`图片 "${file.name}" 已添加`);
       }, 800 + Math.random() * 600);
     });
+  };
+
+  const addDocumentFiles = (files: File[]) => {
+    const currentDocumentCount = attachedFiles.filter(f => f.type === 'document').length;
+    const availableSlots = MAX_DOCUMENT_COUNT - currentDocumentCount;
+    if (availableSlots <= 0) {
+      toast(`最多可上传 ${MAX_DOCUMENT_COUNT} 个附件`);
+      return;
+    }
+    const validFiles = files.filter(isSupportedDocument);
+    if (validFiles.length < files.length) {
+      toast('附件仅支持 PDF、Word 和 MD 格式');
+    }
+    if (validFiles.length > availableSlots) {
+      toast(`最多可上传 ${MAX_DOCUMENT_COUNT} 个附件，本次仅添加前 ${availableSlots} 个`);
+    }
+    validFiles.slice(0, availableSlots).forEach(file => {
+      const id = Date.now().toString() + Math.random();
+      setAttachedFiles(prev => [...prev, { id, type: 'document', name: file.name, loading: true }]);
+      setTimeout(() => {
+        setAttachedFiles(prev => prev.map(f => f.id === id ? { ...f, loading: false } : f));
+        toast(`文件 "${file.name}" 已添加`);
+      }, 1000 + Math.random() * 800);
+    });
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    addImageFiles(Array.from(files));
     e.target.value = '';
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    Array.from(files).forEach(file => {
-      const id = Date.now().toString() + Math.random();
-      setAttachedFiles(prev => [...prev, { id, type: 'file', name: file.name, loading: true }]);
-      setTimeout(() => {
-        setAttachedFiles(prev => prev.map(f => f.id === id ? { ...f, loading: false } : f));
-        toast(`文件 "${file.name}" 已添加`);
-      }, 1000 + Math.random() * 800);
-    });
+    addDocumentFiles(Array.from(files));
     e.target.value = '';
+  };
+
+  const handleDropUpload = (files: File[]) => {
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    const documentFiles = files.filter(file => !file.type.startsWith('image/'));
+    if (imageFiles.length) addImageFiles(imageFiles);
+    if (documentFiles.length) addDocumentFiles(documentFiles);
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -125,6 +178,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
       if (item.type.startsWith('image/')) {
         const file = item.getAsFile();
         if (file) {
+          if (attachedFiles.filter(f => f.type === 'image').length >= MAX_IMAGE_COUNT) {
+            toast(`最多可上传 ${MAX_IMAGE_COUNT} 张图片`);
+            continue;
+          }
           hasFile = true;
           const id = Date.now().toString() + Math.random();
           setAttachedFiles(prev => [...prev, {
@@ -141,9 +198,18 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
       } else if (item.kind === 'file') {
         const file = item.getAsFile();
         if (file && !file.type.startsWith('image/')) {
+          const ext = file.name.split('.').pop()?.toLowerCase() || '';
+          if (!SUPPORTED_DOCUMENT_EXTENSIONS.includes(ext)) {
+            toast('附件仅支持 PDF、Word 和 MD 格式');
+            continue;
+          }
+          if (attachedFiles.filter(f => f.type === 'document').length >= MAX_DOCUMENT_COUNT) {
+            toast(`最多可上传 ${MAX_DOCUMENT_COUNT} 个附件`);
+            continue;
+          }
           hasFile = true;
           const id = Date.now().toString() + Math.random();
-          setAttachedFiles(prev => [...prev, { id, type: 'file', name: file.name, loading: true }]);
+          setAttachedFiles(prev => [...prev, { id, type: 'document', name: file.name, loading: true }]);
           setTimeout(() => {
             setAttachedFiles(prev => prev.map(f => f.id === id ? { ...f, loading: false } : f));
             toast(`文件 "${file.name}" 已粘贴添加`);
@@ -166,57 +232,115 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
   };
 
   const handleSendWithFiles = () => {
-    if (attachedFiles.length > 0) {
-      const fileNames = attachedFiles.map(f => f.name).join(', ');
-      toast(`发送消息（包含 ${attachedFiles.length} 个附件：${fileNames}）`);
-      // 清理附件
-      attachedFiles.forEach(f => {
-        if (f.url) URL.revokeObjectURL(f.url);
-      });
-      setAttachedFiles([]);
-    }
     handleSend();
+  };
+
+  const moveAttachedFile = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    setAttachedFiles(prev => {
+      const fromIndex = prev.findIndex(file => file.id === fromId);
+      const toIndex = prev.findIndex(file => file.id === toId);
+      if (fromIndex < 0 || toIndex < 0) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
   };
 
   return (
     <>
       <style>{HOVER_CSS}</style>
       <input ref={imageInputRef} type="file" accept="image/*" multiple hidden onChange={handleImageSelect} />
-      <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" multiple hidden onChange={handleFileSelect} />
+      <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" multiple hidden onChange={handleFileSelect} />
       <div style={centered ? styles.wrapperCentered : styles.wrapperBottom}>
         <div
+          onDragEnter={(e) => {
+            if (Array.from(e.dataTransfer.types).includes('Files')) {
+              e.preventDefault();
+              setIsDraggingFiles(true);
+            }
+          }}
+          onDragOver={(e) => {
+            if (Array.from(e.dataTransfer.types).includes('Files')) {
+              e.preventDefault();
+              setIsDraggingFiles(true);
+            }
+          }}
+          onDragLeave={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+              setIsDraggingFiles(false);
+            }
+          }}
+          onDrop={(e) => {
+            if (e.dataTransfer.files.length === 0) return;
+            e.preventDefault();
+            setIsDraggingFiles(false);
+            handleDropUpload(Array.from(e.dataTransfer.files));
+          }}
           style={{
             ...styles.container,
-            border: isFocused ? '2px solid #00C9A7' : '1px solid #E2E8F0',
+            border: isDraggingFiles
+              ? '2px dashed #00C9A7'
+              : isFocused ? '2px solid #00C9A7' : '1px solid #E2E8F0',
+            background: isDraggingFiles ? '#F0FDF9' : '#FFFFFF',
           }}
         >
+          {isDraggingFiles && (
+            <div style={styles.dragHint}>松开即可上传图片、PDF、Word 或 MD 材料</div>
+          )}
           {/* 已上传文件预览区 */}
           {attachedFiles.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '4px 14px 4px' }}>
-              {attachedFiles.map(file => (
-                <div key={file.id} style={{
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: file.type === 'image' ? 0 : '6px 10px',
-                  background: '#F8FAFE',
-                  borderRadius: 8,
-                  border: '1px solid #E2E8F0',
-                  overflow: 'hidden',
-                  ...(file.type === 'image' ? { width: 64, height: 64 } : {}),
-                }}>
+            <div style={styles.attachmentTray}>
+              {attachedFiles.map((file, index) => (
+                <div
+                  key={file.id}
+                  draggable={!file.loading}
+                  onDragStart={() => { dragFileIdRef.current = file.id; }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragFileIdRef.current) moveAttachedFile(dragFileIdRef.current, file.id);
+                    dragFileIdRef.current = null;
+                  }}
+                  onDragEnd={() => { dragFileIdRef.current = null; }}
+                  onMouseEnter={() => setHoveredFileId(file.id)}
+                  onMouseLeave={() => setHoveredFileId(prev => prev === file.id ? null : prev)}
+                  onClick={() => {
+                    if (!file.loading && file.type === 'image' && file.url) {
+                      setPreviewImage(file);
+                    }
+                  }}
+                  title="拖动可调整材料顺序"
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: file.type === 'image' ? 'center' : 'flex-start',
+                    gap: 6,
+                    padding: file.type === 'image' ? 0 : '6px 10px',
+                    background: '#F8FAFE',
+                    borderRadius: 8,
+                    border: '1px solid #E2E8F0',
+                    overflow: 'hidden',
+                    cursor: file.loading ? 'default' : file.type === 'image' ? 'zoom-in' : 'grab',
+                    ...(file.type === 'image' ? { width: 64, height: 64 } : {}),
+                  }}
+                >
+                  {!file.loading && hoveredFileId === file.id && (
+                    <span style={styles.orderBadge}>{index + 1}</span>
+                  )}
                   {file.loading ? (
                     <div style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      width: '100%', height: '100%', minWidth: file.type === 'file' ? 80 : undefined,
+                      width: '100%', height: '100%', minWidth: file.type === 'document' ? 80 : undefined,
                     }}>
                       <div style={{
                         width: 18, height: 18, border: '2px solid #E2E8F0',
                         borderTopColor: '#00C9A7', borderRadius: '50%',
                         animation: 'spin 0.8s linear infinite',
                       }} />
-                      {file.type === 'file' && (
+                      {file.type === 'document' && (
                         <span style={{ fontSize: 11, color: '#94A3B8', marginLeft: 6 }}>上传中...</span>
                       )}
                     </div>
@@ -225,12 +349,18 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
                   ) : (
                     <>
                       <Paperclip size={14} color="#64748B" />
-                      <span style={{ fontSize: 12, color: '#334155', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <span style={{ fontSize: 12, color: '#334155', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                        <span style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>发送后识别用途</span>
+                      </div>
                     </>
                   )}
-                  {!file.loading && (
+                  {!file.loading && hoveredFileId === file.id && (
                     <button
-                      onClick={() => removeAttachedFile(file.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeAttachedFile(file.id);
+                      }}
                       style={{
                         position: 'absolute', top: 2, right: 2,
                         width: 16, height: 16, borderRadius: '50%',
@@ -334,7 +464,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
                   cursor: canSend ? 'pointer' : 'not-allowed',
                 }}
                 disabled={!canSend}
-                onClick={handleSend}
+                onClick={handleSendWithFiles}
               >
                 <SendHorizontal size={18} color="#FFFFFF" />
               </button>
@@ -409,6 +539,18 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
           </div>
         </div>
       )}
+
+      {previewImage?.url && (
+        <div style={styles.previewMask} onClick={() => setPreviewImage(null)}>
+          <div style={styles.previewDialog} onClick={e => e.stopPropagation()}>
+            <img src={previewImage.url} alt={previewImage.name} style={styles.previewImage} />
+            <div style={styles.previewFooter}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{previewImage.name}</span>
+              <button onClick={() => setPreviewImage(null)} style={styles.previewClose}>关闭</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -427,8 +569,46 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 16,
     border: '1px solid #E2E8F0',
     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    padding: '20px 24px',
+    padding: '18px 24px',
     minWidth: 320,
+    transition: 'border 0.15s, background 0.15s',
+  },
+  dragHint: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 36,
+    marginBottom: 10,
+    borderRadius: 10,
+    background: '#CCFBF1',
+    color: '#047857',
+    fontSize: 13,
+    fontWeight: 700,
+  },
+  attachmentTray: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 10,
+    padding: '2px 0 14px',
+    marginBottom: 2,
+  },
+  orderBadge: {
+    position: 'absolute',
+    left: 3,
+    top: 3,
+    minWidth: 16,
+    height: 16,
+    padding: '0 4px',
+    borderRadius: 999,
+    background: 'rgba(15, 23, 42, 0.62)',
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 700,
+    lineHeight: '16px',
+    textAlign: 'center',
+    zIndex: 2,
+    pointerEvents: 'none',
   },
   textarea: {
     width: '100%',
@@ -474,6 +654,51 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '50%',
     border: 'none',
     transition: 'background 0.15s',
+  },
+  previewMask: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 3000,
+    background: 'rgba(15, 23, 42, 0.62)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  previewDialog: {
+    maxWidth: '78vw',
+    maxHeight: '84vh',
+    background: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    boxShadow: '0 24px 80px rgba(15, 23, 42, 0.28)',
+  },
+  previewImage: {
+    display: 'block',
+    maxWidth: '78vw',
+    maxHeight: '74vh',
+    objectFit: 'contain',
+  },
+  previewFooter: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    padding: '10px 12px',
+    fontSize: 13,
+    color: '#334155',
+    borderTop: '1px solid #E2E8F0',
+  },
+  previewClose: {
+    border: 'none',
+    borderRadius: 6,
+    padding: '6px 12px',
+    background: '#00C9A7',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    flexShrink: 0,
   },
 };
 

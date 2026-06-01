@@ -25,6 +25,7 @@ export type MessageType =
   | 'requirement-framework'
   | 'generation-progress'
   | 'courseware-result'
+  | 'material-intent-confirmation'
   | 'analyzing';
 
 export interface RequirementFramework {
@@ -59,10 +60,57 @@ export interface CoursewareResult {
   htmlContent?: string;
 }
 
+export type UploadedAttachmentType = 'image' | 'document';
+
+export interface UploadedAttachment {
+  id: string;
+  type: UploadedAttachmentType;
+  name: string;
+  url?: string;
+}
+
+export type MaterialIntent =
+  | 'use-as-courseware-material'
+  | 'use-as-style-reference'
+  | 'extract-image-content'
+  | 'generate-from-document'
+  | 'use-as-requirement-doc'
+  | 'extract-document-questions'
+  | 'custom';
+
+export interface MaterialIntentOption {
+  intent: MaterialIntent;
+  title: string;
+  description: string;
+}
+
+export interface MaterialIntentResolution {
+  attachmentId: string;
+  intent: MaterialIntent;
+  title: string;
+  description: string;
+  confidence: number;
+  reason?: string;
+  customText?: string;
+}
+
+export interface MaterialIntentConfirmation {
+  prompt: string;
+  pendingAttachments: UploadedAttachment[];
+  resolvedIntents: MaterialIntentResolution[];
+  summary: string;
+}
+
+export interface UserMaterialMessage {
+  text: string;
+  attachments?: UploadedAttachment[];
+  resolvedIntents?: MaterialIntentResolution[];
+}
+
 export interface ConversationMessage {
   id: string;
   role: MessageRole;
-  content: string | RequirementFramework | GenerationProgress | CoursewareResult;
+  content: string | UserMaterialMessage | RequirementFramework | GenerationProgress | CoursewareResult | MaterialIntentConfirmation;
   type?: MessageType;
   timestamp: Date;
 }

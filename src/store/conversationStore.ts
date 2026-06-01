@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Conversation, ConversationMessage, GenerationProgress, GenerationStage, CoursewareResult, RequirementFramework } from '../types';
+import type { Conversation, ConversationMessage, GenerationProgress, GenerationStage, CoursewareResult, RequirementFramework, UserMaterialMessage } from '../types';
 import { mockConversations, createEmptyConversation, generateRequirementFromPrompt } from '../data/mockConversations';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
@@ -18,7 +18,7 @@ interface ConversationState {
   deleteConversation: (id: string) => void;
   renameConversation: (id: string, title: string) => void;
   togglePinConversation: (id: string) => void;
-  addUserMessage: (conversationId: string, content: string) => void;
+  addUserMessage: (conversationId: string, content: string | UserMaterialMessage) => void;
   addAssistantMessage: (conversationId: string, content: ConversationMessage['content'], type: ConversationMessage['type']) => void;
   startGeneration: (conversationId: string) => void;
   stopGeneration: () => void;

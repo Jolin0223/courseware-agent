@@ -1,8 +1,9 @@
 import { useMemo, useState, useRef } from 'react';
-import { Maximize2, X, Edit3, Upload, Download, Globe, Monitor, Tablet, Users, GraduationCap } from 'lucide-react';
+import { Maximize2, X, Edit3, Upload, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
+import PublishModal from '../Library/PublishModal';
 import toast from '../../utils/toast';
 import type { CoursewareVersion } from '../../types';
 
@@ -12,6 +13,17 @@ interface PreviewPanelProps {
 }
 
 const PLACEHOLDER_HTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94A3B8;font-size:16px;">课件预览区域</div>';
+
+type PreviewDevice = 'default' | 'web' | 'bigscreen' | 'tablet' | 'cloud-teacher' | 'cloud-student';
+
+const previewDevices: Array<{ id: PreviewDevice; label: string; icon: React.ReactNode }> = [
+  { id: 'default', label: '默认预览', icon: <Square size={15} /> },
+  { id: 'web', label: 'iTeach 网页', icon: <Globe size={15} /> },
+  { id: 'bigscreen', label: '大屏老师好课', icon: <Monitor size={15} /> },
+  { id: 'tablet', label: '学生小屏', icon: <Tablet size={15} /> },
+  { id: 'cloud-teacher', label: '云教室老师端', icon: <Users size={15} /> },
+  { id: 'cloud-student', label: '云教室学生端', icon: <GraduationCap size={15} /> },
+];
 
 export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProps) {
   const { coursewares, updateCourseware } = useCoursewareStore();
@@ -25,6 +37,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
   const [versions, setVersions] = useState<CoursewareVersion[]>(() => {
     if (!courseware) return [];
+    const isPublished = !!courseware.isPublished;
     return [
       {
         version: 'v1',
@@ -44,7 +57,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
         version: 'v3',
         description: '修复样式',
         htmlContent: courseware.htmlContent || '',
-        isPublished: true,
+        isPublished,
         createdAt: '2026-05-16 14:20',
       },
     ];
@@ -54,7 +67,8 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState<'web' | 'bigscreen' | 'tablet' | 'cloud-teacher' | 'cloud-student'>('web');
+  const [publishMode, setPublishMode] = useState<'publish' | 'update' | 'new-game' | null>(null);
+  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('default');
   const publishBtnRef = useRef<HTMLDivElement>(null);
   const versionScrollRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +98,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   };
 
   const handleEdit = () => {
+    // TODO: 历史版本编辑能力后续再处理；6月11日版本仍沿用仅最新版本可编辑的产品约束。
     setEditContent(currentVersion?.htmlContent || '');
     setIsEditing(true);
   };
@@ -111,21 +126,23 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   };
 
   const handlePublish = () => {
-    if (publishBtnText === '更新发布') {
-      setShowPublishConfirm(true);
-    } else {
-      handlePublishConfirm();
-    }
+    setPublishMode('publish');
   };
 
   const handlePublishConfirm = () => {
     setShowPublishConfirm(false);
-    setVersions(prev => prev.map(v =>
-      v.version === selectedVersion
-        ? { ...v, isPublished: true }
-        : { ...v, isPublished: false }
-    ));
-    toast('发布成功');
+    setPublishMode('update');
+  };
+
+  const handlePublishSuccess = () => {
+    if (publishMode === 'update' || publishMode === 'publish') {
+      setVersions(prev => prev.map(v =>
+        v.version === selectedVersion
+          ? { ...v, isPublished: true }
+          : { ...v, isPublished: false }
+      ));
+    }
+    setPublishMode(null);
   };
 
   if (!courseware) return null;
@@ -145,21 +162,42 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
           <span style={panelStyle.title}>{courseware.title}</span>
         </div>
         <div style={panelStyle.headerRight}>
-          <div ref={publishBtnRef} style={{ position: 'relative' }}>
-            <button
-              onClick={handlePublish}
-              disabled={!!publishBtnDisabled}
-              style={{
-                ...panelStyle.actionBtn,
-                background: publishBtnDisabled ? '#F1F5F9' : 'linear-gradient(135deg, #00C9A7, #00A8E8)',
-                color: publishBtnDisabled ? '#94A3B8' : '#fff',
-                cursor: publishBtnDisabled ? 'default' : 'pointer',
-              }}
-              title={publishBtnText}
-            >
-              <Upload size={14} />
-              {publishBtnText}
-            </button>
+          <div ref={publishBtnRef} style={{ position: 'relative', display: 'flex', gap: 6 }}>
+            {hasNewerUnpublished && selectedVersion === latestVersion.version ? (
+              <>
+                <button
+                  onClick={() => setShowPublishConfirm(true)}
+                  style={{ ...panelStyle.actionBtn, background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', color: '#fff' }}
+                  title="更新发布"
+                >
+                  <Upload size={14} />
+                  更新发布
+                </button>
+                <button
+                  onClick={() => setPublishMode('new-game')}
+                  style={{ ...panelStyle.actionBtn, background: '#F59E0B', color: '#fff' }}
+                  title="发布为新互动游戏"
+                >
+                  <Upload size={14} />
+                  发布为新游戏
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handlePublish}
+                disabled={!!publishBtnDisabled}
+                style={{
+                  ...panelStyle.actionBtn,
+                  background: publishBtnDisabled ? '#F1F5F9' : 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+                  color: publishBtnDisabled ? '#94A3B8' : '#fff',
+                  cursor: publishBtnDisabled ? 'default' : 'pointer',
+                }}
+                title={publishBtnText}
+              >
+                <Upload size={14} />
+                {publishBtnText}
+              </button>
+            )}
             {showPublishConfirm && (
               <div style={{
                 position: 'absolute', top: '100%', right: 0, marginTop: 8, zIndex: 100,
@@ -227,6 +265,15 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
         </div>
       </div>
 
+      {publishMode && coursewareId && (
+        <PublishModal
+          coursewareId={coursewareId}
+          mode={publishMode}
+          onClose={() => setPublishMode(null)}
+          onPublishSuccess={handlePublishSuccess}
+        />
+      )}
+
       {/* Content */}
       {isEditing ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -245,34 +292,21 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
         <div style={panelStyle.previewArea}>
           {/* Device Switcher */}
           <div style={panelStyle.deviceSwitcher}>
-            {(['web', 'bigscreen', 'tablet', 'cloud-teacher', 'cloud-student'] as const).map(device => {
-              const labels: Record<string, string> = {
-                'web': 'iTeach 网页',
-                'bigscreen': '大屏老师好课',
-                'tablet': '学生小屏',
-                'cloud-teacher': '云教室老师端',
-                'cloud-student': '云教室学生端',
-              };
-              const icons: Record<string, React.ReactNode> = {
-                'web': <Globe size={15} />,
-                'bigscreen': <Monitor size={15} />,
-                'tablet': <Tablet size={15} />,
-                'cloud-teacher': <Users size={15} />,
-                'cloud-student': <GraduationCap size={15} />,
-              };
+            {previewDevices.map(device => {
               return (
                 <button
-                  key={device}
-                  onClick={() => setPreviewDevice(device)}
+                  key={device.id}
+                  onClick={() => setPreviewDevice(device.id)}
                   style={{
                     ...panelStyle.deviceTab,
-                    background: previewDevice === device ? '#F0FDFA' : 'transparent',
-                    color: previewDevice === device ? '#00C9A7' : '#64748B',
-                    borderBottom: previewDevice === device ? '2px solid #00C9A7' : '2px solid transparent',
+                    background: previewDevice === device.id ? '#F0FDFA' : 'transparent',
+                    color: previewDevice === device.id ? '#00C9A7' : '#64748B',
+                    borderBottom: previewDevice === device.id ? '2px solid #00C9A7' : '2px solid transparent',
                   }}
+                  title={device.label}
                 >
-                  {icons[device]}
-                  {labels[device]}
+                  {device.icon}
+                  {device.label}
                 </button>
               );
             })}
@@ -280,7 +314,16 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
           {/* Preview Container */}
           <div style={panelStyle.previewContainer}>
-            {previewDevice === 'web' ? (
+            {previewDevice === 'default' ? (
+              <div style={panelStyle.defaultFrame}>
+                <iframe
+                  srcDoc={srcDoc}
+                  title={`${courseware.title} 默认预览`}
+                  sandbox="allow-scripts allow-same-origin"
+                  style={panelStyle.defaultIframe}
+                />
+              </div>
+            ) : previewDevice === 'web' ? (
               <div style={panelStyle.webFrame}>
                 <img src="/images/iteach-web-preview.png" alt="iTeach 网页预览" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
@@ -416,12 +459,14 @@ const panelStyle: Record<string, React.CSSProperties> = {
   deviceSwitcher: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap: 0,
     padding: '0 16px',
     borderBottom: '1px solid #E2E8F0',
     background: '#fff',
     flexShrink: 0,
+    overflowX: 'auto',
+    overflowY: 'hidden',
   },
   deviceTab: {
     display: 'flex',
@@ -434,6 +479,8 @@ const panelStyle: Record<string, React.CSSProperties> = {
     border: 'none',
     outline: 'none',
     transition: 'all 0.15s',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
   },
   previewContainer: {
     flex: 1,
@@ -442,6 +489,24 @@ const panelStyle: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     padding: 16,
     overflow: 'hidden',
+  },
+  defaultFrame: {
+    width: '100%',
+    maxWidth: 'min(100%, 960px)',
+    aspectRatio: '16/9',
+    maxHeight: '100%',
+    background: '#fff',
+    border: '1px solid #E2E8F0',
+    borderRadius: 8,
+    overflow: 'hidden',
+    boxShadow: '0 18px 48px rgba(15, 23, 42, 0.08)',
+  },
+  defaultIframe: {
+    width: '100%',
+    height: '100%',
+    border: 'none',
+    display: 'block',
+    background: '#fff',
   },
   webFrame: {
     width: '100%',

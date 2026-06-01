@@ -10,7 +10,7 @@ import toast from '../../utils/toast';
 const subjects = [
   '语文', '创客', '美术', '思辨与口才',
   '脑力与思维', '双语故事表演', '机器人', '编程',
-  '博文妙笔', '书法', '数学', '英语',
+  '博文妙笔', '书法', '数学', '英语', '顾问通识', '系统工具',
 ];
 
 const grades = [
@@ -19,18 +19,17 @@ const grades = [
   '四年级', '五年级', '六年级',
 ];
 
-function generatePlayGuide(title: string, subject: string, grade: string): string {
-  return `本课件面向${grade}学生，是一款${subject}学科的互动游戏——"${title}"。学生通过点击、拖拽等操作完成趣味挑战，系统自动判定对错并给予即时反馈，支持多轮闯关和积分奖励，帮助学生在游戏中巩固知识、提升学习兴趣。`;
-}
+type PublishMode = 'publish' | 'update' | 'new-game';
 
 interface PublishModalProps {
   coursewareId: number;
   onClose: () => void;
   onPublishSuccess?: () => void;
+  mode?: PublishMode;
 }
 
-export default function PublishModal({ coursewareId, onClose, onPublishSuccess }: PublishModalProps) {
-  const { coursewares, updateCourseware } = useCoursewareStore();
+export default function PublishModal({ coursewareId, onClose, onPublishSuccess, mode = 'publish' }: PublishModalProps) {
+  const { coursewares, addCourseware, updateCourseware } = useCoursewareStore();
 
   const courseware = useMemo(() => {
     return coursewares.find(c => c.id === coursewareId)
@@ -40,10 +39,6 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess }
   const [title, setTitle] = useState(courseware?.title || '');
   const [subject, setSubject] = useState(courseware?.subject || '语文');
   const [grade, setGrade] = useState(courseware?.grade || '一年级');
-  const [playGuide, setPlayGuide] = useState(() =>
-    generatePlayGuide(courseware?.title || '', courseware?.subject || '语文', courseware?.grade || '一年级')
-  );
-  const [showConversation, setShowConversation] = useState(true);
   const [selectedTags, setSelectedTags] = useState<string[]>(() =>
     autoTagByTitle(courseware?.title || '', courseware?.subject || '')
   );
@@ -96,11 +91,6 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess }
     });
   }, []);
 
-  const getAllLeafIds = (node: KnowledgeTag): string[] => {
-    if (!node.children) return [node.id];
-    return node.children.flatMap(getAllLeafIds);
-  };
-
   const filterTree = useCallback((nodes: KnowledgeTag[], query: string): KnowledgeTag[] => {
     if (!query) return nodes;
     const q = query.toLowerCase();
@@ -130,17 +120,40 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess }
   const filteredTree = useMemo(() => filterTree(subjectTagTree, tagSearch), [tagSearch, filterTree, subjectTagTree]);
 
   const handlePublish = () => {
-    updateCourseware(coursewareId, {
-      title,
-      subject,
-      grade,
-      showConversation,
-      isPublished: true,
-    });
-    toast('发布成功~');
+    if (!title.trim()) {
+      toast('请输入游戏名称');
+      return;
+    }
+    if (mode === 'new-game' && courseware) {
+      const nextId = Math.max(...coursewares.map(item => item.id), coursewareId) + 1;
+      addCourseware({
+        ...courseware,
+        id: nextId,
+        title: title.trim(),
+        subject,
+        grade,
+        publishTime: new Date().toISOString().split('T')[0],
+        views: 0,
+        favorites: 0,
+        likes: 0,
+        isOwn: true,
+        isPublished: true,
+      });
+    } else {
+      updateCourseware(coursewareId, {
+        title: title.trim(),
+        subject,
+        grade,
+        isPublished: true,
+      });
+    }
+    toast(mode === 'update' ? '更新发布成功~' : mode === 'new-game' ? '已发布为新互动游戏~' : '发布成功~');
     onPublishSuccess?.();
     onClose();
   };
+
+  const modalTitle = mode === 'update' ? '更新发布' : mode === 'new-game' ? '发布为新互动游戏' : '发布作品';
+  const primaryText = mode === 'update' ? '确认更新发布' : mode === 'new-game' ? '确认发布为新游戏' : '确认发布';
 
   return (
     <motion.div
@@ -158,43 +171,81 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess }
         onClick={(e) => e.stopPropagation()}
       >
         <div style={styles.header}>
-          <span style={styles.title}>发布作品</span>
+          <span style={styles.title}>{modalTitle}</span>
           <button style={styles.closeBtn} onClick={onClose}><X size={18} /></button>
         </div>
 
         <div style={styles.content}>
-          {/* 课件标题 */}
+          {mode === 'update' && (
+            <div style={styles.updateNotice}>
+              本次发布会更新当前互动游戏的已发布版本，已插入课件中的互动游戏会同步使用新版本。
+            </div>
+          )}
+
+          {mode === 'new-game' && (
+            <div style={styles.newGameNotice}>
+              本次发布会创建一个新的互动游戏资源，原已发布/插入课件的互动游戏不会受到影响。
+            </div>
+          )}
+
+          {/* 游戏名称 */}
           <div style={styles.field}>
-            <label style={styles.label}>📌 课件标题</label>
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              style={styles.input}
-              onFocus={e => e.currentTarget.style.borderColor = '#00C9A7'}
-              onBlur={e => e.currentTarget.style.borderColor = '#E2E8F0'}
-            />
+            <label style={styles.label}><span style={styles.required}>*</span> 游戏名称</label>
+            <div style={styles.inputWrap}>
+              <input
+                type="text"
+                value={title}
+                maxLength={30}
+                onChange={e => setTitle(e.target.value.slice(0, 30))}
+                style={styles.input}
+                onFocus={e => e.currentTarget.parentElement!.style.borderColor = '#00C9A7'}
+                onBlur={e => e.currentTarget.parentElement!.style.borderColor = '#E2E8F0'}
+              />
+              <span style={styles.count}>{title.length} / 30</span>
+            </div>
           </div>
 
-          {/* 年级 & 学科 */}
-          <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-            <div style={{ flex: 1 }}>
-              <label style={styles.label}>🎓 年级 <span style={styles.aiTag}>AI推荐</span></label>
-              <select value={grade} onChange={e => setGrade(e.target.value)} style={styles.select}>
-                {grades.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
+          {/* 科目 */}
+          <div style={styles.field}>
+            <label style={styles.label}><span style={styles.required}>*</span> 科目</label>
+            <div style={styles.chipGroup}>
+              {subjects.map(s => (
+                <button
+                  key={s}
+                  onClick={() => setSubject(s)}
+                  style={{
+                    ...styles.chip,
+                    ...(subject === s ? styles.chipActive : {}),
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={styles.label}>📚 学科 <span style={styles.aiTag}>AI推荐</span></label>
-              <select value={subject} onChange={e => setSubject(e.target.value)} style={styles.select}>
-                {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+          </div>
+
+          {/* 年级 */}
+          <div style={styles.field}>
+            <label style={styles.label}><span style={styles.required}>*</span> 年级</label>
+            <div style={styles.chipGroup}>
+              {grades.map(g => (
+                <button
+                  key={g}
+                  onClick={() => setGrade(g)}
+                  style={{
+                    ...styles.chip,
+                    ...(grade === g ? styles.chipActive : {}),
+                  }}
+                >
+                  {g}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* 知识点标签 */}
           <div style={styles.field} ref={tagDropdownRef}>
-            <label style={styles.label}>🏷️ 知识点标签 <span style={styles.aiTag}>AI推荐</span></label>
+            <label style={styles.label}>知识点标签 <span style={styles.aiTag}>AI默认推荐</span></label>
             
             <div
               onClick={() => setTagDropdownOpen(true)}
@@ -228,7 +279,7 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess }
                       padding: '2px 8px 2px 10px',
                       background: '#E0FBF4',
                       color: '#047857',
-                      borderRadius: 12,
+                      borderRadius: 999,
                       fontSize: 12,
                       fontWeight: 500,
                       lineHeight: '22px',
@@ -298,42 +349,6 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess }
             )}
           </div>
 
-          {/* 玩法说明 */}
-          <div style={styles.field}>
-            <label style={styles.label}>🎮 玩法说明 <span style={styles.aiTag}>AI生成</span></label>
-            <textarea
-              value={playGuide}
-              onChange={e => setPlayGuide(e.target.value)}
-              style={styles.textarea}
-              rows={3}
-              onFocus={e => e.currentTarget.style.borderColor = '#00C9A7'}
-              onBlur={e => e.currentTarget.style.borderColor = '#E2E8F0'}
-            />
-          </div>
-
-          {/* 查看历史对话开关 */}
-          <div style={styles.field}>
-            <div style={styles.switchRow}>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 500, color: '#1E293B' }}>💬 查看历史对话</div>
-                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>
-                  开启后，其他老师可以通过查看回放看到你的历史对话
-                </div>
-              </div>
-              <div
-                onClick={() => setShowConversation(v => !v)}
-                style={{
-                  ...styles.switchTrack,
-                  background: showConversation ? '#00C9A7' : '#CBD5E1',
-                }}
-              >
-                <div style={{
-                  ...styles.switchThumb,
-                  transform: showConversation ? 'translateX(20px)' : 'translateX(2px)',
-                }} />
-              </div>
-            </div>
-          </div>
         </div>
 
         <div style={styles.footer}>
@@ -347,7 +362,7 @@ export default function PublishModal({ coursewareId, onClose, onPublishSuccess }
             style={{ ...styles.btn, ...styles.btnPrimary }}
             onClick={handlePublish}
           >
-            确认发布
+            {primaryText}
           </button>
         </div>
       </motion.div>
@@ -359,27 +374,26 @@ const styles: Record<string, React.CSSProperties> = {
   overlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0, 0, 0, 0.5)',
+    background: 'rgba(15, 23, 42, 0.38)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 100,
+    zIndex: 2000,
   },
   modal: {
     background: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 12,
     width: '100%',
-    maxWidth: 680,
-    maxHeight: '90vh',
-    overflowY: 'auto' as const,
-    boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+    maxWidth: 1040,
+    maxHeight: '92vh',
+    overflowY: 'visible' as const,
+    boxShadow: '0 24px 80px rgba(15, 23, 42, 0.22)',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '20px 24px',
-    borderBottom: '1px solid #E2E8F0',
+    padding: '18px 22px 12px',
   },
   title: {
     fontSize: 18,
@@ -399,20 +413,24 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#64748B',
   },
   content: {
-    padding: '20px 24px',
+    padding: '8px 22px 20px',
   },
   field: {
-    marginBottom: 16,
+    marginBottom: 18,
     position: 'relative' as const,
   },
   label: {
     display: 'flex',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     fontSize: 14,
-    fontWeight: 500,
+    fontWeight: 600,
     color: '#1E293B',
     marginBottom: 8,
+  },
+  required: {
+    color: '#EF4444',
+    fontWeight: 700,
   },
   aiTag: {
     fontSize: 11,
@@ -422,39 +440,72 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 4,
     fontWeight: 500,
   },
+  updateNotice: {
+    padding: '10px 12px',
+    borderRadius: 8,
+    background: '#FEF3C7',
+    color: '#92400E',
+    fontSize: 13,
+    lineHeight: 1.5,
+    marginBottom: 16,
+  },
+  newGameNotice: {
+    padding: '10px 12px',
+    borderRadius: 8,
+    background: '#E0F2FE',
+    color: '#075985',
+    fontSize: 13,
+    lineHeight: 1.5,
+    marginBottom: 16,
+  },
+  inputWrap: {
+    width: '100%',
+    border: '1px solid #E2E8F0',
+    borderRadius: 6,
+    display: 'flex',
+    alignItems: 'center',
+    transition: 'border-color 0.15s',
+    background: '#FFFFFF',
+    boxSizing: 'border-box' as const,
+  },
   input: {
-    width: '100%',
-    padding: '12px 14px',
-    border: '1px solid #E2E8F0',
-    borderRadius: 8,
+    flex: 1,
+    minWidth: 0,
+    padding: '9px 12px',
+    border: 'none',
     fontSize: 14,
     outline: 'none',
-    transition: 'border-color 0.15s',
+    background: 'transparent',
     boxSizing: 'border-box' as const,
   },
-  select: {
-    width: '100%',
-    padding: '12px 14px',
-    border: '1px solid #E2E8F0',
-    borderRadius: 8,
+  count: {
+    padding: '0 10px',
+    color: '#94A3B8',
+    fontSize: 13,
+    flexShrink: 0,
+  },
+  chipGroup: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  chip: {
+    minWidth: 52,
+    height: 34,
+    padding: '0 16px',
+    borderRadius: 999,
+    border: '1px solid #CBD5E1',
+    background: '#F8FAFC',
+    color: '#334155',
     fontSize: 14,
-    outline: 'none',
-    background: '#fff',
     cursor: 'pointer',
-    boxSizing: 'border-box' as const,
+    transition: 'all 0.15s',
   },
-  textarea: {
-    width: '100%',
-    padding: '12px 14px',
-    border: '1px solid #E2E8F0',
-    borderRadius: 8,
-    fontSize: 14,
-    outline: 'none',
-    transition: 'border-color 0.15s',
-    boxSizing: 'border-box' as const,
-    resize: 'vertical' as const,
-    lineHeight: 1.6,
-    fontFamily: 'inherit',
+  chipActive: {
+    borderColor: '#00C9A7',
+    background: '#CCFBF1',
+    color: '#047857',
+    fontWeight: 700,
   },
   switchRow: {
     display: 'flex',
@@ -485,7 +536,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'flex-end',
     gap: 12,
-    padding: '16px 24px',
+    padding: '14px 22px 18px',
     borderTop: '1px solid #E2E8F0',
   },
   btn: {

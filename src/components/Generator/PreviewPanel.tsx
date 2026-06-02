@@ -124,7 +124,8 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   const selectedUpdateTarget = publishedTargets.find(target => target.id === selectedUpdateTargetId) || publishedTargets[0];
   const hasPublishedTargets = publishedTargets.length > 0;
   const hasMultiplePublishedGames = publishedTargets.length > 1;
-  const canUpdateCurrentDraft = hasPublishedTargets && latestVersion && selectedVersion === latestVersion.version && !currentVersion?.isCurrentPublished;
+  const isUnpublishedVersion = !!currentVersion && !currentVersion.isCurrentPublished && !currentVersion.isHistoricalPublished;
+  const canUpdateCurrentDraft = hasPublishedTargets && latestVersion && selectedVersion === latestVersion.version && isUnpublishedVersion;
 
   const srcDoc = currentVersion?.htmlContent || PLACEHOLDER_HTML;
   const currentTitle = currentVersion?.title || courseware?.title || '互动游戏';
@@ -234,7 +235,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
   const getVersionPublishLabel = (version: SessionHtmlVersion) => {
     if (version.isCurrentPublished) return '当前发布';
-    if (version.isHistoricalPublished) return '历史版本';
+    if (version.isHistoricalPublished) return '已发布(历史版本)';
     return '未发布草稿';
   };
 
@@ -258,8 +259,10 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
     ? '更新发布'
     : currentVersion?.isCurrentPublished
       ? '已发布'
-      : '发布';
-  const publishBtnDisabled = currentVersion?.isCurrentPublished && !canUpdateCurrentDraft;
+      : currentVersion?.isHistoricalPublished
+        ? '已发布(历史版本)'
+        : '发布';
+  const publishBtnDisabled = (currentVersion?.isCurrentPublished || currentVersion?.isHistoricalPublished) && !canUpdateCurrentDraft;
 
   return (
     <div style={panelStyle.container}>

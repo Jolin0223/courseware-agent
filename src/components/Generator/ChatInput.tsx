@@ -1,13 +1,16 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
+  FileCode2,
   Image,
   Paperclip,
   Link,
   SendHorizontal,
+  Sparkles,
   Square,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 import type { UploadedAttachment } from '../../types';
+import { FRUIT_COURSEWARE_PROMPT, isFruitCoursewarePrompt } from '../../data/fruitCoursewarePrompt';
 
 interface ChatInputProps {
   onSend: (text: string, attachments?: UploadedAttachment[]) => void;
@@ -16,6 +19,10 @@ interface ChatInputProps {
   onStop?: () => void;
   centered?: boolean;
   placeholder?: string;
+  injectedText?: string;
+  injectedTextVersion?: number;
+  onTextChange?: (text: string) => void;
+  lockedAttachments?: UploadedAttachment[];
 }
 
 const LINE_HEIGHT = 22.5;
@@ -39,7 +46,74 @@ interface AttachedFile {
   loading?: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, onStop, centered, placeholder = '输入修改意见或继续追问' }) => {
+const getSmartCompletion = (value: string) => {
+  const text = value.trim();
+  if (text.length < 4) return null;
+  if (
+    text.length > 90
+    || /已套用玩法|互动流程|答对时|答错时|整体视觉|课件分为|采用“|采用"/.test(text)
+  ) {
+    return null;
+  }
+  if (isFruitCoursewarePrompt(text)) {
+    return {
+      title: '可以补全成水果乐园互动课件',
+      text: '补齐9页课件结构、认读练、语音评测、抓取匹配游戏和低龄视觉要求',
+      finalText: FRUIT_COURSEWARE_PROMPT,
+    };
+  }
+  if (/颜色|color|colour/i.test(text)) {
+    const finalText = `${text}\n\n学习对象：5-8 岁英语启蒙或小学低段学生，适合课堂投屏、平板点击或白板互动。\n教学目标：让学生能听懂、认读并匹配常见颜色英文单词，在多轮操作中完成颜色词巩固。\n生成设置：单关卡学练融合，练习模式，允许多次尝试；默认采用明亮卡片风，保留大按钮、大色块和清晰反馈，不启用 3D 粘土质感。\n课堂玩法：彩虹修复师 + 单词图片配对。学生听到或看到颜色英文单词后，选择正确颜色卡，并拖到彩虹缺口完成修复。\n互动流程：展示任务说明 → 播放颜色单词 → 选择颜色卡 → 拖到彩虹缺口 → 自动校验 → 点亮彩虹 → 播放英文发音 → 获得星星奖励 → 进入下一轮。\n题目与关卡：围绕 red、blue、yellow、green、orange、purple 设计 3 轮递进；第 1 轮看英文选颜色，第 2 轮听发音选颜色，第 3 轮多个颜色混合挑战。\n画面与反馈：彩虹位于画面中心，颜色卡片放在底部，答对时彩虹缺口点亮并朗读单词，连续答对出现星星连击；答错时正确颜色边缘轻闪，不直接公布答案，允许再次尝试。\n生成注意事项：不要做成单纯选择题；要有拖拽、点亮和发音反馈；题目区、操作区、奖励区要清晰分层，适合老师课堂演示。`;
+    return {
+      title: '可以补全成颜色互动玩法',
+      text: '补齐学习对象、教学目标、3轮题目、拖拽流程、发音反馈',
+      finalText,
+    };
+  }
+  if (/口算|计算|加减法|20以内|数学/.test(text)) {
+    const finalText = `${text}\n\n学习对象：小学一年级到二年级学生，适合课堂练习、课前热身或单元复习。\n教学目标：帮助学生提升 20 以内加减法的计算熟练度，能在即时反馈中发现并修正计算错误。\n生成设置：多关卡学练融合，练习模式，默认采用逻辑风格 + 轻竞技进度反馈；如用于测验，可把提交方式改为严格模式。\n课堂玩法：口算赛车。学生每答对一道题，赛车向前加速；连续答对触发连击加速，答错进入维修站并获得计算提示。\n互动流程：选择关卡 → 出现口算题 → 点击答案 → 赛车前进或进入维修提示 → 显示本题计算思路 → 完成一组题目 → 到达终点解锁下一关。\n题目与关卡：设计 3 关，每关 6-8 题；第 1 关 10 以内加减，第 2 关 20 以内不进退位，第 3 关 20 以内混合计算，可加入 1-2 道易错题。\n画面与反馈：题目在中央大字号展示，答案按钮最多 4 个；答对赛车前进并获得星星，连续 3 次答对触发加速动画；答错展示拆数、数轴或简单算式提示，允许重新选择。\n生成注意事项：竞技元素不能遮挡题目；不要设置过强倒计时压力；每道题都要有明确答案和轻量解析。`;
+    return {
+      title: '可以补全成闯关练习',
+      text: '补齐年级目标、3关递进、错题提示、赛车进度反馈',
+      finalText,
+    };
+  }
+  if (/拼音|声母|韵母|b p m f|识字/.test(text)) {
+    const finalText = `${text}\n\n学习对象：幼小衔接或一年级学生，适合拼音新授后的听辨练习。\n教学目标：帮助学生听辨目标拼音，并能在多个相近拼音中找到正确卡片，减少易混读音错误。\n生成设置：微关卡学练融合，练习模式，允许多次尝试；默认采用启蒙卡通风，卡片大、读音反馈清楚。\n课堂玩法：拼音捉迷藏。系统播放目标拼音读音，学生在场景中找到对应拼音卡片，点击后由卡片角色朗读确认。\n互动流程：播放读音 → 学生观察 3-4 张拼音卡 → 点击目标卡 → 自动校验 → 角色朗读 → 易混提示或奖励反馈 → 进入下一轮。\n题目与关卡：围绕 b、p、m、f 或老师输入的拼音设计 8 轮听辨题；前 4 轮单一声母辨认，后 4 轮加入易混声母对比。\n画面与反馈：拼音卡片放在场景中但不能过度隐藏；答对时卡片跳出并朗读，答错时给出口型、发音部位或读音对比提示。\n生成注意事项：不要把拼音卡做得太小；每轮只播放一个目标读音；反馈应鼓励学生再试一次，而不是直接判失败。`;
+    return {
+      title: '可以补全成听音寻找玩法',
+      text: '补齐听辨目标、易混提示、8轮练习、卡片反馈',
+      finalText,
+    };
+  }
+  if (/古诗|诗句|排序|静夜思|背诵/.test(text)) {
+    const finalText = `${text}\n\n学习对象：小学语文学生，适合古诗学习后的排序巩固和背诵前热身。\n教学目标：让学生理解诗句顺序和诗意线索，通过拖拽排序完成结构记忆，再衔接完整朗读。\n生成设置：单关卡学练融合，练习模式，允许拖拽调整；默认采用温和国风课堂风，诗句区优先清晰。\n课堂玩法：诗句小路排序。学生把打乱的诗句拖回正确顺序，每排对一句，小路、月光或进度点亮一步。\n互动流程：展示古诗标题 → 打乱诗句 → 学生拖拽排序 → 点击校验 → 正确诗句吸附并点亮进度 → 全部完成后展示整首诗 → 播放朗读并进入背诵挑战。\n题目与关卡：先生成一关诗句排序；可增加“关键词提示”模式，如明月、霜、举头、低头；也可增加第二轮去掉提示后的背诵排序。\n画面与反馈：诗句卡片使用大字号，拖动时有吸附感；排序正确时点亮月光路径，错误时提示相邻诗句关系，不直接打断操作。\n生成注意事项：不要把国风背景做得喧宾夺主；诗句必须完整准确；反馈要帮助学生理解顺序，而不是只给对错。`;
+    return {
+      title: '可以补全成排序互动',
+      text: '补齐诗句排序、关键词提示、朗读巩固、国风反馈',
+      finalText,
+    };
+  }
+  const finalText = `${text}\n\n学习对象：默认面向小学阶段学生；如果老师输入中包含年龄、年级或学科，请优先按老师输入处理。\n教学目标：围绕老师输入的知识点，设计一节能直接用于课堂的互动课件，让学生在操作、反馈和复盘中完成理解与巩固。\n生成设置：单关卡学练融合，练习模式，允许多次尝试；默认采用清爽课堂风，后续可扩展为多关卡递进。\n课堂玩法：根据知识点自动匹配点击、拖拽、配对、排序、闯关或推理互动，不做单纯静态讲解页。\n互动流程：展示学习任务 → 给出操作规则 → 学生完成互动题 → 系统即时反馈 → 错误时给轻提示 → 完成挑战 → 展示总结或下一步练习。\n题目与关卡：先生成一组课堂可用题目，数量控制在 6-8 题；如果知识点适合递进，则拆成“认识规则、练习巩固、挑战应用”三段。\n画面与反馈：题目区、操作区、反馈区清晰分层；答对给进度、星星或点亮反馈；答错给提示并允许重试，避免只显示红叉。\n生成注意事项：不要生成空泛介绍页；必须包含明确可交互操作、答案校验、成功反馈和错误提示；按钮尺寸要适合课堂大屏。`;
+  return {
+    title: '可以让需求更完整',
+    text: '补齐对象目标、互动玩法、题目数量、反馈和生成注意事项',
+    finalText,
+  };
+};
+
+const ChatInput: React.FC<ChatInputProps> = ({
+  onSend,
+  disabled,
+  isGenerating,
+  onStop,
+  centered,
+  placeholder = '输入修改意见或继续追问',
+  injectedText,
+  injectedTextVersion,
+  onTextChange,
+  lockedAttachments = [],
+}) => {
   const appMode = useUIStore((s) => s.appMode);
   const linkedCoursewareCount = useUIStore((s) => s.linkedCoursewareCount);
   const setLinkedCoursewareCount = useUIStore((s) => s.setLinkedCoursewareCount);
@@ -51,7 +125,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
   const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
-  const [showUsageNudge, setShowUsageNudge] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -59,9 +132,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
 
   const [stopTooltip, setStopTooltip] = useState(false);
 
-  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading)) && !disabled;
+  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || lockedAttachments.length > 0) && !disabled;
   const imageFiles = attachedFiles.filter(file => file.type === 'image');
   const documentFiles = attachedFiles.filter(file => file.type === 'document');
+  const smartCompletionCandidate = getSmartCompletion(text);
+  const smartCompletion = centered && smartCompletionCandidate && !text.includes(smartCompletionCandidate.text)
+    ? smartCompletionCandidate
+    : null;
 
   const materialUsagePlaceholder = (() => {
     if (imageFiles.length > 0 && documentFiles.length > 0) {
@@ -76,24 +153,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
     return placeholder;
   })();
 
-  const usageNudgeText = imageFiles.length > 0 && documentFiles.length > 0
-    ? '当前包含图片和文档，建议分别说明用途，可减少后续确认步骤。'
-    : '补充材料用途后，生成结果会更准确，也可减少后续确认步骤。';
-
-  const hasClearMaterialUsage = useCallback((value: string) => {
-    if (attachedFiles.length === 0) return true;
-    const normalized = value.trim();
-    if (!normalized) return false;
-    const purposePattern = /(作为|用作|用于|拿来|提取|参考|生成|替换|补充|做成|做为|背景|角色|道具|素材|插图|题目|知识|脚本|结构|内容|风格|配图|封面|课件)/;
-    if (!purposePattern.test(normalized)) return false;
-    if (imageFiles.length > 0 && documentFiles.length > 0) {
-      const hasImageMention = /(图片|图像|照片|素材图|插图|背景图|配图)/.test(normalized);
-      const hasDocumentMention = /(文档|附件|文件|PDF|pdf|Word|word|md|材料)/.test(normalized);
-      return hasImageMention && hasDocumentMention;
-    }
-    return true;
-  }, [attachedFiles.length, documentFiles.length, imageFiles.length]);
-
   const resizeTextarea = useCallback(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -106,20 +165,29 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
     resizeTextarea();
   }, [text, resizeTextarea]);
 
-  const handleSend = useCallback((forceSend = false) => {
+  useEffect(() => {
+    if (injectedTextVersion === undefined || injectedText === undefined) return;
+    setText(injectedText);
+    onTextChange?.(injectedText);
+    requestAnimationFrame(() => {
+      resizeTextarea();
+      textareaRef.current?.focus();
+    });
+  }, [injectedText, injectedTextVersion, onTextChange, resizeTextarea]);
+
+  const handleSend = useCallback(() => {
     const trimmed = text.trim();
     const readyFiles = attachedFiles.filter(f => !f.loading);
-    if ((!trimmed && readyFiles.length === 0) || disabled) return;
-    if (!forceSend && readyFiles.length > 0 && !hasClearMaterialUsage(trimmed)) {
-      setShowUsageNudge(true);
-      textareaRef.current?.focus();
-      return;
-    }
-    onSend(trimmed, readyFiles.map(({ id, type, name, url }) => ({ id, type, name, url })));
+    const readyAttachments: UploadedAttachment[] = [
+      ...lockedAttachments,
+      ...readyFiles.map(({ id, type, name, url }) => ({ id, type, name, url })),
+    ];
+    if ((!trimmed && readyAttachments.length === 0) || disabled) return;
+    onSend(trimmed, readyAttachments);
     setText('');
+    onTextChange?.('');
     setAttachedFiles([]);
-    setShowUsageNudge(false);
-  }, [text, attachedFiles, disabled, hasClearMaterialUsage, onSend]);
+  }, [text, attachedFiles, lockedAttachments, disabled, onSend, onTextChange]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -271,8 +339,22 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
     });
   };
 
-  const handleSendWithFiles = (forceSend = false) => {
-    handleSend(forceSend);
+  const handleSendWithFiles = () => {
+    handleSend();
+  };
+
+  const applySmartCompletion = () => {
+    if (!smartCompletion) return;
+    const current = text.trim();
+    const next = current.includes(smartCompletion.finalText)
+      ? current
+      : smartCompletion.finalText;
+    setText(next);
+    onTextChange?.(next);
+    requestAnimationFrame(() => {
+      resizeTextarea();
+      textareaRef.current?.focus();
+    });
   };
 
   const moveAttachedFile = (fromId: string, toId: string) => {
@@ -439,6 +521,19 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
           {isDraggingFiles && (
             <div style={styles.dragHint}>松开即可上传图片、PDF、Word 或 MD 材料</div>
           )}
+          {lockedAttachments.length > 0 && (
+            <div style={styles.lockedAttachmentList}>
+              {lockedAttachments.map(file => (
+                <div key={file.id} style={styles.lockedAttachmentItem} title="该 HTML 作为同款参考随需求发送，不可打开、不可下载">
+                  <span style={styles.lockedAttachmentIcon}><FileCode2 size={15} /></span>
+                  <span style={styles.lockedAttachmentBody}>
+                    <span style={styles.lockedAttachmentName}>{file.name}</span>
+                    <span style={styles.lockedAttachmentMeta}>原课件 HTML 参考 · 已锁定</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
           {/* 已上传文件预览区 */}
           {attachedFiles.length > 0 && (
             <div style={styles.attachmentGroups}>
@@ -465,41 +560,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
             </div>
           )}
 
-          {attachedFiles.length > 0 && (
-            <div style={showUsageNudge ? styles.usageNudgeActive : styles.usageNudge}>
-              <span>{usageNudgeText}</span>
-              {showUsageNudge && (
-                <div style={styles.usageNudgeActions}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowUsageNudge(false);
-                      textareaRef.current?.focus();
-                    }}
-                    style={styles.usageNudgeSecondary}
-                  >
-                    补充用途
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSendWithFiles(true)}
-                    style={styles.usageNudgePrimary}
-                  >
-                    继续发送
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
           <textarea
             ref={textareaRef}
             value={text}
             onChange={(e) => {
               setText(e.target.value);
-              if (showUsageNudge && hasClearMaterialUsage(e.target.value)) {
-                setShowUsageNudge(false);
-              }
+              onTextChange?.(e.target.value);
             }}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
@@ -510,6 +576,22 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
             rows={3}
             style={styles.textarea}
           />
+
+          {smartCompletion && !disabled && (
+            <div style={styles.smartCompletion}>
+              <div style={styles.smartCompletionIcon}>
+                <Sparkles size={14} />
+              </div>
+              <div style={styles.smartCompletionContent}>
+                <div style={styles.smartCompletionTitle}>{smartCompletion.title}</div>
+                <div style={styles.smartCompletionText}>{smartCompletion.text}</div>
+                <div style={styles.smartCompletionPreview}>采用后会整理成完整课件需求：对象目标、生成设置、互动流程、题目关卡、画面反馈和注意事项。</div>
+              </div>
+              <button type="button" style={styles.smartCompletionBtn} onClick={applySmartCompletion}>
+                采用
+              </button>
+            </div>
+          )}
 
           <div style={styles.toolbar}>
             <div style={styles.toolGroup}>
@@ -571,6 +653,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
                     cursor: 'pointer',
                   }}
                   onClick={onStop}
+                  title="停止输出"
+                  aria-label="停止输出"
                 >
                   <Square size={14} color="#FFFFFF" fill="#FFFFFF" />
                 </button>
@@ -584,6 +668,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isGenerating, o
                 }}
                 disabled={!canSend}
                 onClick={() => handleSendWithFiles()}
+                title="发送"
+                aria-label="发送"
               >
                 <SendHorizontal size={18} color="#FFFFFF" />
               </button>
@@ -713,6 +799,65 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '2px 0 8px',
     marginBottom: 2,
   },
+  lockedAttachmentList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    paddingBottom: 10,
+  },
+  lockedAttachmentItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '10px 12px',
+    borderRadius: 12,
+    border: '1px solid #A7F3D0',
+    background: 'linear-gradient(135deg, #F0FDF9, #EFF6FF)',
+    cursor: 'default',
+  },
+  lockedAttachmentIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#047857',
+    background: '#CCFBF1',
+    flexShrink: 0,
+  },
+  lockedAttachmentBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    minWidth: 0,
+    flex: 1,
+  },
+  lockedAttachmentName: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: 850,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  lockedAttachmentMeta: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 650,
+  },
+  lockedBadge: {
+    flexShrink: 0,
+    height: 24,
+    padding: '0 8px',
+    borderRadius: 999,
+    background: '#FFFFFF',
+    color: '#0F766E',
+    border: '1px solid #A7F3D0',
+    fontSize: 11,
+    fontWeight: 850,
+    lineHeight: '24px',
+  },
   attachmentGroup: {
     display: 'flex',
     alignItems: 'flex-start',
@@ -739,57 +884,6 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 8,
     flex: 1,
     minWidth: 0,
-  },
-  usageNudge: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-    padding: '4px 0 8px',
-    color: '#94A3B8',
-    fontSize: 12,
-    lineHeight: 1.5,
-  },
-  usageNudgeActive: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-    padding: '8px 10px',
-    margin: '2px 0 8px',
-    borderRadius: 8,
-    background: '#FFF7ED',
-    color: '#9A3412',
-    fontSize: 12,
-    lineHeight: 1.5,
-  },
-  usageNudgeActions: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    flexShrink: 0,
-  },
-  usageNudgeSecondary: {
-    height: 26,
-    padding: '0 10px',
-    borderRadius: 6,
-    border: '1px solid #FDBA74',
-    background: '#FFFFFF',
-    color: '#C2410C',
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  usageNudgePrimary: {
-    height: 26,
-    padding: '0 10px',
-    borderRadius: 6,
-    border: 'none',
-    background: '#F97316',
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: 'pointer',
   },
   documentTypeBadge: {
     width: 34,
@@ -850,6 +944,62 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 8,
+  },
+  smartCompletion: {
+    display: 'grid',
+    gridTemplateColumns: '24px 1fr auto',
+    alignItems: 'flex-start',
+    gap: 9,
+    padding: '10px 11px',
+    marginTop: 10,
+    borderRadius: 10,
+    border: '1px solid #A7F3D0',
+    background: '#F0FDF9',
+  },
+  smartCompletionIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    background: '#CCFBF1',
+    color: '#047857',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  smartCompletionContent: {
+    minWidth: 0,
+  },
+  smartCompletionTitle: {
+    color: '#047857',
+    fontSize: 12,
+    fontWeight: 800,
+    marginBottom: 3,
+  },
+  smartCompletionText: {
+    color: '#334155',
+    fontSize: 12,
+    lineHeight: 1.45,
+  },
+  smartCompletionPreview: {
+    display: 'inline-flex',
+    marginTop: 6,
+    padding: '3px 7px',
+    borderRadius: 999,
+    background: '#FFFFFF',
+    color: '#0F766E',
+    fontSize: 11,
+    fontWeight: 700,
+  },
+  smartCompletionBtn: {
+    height: 28,
+    padding: '0 10px',
+    borderRadius: 7,
+    border: 'none',
+    background: '#00C9A7',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: 'pointer',
   },
   toolGroup: {
     display: 'flex',

@@ -1,91 +1,7 @@
 import type { Courseware } from '../types';
+import fruitGardenHTML from '../assets/courseware/fruit_garden_adventure.html?raw';
 
 // 示例课件的HTML内容
-const animalSpellingHTML = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>动物单词拼写游戏</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .game-container {
-      background: white;
-      border-radius: 24px;
-      padding: 40px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-      text-align: center;
-      max-width: 500px;
-      width: 90%;
-    }
-    .animal-emoji { font-size: 100px; margin: 20px 0; }
-    .word-hint { font-size: 24px; color: #64748B; margin-bottom: 20px; }
-    .input-area {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin: 20px 0;
-    }
-    .letter-box {
-      width: 48px;
-      height: 56px;
-      border: 2px solid #E2E8F0;
-      border-radius: 12px;
-      font-size: 28px;
-      font-weight: bold;
-      text-align: center;
-      line-height: 52px;
-      background: #F8FAFC;
-    }
-    .stars { margin-top: 20px; }
-    .star { color: #FCD34D; font-size: 32px; margin: 0 4px; }
-    .btn {
-      padding: 14px 32px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin: 8px;
-    }
-    .btn-primary { background: #0EA5E9; color: white; }
-    .btn-secondary { background: #F1F5F9; color: #64748B; }
-    .progress { margin-top: 16px; color: #94A3B8; font-size: 14px; }
-  </style>
-</head>
-<body>
-  <div class="game-container">
-    <h1 style="color: #1E293B; margin-bottom: 8px;">动物单词拼写</h1>
-    <p style="color: #94A3B8;">看图拼出正确的英文单词</p>
-    <div class="animal-emoji">🐕</div>
-    <div class="word-hint">_ _ _</div>
-    <div class="input-area">
-      <div class="letter-box">D</div>
-      <div class="letter-box">O</div>
-      <div class="letter-box">G</div>
-    </div>
-    <div class="stars">
-      <span class="star">⭐</span>
-      <span class="star">⭐</span>
-      <span class="star">⭐</span>
-    </div>
-    <div style="margin-top: 24px;">
-      <button class="btn btn-secondary">提示</button>
-      <button class="btn btn-primary">确认</button>
-    </div>
-    <div class="progress">第 3/10 题</div>
-  </div>
-</body>
-</html>`;
-
 const mathBalloonHTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -434,16 +350,16 @@ const listeningHTML = `<!DOCTYPE html>
 export const mockCoursewares: Courseware[] = [
   {
     id: 1,
-    title: '动物单词拼写游戏',
+    title: '水果单词互动乐园',
     subject: '英语',
-    grade: '三年级',
-    type: '单词拼写',
+    grade: '一年级',
+    type: '水果单词',
     author: '张老师',
     publishTime: '2026-04-06',
     views: 1200,
     favorites: 89,
     likes: 156,
-    htmlContent: animalSpellingHTML,
+    htmlContent: fruitGardenHTML,
     isOwn: true,
     isPublished: true,
     showConversation: true,

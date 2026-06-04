@@ -19,6 +19,16 @@ const grades = [
   '四年级', '五年级', '六年级',
 ];
 
+const publishScopes = [
+  { key: 'group', label: '集团资源库', hint: '全国/集团老师可见' },
+  { key: 'school', label: '校本资源库', hint: '按学校沉淀校本内容' },
+  { key: 'personal', label: '个人资源库', hint: '仅自己可见' },
+] as const;
+
+const SHELL_URL = (import.meta.env.VITE_SHELL_URL || 'http://localhost:5174').replace(/\/$/, '');
+
+const schools = ['北京学校', '上海学校', '广州学校', '武汉学校', '天津学校', '西安学校', '南京学校', '深圳学校'];
+
 type PublishMode = 'publish' | 'update' | 'new-game';
 
 interface UpdateTargetOption {
@@ -56,6 +66,8 @@ export default function PublishModal({
   }, [coursewareId, coursewares]);
 
   const [title, setTitle] = useState(courseware?.title || '');
+  const [publishScope, setPublishScope] = useState<'group' | 'school' | 'personal'>(courseware?.resourceScope || 'school');
+  const [selectedSchool, setSelectedSchool] = useState(courseware?.schoolName || '广州学校');
   const [subject, setSubject] = useState(courseware?.subject || '语文');
   const [grade, setGrade] = useState(courseware?.grade || '一年级');
   const [selectedTags, setSelectedTags] = useState<string[]>(() =>
@@ -152,12 +164,18 @@ export default function PublishModal({
       toast('请选择要更新的互动游戏');
       return;
     }
+    if (publishScope === 'school' && !selectedSchool) {
+      toast('请选择发布到哪个学校');
+      return;
+    }
     if (mode === 'new-game' && courseware) {
       const nextId = Math.max(...coursewares.map(item => item.id), coursewareId) + 1;
       addCourseware({
         ...courseware,
         id: nextId,
         title: title.trim(),
+        resourceScope: publishScope,
+        schoolName: publishScope === 'school' ? selectedSchool : undefined,
         subject,
         grade,
         publishTime: new Date().toISOString().split('T')[0],
@@ -170,20 +188,37 @@ export default function PublishModal({
     } else {
       updateCourseware(coursewareId, {
         title: title.trim(),
+        resourceScope: publishScope,
+        schoolName: publishScope === 'school' ? selectedSchool : undefined,
         subject,
         grade,
         isPublished: true,
       });
     }
-    toast(mode === 'update' ? '更新发布成功~' : mode === 'new-game' ? '已发布为新互动游戏~' : '发布成功~');
+    const scopeLabel = publishScopes.find(item => item.key === publishScope)?.label || '资源库';
+    toast(mode === 'update' ? `已更新发布到${scopeLabel}~` : mode === 'new-game' ? `已发布为新互动游戏，并同步到${scopeLabel}~` : `发布成功，已同步到${scopeLabel}~`);
     onPublishSuccess?.();
     onClose();
+
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) {
+      window.setTimeout(() => {
+        const nextReturnUrl = new URL(returnTo);
+        nextReturnUrl.searchParams.set('scene', 'collected');
+        nextReturnUrl.searchParams.set('scope', publishScope === 'school' ? 'school' : 'group');
+        window.location.href = nextReturnUrl.toString();
+      }, 650);
+    }
   };
 
   const modalTitle = mode === 'update' ? '更新发布' : mode === 'new-game' ? '发布为新互动游戏' : '发布作品';
   const primaryText = mode === 'update' ? '确认更新发布' : mode === 'new-game' ? '确认发布为新游戏' : '确认发布';
   const shouldShowUpdateTargets = mode === 'update' && updateTargets.length > 1;
   const selectedUpdateTarget = updateTargets.find(target => target.id === selectedUpdateTargetId) || updateTargets[0];
+  const openSchoolTagManager = () => {
+    window.open(`${SHELL_URL}/?scene=tagAdmin&scope=school`, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <motion.div
@@ -218,6 +253,58 @@ export default function PublishModal({
             </div>
           )}
 
+          <div style={styles.field}>
+            <label style={styles.label}><span style={styles.required}>*</span> 发布到</label>
+            <div style={styles.scopeGrid}>
+              {publishScopes.map(item => {
+                const active = publishScope === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setPublishScope(item.key)}
+                    style={{
+                      ...styles.scopeCard,
+                      ...(active ? styles.scopeCardActive : {}),
+                    }}
+                  >
+                    <span style={styles.scopeLabelRow}>
+                      <span style={styles.radioDotOuter}>
+                        {active && <span style={styles.radioDotInner} />}
+                      </span>
+                      <span style={styles.scopeCopy}>
+                        <span style={styles.scopeName}>{item.label}</span>
+                        <span style={styles.scopeHint}>{item.hint}</span>
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {publishScope === 'school' && (
+            <div style={styles.field}>
+              <label style={styles.label}><span style={styles.required}>*</span> 选择学校</label>
+              <div style={styles.chipGroup}>
+                {schools.map(school => (
+                  <button
+                    key={school}
+                    type="button"
+                    onClick={() => setSelectedSchool(school)}
+                    style={{
+                      ...styles.chip,
+                      ...(selectedSchool === school ? styles.chipActive : {}),
+                    }}
+                  >
+                    {school}
+                  </button>
+                ))}
+              </div>
+              <div style={styles.fieldTip}>当前账号具备多分校资源发布权限，发布到校本资源时需指定学校。</div>
+            </div>
+          )}
+
           {/* 游戏名称 */}
           <div style={styles.field}>
             <label style={styles.label}><span style={styles.required}>*</span> 游戏名称</label>
@@ -237,7 +324,10 @@ export default function PublishModal({
 
           {shouldShowUpdateTargets && selectedUpdateTarget && (
             <div style={styles.field} ref={updateTargetDropdownRef}>
-              <label style={styles.label}><span style={styles.required}>*</span> 更新到哪个已发布游戏</label>
+              <div style={styles.labelRow}>
+                <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> 选择要更新的游戏</label>
+                <span style={styles.inlineHelp}>当前会话窗口中有多个已发布的游戏，需要选择更新哪个已发布的游戏。</span>
+              </div>
               <button
                 type="button"
                 onClick={() => setUpdateTargetDropdownOpen(open => !open)}
@@ -334,22 +424,20 @@ export default function PublishModal({
 
           {/* 知识点标签 */}
           <div style={styles.field} ref={tagDropdownRef}>
-            <label style={styles.label}>知识点标签 <span style={styles.aiTag}>AI默认推荐</span></label>
+            <div style={styles.labelRow}>
+              <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> 游戏标签 <span style={styles.aiTag}>AI默认推荐</span></label>
+              {publishScope === 'school' && (
+                <button type="button" style={styles.tagManageBtn} onClick={openSchoolTagManager}>
+                  编辑校本标签
+                </button>
+              )}
+            </div>
             
             <div
               onClick={() => setTagDropdownOpen(true)}
               style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 6,
-                padding: '8px 12px',
-                minHeight: 42,
-                border: '1px solid #E2E8F0',
-                borderRadius: 8,
-                background: '#FAFBFC',
-                cursor: 'pointer',
-                transition: 'border-color 0.15s',
-                ...(tagDropdownOpen ? { borderColor: '#00C9A7' } : {}),
+                ...styles.tagSelector,
+                ...(tagDropdownOpen ? styles.tagSelectorActive : {}),
               }}
             >
               {selectedTags.length === 0 && (
@@ -361,18 +449,7 @@ export default function PublishModal({
                 return (
                   <span
                     key={tagId}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '2px 8px 2px 10px',
-                      background: '#E0FBF4',
-                      color: '#047857',
-                      borderRadius: 999,
-                      fontSize: 12,
-                      fontWeight: 500,
-                      lineHeight: '22px',
-                    }}
+                    style={styles.selectedTag}
                   >
                     {label}
                     <span
@@ -389,34 +466,22 @@ export default function PublishModal({
             </div>
 
             {tagDropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                marginTop: 4,
-                background: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: 10,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                zIndex: 20,
-                maxHeight: 280,
-                display: 'flex',
-                flexDirection: 'column',
-              }}>
-                <div style={{ padding: '8px 10px', borderBottom: '1px solid #F1F5F9' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: '#F8FAFE', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+              <div style={styles.tagDropdown}>
+                <div style={styles.tagDropdownHeader}>
+                  <div style={styles.tagSearchBox}>
                     <Search size={14} color="#94A3B8" />
                     <input
                       type="text"
                       value={tagSearch}
                       onChange={e => setTagSearch(e.target.value)}
                       placeholder="搜索知识点..."
-                      style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: '#1E293B', flex: 1 }}
+                      style={styles.tagSearchInput}
                       autoFocus
                     />
                   </div>
+                  <span style={styles.tagSelectedCount}>已选 {selectedTags.length}</span>
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}>
+                <div style={styles.tagTree}>
                   {filteredTree.length === 0 ? (
                     <div style={{ padding: '16px', textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>无匹配结果</div>
                   ) : (
@@ -474,9 +539,12 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 12,
     width: '100%',
     maxWidth: 1040,
+    height: 'min(880px, 92vh)',
     maxHeight: '92vh',
-    overflowY: 'visible' as const,
+    overflow: 'hidden',
     boxShadow: '0 24px 80px rgba(15, 23, 42, 0.22)',
+    display: 'flex',
+    flexDirection: 'column',
   },
   header: {
     display: 'flex',
@@ -503,6 +571,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   content: {
     padding: '8px 22px 20px',
+    overflowY: 'auto',
+    flex: 1,
   },
   field: {
     marginBottom: 18,
@@ -516,6 +586,24 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     color: '#1E293B',
     marginBottom: 8,
+  },
+  labelRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 8,
+  },
+  tagManageBtn: {
+    height: 26,
+    border: '1px solid #BFEFE4',
+    background: '#F0FDF9',
+    color: '#008F78',
+    borderRadius: 6,
+    padding: '0 10px',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
   },
   required: {
     color: '#EF4444',
@@ -670,6 +758,158 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#047857',
     fontWeight: 700,
   },
+  scopeGrid: {
+    display: 'flex',
+    gap: 12,
+  },
+  scopeCard: {
+    flex: 1,
+    minHeight: 68,
+    borderRadius: 10,
+    border: '1px solid #D8E2EF',
+    background: '#FFFFFF',
+    padding: '12px 14px',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'all 0.15s',
+  },
+  scopeCardActive: {
+    background: '#F0FDF9',
+    borderColor: '#00C9A7',
+    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.08)',
+  },
+  scopeLabelRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 10,
+    height: '100%',
+  },
+  radioDotOuter: {
+    width: 16,
+    height: 16,
+    borderRadius: '50%',
+    border: '1.5px solid #00C9A7',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  radioDotInner: {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: '#00C9A7',
+  },
+  scopeCopy: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    minWidth: 0,
+  },
+  scopeName: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#1E293B',
+    flexShrink: 0,
+  },
+  scopeHint: {
+    display: 'block',
+    paddingLeft: 0,
+    fontSize: 12,
+    lineHeight: 1.4,
+    color: '#64748B',
+    whiteSpace: 'normal',
+  },
+  inlineHelp: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 1.4,
+  },
+  tagSelector: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 6,
+    padding: '7px 10px',
+    minHeight: 40,
+    border: '1px solid #E2E8F0',
+    borderRadius: 8,
+    background: '#FAFBFC',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  tagSelectorActive: {
+    borderColor: '#00C9A7',
+    background: '#FFFFFF',
+    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.08)',
+  },
+  selectedTag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '2px 8px 2px 10px',
+    background: '#E0FBF4',
+    color: '#047857',
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 600,
+    lineHeight: '22px',
+  },
+  tagDropdown: {
+    marginTop: 6,
+    background: '#fff',
+    border: '1px solid #D8E5EF',
+    borderRadius: 10,
+    boxShadow: '0 8px 22px rgba(15, 23, 42, 0.10)',
+    maxHeight: 230,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
+  tagDropdownHeader: {
+    padding: '8px 10px',
+    borderBottom: '1px solid #F1F5F9',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+  },
+  tagSearchBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '6px 10px',
+    background: '#F8FAFE',
+    borderRadius: 7,
+    border: '1px solid #E2E8F0',
+    flex: 1,
+  },
+  tagSearchInput: {
+    border: 'none',
+    outline: 'none',
+    background: 'transparent',
+    fontSize: 13,
+    color: '#1E293B',
+    flex: 1,
+  },
+  tagSelectedCount: {
+    color: '#00A67D',
+    background: '#ECFDF5',
+    borderRadius: 999,
+    padding: '4px 9px',
+    fontSize: 12,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  tagTree: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '4px 0',
+  },
+  fieldTip: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#64748B',
+  },
   switchRow: {
     display: 'flex',
     alignItems: 'center',
@@ -679,6 +919,7 @@ const styles: Record<string, React.CSSProperties> = {
   switchTrack: {
     width: 44,
     height: 24,
+    border: 'none',
     borderRadius: 12,
     cursor: 'pointer',
     transition: 'background 0.2s',
@@ -701,6 +942,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 12,
     padding: '14px 22px 18px',
     borderTop: '1px solid #E2E8F0',
+    flexShrink: 0,
+    background: '#FFFFFF',
   },
   btn: {
     padding: '12px 24px',

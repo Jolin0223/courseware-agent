@@ -5,7 +5,6 @@ import {
   ChevronRight,
   PlusCircle,
   FolderOpen,
-  User,
   Monitor,
   PanelRight,
 } from 'lucide-react';
@@ -152,26 +151,6 @@ const styles = {
     overflow: 'hidden',
   }),
 
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #22C55E, #8B5CF6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#FFFFFF',
-    flexShrink: 0,
-  } as React.CSSProperties,
-
-  userName: {
-    fontSize: 14,
-    fontWeight: 500,
-    color: '#334155',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  } as React.CSSProperties,
 } as const;
 
 function Sidebar() {
@@ -296,16 +275,10 @@ function Sidebar() {
         </div>
       )}
 
-      {/* User Area */}
+      {/* Mode Switch */}
       <div style={{ ...styles.userArea(sidebarCollapsed), justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
-          <div style={styles.avatar}>
-            <User size={18} />
-          </div>
-          {!sidebarCollapsed && <span style={styles.userName}>张老师</span>}
-        </div>
         {!sidebarCollapsed && (
-          <div style={{ display: 'flex', gap: 2 }}>
+          <div style={{ display: 'flex', gap: 2, marginLeft: 'auto' }}>
             <ModeIconBtn
               active={appMode === 'standalone'}
               tooltip="独立模式"
@@ -321,6 +294,15 @@ function Sidebar() {
               <PanelRight size={15} />
             </ModeIconBtn>
           </div>
+        )}
+        {sidebarCollapsed && (
+          <ModeIconBtn
+            active={appMode === 'standalone'}
+            tooltip="独立模式"
+            onClick={() => setAppMode('standalone')}
+          >
+            <Monitor size={15} />
+          </ModeIconBtn>
         )}
       </div>
     </aside>

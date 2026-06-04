@@ -6,7 +6,8 @@ import RequirementCard from '../components/Generator/RequirementCard';
 import ProgressPanel from '../components/Generator/ProgressPanel';
 import PreviewPanel from '../components/Generator/PreviewPanel';
 import CoursewareCard from '../components/Generator/CoursewareCard';
-import InspirationSection from '../components/Generator/InspirationSection';
+import InspirationSection, { type GameplayInspiration } from '../components/Generator/InspirationSection';
+import InspirationAssistant from '../components/Generator/InspirationAssistant';
 import { useConversationStore, simulateGeneration } from '../store/conversationStore';
 import { useUIStore } from '../store/uiStore';
 import { useCoursewareStore } from '../store/coursewareStore';
@@ -25,6 +26,7 @@ import type {
 } from '../types';
 import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
+import { demoMs } from '../constants/demoTiming';
 
 type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 
@@ -41,7 +43,7 @@ const documentIntentOptions: MaterialIntentOption[] = [
 ];
 
 const getAttachmentLabel = (attachment: UploadedAttachment) => (
-  attachment.type === 'image' ? '图片' : '文档'
+  attachment.type === 'image' ? '图片' : attachment.type === 'html' ? 'HTML' : '文档'
 );
 
 const buildAttachmentSummary = (attachments: UploadedAttachment[]) => {
@@ -209,21 +211,23 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     flex: 1,
-    padding: '40px 24px',
+    minHeight: 0,
+    overflowY: 'auto',
+    padding: '36px 24px 48px',
   },
   welcomeTitle: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: 700,
     color: '#1E293B',
-    marginBottom: 12,
+    marginBottom: 10,
     textAlign: 'center',
   },
   welcomeSubtitle: {
     fontSize: 16,
     color: '#64748B',
-    marginBottom: 40,
+    marginBottom: 28,
     textAlign: 'center',
   },
   analyzingContainer: {
@@ -262,6 +266,43 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 15,
     lineHeight: 1.5,
     border: '1px solid #E2E8F0',
+  },
+};
+
+const replayStyles: Record<string, React.CSSProperties> = {
+  card: {
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    border: '1px solid #A7F3D0',
+    background: '#F0FDF9',
+    boxShadow: '0 8px 24px rgba(0, 201, 167, 0.08)',
+  },
+  title: {
+    color: '#047857',
+    fontSize: 14,
+    fontWeight: 800,
+    marginBottom: 8,
+  },
+  body: {
+    color: '#334155',
+    fontSize: 13,
+    lineHeight: 1.6,
+  },
+  chips: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+  },
+  chip: {
+    padding: '5px 9px',
+    borderRadius: 999,
+    background: '#FFFFFF',
+    border: '1px solid #A7F3D0',
+    color: '#047857',
+    fontSize: 12,
+    fontWeight: 700,
   },
 };
 
@@ -511,6 +552,30 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     color: '#64748B',
     marginTop: 2,
   },
+  htmlCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    maxWidth: 340,
+    padding: '10px 12px',
+    borderRadius: 10,
+    background: '#F0FDF9',
+    border: '1px solid #A7F3D0',
+    boxShadow: '0 6px 18px rgba(15, 23, 42, 0.06)',
+  },
+  htmlIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    background: '#CCFBF1',
+    color: '#047857',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 11,
+    fontWeight: 900,
+    flexShrink: 0,
+  },
   previewMask: {
     position: 'fixed',
     inset: 0,
@@ -562,6 +627,7 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
   const message = typeof content === 'string' ? { text: content } : content;
   const images = message.attachments?.filter(file => file.type === 'image') || [];
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
+  const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
 
   return (
     <>
@@ -590,6 +656,20 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
                   <div style={{ minWidth: 0 }}>
                     <div style={userMessageStyles.documentName}>{doc.name}</div>
                     <div style={userMessageStyles.documentMeta}>PDF / Word 附件</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {htmlAttachments.length > 0 && (
+            <div style={userMessageStyles.documentList}>
+              {htmlAttachments.map(file => (
+                <div key={file.id} style={userMessageStyles.htmlCard}>
+                  <span style={userMessageStyles.htmlIcon}>HTML</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={userMessageStyles.documentName}>{file.name}</div>
+                    <div style={userMessageStyles.documentMeta}>同款参考附件 · 不可打开 · 不可下载</div>
                   </div>
                 </div>
               ))}
@@ -772,6 +852,22 @@ function MaterialIntentCard({
   );
 }
 
+function GameplayReplayCard({ item }: { item: GameplayInspiration }) {
+  return (
+    <div style={replayStyles.card}>
+      <div style={replayStyles.title}>本次玩法结构：{item.title}</div>
+      <div style={replayStyles.body}>
+        已将“{item.learningAction}”承接为 {item.structure.join(' → ')}。如果后续点击一键同款，新会话会保留这套玩法结构、反馈节奏和视觉方向，只需要输入新的知识点。
+      </div>
+      <div style={replayStyles.chips}>
+        {item.interactionTags.map(tag => (
+          <span key={tag} style={replayStyles.chip}>{tag}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AssistantMessage({
   message,
   phase,
@@ -824,18 +920,36 @@ function AssistantMessage({
   
   if (message.type === 'courseware-result') {
     const result = message.content as CoursewareResult;
-    const courseware = mockCoursewares.find(c => c.title === result.title) || {
+    const demoCourseware = mockCoursewares[0];
+    const courseware = (
+      result.htmlContent
+        ? {
+            id: Date.now(),
+            title: result.title,
+            subject: '英语',
+            grade: '一年级',
+            type: '水果单词',
+            author: '张老师',
+            publishTime: new Date().toISOString().split('T')[0],
+            views: 0,
+            favorites: 0,
+            likes: 0,
+            htmlContent: result.htmlContent,
+            isOwn: true,
+          }
+        : mockCoursewares.find(c => c.title === result.title)
+    ) || {
       id: Date.now(),
-      title: result.title,
+      title: demoCourseware.title,
       subject: '英语',
-      grade: '三年级',
-      type: '单词拼写',
+      grade: '一年级',
+      type: '水果单词',
       author: '张老师',
       publishTime: new Date().toISOString().split('T')[0],
       views: 0,
       favorites: 0,
       likes: 0,
-      htmlContent: '',
+      htmlContent: demoCourseware.htmlContent,
       isOwn: true,
     };
 
@@ -897,6 +1011,10 @@ export default function GeneratorPage() {
   const [chatWidth, setChatWidth] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const [frameworkDone, setFrameworkDone] = useState(false);
+  const [draftPrompt, setDraftPrompt] = useState('');
+  const [draftVersion, setDraftVersion] = useState(0);
+  const [selectedInspiration, setSelectedInspiration] = useState<GameplayInspiration | null>(null);
+  const [lastGeneratedInspiration, setLastGeneratedInspiration] = useState<GameplayInspiration | null>(null);
   const frameworkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingFrameworkRef = useRef<string | null>(null);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -934,7 +1052,40 @@ export default function GeneratorPage() {
   
   const activeConversation = conversations.find(c => c.id === activeConversationId);
   const hasMessages = activeConversation && activeConversation.messages.length > 0;
+  const activeCloneDraft = !hasMessages ? activeConversation?.cloneDraft : undefined;
   const chatAreaRef = useRef<HTMLDivElement>(null);
+
+  const injectPrompt = useCallback((nextText: string) => {
+    setDraftPrompt(nextText);
+    setDraftVersion(prev => prev + 1);
+  }, []);
+
+  const handleApplyInspiration = useCallback((item: GameplayInspiration) => {
+    setSelectedInspiration(item);
+    const current = draftPrompt.trim();
+    if (current.includes(item.promptEnhancement)) {
+      injectPrompt(current);
+      return;
+    }
+    const next = current
+      ? `${current}\n\n已套用「${item.title}」：${item.promptEnhancement}`
+      : `已选择「${item.title}」玩法。请补充要教学的内容，例如：${item.keywords.join('、')}。\n\n${item.promptEnhancement}`;
+    injectPrompt(next);
+  }, [draftPrompt, injectPrompt]);
+
+  const handleEnhancePrompt = useCallback((enhancement: string) => {
+    const current = draftPrompt.trim();
+    const sentence = enhancement.endsWith('。') ? enhancement : `${enhancement}。`;
+    if (current.includes(sentence) || current.includes(enhancement)) {
+      injectPrompt(current);
+      return;
+    }
+    injectPrompt(current ? `${current}\n${sentence}` : sentence);
+  }, [draftPrompt, injectPrompt]);
+
+  const handleApplyAssistantPrompt = useCallback((prompt: string) => {
+    injectPrompt(prompt);
+  }, [injectPrompt]);
 
   const startRequirementFlow = useCallback((convId: string, promptForFramework: string) => {
     setPhase('analyzing');
@@ -951,8 +1102,8 @@ export default function GeneratorPage() {
         addAssistantMessage(convId, framework, 'requirement-framework');
         setPhase('framework');
         pendingFrameworkRef.current = null;
-      }, 10000);
-    }, 1500);
+      }, demoMs(10000));
+    }, demoMs(1500));
   }, [addAssistantMessage]);
 
   useEffect(() => {
@@ -965,6 +1116,11 @@ export default function GeneratorPage() {
 
   useEffect(() => {
     if (!activeConversation) return;
+    if (activeConversation.cloneDraft && activeConversation.messages.length === 0) {
+      setDraftPrompt(activeConversation.cloneDraft.prompt);
+      setDraftVersion(prev => prev + 1);
+      closePreview();
+    }
     const hasFramework = activeConversation.messages.some(m => m.type === 'requirement-framework');
     const hasProgress = activeConversation.messages.some(m => m.type === 'generation-progress');
     const hasResult = activeConversation.messages.some(m => m.type === 'courseware-result');
@@ -979,7 +1135,7 @@ export default function GeneratorPage() {
       setPhase('framework');
       setFrameworkDone(isClone ? false : true);
     }
-  }, [activeConversationId]);
+  }, [activeConversationId, closePreview]);
   
   const handleSend = useCallback((text: string, attachments: UploadedAttachment[] = []) => {
     let convId = activeConversationId;
@@ -1001,9 +1157,27 @@ export default function GeneratorPage() {
       text: text || '请帮我看看这些上传材料',
       attachments,
     });
+    setLastGeneratedInspiration(selectedInspiration);
+    setDraftPrompt('');
 
-    if (attachments.length > 0) {
-      const { resolvedIntents, pendingAttachments } = analyzeMaterialIntents(text, attachments);
+    const cloneAttachments = attachments.filter(file => file.type === 'html' && file.locked);
+    const materialAttachments = attachments.filter(file => file.type !== 'html');
+
+    if (cloneAttachments.length > 0) {
+      useConversationStore.setState(state => ({
+        conversations: state.conversations.map(c =>
+          c.id === convId ? { ...c, cloneDraft: undefined } : c
+        ),
+      }));
+      startRequirementFlow(
+        convId,
+        `${text}\n\n同款参考附件：${cloneAttachments.map(file => `HTML「${file.name}」`).join('、')}。该附件仅作为隐藏上下文，不展示、不打开、不下载。`
+      );
+      return;
+    }
+
+    if (materialAttachments.length > 0) {
+      const { resolvedIntents, pendingAttachments } = analyzeMaterialIntents(text, materialAttachments);
       if (pendingAttachments.length > 0) {
         addAssistantMessage(convId, {
           prompt: text,
@@ -1022,13 +1196,13 @@ export default function GeneratorPage() {
         `已识别 ${resolvedIntents.length} 个上传材料用途：\n${resolvedIntents.map(item => `- ${item.title}：${item.reason}`).join('\n')}\n接下来我会把这些用途带入需求分析。`,
         'text'
       );
-      startRequirementFlow(convId, buildIntentPrompt(text, attachments, resolvedIntents));
+      startRequirementFlow(convId, buildIntentPrompt(text, materialAttachments, resolvedIntents));
       return;
     }
 
     startRequirementFlow(convId, text);
-  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, startRequirementFlow]);
-  
+  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, startRequirementFlow, selectedInspiration]);
+
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
     
@@ -1073,8 +1247,8 @@ export default function GeneratorPage() {
             id: coursewareId,
             title: result.title,
             subject: '英语',
-            grade: '三年级',
-            type: '单词拼写',
+            grade: '一年级',
+            type: '水果单词',
             author: '张老师',
             publishTime: new Date().toISOString().split('T')[0],
             views: 0,
@@ -1095,7 +1269,7 @@ export default function GeneratorPage() {
         controller.signal,
         failAtStageRef.current
       );
-    }, 500);
+    }, demoMs(500));
   }, [activeConversationId, addUserMessage, startGeneration, addAssistantMessage, completeGeneration, addCourseware, setSidebarCollapsed, openPreview]);
 
   const handleStop = useCallback(() => {
@@ -1154,7 +1328,7 @@ export default function GeneratorPage() {
       },
       (result, coursewareId) => {
         const newCourseware: Courseware = {
-          id: coursewareId, title: result.title, subject: '英语', grade: '三年级', type: '单词拼写',
+          id: coursewareId, title: result.title, subject: '英语', grade: '一年级', type: '水果单词',
           author: '张老师', publishTime: new Date().toISOString().split('T')[0],
           views: 0, favorites: 0, likes: 0, htmlContent: mockCoursewares[0].htmlContent, isOwn: true, isPublished: false,
         };
@@ -1204,7 +1378,7 @@ export default function GeneratorPage() {
       },
       (result, coursewareId) => {
         const newCourseware: Courseware = {
-          id: coursewareId, title: result.title, subject: '英语', grade: '三年级', type: '单词拼写',
+          id: coursewareId, title: result.title, subject: '英语', grade: '一年级', type: '水果单词',
           author: '张老师', publishTime: new Date().toISOString().split('T')[0],
           views: 0, favorites: 0, likes: 0, htmlContent: mockCoursewares[0].htmlContent, isOwn: true, isPublished: false,
         };
@@ -1269,13 +1443,26 @@ export default function GeneratorPage() {
     if (!hasMessages && phase === 'input') {
       return (
         <div style={styles.welcomeSection}>
-          <h1 style={styles.welcomeTitle}>欢迎使用 <span style={{ background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动课件AI Agent</span></h1>
-          <p style={styles.welcomeSubtitle}>一句话生成教学互动游戏，让课堂更精彩</p>
+          <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
+          <p style={styles.welcomeSubtitle}>输入教学内容，AI 会补全玩法；也可以先套用一个课堂互动模板，或跟灵感助手聊聊看。</p>
           <div style={{ width: '100%', maxWidth: 720 }}>
-            <ChatInput onSend={handleSend} centered disabled={isGenerating} placeholder="在这里输入你想要的互动游戏，比如生成一个字母大小写配对游戏" />
+            <ChatInput
+              onSend={handleSend}
+              centered
+              disabled={isGenerating}
+              placeholder="例如：做一个颜色单词游戏，或者上传材料后描述你想怎么用"
+              injectedText={draftPrompt}
+              injectedTextVersion={draftVersion}
+              onTextChange={setDraftPrompt}
+              lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
+            />
           </div>
-          <div style={{ width: '100%', marginTop: 48 }}>
-            <InspirationSection />
+          <div style={{ width: '100%', marginTop: 24 }}>
+            <InspirationSection
+              selectedInspirationId={selectedInspiration?.id}
+              onApplyInspiration={handleApplyInspiration}
+              onEnhancePrompt={handleEnhancePrompt}
+            />
           </div>
         </div>
       );
@@ -1297,16 +1484,23 @@ export default function GeneratorPage() {
                   {msg.role === 'user' ? (
                     <UserMessage content={msg.content as string} />
                   ) : (
-                    <AssistantMessage 
-                      message={msg} 
-                      phase={phase}
-                      frameworkDone={frameworkDone}
-                      onFrameworkStreamComplete={() => setFrameworkDone(true)}
-                      streamDuration={activeConversation?.title.startsWith('同款-') ? 2000 : undefined}
-                      onRetry={handleRetryStage}
-                      onContinue={handleContinueStage}
-                      onMaterialIntentConfirm={handleMaterialIntentConfirm}
-                    />
+                    <>
+                      <AssistantMessage 
+                        message={msg} 
+                        phase={phase}
+                        frameworkDone={frameworkDone}
+                        onFrameworkStreamComplete={() => setFrameworkDone(true)}
+                        streamDuration={activeConversation?.title.startsWith('同款-') ? demoMs(2000) : undefined}
+                        onRetry={handleRetryStage}
+                        onContinue={handleContinueStage}
+                        onMaterialIntentConfirm={handleMaterialIntentConfirm}
+                      />
+                      {msg.type === 'courseware-result' && lastGeneratedInspiration && (
+                        <div style={{ paddingLeft: 42, maxWidth: 760 }}>
+                          <GameplayReplayCard item={lastGeneratedInspiration} />
+                        </div>
+                      )}
+                    </>
                   )}
                 </motion.div>
               ))}
@@ -1405,6 +1599,10 @@ export default function GeneratorPage() {
             disabled={false} 
             isGenerating={phase !== 'input' && phase !== 'completed'}
             onStop={handleStop}
+            injectedText={draftPrompt}
+            injectedTextVersion={draftVersion}
+            onTextChange={setDraftPrompt}
+            lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
           />
         </div>
       </>
@@ -1447,6 +1645,10 @@ export default function GeneratorPage() {
           </>
         )}
       </div>
+
+      {phase === 'input' && (
+        <InspirationAssistant onApplyPrompt={handleApplyAssistantPrompt} />
+      )}
       
       {/* Global styles */}
       <style>{`

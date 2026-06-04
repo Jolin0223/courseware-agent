@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { Conversation, ConversationMessage, GenerationProgress, GenerationStage, CoursewareResult, RequirementFramework, UserMaterialMessage } from '../types';
 import { mockConversations, createEmptyConversation, generateRequirementFromPrompt } from '../data/mockConversations';
+import { demoMs } from '../constants/demoTiming';
+import fruitGardenHTML from '../assets/courseware/fruit_garden_adventure.html?raw';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
@@ -14,7 +16,7 @@ interface ConversationState {
   // Actions
   setActiveConversation: (id: string | null) => void;
   createNewConversation: (initialPrompt?: string) => string;
-  createCloneConversation: (title: string, framework: RequirementFramework) => string;
+  createCloneConversation: (title: string, framework: RequirementFramework, htmlContent?: string) => string;
   deleteConversation: (id: string) => void;
   renameConversation: (id: string, title: string) => void;
   togglePinConversation: (id: string) => void;
@@ -47,32 +49,21 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     return newConv.id;
   },
 
-  createCloneConversation: (title, framework) => {
+  createCloneConversation: (title, framework, htmlContent) => {
     const newConv = createEmptyConversation();
     newConv.title = `同款-${title}`;
-    newConv.messages = [
-      {
-        id: generateId(),
-        role: 'user',
-        content: `一键同款：${title}`,
-        type: 'text',
-        timestamp: new Date(),
+    newConv.messages = [];
+    newConv.cloneDraft = {
+      prompt: buildClonePrompt(title, framework),
+      attachment: {
+        id: `clone_html_${Date.now()}`,
+        type: 'html',
+        name: `${title}.html`,
+        locked: true,
+        hiddenContent: htmlContent,
+        sourceTitle: title,
       },
-      {
-        id: generateId(),
-        role: 'assistant',
-        content: `正在为您拉取「${title}」的需求框架，您可调整后点击 确认需求，立即生成。`,
-        type: 'text',
-        timestamp: new Date(),
-      },
-      {
-        id: generateId(),
-        role: 'assistant',
-        content: framework,
-        type: 'requirement-framework',
-        timestamp: new Date(),
-      },
-    ];
+    };
     set((state) => ({
       conversations: [newConv, ...state.conversations],
       activeConversationId: newConv.id,
@@ -180,6 +171,14 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
   },
 }));
 
+const buildClonePrompt = (title: string, framework: RequirementFramework) => {
+  void framework;
+
+  return `制作一个同款教学互动课件，具体需求包括：
+1. 参考附件中的原始 HTML 课件「${title}」，只复用其玩法结构、交互逻辑、反馈节奏和适合课堂演示的视觉方向。
+2. 请根据我接下来补充的新主题或新知识点，生成一份同款但内容不同的互动课件。`;
+};
+
 // Helper function to simulate generation process
 export async function simulateGeneration(
   _conversationId: string,
@@ -235,7 +234,7 @@ export async function simulateGeneration(
     return 'completed';
   };
 
-  const durations = [8000, 6000, 2500, 2500, 2500];
+  const durations = [8000, 6000, 2500, 2500, 2500].map(demoMs);
   for (let i = 0; i < durations.length; i++) {
     const result = await runStage(i, durations[i]);
     if (signal?.aborted) return;
@@ -243,8 +242,9 @@ export async function simulateGeneration(
   }
 
   const result: CoursewareResult = {
-    title: '动物单词拼写游戏',
+    title: '水果单词互动乐园',
     version: 'v1.0',
+    htmlContent: fruitGardenHTML,
   };
 
   onComplete(result, Date.now());

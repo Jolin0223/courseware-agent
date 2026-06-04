@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Maximize2, X, Edit3, Upload, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
@@ -44,71 +44,84 @@ interface PublishedGameTarget {
   urlLabel: string;
 }
 
+const buildSessionVersions = (courseware?: { title?: string; htmlContent?: string } | null): SessionHtmlVersion[] => {
+  if (!courseware) return [];
+  const baseHtml = courseware.htmlContent || '';
+  const baseTitle = courseware.title || '互动课件';
+  return [
+    {
+      version: 'v1',
+      sessionNumber: 1,
+      title: baseTitle,
+      htmlContent: baseHtml,
+      publishTargetId: 'game-a',
+      isHistoricalPublished: true,
+      createdAt: '2026-05-14 18:27',
+    },
+    {
+      version: 'v2',
+      sessionNumber: 2,
+      title: `${baseTitle}优化版`,
+      htmlContent: baseHtml,
+      publishTargetId: 'game-b',
+      isCurrentPublished: true,
+      createdAt: '2026-05-15 10:30',
+    },
+    {
+      version: 'v3',
+      sessionNumber: 3,
+      title: baseTitle,
+      htmlContent: baseHtml,
+      publishTargetId: 'game-a',
+      isCurrentPublished: true,
+      createdAt: '2026-05-16 14:20',
+    },
+    {
+      version: 'v4',
+      sessionNumber: 4,
+      title: `${baseTitle}当前版`,
+      htmlContent: baseHtml,
+      createdAt: '2026-06-01 17:10',
+    },
+  ];
+};
+
+const buildPublishedTargets = (courseware?: { title?: string } | null): PublishedGameTarget[] => {
+  const baseTitle = courseware?.title || '互动课件';
+  return [
+    {
+      id: 'game-a',
+      name: baseTitle,
+      currentVersion: 'v3',
+      urlLabel: '固定链接 A',
+    },
+    {
+      id: 'game-b',
+      name: `${baseTitle}优化版`,
+      currentVersion: 'v2',
+      urlLabel: '固定链接 B',
+    },
+  ];
+};
+
 export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProps) {
   const { coursewares, updateCourseware } = useCoursewareStore();
   const { appMode, insertCourseware } = useUIStore();
   const isEmbedded = appMode === 'embedded';
 
   const courseware = useMemo(() => {
-    return coursewares.find(c => c.id === coursewareId)
+    const resolved = coursewares.find(c => c.id === coursewareId)
       || mockCoursewares.find(c => c.id === coursewareId);
+    if (!resolved) return resolved;
+    if (resolved.title.includes('动物单词拼写') || resolved.htmlContent?.includes('动物单词拼写')) {
+      return { ...mockCoursewares[0], id: resolved.id };
+    }
+    return resolved;
   }, [coursewareId, coursewares]);
 
-  const [versions, setVersions] = useState<SessionHtmlVersion[]>(() => {
-    if (!courseware) return [];
-    const baseHtml = courseware.htmlContent || '';
-    return [
-      {
-        version: 'v1',
-        sessionNumber: 1,
-        title: '动物单词拼写游戏',
-        htmlContent: baseHtml,
-        publishTargetId: 'game-a',
-        isHistoricalPublished: true,
-        createdAt: '2026-05-14 18:27',
-      },
-      {
-        version: 'v2',
-        sessionNumber: 2,
-        title: '听音辨物游戏',
-        htmlContent: baseHtml,
-        publishTargetId: 'game-b',
-        isCurrentPublished: true,
-        createdAt: '2026-05-15 10:30',
-      },
-      {
-        version: 'v3',
-        sessionNumber: 3,
-        title: '动物单词拼写游戏',
-        htmlContent: baseHtml,
-        publishTargetId: 'game-a',
-        isCurrentPublished: true,
-        createdAt: '2026-05-16 14:20',
-      },
-      {
-        version: 'v4',
-        sessionNumber: 4,
-        title: '听音辨物游戏优化版',
-        htmlContent: baseHtml,
-        createdAt: '2026-06-01 17:10',
-      },
-    ];
-  });
+  const [versions, setVersions] = useState<SessionHtmlVersion[]>(() => buildSessionVersions(courseware));
 
-  const [publishedTargets, setPublishedTargets] = useState<PublishedGameTarget[]>([
-    {
-      id: 'game-a',
-      name: '动物单词拼写游戏',
-      currentVersion: 'v3',
-      urlLabel: '固定链接 A',
-    },
-    {
-      id: 'game-b',
-      name: '听音辨物游戏',
-      currentVersion: 'v2',
-      urlLabel: '固定链接 B',
-    },
-  ]);
+  const [publishedTargets, setPublishedTargets] = useState<PublishedGameTarget[]>(() => buildPublishedTargets(courseware));
 
   const [selectedVersion, setSelectedVersion] = useState('v4');
   const [isEditing, setIsEditing] = useState(false);
@@ -116,8 +129,30 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   const [selectedUpdateTargetId, setSelectedUpdateTargetId] = useState<string | null>('game-b');
   const [publishMode, setPublishMode] = useState<PublishMode | null>(null);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('default');
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const publishBtnRef = useRef<HTMLDivElement>(null);
   const versionScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVersions(buildSessionVersions(courseware));
+    setPublishedTargets(buildPublishedTargets(courseware));
+    setSelectedVersion('v4');
+    setSelectedUpdateTargetId('game-b');
+    setIsEditing(false);
+    setEditContent('');
+    setFullscreenOpen(false);
+  }, [coursewareId, courseware?.htmlContent, courseware?.title]);
+
+  useEffect(() => {
+    if (!fullscreenOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setFullscreenOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [fullscreenOpen]);
 
   const currentVersion = versions.find(v => v.version === selectedVersion);
   const latestVersion = versions[versions.length - 1];
@@ -131,21 +166,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   const currentTitle = currentVersion?.title || courseware?.title || '互动游戏';
 
   const handleFullscreen = () => {
-    const win = window.open('', '_blank', 'width=1200,height=800');
-    if (win) {
-      win.document.write(srcDoc);
-      win.document.close();
-    }
-  };
-
-  const handleDownload = () => {
-    const blob = new Blob([srcDoc], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${courseware?.title || '课件'}_${selectedVersion}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+    setFullscreenOpen(true);
   };
 
   const handleEdit = () => {
@@ -343,9 +364,6 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
           <button onClick={handleEdit} style={panelStyle.iconBtn} title="编辑">
             <Edit3 size={15} />
           </button>
-          <button onClick={handleDownload} style={panelStyle.iconBtn} title="下载">
-            <Download size={15} />
-          </button>
           <button onClick={onClose} style={panelStyle.iconBtn} title="关闭">
             <X size={15} />
           </button>
@@ -362,6 +380,24 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
           selectedUpdateTargetId={selectedUpdateTargetId}
           onUpdateTargetChange={setSelectedUpdateTargetId}
         />
+      )}
+
+      {fullscreenOpen && (
+        <div style={panelStyle.fullscreenMask}>
+          <div style={panelStyle.fullscreenHeader}>
+            <span style={panelStyle.fullscreenTitle}>{currentTitle}</span>
+            <button onClick={() => setFullscreenOpen(false)} style={panelStyle.fullscreenClose} title="退出全屏">
+              <X size={18} />
+              退出全屏
+            </button>
+          </div>
+          <iframe
+            srcDoc={srcDoc}
+            title={`${currentTitle} 全屏预览`}
+            sandbox="allow-scripts allow-same-origin"
+            style={panelStyle.fullscreenIframe}
+          />
+        </div>
       )}
 
       {/* Content */}
@@ -558,6 +594,53 @@ const panelStyle: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     outline: 'none',
     transition: 'all 0.15s',
+  },
+  fullscreenMask: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 9999,
+    background: '#F8FAFC',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  fullscreenHeader: {
+    height: 48,
+    padding: '0 16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottom: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    flexShrink: 0,
+  },
+  fullscreenTitle: {
+    color: '#1E293B',
+    fontSize: 15,
+    fontWeight: 700,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  fullscreenClose: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 32,
+    padding: '0 12px',
+    borderRadius: 8,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  fullscreenIframe: {
+    flex: 1,
+    width: '100%',
+    border: 'none',
+    background: '#FFFFFF',
   },
   previewArea: {
     flex: 1,

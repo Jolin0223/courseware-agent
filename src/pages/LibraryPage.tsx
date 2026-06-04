@@ -161,13 +161,15 @@ export default function LibraryPage() {
   
   const navigate = useNavigate();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
+  const closePreview = useUIStore((s) => s.closePreview);
 
   const handleClone = (coursewareId: number) => {
     const cw = coursewares.find(c => c.id === coursewareId);
     if (!cw) return;
     const framework = getFrameworkForCourseware(coursewareId);
-    createCloneConversation(cw.title, framework);
-    toast(`已创建同款会话：同款-${cw.title}`);
+    createCloneConversation(cw.title, framework, cw.htmlContent);
+    closePreview();
+    toast('已带入原课件 HTML，可补充同款需求');
     navigate('/');
   };
   

@@ -4,6 +4,8 @@ export interface Courseware {
   title: string;
   subject: string;
   grade: string;
+  resourceScope?: 'group' | 'school' | 'personal';
+  schoolName?: string;
   type: string;
   author: string;
   publishTime: string;
@@ -29,6 +31,7 @@ export type MessageType =
   | 'analyzing';
 
 export interface RequirementFramework {
+  generationSettings?: string;
   userRequirement: string;
   featureDesign: string;
   designStyle: string;
@@ -60,13 +63,16 @@ export interface CoursewareResult {
   htmlContent?: string;
 }
 
-export type UploadedAttachmentType = 'image' | 'document';
+export type UploadedAttachmentType = 'image' | 'document' | 'html';
 
 export interface UploadedAttachment {
   id: string;
   type: UploadedAttachmentType;
   name: string;
   url?: string;
+  locked?: boolean;
+  hiddenContent?: string;
+  sourceTitle?: string;
 }
 
 export type MaterialIntent =
@@ -124,6 +130,10 @@ export interface Conversation {
   isPinned: boolean;
   isGenerating: boolean;
   coursewareId?: number;
+  cloneDraft?: {
+    prompt: string;
+    attachment: UploadedAttachment;
+  };
   versions?: CoursewareVersion[];
 }
 

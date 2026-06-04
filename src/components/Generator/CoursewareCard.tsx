@@ -6,6 +6,7 @@ import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
+import { openHtmlPreview } from '../../utils/openHtmlPreview';
 
 // 默认音色选项
 const DEFAULT_VOICES = [
@@ -40,26 +41,23 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
   const [isLatest, setIsLatest] = useState(isLatestProp);
   const [currentVersion, setCurrentVersion] = useState(version);
   const navigate = useNavigate();
-  const { appMode, insertCourseware } = useUIStore();
+  const { appMode, insertCourseware, closePreview } = useUIStore();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
   const addAssistantMessage = useConversationStore((s) => s.addAssistantMessage);
   const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const isEmbedded = appMode === 'embedded';
 
   const handlePreview = () => {
-    const win = window.open('', '_blank', 'width=1200,height=800');
-    if (win && courseware.htmlContent) {
-      win.document.write(courseware.htmlContent);
-      win.document.close();
-    }
+    openHtmlPreview(courseware.htmlContent, courseware.title);
   };
 
 
   const handleClone = () => {
     const framework = getFrameworkForCourseware(courseware.id);
-    createCloneConversation(courseware.title, framework);
+    createCloneConversation(courseware.title, framework, courseware.htmlContent);
+    closePreview();
     setCopied(true);
-    toast(`已创建同款会话：同款-${courseware.title}`);
+    toast('已带入原课件 HTML，可补充同款需求');
     setTimeout(() => {
       setCopied(false);
       navigate('/');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { RequirementFramework } from '../../types';
 import toast from '../../utils/toast';
+import { demoMs } from '../../constants/demoTiming';
 
 interface RequirementCardProps {
   framework: RequirementFramework;
@@ -9,17 +10,20 @@ interface RequirementCardProps {
   onStreamComplete?: () => void;
 }
 
-const SECTIONS = [
-  { key: 'userRequirement' as const, icon: '👥', title: '用户需求' },
-  { key: 'featureDesign' as const, icon: '⚙️', title: '功能设计说明' },
-  { key: 'designStyle' as const, icon: '🎨', title: '设计风格' },
+const getSections = (framework: RequirementFramework) => [
+  ...(framework.generationSettings
+    ? [{ key: 'generationSettings' as const, icon: '⚙️', title: '生成设置' }]
+    : []),
+  { key: 'userRequirement' as const, icon: '🎯', title: '教学目标' },
+  { key: 'featureDesign' as const, icon: '🎮', title: '课堂玩法和互动流程' },
+  { key: 'designStyle' as const, icon: '✨', title: '画面和反馈' },
 ];
 
-const TOTAL_DURATION_MS = 15000;
+const TOTAL_DURATION_MS = demoMs(15000);
 
 const sectionTitleStyle: React.CSSProperties = {
   fontSize: 15,
-  fontWeight: 600,
+  fontWeight: 700,
   color: '#1E293B',
   display: 'flex',
   alignItems: 'center',
@@ -56,17 +60,17 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
   const charIndexRef = useRef(0);
 
   useEffect(() => {
+    const sections = getSections(framework);
     if (!isStreaming) {
-      if (streamComplete) return;
       const texts: Record<string, string> = {};
       const edits: Record<string, string> = {};
-      SECTIONS.forEach(s => {
-        texts[s.key] = framework[s.key];
-        edits[s.key] = framework[s.key];
+      sections.forEach(s => {
+        texts[s.key] = framework[s.key] || '';
+        edits[s.key] = framework[s.key] || '';
       });
       setStreamedTexts(texts);
       setEditValues(edits);
-      setCurrentSection(SECTIONS.length);
+      setCurrentSection(sections.length);
       setStreamComplete(true);
       return;
     }
@@ -78,20 +82,20 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
     charIndexRef.current = 0;
 
     const duration = streamDuration || TOTAL_DURATION_MS;
-    const totalChars = SECTIONS.reduce((sum, s) => sum + framework[s.key].length, 0);
+    const totalChars = sections.reduce((sum, s) => sum + (framework[s.key] || '').length, 0);
     const msPerChar = duration / totalChars;
     const charsPerTick = 2;
     const tickInterval = msPerChar * charsPerTick;
 
     const streamSection = (sectionIdx: number) => {
-      if (sectionIdx >= SECTIONS.length) {
+      if (sectionIdx >= sections.length) {
         setStreamComplete(true);
         onStreamComplete?.();
         return;
       }
 
-      const key = SECTIONS[sectionIdx].key;
-      const fullText = framework[key];
+      const key = sections[sectionIdx].key;
+      const fullText = framework[key] || '';
       charIndexRef.current = 0;
       setCurrentSection(sectionIdx);
 
@@ -101,19 +105,19 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
           setStreamedTexts(prev => ({ ...prev, [key]: fullText }));
           setEditValues(prev => ({ ...prev, [key]: fullText }));
           clearInterval(intervalRef.current!);
-          setTimeout(() => streamSection(sectionIdx + 1), 400);
+          setTimeout(() => streamSection(sectionIdx + 1), demoMs(400));
         } else {
           setStreamedTexts(prev => ({ ...prev, [key]: fullText.slice(0, charIndexRef.current) }));
         }
       }, tickInterval);
     };
 
-    const timer = setTimeout(() => streamSection(0), 500);
+    const timer = setTimeout(() => streamSection(0), demoMs(500));
     return () => {
       clearTimeout(timer);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [framework, isStreaming, onStreamComplete]);
+  }, [framework, isStreaming, onStreamComplete, streamDuration]);
 
   const handleTextChange = (key: string, value: string) => {
     setEditValues(prev => ({ ...prev, [key]: value }));
@@ -133,14 +137,39 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
         boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
         padding: 24,
       }}>
-        {SECTIONS.map((section, idx) => {
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          paddingBottom: 16,
+          marginBottom: 18,
+          borderBottom: '1px solid #E2E8F0',
+        }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>互动课件设计方案确认</div>
+            <div style={{ fontSize: 13, color: '#64748B' }}>AI 已把你的想法整理成一节互动课件方案，可以直接修改后生成。</div>
+          </div>
+          <div style={{
+            padding: '5px 10px',
+            borderRadius: 999,
+            background: '#CCFBF1',
+            color: '#047857',
+            fontSize: 12,
+            fontWeight: 800,
+            flexShrink: 0,
+          }}>
+            可编辑
+          </div>
+        </div>
+        {getSections(framework).map((section, idx, sections) => {
           if (isStreaming && idx > currentSection && !streamedTexts[section.key]) return null;
           const displayText = streamedTexts[section.key] || '';
           const editText = editValues[section.key] || '';
-          const isSectionDone = !isStreaming || streamComplete || idx < currentSection || (idx === currentSection && displayText === framework[section.key]);
+          const isSectionDone = !isStreaming || streamComplete || idx < currentSection || (idx === currentSection && displayText === (framework[section.key] || ''));
 
           return (
-            <div key={section.key} style={{ marginBottom: idx < SECTIONS.length - 1 ? 20 : 0 }}>
+            <div key={section.key} style={{ marginBottom: idx < sections.length - 1 ? 20 : 0 }}>
               <div style={sectionTitleStyle}>
                 <span>{section.icon}</span>
                 <span>{section.title}</span>

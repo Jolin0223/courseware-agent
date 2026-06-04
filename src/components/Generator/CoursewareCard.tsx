@@ -34,6 +34,7 @@ const MOCK_AUDIOS: Array<
 
 export default function CoursewareCard({ courseware, version = 'v1.0', isLatest: isLatestProp = true }: { courseware: Courseware; version?: string; isLatest?: boolean }) {
   const [copied, setCopied] = useState(false);
+  const [copiedIdType, setCopiedIdType] = useState<'resource' | 'session' | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [images, setImages] = useState(MOCK_IMAGES);
   const [audios, setAudios] = useState(MOCK_AUDIOS);
@@ -46,9 +47,38 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
   const addAssistantMessage = useConversationStore((s) => s.addAssistantMessage);
   const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const isEmbedded = appMode === 'embedded';
+  const resourceId = courseware.isPublished ? `RES-${String(courseware.id).padStart(6, '0')}` : null;
+  const sessionVersionId = `SESSION-${String(courseware.id).padStart(6, '0')}-${currentVersion.replace(/\s+/g, '')}`;
 
   const handlePreview = () => {
     openHtmlPreview(courseware.htmlContent, courseware.title);
+  };
+
+  const copyText = async (text: string) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  };
+
+  const handleCopyId = async (type: 'resource' | 'session', value: string) => {
+    try {
+      await copyText(value);
+      setCopiedIdType(type);
+      toast(type === 'resource' ? '已复制资源ID，可用于资源库搜索' : '已复制会话版本ID，可发给开发排查');
+      setTimeout(() => setCopiedIdType(null), 1600);
+    } catch {
+      toast('复制失败，请稍后重试');
+    }
   };
 
 
@@ -150,93 +180,141 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
         </div>
       </div>
 
-      <div style={{ padding: '14px 20px', display: 'flex', gap: 10, background: '#FAFBFC', flexWrap: 'wrap' }}>
-        <button
-          onClick={handleClone}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
-            background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', color: '#fff',
-            transition: 'all 0.15s', outline: 'none',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,201,167,0.3)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
-        >
-          {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
-          {copied ? '已复制' : '一键同款'}
-        </button>
-        <div style={{ position: 'relative', display: 'inline-flex' }}
-          onMouseEnter={() => { if (!isLatest) setEditDisabledTooltip(true); }}
-          onMouseLeave={() => setEditDisabledTooltip(false)}
-        >
+      <div style={{ padding: '14px 20px', background: '#FAFBFC' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
-            onClick={() => { if (isLatest) setShowEditModal(true); }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-              borderRadius: 8, fontSize: 13, fontWeight: 500,
-              cursor: isLatest ? 'pointer' : 'not-allowed',
-              border: isLatest ? '1.5px solid #00C9A7' : '1px solid #E2E8F0',
-              background: '#fff',
-              color: isLatest ? '#00C9A7' : '#CBD5E1',
-              opacity: isLatest ? 1 : 0.7,
-              transition: 'all 0.15s', outline: 'none',
-            }}
-            onMouseEnter={e => { if (isLatest) { e.currentTarget.style.background = '#F0FDF9'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,201,167,0.15)'; } }}
-            onMouseLeave={e => { if (isLatest) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = 'none'; } }}
-          >
-            <Edit3 size={15} />
-            编辑资源
-          </button>
-          {editDisabledTooltip && !isLatest && (
-            <div style={{
-              position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
-              marginBottom: 6, padding: '6px 10px', borderRadius: 6, background: '#1E293B', color: '#fff',
-              fontSize: 11, whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            }}>
-              当前为旧版，不支持编辑，请在最新版互动游戏上编辑资源哦~
-            </div>
-          )}
-        </div>
-        <button
-          onClick={handlePreview}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
-            border: '1px solid #E2E8F0', background: '#fff', color: '#475569',
-            transition: 'all 0.15s', outline: 'none',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = '#00C9A7'; e.currentTarget.style.color = '#00C9A7'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
-        >
-          <Eye size={15} />
-          全屏预览
-        </button>
-        {isEmbedded && (
-          <button
-            onClick={() => {
-              insertCourseware({
-                id: courseware.id,
-                title: courseware.title,
-                version: 'v1.0',
-                htmlContent: courseware.htmlContent,
-                slideIndex: 0,
-                hasUpdate: false,
-              });
-              toast(`"${courseware.title}" 已插入课件`);
-            }}
+            onClick={handleClone}
             style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
               borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
-              background: '#F59E0B', color: '#fff',
+              background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', color: '#fff',
               transition: 'all 0.15s', outline: 'none',
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(245,158,11,0.3)'; }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,201,167,0.3)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
           >
-            <Download size={15} />
-            插入课件
+            {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
+            {copied ? '已复制' : '一键同款'}
           </button>
-        )}
+          <div style={{ position: 'relative', display: 'inline-flex' }}
+            onMouseEnter={() => { if (!isLatest) setEditDisabledTooltip(true); }}
+            onMouseLeave={() => setEditDisabledTooltip(false)}
+          >
+            <button
+              onClick={() => { if (isLatest) setShowEditModal(true); }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+                borderRadius: 8, fontSize: 13, fontWeight: 500,
+                cursor: isLatest ? 'pointer' : 'not-allowed',
+                border: isLatest ? '1.5px solid #00C9A7' : '1px solid #E2E8F0',
+                background: '#fff',
+                color: isLatest ? '#00C9A7' : '#CBD5E1',
+                opacity: isLatest ? 1 : 0.7,
+                transition: 'all 0.15s', outline: 'none',
+              }}
+              onMouseEnter={e => { if (isLatest) { e.currentTarget.style.background = '#F0FDF9'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,201,167,0.15)'; } }}
+              onMouseLeave={e => { if (isLatest) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = 'none'; } }}
+            >
+              <Edit3 size={15} />
+              编辑资源
+            </button>
+            {editDisabledTooltip && !isLatest && (
+              <div style={{
+                position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+                marginBottom: 6, padding: '6px 10px', borderRadius: 6, background: '#1E293B', color: '#fff',
+                fontSize: 11, whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              }}>
+                当前为旧版，不支持编辑，请在最新版互动游戏上编辑资源哦~
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handlePreview}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              border: '1px solid #E2E8F0', background: '#fff', color: '#475569',
+              transition: 'all 0.15s', outline: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#00C9A7'; e.currentTarget.style.color = '#00C9A7'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
+          >
+            <Eye size={15} />
+            全屏预览
+          </button>
+          {isEmbedded && (
+            <button
+              onClick={() => {
+                insertCourseware({
+                  id: courseware.id,
+                  title: courseware.title,
+                  version: 'v1.0',
+                  htmlContent: courseware.htmlContent,
+                  slideIndex: 0,
+                  hasUpdate: false,
+                });
+                toast(`"${courseware.title}" 已插入课件`);
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+                borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
+                background: '#F59E0B', color: '#fff',
+                transition: 'all 0.15s', outline: 'none',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(245,158,11,0.3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <Download size={15} />
+              插入课件
+            </button>
+          )}
+        </div>
+        <div style={{
+          display: 'flex',
+          gap: 8,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          marginTop: 10,
+          paddingTop: 10,
+          borderTop: '1px solid #E8EEF2',
+        }}>
+          {resourceId && (
+            <button
+              onClick={() => handleCopyId('resource', resourceId)}
+              title={`资源ID：${resourceId}`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 10px',
+                borderRadius: 8, border: '1px solid #D7E8E3', background: '#F7FFFC',
+                color: '#0F766E', cursor: 'pointer', outline: 'none', transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#00C9A7'; e.currentTarget.style.background = '#F0FDF9'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#D7E8E3'; e.currentTarget.style.background = '#F7FFFC'; }}
+            >
+              {copiedIdType === 'resource' ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
+                <span style={{ fontSize: 12, fontWeight: 600 }}>{copiedIdType === 'resource' ? '已复制资源ID' : '复制资源ID'}</span>
+                <span style={{ fontSize: 10, color: '#5B8E86', marginTop: 2 }}>资源库搜索用</span>
+              </span>
+            </button>
+          )}
+          <button
+            onClick={() => handleCopyId('session', sessionVersionId)}
+            title={`会话版本ID：${sessionVersionId}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 10px',
+              borderRadius: 8, border: '1px solid #DCE4EA', background: '#fff',
+              color: '#475569', cursor: 'pointer', outline: 'none', transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#94A3B8'; e.currentTarget.style.background = '#F8FAFC'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#DCE4EA'; e.currentTarget.style.background = '#fff'; }}
+          >
+            {copiedIdType === 'session' ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>{copiedIdType === 'session' ? '已复制会话版本ID' : '复制会话版本ID'}</span>
+              <span style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>开发排查用</span>
+            </span>
+          </button>
+        </div>
       </div>
 
       <ResourceEditModal

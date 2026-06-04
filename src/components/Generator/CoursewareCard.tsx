@@ -39,6 +39,7 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
   const [images, setImages] = useState(MOCK_IMAGES);
   const [audios, setAudios] = useState(MOCK_AUDIOS);
   const [editDisabledTooltip, setEditDisabledTooltip] = useState(false);
+  const [idTooltip, setIdTooltip] = useState<'resource' | 'session' | null>(null);
   const [isLatest, setIsLatest] = useState(isLatestProp);
   const [currentVersion, setCurrentVersion] = useState(version);
   const navigate = useNavigate();
@@ -47,7 +48,8 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
   const addAssistantMessage = useConversationStore((s) => s.addAssistantMessage);
   const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const isEmbedded = appMode === 'embedded';
-  const resourceId = courseware.isPublished ? '2fc7b609481e45868a38a74b4490400a' : null;
+  const hasResourceId = courseware.isPublished !== false;
+  const resourceId = hasResourceId ? '2fc7b609481e45868a38a74b4490400a' : null;
   const sessionVersionId = '123456fc7b609481';
   const resourceCopyText = resourceId ? `资源ID：${resourceId}` : '';
   const sessionCopyText = resourceId
@@ -300,39 +302,81 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
         fontSize: 12,
       }}>
         {resourceId && (
+          <span
+            style={{ position: 'relative', display: 'inline-flex' }}
+            onMouseEnter={() => setIdTooltip('resource')}
+            onMouseLeave={() => setIdTooltip(null)}
+          >
+            <button
+              onClick={() => handleCopyId('resource', resourceCopyText)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
+                border: 'none', background: 'transparent',
+                color: copiedIdType === 'resource' ? '#00A987' : '#A7B0BB',
+                cursor: 'pointer', outline: 'none', lineHeight: 1.2,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#00A987'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = copiedIdType === 'resource' ? '#00A987' : '#A7B0BB'; }}
+            >
+              {copiedIdType === 'resource' ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+              <span style={{ fontWeight: 600 }}>{copiedIdType === 'resource' ? '已复制资源ID' : '复制资源ID'}</span>
+            </button>
+            {idTooltip === 'resource' && (
+              <span style={{
+                position: 'absolute',
+                left: 0,
+                bottom: 'calc(100% + 8px)',
+                padding: '7px 10px',
+                borderRadius: 6,
+                background: '#1E293B',
+                color: '#fff',
+                fontSize: 11,
+                whiteSpace: 'nowrap',
+                boxShadow: '0 8px 20px rgba(15,23,42,0.18)',
+                zIndex: 20,
+              }}>
+                可用于资源搜索，各端一致
+              </span>
+            )}
+          </span>
+        )}
+        <span
+          style={{ position: 'relative', display: 'inline-flex' }}
+          onMouseEnter={() => setIdTooltip('session')}
+          onMouseLeave={() => setIdTooltip(null)}
+        >
           <button
-            onClick={() => handleCopyId('resource', resourceCopyText)}
-            title={`复制后可在资源库搜索：${resourceId}`}
+            onClick={() => handleCopyId('session', sessionCopyText)}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
               border: 'none', background: 'transparent',
-              color: copiedIdType === 'resource' ? '#00A987' : '#A7B0BB',
+              color: copiedIdType === 'session' ? '#00A987' : '#A7B0BB',
               cursor: 'pointer', outline: 'none', lineHeight: 1.2,
             }}
             onMouseEnter={e => { e.currentTarget.style.color = '#00A987'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = copiedIdType === 'resource' ? '#00A987' : '#A7B0BB'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = copiedIdType === 'session' ? '#00A987' : '#A7B0BB'; }}
           >
-            {copiedIdType === 'resource' ? <CheckCircle2 size={13} /> : <Copy size={13} />}
-            <span style={{ fontWeight: 600 }}>{copiedIdType === 'resource' ? '已复制资源ID' : '复制资源ID'}</span>
-            <span style={{ color: '#B6BEC8' }}>资源库搜索</span>
+            {copiedIdType === 'session' ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+            <span style={{ fontWeight: 600 }}>{copiedIdType === 'session' ? '已复制会话版本ID' : '复制会话版本ID'}</span>
           </button>
-        )}
-        <button
-          onClick={() => handleCopyId('session', sessionCopyText)}
-          title={resourceId ? `复制资源ID和会话版本ID，发给开发排查` : `复制后发给开发排查：${sessionVersionId}`}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
-            border: 'none', background: 'transparent',
-            color: copiedIdType === 'session' ? '#00A987' : '#A7B0BB',
-            cursor: 'pointer', outline: 'none', lineHeight: 1.2,
-          }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#00A987'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = copiedIdType === 'session' ? '#00A987' : '#A7B0BB'; }}
-        >
-          {copiedIdType === 'session' ? <CheckCircle2 size={13} /> : <Copy size={13} />}
-          <span style={{ fontWeight: 600 }}>{copiedIdType === 'session' ? '已复制会话版本ID' : '复制会话版本ID'}</span>
-          <span style={{ color: '#B6BEC8' }}>问题排查</span>
-        </button>
+          {idTooltip === 'session' && (
+            <span style={{
+              position: 'absolute',
+              left: 0,
+              bottom: 'calc(100% + 8px)',
+              padding: '7px 10px',
+              borderRadius: 6,
+              background: '#1E293B',
+              color: '#fff',
+              fontSize: 11,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 8px 20px rgba(15,23,42,0.18)',
+              zIndex: 20,
+            }}>
+              会话版本ID，一般用于开发排查问题
+            </span>
+          )}
+        </span>
       </div>
 
       <ResourceEditModal

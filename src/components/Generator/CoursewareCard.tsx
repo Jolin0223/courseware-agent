@@ -47,27 +47,43 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
   const addAssistantMessage = useConversationStore((s) => s.addAssistantMessage);
   const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const isEmbedded = appMode === 'embedded';
-  const resourceId = courseware.isPublished ? `RES-${String(courseware.id).padStart(6, '0')}` : null;
-  const sessionVersionId = `SESSION-${String(courseware.id).padStart(6, '0')}-${currentVersion.replace(/\s+/g, '')}`;
+  const resourceId = courseware.isPublished ? '2fc7b609481e45868a38a74b4490400a' : null;
+  const sessionVersionId = '123456fc7b609481';
+  const resourceCopyText = resourceId ? `资源ID：${resourceId}` : '';
+  const sessionCopyText = resourceId
+    ? `资源ID：${resourceId}；\n会话版本ID：${sessionVersionId}`
+    : `会话版本ID：${sessionVersionId}`;
 
   const handlePreview = () => {
     openHtmlPreview(courseware.htmlContent, courseware.title);
   };
 
   const copyText = async (text: string) => {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return;
+    if (window.navigator.clipboard?.writeText && window.isSecureContext) {
+      try {
+        await window.navigator.clipboard.writeText(text);
+        return;
+      } catch {
+        // Some embedded browsers block Clipboard API; keep a user-gesture fallback below.
+      }
     }
 
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.style.position = 'fixed';
     textarea.style.left = '-9999px';
+    textarea.style.top = '0';
+    textarea.setAttribute('readonly', '');
     document.body.appendChild(textarea);
+    textarea.focus();
     textarea.select();
-    document.execCommand('copy');
+    textarea.setSelectionRange(0, textarea.value.length);
+    const copiedByFallback = document.execCommand('copy');
     document.body.removeChild(textarea);
+
+    if (!copiedByFallback) {
+      throw new Error('copy failed');
+    }
   };
 
   const handleCopyId = async (type: 'resource' | 'session', value: string) => {
@@ -146,42 +162,43 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
   };
 
   return (
-    <div style={{
-      background: '#fff',
-      borderRadius: 14,
-      border: '1px solid #E2E8F0',
-      overflow: 'hidden',
-      width: '100%',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-    }}>
+    <>
       <div style={{
-        background: 'linear-gradient(135deg, #00C9A7 0%, #00A8E8 100%)',
-        padding: '20px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
+        background: '#fff',
+        borderRadius: 14,
+        border: '1px solid #E2E8F0',
+        overflow: 'hidden',
+        width: '100%',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
       }}>
         <div style={{
-          width: 44, height: 44, borderRadius: 12,
-          background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
-        }}>📚</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>{courseware.title}</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 3 }}>刚刚生成</div>
-        </div>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 5,
-          background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
-          padding: '6px 12px', borderRadius: 20, fontSize: 13, color: '#fff', fontWeight: 500,
+          background: 'linear-gradient(135deg, #00C9A7 0%, #00A8E8 100%)',
+          padding: '20px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
         }}>
-          <Sparkles size={14} />
-          {currentVersion}
+          <div style={{
+            width: 44, height: 44, borderRadius: 12,
+            background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+          }}>📚</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>{courseware.title}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 3 }}>刚刚生成</div>
+          </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
+            padding: '6px 12px', borderRadius: 20, fontSize: 13, color: '#fff', fontWeight: 500,
+          }}>
+            <Sparkles size={14} />
+            {currentVersion}
+          </div>
         </div>
-      </div>
 
-      <div style={{ padding: '14px 20px', background: '#FAFBFC' }}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ padding: '14px 20px', background: '#FAFBFC' }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
             onClick={handleClone}
             style={{
@@ -268,53 +285,54 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
               插入课件
             </button>
           )}
+          </div>
         </div>
-        <div style={{
-          display: 'flex',
-          gap: 8,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          marginTop: 10,
-          paddingTop: 10,
-          borderTop: '1px solid #E8EEF2',
-        }}>
-          {resourceId && (
-            <button
-              onClick={() => handleCopyId('resource', resourceId)}
-              title={`资源ID：${resourceId}`}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 10px',
-                borderRadius: 8, border: '1px solid #D7E8E3', background: '#F7FFFC',
-                color: '#0F766E', cursor: 'pointer', outline: 'none', transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#00C9A7'; e.currentTarget.style.background = '#F0FDF9'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#D7E8E3'; e.currentTarget.style.background = '#F7FFFC'; }}
-            >
-              {copiedIdType === 'resource' ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
-                <span style={{ fontSize: 12, fontWeight: 600 }}>{copiedIdType === 'resource' ? '已复制资源ID' : '复制资源ID'}</span>
-                <span style={{ fontSize: 10, color: '#5B8E86', marginTop: 2 }}>资源库搜索用</span>
-              </span>
-            </button>
-          )}
+      </div>
+
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        flexWrap: 'wrap',
+        marginTop: 8,
+        paddingLeft: 2,
+        color: '#A7B0BB',
+        fontSize: 12,
+      }}>
+        {resourceId && (
           <button
-            onClick={() => handleCopyId('session', sessionVersionId)}
-            title={`会话版本ID：${sessionVersionId}`}
+            onClick={() => handleCopyId('resource', resourceCopyText)}
+            title={`复制后可在资源库搜索：${resourceId}`}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 10px',
-              borderRadius: 8, border: '1px solid #DCE4EA', background: '#fff',
-              color: '#475569', cursor: 'pointer', outline: 'none', transition: 'all 0.15s',
+              display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
+              border: 'none', background: 'transparent',
+              color: copiedIdType === 'resource' ? '#00A987' : '#A7B0BB',
+              cursor: 'pointer', outline: 'none', lineHeight: 1.2,
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#94A3B8'; e.currentTarget.style.background = '#F8FAFC'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#DCE4EA'; e.currentTarget.style.background = '#fff'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#00A987'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = copiedIdType === 'resource' ? '#00A987' : '#A7B0BB'; }}
           >
-            {copiedIdType === 'session' ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
-              <span style={{ fontSize: 12, fontWeight: 600 }}>{copiedIdType === 'session' ? '已复制会话版本ID' : '复制会话版本ID'}</span>
-              <span style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>开发排查用</span>
-            </span>
+            {copiedIdType === 'resource' ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+            <span style={{ fontWeight: 600 }}>{copiedIdType === 'resource' ? '已复制资源ID' : '复制资源ID'}</span>
+            <span style={{ color: '#B6BEC8' }}>资源库搜索</span>
           </button>
-        </div>
+        )}
+        <button
+          onClick={() => handleCopyId('session', sessionCopyText)}
+          title={resourceId ? `复制资源ID和会话版本ID，发给开发排查` : `复制后发给开发排查：${sessionVersionId}`}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
+            border: 'none', background: 'transparent',
+            color: copiedIdType === 'session' ? '#00A987' : '#A7B0BB',
+            cursor: 'pointer', outline: 'none', lineHeight: 1.2,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#00A987'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = copiedIdType === 'session' ? '#00A987' : '#A7B0BB'; }}
+        >
+          {copiedIdType === 'session' ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+          <span style={{ fontWeight: 600 }}>{copiedIdType === 'session' ? '已复制会话版本ID' : '复制会话版本ID'}</span>
+          <span style={{ color: '#B6BEC8' }}>问题排查</span>
+        </button>
       </div>
 
       <ResourceEditModal
@@ -344,6 +362,6 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
         onAudioReplace={handleAudioReplace}
         onAudioRegenerate={handleAudioRegenerate}
       />
-    </div>
+    </>
   );
 }

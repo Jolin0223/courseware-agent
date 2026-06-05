@@ -40,8 +40,9 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
 
   openPublishedConversation: (conversationId, resourceId) => {
     const { conversations } = get();
-    const normalizedConversationId = conversationId === 'demo-published-game-1' ? 'conv_1' : conversationId;
-    const normalizedCoursewareId = Number(resourceId?.replace(/[^\d]/g, '')) || 1;
+    const isFruitDemo = conversationId === 'demo-published-game-1' || resourceId === 'AI-DEMO-0001';
+    const normalizedConversationId = isFruitDemo ? 'conv_1' : conversationId;
+    const normalizedCoursewareId = isFruitDemo ? 1 : Number(resourceId?.replace(/[^\d]/g, '')) || 1;
     const target = conversations.find(c => c.id === normalizedConversationId)
       || conversations.find(c => c.coursewareId === normalizedCoursewareId)
       || conversations[0];

@@ -78,6 +78,7 @@ export default function PublishModal({
   const [editingContentTagIndex, setEditingContentTagIndex] = useState<number | null>(null);
   const [editingContentTagValue, setEditingContentTagValue] = useState('');
   const [tagSearch, setTagSearch] = useState('');
+  const [schoolSearch, setSchoolSearch] = useState('');
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() => {
     const initial = new Set<string>();
     const autoTags = autoTagByTitle(courseware?.title || '', courseware?.subject || '');
@@ -95,14 +96,19 @@ export default function PublishModal({
     return initial;
   });
   const tagDropdownRef = useRef<HTMLDivElement>(null);
+  const schoolDropdownRef = useRef<HTMLDivElement>(null);
   const updateTargetDropdownRef = useRef<HTMLDivElement>(null);
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
+  const [schoolDropdownOpen, setSchoolDropdownOpen] = useState(false);
   const [updateTargetDropdownOpen, setUpdateTargetDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (tagDropdownRef.current && !tagDropdownRef.current.contains(e.target as Node)) {
         setTagDropdownOpen(false);
+      }
+      if (schoolDropdownRef.current && !schoolDropdownRef.current.contains(e.target as Node)) {
+        setSchoolDropdownOpen(false);
       }
       if (updateTargetDropdownRef.current && !updateTargetDropdownRef.current.contains(e.target as Node)) {
         setUpdateTargetDropdownOpen(false);
@@ -196,6 +202,11 @@ export default function PublishModal({
   }, [subject]);
 
   const filteredTree = useMemo(() => filterTree(subjectTagTree, tagSearch), [tagSearch, filterTree, subjectTagTree]);
+  const filteredSchools = useMemo(() => {
+    const query = schoolSearch.trim().toLowerCase();
+    if (!query) return schools;
+    return schools.filter(school => school.toLowerCase().includes(query));
+  }, [schoolSearch]);
 
   const handlePublish = () => {
     if (!title.trim()) {
@@ -333,24 +344,68 @@ export default function PublishModal({
           </div>
 
           {publishScope === 'school' && (
-            <div style={styles.field}>
+            <div style={styles.field} ref={schoolDropdownRef}>
               <label style={styles.label}><span style={styles.required}>*</span> 选择学校</label>
-              <div style={styles.chipGroup}>
-                {schools.map(school => (
-                  <button
-                    key={school}
-                    type="button"
-                    onClick={() => setSelectedSchool(school)}
-                    style={{
-                      ...styles.chip,
-                      ...(selectedSchool === school ? styles.chipActive : {}),
-                    }}
-                  >
-                    {school}
-                  </button>
-                ))}
-              </div>
-              <div style={styles.fieldTip}>当前账号具备多分校资源发布权限，发布到校本资源时需指定学校。</div>
+              <button
+                type="button"
+                onClick={() => setSchoolDropdownOpen(open => !open)}
+                style={{
+                  ...styles.schoolSelect,
+                  ...(schoolDropdownOpen ? styles.schoolSelectActive : {}),
+                }}
+              >
+                <span style={styles.schoolSelectValue}>{selectedSchool || '请选择学校'}</span>
+                <ChevronDown
+                  size={16}
+                  color="#64748B"
+                  style={{
+                    flexShrink: 0,
+                    transform: schoolDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.15s',
+                  }}
+                />
+              </button>
+              {schoolDropdownOpen && (
+                <div style={styles.schoolDropdown}>
+                  <div style={styles.schoolSearchBox}>
+                    <Search size={14} color="#94A3B8" />
+                    <input
+                      value={schoolSearch}
+                      onChange={e => setSchoolSearch(e.target.value)}
+                      placeholder="搜索学校"
+                      style={styles.schoolSearchInput}
+                      autoFocus
+                    />
+                  </div>
+                  <div style={styles.schoolOptionList}>
+                    {filteredSchools.length === 0 ? (
+                      <div style={styles.schoolEmpty}>未找到匹配学校</div>
+                    ) : (
+                      filteredSchools.map(school => {
+                        const active = selectedSchool === school;
+                        return (
+                          <button
+                            key={school}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSchool(school);
+                              setSchoolDropdownOpen(false);
+                              setSchoolSearch('');
+                            }}
+                            style={{
+                              ...styles.schoolOption,
+                              ...(active ? styles.schoolOptionActive : {}),
+                            }}
+                          >
+                            <span>{school}</span>
+                            {active && <Check size={15} color="#00A67D" strokeWidth={2.6} />}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -472,8 +527,7 @@ export default function PublishModal({
           </div>
 
           {shouldShowResourceTags && (
-            <>
-              <div style={styles.field} ref={tagDropdownRef}>
+            <div style={styles.field} ref={tagDropdownRef}>
                 <div style={styles.labelRow}>
                   <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> {resourceTagLabel} <span style={styles.aiTag}>AI默认推荐</span></label>
                   {publishScope === 'school' && (
@@ -551,71 +605,70 @@ export default function PublishModal({
                     </div>
                   </div>
                 )}
-              </div>
+            </div>
+          )}
 
-              <div style={styles.field}>
-                <div style={styles.labelRow}>
-                  <label style={{ ...styles.label, marginBottom: 0 }}>内容标签 <span style={styles.aiTag}>AI默认推荐</span></label>
-                  <span style={styles.optionalHint}>非必填，用于标记玩法或视觉风格</span>
-                </div>
-                <div style={styles.contentTagBox}>
-                  {contentTags.map((tag, index) => (
-                    editingContentTagIndex === index ? (
-                      <input
-                        key={`editing-${index}`}
-                        value={editingContentTagValue}
-                        onChange={e => setEditingContentTagValue(e.target.value)}
-                        onBlur={commitEditContentTag}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            commitEditContentTag();
-                          }
-                          if (e.key === 'Escape') {
-                            setEditingContentTagIndex(null);
-                            setEditingContentTagValue('');
-                          }
-                        }}
-                        style={styles.contentTagEditInput}
-                        autoFocus
-                      />
-                    ) : (
-                      <span key={`${tag}-${index}`} style={styles.contentTag}>
-                        <button
-                          type="button"
-                          onClick={() => startEditContentTag(index, tag)}
-                          style={styles.contentTagText}
-                          title="点击修改内容标签"
-                        >
-                          {tag}
-                        </button>
-                        <span
-                          onClick={() => removeContentTag(index)}
-                          style={styles.contentTagRemove}
-                          title="删除内容标签"
-                        >
-                          <X size={12} />
-                        </span>
-                      </span>
-                    )
-                  ))}
+          <div style={styles.field}>
+            <div style={styles.labelRow}>
+              <label style={{ ...styles.label, marginBottom: 0 }}>内容标签 <span style={styles.aiTag}>AI默认推荐</span></label>
+              <span style={styles.optionalHint}>非必填，用于标记玩法或视觉风格</span>
+            </div>
+            <div style={styles.contentTagBox}>
+              {contentTags.map((tag, index) => (
+                editingContentTagIndex === index ? (
                   <input
-                    value={contentTagInput}
-                    onChange={e => setContentTagInput(e.target.value)}
+                    key={`editing-${index}`}
+                    value={editingContentTagValue}
+                    onChange={e => setEditingContentTagValue(e.target.value)}
+                    onBlur={commitEditContentTag}
                     onKeyDown={e => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        addContentTag(contentTagInput);
+                        commitEditContentTag();
+                      }
+                      if (e.key === 'Escape') {
+                        setEditingContentTagIndex(null);
+                        setEditingContentTagValue('');
                       }
                     }}
-                    onBlur={() => addContentTag(contentTagInput)}
-                    placeholder="输入自定义标签，回车添加"
-                    style={styles.contentTagInput}
+                    style={styles.contentTagEditInput}
+                    autoFocus
                   />
-                </div>
-              </div>
-            </>
-          )}
+                ) : (
+                  <span key={`${tag}-${index}`} style={styles.contentTag}>
+                    <button
+                      type="button"
+                      onClick={() => startEditContentTag(index, tag)}
+                      style={styles.contentTagText}
+                      title="点击修改内容标签"
+                    >
+                      {tag}
+                    </button>
+                    <span
+                      onClick={() => removeContentTag(index)}
+                      style={styles.contentTagRemove}
+                      title="删除内容标签"
+                    >
+                      <X size={12} />
+                    </span>
+                  </span>
+                )
+              ))}
+              <input
+                value={contentTagInput}
+                onChange={e => setContentTagInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addContentTag(contentTagInput);
+                  }
+                }}
+                onBlur={() => addContentTag(contentTagInput)}
+                placeholder="输入自定义标签，回车添加"
+                style={styles.contentTagInput}
+              />
+            </div>
+          </div>
 
         </div>
 
@@ -872,6 +925,92 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#047857',
     fontWeight: 700,
   },
+  schoolSelect: {
+    width: '100%',
+    height: 42,
+    borderRadius: 8,
+    border: '1px solid #D8E2EF',
+    background: '#FFFFFF',
+    padding: '0 12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  schoolSelectActive: {
+    borderColor: '#00C9A7',
+    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.08)',
+  },
+  schoolSelectValue: {
+    fontSize: 14,
+    color: '#1E293B',
+    fontWeight: 600,
+  },
+  schoolDropdown: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    marginTop: 6,
+    borderRadius: 10,
+    border: '1px solid #D8E5EF',
+    background: '#FFFFFF',
+    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.14)',
+    padding: 8,
+    zIndex: 35,
+  },
+  schoolSearchBox: {
+    height: 36,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '0 10px',
+    borderRadius: 8,
+    border: '1px solid #E2E8F0',
+    background: '#F8FAFE',
+    marginBottom: 6,
+  },
+  schoolSearchInput: {
+    flex: 1,
+    minWidth: 0,
+    border: 'none',
+    outline: 'none',
+    background: 'transparent',
+    color: '#1E293B',
+    fontSize: 13,
+  },
+  schoolOptionList: {
+    maxHeight: 220,
+    overflowY: 'auto',
+    padding: '2px 0',
+  },
+  schoolOption: {
+    width: '100%',
+    minHeight: 36,
+    border: 'none',
+    borderRadius: 8,
+    background: '#FFFFFF',
+    color: '#334155',
+    fontSize: 14,
+    padding: '0 10px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    textAlign: 'left',
+  },
+  schoolOptionActive: {
+    background: '#ECFDF5',
+    color: '#047857',
+    fontWeight: 700,
+  },
+  schoolEmpty: {
+    padding: '14px 10px',
+    textAlign: 'center',
+    color: '#94A3B8',
+    fontSize: 13,
+  },
   scopeGrid: {
     display: 'flex',
     gap: 12,
@@ -993,9 +1132,9 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: '100%',
     padding: '3px 7px 3px 10px',
     borderRadius: 999,
-    background: '#EFF6FF',
-    border: '1px solid #BFDBFE',
-    color: '#2563EB',
+    background: '#E0FBF4',
+    border: '1px solid #BFEFE4',
+    color: '#047857',
     fontSize: 12,
     fontWeight: 600,
     lineHeight: '22px',
@@ -1035,13 +1174,13 @@ const styles: Record<string, React.CSSProperties> = {
     height: 28,
     padding: '0 9px',
     borderRadius: 999,
-    border: '1px solid #60A5FA',
+    border: '1px solid #00C9A7',
     outline: 'none',
     background: '#FFFFFF',
     color: '#1E293B',
     fontSize: 12,
     fontWeight: 600,
-    boxShadow: '0 0 0 3px rgba(96, 165, 250, 0.14)',
+    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.12)',
   },
   tagDropdown: {
     marginTop: 6,

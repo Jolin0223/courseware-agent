@@ -13,8 +13,11 @@ import toast from './utils/toast';
 function AppContent() {
   const appMode = useUIStore((s) => s.appMode);
   const closePreview = useUIStore((s) => s.closePreview);
+  const openPreview = useUIStore((s) => s.openPreview);
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
   const navigate = useNavigate();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
+  const openPublishedConversation = useConversationStore((s) => s.openPublishedConversation);
   const coursewares = useCoursewareStore((s) => s.coursewares);
 
   useEffect(() => {
@@ -37,6 +40,27 @@ function AppContent() {
     window.history.replaceState(null, '', `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`);
     navigate('/');
   }, [coursewares, createCloneConversation, closePreview, navigate]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') !== 'edit') return;
+
+    const conversationId = params.get('conversationId');
+    const resourceId = params.get('resourceId');
+    const handledKey = `editCourseware:${conversationId || ''}:${resourceId || ''}`;
+    if (window.sessionStorage.getItem(handledKey)) return;
+    window.sessionStorage.setItem(handledKey, '1');
+
+    const target = openPublishedConversation(conversationId, resourceId);
+    setSidebarCollapsed(true);
+    openPreview(target.coursewareId);
+    toast('已打开已发布作品，可继续修改并更新发布');
+    params.delete('mode');
+    params.delete('conversationId');
+    params.delete('resourceId');
+    window.history.replaceState(null, '', `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`);
+    navigate('/');
+  }, [openPublishedConversation, openPreview, setSidebarCollapsed, navigate]);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {

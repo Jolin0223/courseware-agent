@@ -15,6 +15,7 @@ interface ConversationState {
   
   // Actions
   setActiveConversation: (id: string | null) => void;
+  openPublishedConversation: (conversationId?: string | null, resourceId?: string | null) => { conversationId: string; coursewareId: number };
   createNewConversation: (initialPrompt?: string) => string;
   createCloneConversation: (title: string, framework: RequirementFramework, htmlContent?: string) => string;
   deleteConversation: (id: string) => void;
@@ -36,6 +37,29 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
   stageProgress: 0,
 
   setActiveConversation: (id) => set({ activeConversationId: id }),
+
+  openPublishedConversation: (conversationId, resourceId) => {
+    const { conversations } = get();
+    const normalizedConversationId = conversationId === 'demo-published-game-1' ? 'conv_1' : conversationId;
+    const normalizedCoursewareId = Number(resourceId?.replace(/[^\d]/g, '')) || 1;
+    const target = conversations.find(c => c.id === normalizedConversationId)
+      || conversations.find(c => c.coursewareId === normalizedCoursewareId)
+      || conversations[0];
+    const coursewareId = target?.coursewareId || normalizedCoursewareId || 1;
+    if (target) {
+      set({ activeConversationId: target.id });
+      return { conversationId: target.id, coursewareId };
+    }
+    const newConv = createEmptyConversation();
+    newConv.id = normalizedConversationId || newConv.id;
+    newConv.title = '水果单词互动乐园';
+    newConv.coursewareId = coursewareId;
+    set((state) => ({
+      conversations: [newConv, ...state.conversations],
+      activeConversationId: newConv.id,
+    }));
+    return { conversationId: newConv.id, coursewareId };
+  },
 
   createNewConversation: (initialPrompt) => {
     const newConv = createEmptyConversation();

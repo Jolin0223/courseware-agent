@@ -877,6 +877,7 @@ function AssistantMessage({
   onRetry,
   onContinue,
   onMaterialIntentConfirm,
+  onOpenPreview,
 }: { 
   message: ConversationMessage; 
   phase?: string;
@@ -886,6 +887,7 @@ function AssistantMessage({
   onRetry?: (stageIndex: number) => void;
   onContinue?: (stageIndex: number) => void;
   onMaterialIntentConfirm?: (messageId: string, resolutions: MaterialIntentResolution[]) => void;
+  onOpenPreview?: (coursewareId: number) => void;
 }) {
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
@@ -962,7 +964,12 @@ function AssistantMessage({
       <div style={styles.messageAssistant}>
         <AIAvatar />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <CoursewareCard courseware={courseware} version={`会话第${versionNum}版`} isLatest={isLatestVersion} />
+          <CoursewareCard
+            courseware={courseware}
+            version={`会话第${versionNum}版`}
+            isLatest={isLatestVersion}
+            onOpenPreview={onOpenPreview}
+          />
         </div>
       </div>
     );
@@ -1527,6 +1534,10 @@ export default function GeneratorPage() {
                         onRetry={handleRetryStage}
                         onContinue={handleContinueStage}
                         onMaterialIntentConfirm={handleMaterialIntentConfirm}
+                        onOpenPreview={(coursewareId) => {
+                          setSidebarCollapsed(true);
+                          openPreview(coursewareId);
+                        }}
                       />
                       {msg.type === 'courseware-result' && lastGeneratedInspiration && (
                         <div style={{ paddingLeft: 42, maxWidth: 760 }}>

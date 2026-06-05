@@ -32,7 +32,17 @@ const MOCK_AUDIOS: Array<
   { id: 'audio-3', label: '游戏背景音乐', type: 'bgm', status: 'completed', duration: 30.0 },
 ];
 
-export default function CoursewareCard({ courseware, version = 'v1.0', isLatest: isLatestProp = true }: { courseware: Courseware; version?: string; isLatest?: boolean }) {
+export default function CoursewareCard({
+  courseware,
+  version = 'v1.0',
+  isLatest: isLatestProp = true,
+  onOpenPreview,
+}: {
+  courseware: Courseware;
+  version?: string;
+  isLatest?: boolean;
+  onOpenPreview?: (coursewareId: number) => void;
+}) {
   const [copied, setCopied] = useState(false);
   const [feedbackCopied, setFeedbackCopied] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -174,13 +184,17 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
         width: '100%',
         boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
       }}>
-        <div style={{
+        <div
+          onClick={() => onOpenPreview?.(courseware.id)}
+          style={{
           background: 'linear-gradient(135deg, #00C9A7 0%, #00A8E8 100%)',
           padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
           gap: 14,
-        }}>
+          cursor: onOpenPreview ? 'pointer' : 'default',
+        }}
+        >
           <div style={{
             width: 44, height: 44, borderRadius: 12,
             background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Pin, Trash2, Edit3, MoreHorizontal, Loader2, History } from 'lucide-react';
 import { useConversationStore } from '../../store/conversationStore';
+import { useUIStore } from '../../store/uiStore';
 
 const ChatHistory: React.FC = () => {
   const {
@@ -11,6 +12,8 @@ const ChatHistory: React.FC = () => {
     renameConversation,
     togglePinConversation,
   } = useConversationStore();
+  const openPreview = useUIStore((s) => s.openPreview);
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -52,6 +55,14 @@ const ChatHistory: React.FC = () => {
     }
     setRenamingId(null);
     setRenameValue('');
+  };
+
+  const handleConversationClick = (conversationId: string, coursewareId?: number) => {
+    setActiveConversation(conversationId);
+    if (coursewareId) {
+      setSidebarCollapsed(true);
+      openPreview(coursewareId);
+    }
   };
 
   return (
@@ -147,7 +158,7 @@ const ChatHistory: React.FC = () => {
           return (
             <div
               key={conv.id}
-              onClick={() => setActiveConversation(conv.id)}
+              onClick={() => handleConversationClick(conv.id, conv.coursewareId)}
               style={{
                 position: 'relative',
                 padding: '12px 16px',

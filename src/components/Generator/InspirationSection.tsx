@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  ArrowRight,
   CheckCircle2,
   Flag,
   Languages,
@@ -474,8 +473,8 @@ export default function InspirationSection({
             <Sparkles size={15} />
             灵感推荐区
           </div>
-          <h2 style={styles.title}>不知道怎么做互动时，可以先从这里找一个可复用玩法</h2>
-          <p style={styles.subtitle}>这里推荐的是课堂里可以直接套用的互动灵感。选中后，AI 会把玩法、流程、反馈和可替换内容带回输入框。</p>
+          <h2 style={styles.title}>先选一个可复用玩法，AI 会带回输入框</h2>
+          <p style={styles.subtitle}>适合不知道怎么设计互动时快速套用，后续只需要替换知识点。</p>
         </div>
         <div className="inspiration-visual" style={styles.headerVisual} aria-hidden="true">
           <span style={{ ...styles.visualTile, ...styles.visualTilePrimary }}>
@@ -530,44 +529,22 @@ export default function InspirationSection({
 
               <p style={styles.description}>{template.description}</p>
 
-              <div style={styles.settingsRow}>
-                {getTemplateSettings(template).map(setting => (
-                  <span key={setting} style={styles.settingChip}>{setting}</span>
-                ))}
+              <div style={styles.compactMeta}>
+                {getTemplateSettings(template).slice(0, 2).join(' · ')}
               </div>
 
-              <div style={styles.sectionBlock}>
-                <div style={styles.blockLabel}>适合</div>
-                <div style={styles.tagRow}>
-                  {template.suitableFor.map(item => <span key={item} style={styles.tag}>{item}</span>)}
-                </div>
+              <div style={styles.compactTags}>
+                {template.suitableFor.slice(0, 3).map(item => <span key={item} style={styles.tag}>{item}</span>)}
               </div>
 
-              <div style={styles.sectionBlock}>
-                <div style={styles.blockLabel}>课堂流程</div>
-                <div style={styles.flow}>
-                  {template.classroomFlow.map((step, index) => (
-                    <span key={step} style={styles.flowStep}>
-                      {step}
-                      {index < template.classroomFlow.length - 1 && <ArrowRight size={12} />}
-                    </span>
-                  ))}
-                </div>
+              <div style={styles.compactFooter}>
+                <span style={styles.flowSummary}>
+                  {template.classroomFlow.slice(0, 3).join(' → ')}
+                </span>
+                <button style={styles.compactBtn} onClick={() => handleApply(template)}>
+                  套用
+                </button>
               </div>
-
-              <div style={styles.reuseRow}>
-                {template.reusableActions.map(action => (
-                  <span key={action} style={styles.reuseBadge}>{action}</span>
-                ))}
-              </div>
-
-              <div style={styles.exampleText}>
-                例如：{template.examples.join('、')}
-              </div>
-
-              <button style={styles.primaryBtn} onClick={() => handleApply(template)}>
-                套用玩法
-              </button>
             </article>
           );
         })}
@@ -633,7 +610,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     maxWidth: 1080,
     margin: '0 auto',
-    padding: 22,
+    padding: 18,
     borderRadius: 20,
     background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,253,249,0.94) 48%, rgba(239,246,255,0.9))',
     border: '1px solid rgba(103, 232, 249, 0.58)',
@@ -645,37 +622,37 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 22,
-    marginBottom: 20,
-    padding: '4px 2px 2px',
+    gap: 18,
+    marginBottom: 12,
+    padding: '2px 2px 0',
   },
   eyebrow: {
     display: 'flex',
     alignItems: 'center',
     gap: 7,
     color: '#00A8A0',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 900,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   title: {
     margin: 0,
     color: '#0F172A',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 800,
   },
   subtitle: {
-    margin: '6px 0 0',
+    margin: '4px 0 0',
     color: '#64748B',
-    fontSize: 14,
-    lineHeight: 1.55,
+    fontSize: 13,
+    lineHeight: 1.35,
     maxWidth: 650,
   },
   headerVisual: {
     position: 'relative',
     flexShrink: 0,
-    width: 184,
-    minHeight: 92,
+    width: 142,
+    minHeight: 62,
     alignSelf: 'center',
   },
   visualTile: {
@@ -683,40 +660,40 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     background: '#FFFFFF',
     boxShadow: '0 14px 34px rgba(15, 118, 110, 0.14)',
     zIndex: 2,
   },
   visualTilePrimary: {
-    left: 14,
-    top: 18,
+    left: 12,
+    top: 14,
     color: '#047857',
     background: 'linear-gradient(145deg, #D1FAE5, #FFFFFF)',
     transform: 'rotate(-8deg)',
   },
   visualTileSecondary: {
-    left: 72,
-    top: 2,
+    left: 58,
+    top: 0,
     color: '#0284C7',
     background: 'linear-gradient(145deg, #E0F2FE, #FFFFFF)',
     transform: 'rotate(7deg)',
   },
   visualTileTertiary: {
-    right: 12,
-    bottom: 10,
+    right: 8,
+    bottom: 4,
     color: '#0F766E',
     background: 'linear-gradient(145deg, #CCFBF1, #FFFFFF)',
     transform: 'rotate(-3deg)',
   },
   visualPath: {
     position: 'absolute',
-    left: 38,
-    right: 32,
-    top: 50,
-    height: 26,
+    left: 28,
+    right: 24,
+    top: 36,
+    height: 20,
     borderTop: '2px solid rgba(20, 184, 166, 0.22)',
     borderRight: '2px solid rgba(14, 165, 233, 0.18)',
     borderRadius: '0 18px 0 0',
@@ -725,7 +702,7 @@ const styles: Record<string, React.CSSProperties> = {
   visualDotA: {
     position: 'absolute',
     left: 4,
-    bottom: 10,
+    bottom: 6,
     width: 7,
     height: 7,
     borderRadius: 999,
@@ -735,7 +712,7 @@ const styles: Record<string, React.CSSProperties> = {
   visualDotB: {
     position: 'absolute',
     right: 2,
-    top: 14,
+    top: 10,
     width: 9,
     height: 9,
     borderRadius: 999,
@@ -745,8 +722,8 @@ const styles: Record<string, React.CSSProperties> = {
   tabs: {
     display: 'flex',
     gap: 8,
-    paddingBottom: 12,
-    marginBottom: 14,
+    paddingBottom: 8,
+    marginBottom: 12,
     overflowX: 'auto',
   },
   tab: {
@@ -754,8 +731,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    height: 34,
-    padding: '0 13px',
+    height: 32,
+    padding: '0 12px',
     borderRadius: 9,
     border: '1px solid #D6F3EF',
     background: '#FFFFFF',
@@ -779,9 +756,9 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    minHeight: 308,
+    minHeight: 188,
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 14,
     border: '1px solid rgba(214, 243, 239, 0.95)',
     background: 'linear-gradient(180deg, #FFFFFF, #FBFEFF)',
     boxShadow: '0 12px 28px rgba(15, 23, 42, 0.06)',
@@ -795,13 +772,13 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 7,
   },
   cardKicker: {
     color: '#0F766E',
     fontSize: 12,
     fontWeight: 850,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   cardTitle: {
     margin: 0,
@@ -826,8 +803,52 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     color: '#334155',
     fontSize: 13,
-    lineHeight: 1.55,
-    minHeight: 42,
+    lineHeight: 1.45,
+    minHeight: 38,
+  },
+  compactMeta: {
+    marginTop: 8,
+    color: '#0F766E',
+    fontSize: 12,
+    fontWeight: 850,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  compactTags: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+  },
+  compactFooter: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 'auto',
+    paddingTop: 12,
+  },
+  flowSummary: {
+    minWidth: 0,
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 750,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  compactBtn: {
+    flexShrink: 0,
+    height: 28,
+    padding: '0 12px',
+    borderRadius: 8,
+    border: 'none',
+    background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 900,
+    cursor: 'pointer',
   },
   settingsRow: {
     display: 'flex',

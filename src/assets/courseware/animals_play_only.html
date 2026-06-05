@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animal Catch 动物抓抓乐</title>
+  <style>
+    @import url('https://iteachcdn.xdf.cn/mmcw/font/fontVar.css');
+
+    :root { --coral: #ff7a7a; --ink: #31543e; --shadow: rgba(74, 111, 68, 0.24); }
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; margin: 0; overflow: hidden;
+      background: #000; /* 纯黑背景留边 */
+      font-family: "Heinemann Roman", "方正准圆简体", "Arial Rounded MT Bold", sans-serif;
+      user-select: none;
+    }
+    button { font-family: inherit; border: 0; cursor: pointer; }
+
+    .stage {
+      width: 1920px; height: 1080px; position: absolute; left: 50%; top: 50%; overflow: hidden;
+      transform: translate(-50%, -50%); transform-origin: center center;
+    }
+
+    .scene { position: absolute; inset: 0; display: none; overflow: hidden; }
+    .scene.active { display: block; }
+
+    /* 游戏内纯净版背景图 */
+    .game-scene-bg {
+      position: absolute; inset: 0;
+      background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/T4kzJjSP-2600008999-AigcImage-e2b16863d8e941489ea02d0e14a12347_0.png') center/cover no-repeat;
+    }
+
+    /* 封面带文字和按钮的背景图 */
+    #coverScene { cursor: pointer; }
+    .cover-art { 
+      position: absolute; inset: 0; 
+      background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/KqVhnYlE-2600008999-AigcImage-969c10729ae248e5bf9bf8f161c9dea4_0.jpg') center/cover no-repeat; 
+    }
+    
+    .big-button {
+      background: linear-gradient(180deg, #fff7a8, #ffc947); color: #7a4b0b;
+      border: 5px solid #fff; box-shadow: 0 10px 0 #d98d22, 0 16px 24px rgba(91, 78, 29, 0.28);
+      min-width: 260px; height: 92px; border-radius: 46px; padding: 0 46px; font-size: 42px; font-weight: 900;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    }
+    .big-button:active {
+      transform: translateY(7px); box-shadow: 0 3px 0 #d98d22, 0 8px 16px rgba(91, 78, 29, 0.22);
+    }
+    .big-button:hover { filter: brightness(1.04); }
+
+    /* 游戏内 UI 样式 */
+    .game-top { position: absolute; top: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between; align-items: center; z-index: 40; pointer-events: none; }
+    .game-badge {
+      min-width: 210px; height: 70px; display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 28px; border-radius: 35px; background: rgba(255, 255, 255, 0.95); border: 5px solid #fff;
+      color: #ff8c00; box-shadow: 0 9px 0 rgba(0, 0, 0, 0.1), 0 16px 24px rgba(0, 0, 0, 0.14); font-size: 32px; font-weight: 900;
+    }
+    .game-badge.center { color: #ff4d2e; font-size: 42px; min-width: 250px; white-space: nowrap; }
+
+    #gameArea { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 1600px; height: 680px; z-index: 8; }
+    .animal-card {
+      width: 160px; height: 160px; position: absolute; background: #fff; border-radius: 30px;
+      box-shadow: 0 6px 0 #ccc, 0 15px 20px rgba(0, 0, 0, 0.15); cursor: pointer; display: flex;
+      justify-content: center; align-items: center; border: 5px solid #fff; overflow: hidden;
+      transition: filter 0.2s, transform 0.12s;
+    }
+    .animal-card img { width: 90%; height: 90%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1)); }
+    .animal-card.card-word { font-size: 32px; color: #333; font-weight: 900; text-align: center; line-height: 1; padding: 5px; white-space: nowrap; }
+    .animal-card.card-word.long-word { font-size: 24px; }
+    .animal-card.card-cn { font-size: 48px; color: #333; font-weight: 900; white-space: nowrap; }
+    .animal-card.darkened { filter: brightness(0.58) grayscale(0.22); pointer-events: none; }
+    
+    .animal-card.in-slot {
+      box-shadow: none !important; border-radius: 22px; width: 100% !important; height: 100% !important;
+      left: 0 !important; top: 0 !important; transform: none !important; position: relative; margin: 0;
+      border: 3px solid rgba(255, 255, 255, 0.7); z-index: 10 !important;
+    }
+
+    .slot-container {
+      position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); width: 1250px; height: 180px;
+      background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(20px); border-radius: 35px;
+      border: 4px solid rgba(255, 255, 255, 0.7); box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.1), 0 20px 40px rgba(0, 0, 0, 0.25);
+      display: flex; justify-content: center; align-items: center; gap: 10px; padding: 0 20px; z-index: 30;
+    }
+    .slot {
+      width: 160px; height: 160px; border-radius: 25px; position: relative;
+      background: url('https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/stump.png') center/contain no-repeat;
+    }
+
+    .tools { position: absolute; bottom: 230px; right: 320px; z-index: 34; display: flex; gap: 18px; }
+    .tool-btn {
+      height: 68px; border-radius: 34px; padding: 0 22px; background: linear-gradient(180deg, #48dbfb, #0abde3);
+      border: 4px solid #fff; color: #fff; font-size: 22px; font-weight: 900; box-shadow: 0 7px 0 rgba(0, 0, 0, 0.22), 0 12px 18px rgba(0, 0, 0, 0.2);
+    }
+    .tool-btn.yellow { background: linear-gradient(180deg, #ffd93d, #f6c90e); color: #8b5b00; }
+    .tool-btn.green { background: linear-gradient(180deg, #1dd1a1, #10ac84); }
+
+    .modal { position: absolute; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: rgba(34, 66, 44, 0.72); backdrop-filter: blur(10px); }
+    .modal.show { display: flex; }
+    .modal-card {
+      width: 980px; min-height: 520px; border-radius: 52px; background: rgba(255, 255, 255, 0.96);
+      border: 8px solid #fff; box-shadow: 0 26px 76px rgba(20, 62, 42, 0.36); display: grid; place-items: center; text-align: center; padding: 60px; color: var(--ink);
+    }
+    .modal-card h2 { margin: 0 0 24px; font-size: 72px; color: var(--coral); }
+    .modal-card p { margin: 0 0 34px; font-size: 32px; line-height: 1.45; font-weight: 900; }
+  </style>
+</head>
+<body>
+  <main class="stage" id="stage">
+    
+    <section class="scene active" id="coverScene">
+      <div class="cover-art"></div>
+    </section>
+
+    <section class="scene" id="gameScene">
+      <div class="game-scene-bg"></div>
+      <div class="game-top">
+        <div class="game-badge" id="gameLevel">Level 1 / 3</div>
+        <div class="game-badge center"><span>⏱</span><span id="timeDisplay">30</span><span>s</span></div>
+        <div class="game-badge">Score: <span id="scoreDisplay">0</span></div>
+      </div>
+      <div id="gameArea"></div>
+      <div class="tools">
+        <button class="tool-btn yellow" id="undoBtn">Undo</button>
+        <button class="tool-btn green" id="hintBtn">Hint</button>
+        <button class="tool-btn" id="shuffleBtn">Shuffle</button>
+      </div>
+      <div class="slot-container" id="slotContainer">
+        <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+        <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+      </div>
+    </section>
+
+    <div class="modal" id="modal">
+      <div class="modal-card">
+        <h2 id="modalTitle"></h2>
+        <p id="modalText"></p>
+        <button class="big-button" id="modalBtn">继续</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://iteachcdn.xdf.cn/mmcw/plus/gsap.min.js"></script>
+  <script src="https://iteachcdn.xdf.cn/mmcw/plus/aijs/confetti.browser.min.js"></script>
+  <script>
+    const DESIGN_WIDTH = 1920; const DESIGN_HEIGHT = 1080;
+
+    const ANIMAL_DATA = {
+      cat: { img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/cat.png', word: 'cat', cn: '猫', color: '#FFB74D' },
+      dog: { img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/dog.png', word: 'dog', cn: '狗', color: '#4FC3F7' },
+      rabbit: { img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/rabbit.png', word: 'rabbit', cn: '兔子', color: '#FF8A65' },
+      monkey: { img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/monkey.png', word: 'monkey', cn: '猴子', color: '#A1887F' },
+      bear: { img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/bear.png', word: 'bear', cn: '熊', color: '#8D6E63' },
+      elephant: { img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/elephant.png', word: 'elephant', cn: '大象', color: '#90A4AE' },
+      tiger: { img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/tiger.png', word: 'tiger', cn: '老虎', color: '#FFB300' },
+      lion: { img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/lion.png', word: 'lion', cn: '狮子', color: '#F6A500' }
+    };
+
+    const animalOrder = ['cat', 'dog', 'rabbit', 'monkey', 'bear', 'elephant', 'tiger', 'lion'];
+    const LEVELS = [
+      { id: 1, types: ['cat', 'dog', 'rabbit'], setsPerType: 1, time: 45 },
+      { id: 2, types: ['cat', 'dog', 'rabbit', 'monkey', 'bear'], setsPerType: 2, time: 90 },
+      { id: 3, types: animalOrder, setsPerType: 2, time: 120 }
+    ];
+
+    function resizeStage() {
+      const stage = document.getElementById('stage');
+      const scale = Math.min(window.innerWidth / DESIGN_WIDTH, window.innerHeight / DESIGN_HEIGHT);
+      stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+    window.addEventListener('resize', resizeStage); window.addEventListener('load', resizeStage);
+
+    const AudioManager = {
+      ctx: null,
+      init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); if (this.ctx.state === 'suspended') this.ctx.resume(); },
+      tone(freq, duration = 0.14, type = 'sine', vol = 0.16) {
+        this.init(); const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + duration);
+      },
+      click() { this.tone(880, 0.08, 'sine', 0.12); },
+      pop() { this.tone(420, 0.1, 'triangle', 0.16); setTimeout(() => this.tone(720, 0.12, 'sine', 0.12), 60); },
+      match() { this.tone(523, 0.18); setTimeout(() => this.tone(659, 0.18), 70); setTimeout(() => this.tone(784, 0.22), 140); },
+      error() { this.tone(150, 0.22, 'sawtooth', 0.12); },
+      speak(text) { if (!('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'en-US'; utterance.rate = 0.82; window.speechSynthesis.speak(utterance); }
+    };
+
+    const Timer = {
+      interval: null,
+      start(seconds, onTick, onEnd) { this.stop(); let left = seconds; onTick(left); this.interval = setInterval(() => { left -= 1; onTick(left); if (left <= 0) { this.stop(); onEnd(); } }, 1000); },
+      stop() { if (this.interval) clearInterval(this.interval); this.interval = null; }
+    };
+
+    const Game = {
+      currentLevel: 0, score: 0, cards: [], slots: [], isProcessing: false, tools: { undo: 1, hint: 1, shuffle: 1 },
+      init() {
+        resizeStage();
+        document.getElementById('undoBtn').onclick = () => this.useTool('undo');
+        document.getElementById('hintBtn').onclick = () => this.useTool('hint');
+        document.getElementById('shuffleBtn').onclick = () => this.useTool('shuffle');
+        
+        // 点击整个封面直接无缝进入游戏
+        document.getElementById('coverScene').onclick = () => {
+          AudioManager.click();
+          document.getElementById('coverScene').classList.remove('active');
+          document.getElementById('gameScene').classList.add('active');
+          this.start();
+        };
+      },
+      start() { this.score = 0; this.loadLevel(0); },
+      loadLevel(index) {
+        if (index >= LEVELS.length) { this.showGameModal('All Cleared!', '你完成了全部动物挑战！', '再玩一次', () => location.reload()); return; }
+        this.currentLevel = index; this.isProcessing = false; this.slots = []; this.tools = { undo: 1, hint: 1, shuffle: 1 }; this.updateToolState();
+        const level = LEVELS[index]; document.getElementById('gameLevel').textContent = `Level ${level.id} / ${LEVELS.length}`;
+        document.getElementById('scoreDisplay').textContent = this.score; document.getElementById('gameArea').innerHTML = ''; document.querySelectorAll('.slot').forEach(s => s.innerHTML = '');
+        const deck = [];
+        level.types.forEach(type => { for (let i = 0; i < level.setsPerType; i++) { deck.push({ type, format: 'img' }, { type, format: 'word' }, { type, format: 'cn' }); } });
+        deck.sort(() => Math.random() - 0.5); this.cards = [];
+        deck.forEach((item, i) => {
+          const card = this.createCard(item.type, item.format);
+          card.style.left = `calc(50% + ${(Math.random() - 0.5) * 1200}px)`; card.style.top = `calc(50% + ${(Math.random() - 0.5) * 450}px)`;
+          card.style.transform = `translate(-50%, -50%) rotate(${(Math.random() - 0.5) * 60}deg)`; card.style.zIndex = i + 10;
+          card.onclick = () => this.onCard(card); document.getElementById('gameArea').appendChild(card);
+          this.cards.push({ el: card, type: item.type, format: item.format, inSlot: false, zIndex: i + 10 });
+        });
+        Timer.start(level.time, t => document.getElementById('timeDisplay').textContent = t, () => { this.showGameModal("Time's Up!", '时间到了，差一点点！', '重试', () => this.loadLevel(this.currentLevel)); });
+        setTimeout(() => this.updateCardInteractivity(), 100);
+      },
+      createCard(type, format) {
+        const data = ANIMAL_DATA[type]; const card = document.createElement('div'); card.className = 'animal-card'; card.style.borderColor = data.color;
+        if (format === 'img') { card.innerHTML = `<img src="${data.img}" alt="${data.word}">`; }
+        else if (format === 'word') { card.classList.add('card-word'); if (data.word.length > 7) card.classList.add('long-word'); card.textContent = data.word; }
+        else { card.classList.add('card-cn'); card.textContent = data.cn; }
+        return card;
+      },
+      onCard(cardEl) {
+        if (this.isProcessing || cardEl.classList.contains('darkened')) return;
+        if (this.slots.length >= 7) { AudioManager.error(); this.showGameModal('Oops!', '槽位满了！', '重试', () => this.loadLevel(this.currentLevel)); return; }
+        this.isProcessing = true; AudioManager.pop(); const card = this.cards.find(c => c.el === cardEl); card.inSlot = true;
+        let insertIndex = this.slots.length;
+        for (let i = this.slots.length - 1; i >= 0; i--) { if (this.slots[i].type === card.type) { insertIndex = i + 1; break; } }
+        this.slots.splice(insertIndex, 0, card); this.animateSlots(); this.updateCardInteractivity();
+      },
+      animateSlots() {
+        const uiSlots = Array.from(document.querySelectorAll('.slot')); let pending = 0;
+        this.slots.forEach((card, index) => {
+          const target = uiSlots[index]; if (!target) return;
+          const targetRect = target.getBoundingClientRect(); const cardRect = card.el.getBoundingClientRect();
+          pending += 1; card.el.style.zIndex = 4000 + index;
+          gsap.to(card.el, {
+            x: `+=${targetRect.left - cardRect.left}`, y: `+=${targetRect.top - cardRect.top}`, rotation: 0, scale: 1, duration: 0.24, ease: 'power2.in',
+            onComplete: () => {
+              target.appendChild(card.el); card.el.classList.add('in-slot'); card.el.style.transform = 'none'; card.el.style.left = '0'; card.el.style.top = '0'; card.el.style.position = 'relative';
+              pending -= 1; if (pending === 0) this.checkMatch();
+            }
+          });
+        });
+        if (pending === 0) this.isProcessing = false;
+      },
+      checkMatch() {
+        let start = -1;
+        for (let i = 0; i <= this.slots.length - 3; i++) { if (this.slots[i].type === this.slots[i + 1].type && this.slots[i].type === this.slots[i + 2].type) { start = i; break; } }
+        if (start >= 0) {
+          const type = this.slots[start].type; const matched = this.slots.slice(start, start + 3);
+          matched.forEach(card => gsap.to(card.el, { scale: 1.35, opacity: 0, duration: 0.28, onComplete: () => card.el.remove() }));
+          this.slots.splice(start, 3); this.score += 100; document.getElementById('scoreDisplay').textContent = this.score;
+          AudioManager.match(); AudioManager.speak(ANIMAL_DATA[type].word); confetti({ particleCount: 40, spread: 55, origin: { y: 0.82 } });
+          setTimeout(() => { this.animateSlots(); this.checkClear(); }, 340);
+        } else { this.isProcessing = false; this.checkClear(); }
+      },
+      checkClear() {
+        const left = this.cards.filter(c => !c.inSlot && c.el.parentNode).length;
+        if (left === 0 && this.slots.length === 0) { Timer.stop(); confetti({ particleCount: 130, spread: 90, origin: { y: 0.58 } }); this.showGameModal('Level Cleared!', '配对成功！', '下一关', () => this.loadLevel(this.currentLevel + 1)); }
+      },
+      updateCardInteractivity() {
+        const active = this.cards.filter(c => !c.inSlot && c.el.parentNode); active.forEach(c => c.el.classList.remove('darkened'));
+        active.forEach(bottom => {
+          const b = bottom.el.getBoundingClientRect(); const center = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+          const covered = active.some(top => {
+            if (top === bottom || top.zIndex <= bottom.zIndex) return false; const t = top.el.getBoundingClientRect();
+            return center.x > t.left && center.x < t.right && center.y > t.top && center.y < t.bottom;
+          });
+          if (covered) bottom.el.classList.add('darkened');
+        });
+      },
+      useTool(name) {
+        if (this.isProcessing || this.tools[name] <= 0) return; this.tools[name] -= 1; this.updateToolState(); AudioManager.click();
+        if (name === 'undo') {
+          const card = this.slots.pop(); if (!card) return; card.inSlot = false; card.el.classList.remove('in-slot'); document.getElementById('gameArea').appendChild(card.el);
+          const maxZ = Math.max(...this.cards.map(c => c.zIndex || 0)) + 10; card.zIndex = maxZ; card.el.style.zIndex = maxZ; card.el.style.position = 'absolute';
+          gsap.to(card.el, { left: `calc(50% + ${(Math.random() - 0.5) * 800}px)`, top: `calc(50% + ${(Math.random() - 0.5) * 300}px)`, rotation: Math.random() * 30 - 15, duration: 0.45, onComplete: () => this.updateCardInteractivity() });
+          this.animateSlots();
+        }
+        if (name === 'shuffle') {
+          const active = this.cards.filter(c => !c.inSlot && c.el.parentNode);
+          active.forEach((card, index) => { card.zIndex = index + 100; card.el.style.zIndex = card.zIndex; gsap.to(card.el, { left: `calc(50% + ${(Math.random() - 0.5) * 1200}px)`, top: `calc(50% + ${(Math.random() - 0.5) * 450}px)`, rotation: (Math.random() - 0.5) * 60, duration: 0.56, ease: 'power2.inOut' }); });
+          setTimeout(() => this.updateCardInteractivity(), 620);
+        }
+        if (name === 'hint') {
+          const available = this.cards.filter(c => !c.inSlot && !c.el.classList.contains('darkened') && c.el.parentNode);
+          const targetType = this.slots.length ? this.slots[this.slots.length - 1].type : available[0]?.type;
+          available.filter(c => c.type === targetType).slice(0, 3).forEach(c => { gsap.fromTo(c.el, { scale: 1 }, { scale: 1.22, yoyo: true, repeat: 3, duration: 0.22 }); });
+        }
+      },
+      updateToolState() { document.getElementById('undoBtn').textContent = `Undo ${this.tools.undo}`; document.getElementById('hintBtn').textContent = `Hint ${this.tools.hint}`; document.getElementById('shuffleBtn').textContent = `Shuffle ${this.tools.shuffle}`; },
+      showGameModal(title, text, btn, action) {
+        Timer.stop(); const modal = document.getElementById('modal'); document.getElementById('modalTitle').textContent = title; document.getElementById('modalText').textContent = text;
+        const modalBtn = document.getElementById('modalBtn'); modalBtn.textContent = btn; modalBtn.onclick = () => { modal.classList.remove('show'); action(); }; modal.classList.add('show');
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => Game.init());
+  </script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import { Maximize2, X, Edit3, Upload, Download, Square, Globe, Monitor, Tablet, 
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
+import { demoPublishedTargets, demoSessionVersions } from '../../data/demoCoursewareVersions';
 import PublishModal from '../Library/PublishModal';
 import toast from '../../utils/toast';
 
@@ -46,6 +47,9 @@ interface PublishedGameTarget {
 
 const buildSessionVersions = (courseware?: { title?: string; htmlContent?: string } | null): SessionHtmlVersion[] => {
   if (!courseware) return [];
+  if (courseware.title?.includes('水果单词互动乐园')) {
+    return demoSessionVersions.map(version => ({ ...version }));
+  }
   const baseHtml = courseware.htmlContent || '';
   const baseTitle = courseware.title || '互动课件';
   return [
@@ -87,6 +91,9 @@ const buildSessionVersions = (courseware?: { title?: string; htmlContent?: strin
 };
 
 const buildPublishedTargets = (courseware?: { title?: string } | null): PublishedGameTarget[] => {
+  if (courseware?.title?.includes('水果单词互动乐园')) {
+    return demoPublishedTargets.map(target => ({ ...target }));
+  }
   const baseTitle = courseware?.title || '互动课件';
   return [
     {
@@ -119,9 +126,16 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
     return resolved;
   }, [coursewareId, coursewares]);
 
-  const [versions, setVersions] = useState<SessionHtmlVersion[]>(() => buildSessionVersions(courseware));
+  const versionSourceCourseware = useMemo(() => {
+    if (coursewareId === 1 && courseware) {
+      return { ...courseware, title: '水果单词互动乐园' };
+    }
+    return courseware;
+  }, [courseware, coursewareId]);
 
-  const [publishedTargets, setPublishedTargets] = useState<PublishedGameTarget[]>(() => buildPublishedTargets(courseware));
+  const [versions, setVersions] = useState<SessionHtmlVersion[]>(() => buildSessionVersions(versionSourceCourseware));
+
+  const [publishedTargets, setPublishedTargets] = useState<PublishedGameTarget[]>(() => buildPublishedTargets(versionSourceCourseware));
 
   const [selectedVersion, setSelectedVersion] = useState('v4');
   const [isEditing, setIsEditing] = useState(false);
@@ -134,14 +148,14 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   const versionScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setVersions(buildSessionVersions(courseware));
-    setPublishedTargets(buildPublishedTargets(courseware));
+    setVersions(buildSessionVersions(versionSourceCourseware));
+    setPublishedTargets(buildPublishedTargets(versionSourceCourseware));
     setSelectedVersion('v4');
     setSelectedUpdateTargetId('game-b');
     setIsEditing(false);
     setEditContent('');
     setFullscreenOpen(false);
-  }, [coursewareId, courseware?.htmlContent, courseware?.title]);
+  }, [coursewareId, versionSourceCourseware?.htmlContent, versionSourceCourseware?.title]);
 
   useEffect(() => {
     if (!fullscreenOpen) return;

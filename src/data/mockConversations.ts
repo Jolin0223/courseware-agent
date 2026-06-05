@@ -1,4 +1,5 @@
 import type { Conversation, RequirementFramework, GenerationProgress, CoursewareResult } from '../types';
+import { demoVersionResults } from './demoCoursewareVersions';
 import { isFruitCoursewarePrompt } from './fruitCoursewarePrompt';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
@@ -30,6 +31,7 @@ const generationProgress: GenerationProgress = {
 const coursewareResult: CoursewareResult = {
   title: '水果单词互动乐园',
   version: 'v1.0',
+  htmlContent: demoVersionResults[0].htmlContent,
 };
 
 export const mockConversations: Conversation[] = [
@@ -72,6 +74,48 @@ export const mockConversations: Conversation[] = [
         content: coursewareResult,
         type: 'courseware-result',
         timestamp: new Date('2026-04-06T14:35:00'),
+      },
+      {
+        id: generateId(),
+        role: 'user',
+        content: '帮我把这个换成讲动物单词的',
+        type: 'text',
+        timestamp: new Date('2026-04-06T14:42:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: demoVersionResults[1],
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-06T14:46:00'),
+      },
+      {
+        id: generateId(),
+        role: 'user',
+        content: '帮我把第一版的拆成只有第二关 读一读的',
+        type: 'text',
+        timestamp: new Date('2026-04-06T14:53:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: demoVersionResults[2],
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-06T14:58:00'),
+      },
+      {
+        id: generateId(),
+        role: 'user',
+        content: '帮我把会话第二版最后一关玩一玩拆出来',
+        type: 'text',
+        timestamp: new Date('2026-04-06T15:06:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: demoVersionResults[3],
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-06T15:10:00'),
       },
     ],
     isPinned: true,

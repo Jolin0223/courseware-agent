@@ -183,7 +183,10 @@ export default function CoursewareCard({
         overflow: 'hidden',
         width: '100%',
         boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-      }}>
+        cursor: onOpenPreview ? 'pointer' : 'default',
+      }}
+        onClick={() => onOpenPreview?.(courseware.id)}
+      >
         <div
           onClick={() => onOpenPreview?.(courseware.id)}
           style={{
@@ -214,7 +217,7 @@ export default function CoursewareCard({
           </div>
         </div>
 
-        <div style={{ padding: '14px 20px', background: '#FAFBFC' }}>
+        <div style={{ padding: '14px 20px', background: '#FAFBFC' }} onClick={(e) => e.stopPropagation()}>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
             onClick={handleClone}

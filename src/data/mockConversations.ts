@@ -13,6 +13,7 @@ const requirementFramework: RequirementFramework = {
 const generationProgress: GenerationProgress = {
   stages: [
     { name: '图片生成', status: 'completed', progress: 100, detail: '已生成 5 张图片素材' },
+    { name: '音频生成', status: 'completed', progress: 100, detail: '已生成 5 条音频素材' },
     { name: '代码生成', status: 'completed', progress: 100 },
     { name: '代码审查', status: 'completed', progress: 100 },
     { name: '代码修复', status: 'completed', progress: 100 },

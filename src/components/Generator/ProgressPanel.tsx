@@ -55,14 +55,14 @@ const StreamingText: React.FC<{ text: string; speed?: number; onComplete?: () =>
 const CODE_INTRO_TEXT = '正在为您打造专属互动教学课件~';
 const CODE_ASSETS_TEXT = '将自动完成代码生成、智能审查，若检测到问题还会进行修复优化 💪🏻💪🏻💪🏻';
 
-const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onToggle: () => void; onRetry?: (stageIndex: number) => void }> = ({ stages, isExpanded, onToggle, onRetry }) => {
+const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onToggle: () => void; onRetry?: (stageIndex: number) => void; instant?: boolean }> = ({ stages, isExpanded, onToggle, onRetry, instant = false }) => {
   const codeStage = stages[0];
   const reviewStage = stages[1];
   const fixStage = stages[2];
   const hasFailed = stages.some(s => s.status === 'failed');
   const overallStatus = hasFailed ? 'failed' : fixStage?.status === 'completed' ? 'completed' : codeStage?.status === 'pending' ? 'pending' : 'in-progress';
   const overallProgress = Math.round(((codeStage?.progress || 0) + (reviewStage?.progress || 0) + (fixStage?.progress || 0)) / 3);
-  const [introTextDone, setIntroTextDone] = useState(false);
+  const [introTextDone, setIntroTextDone] = useState(instant);
 
   return (
     <div style={panelStyles.card}>
@@ -88,10 +88,10 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
           {codeStage && codeStage.status !== 'pending' && (
             <>
               <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginTop: 12, marginBottom: 8 }}>
-                <StreamingText text={CODE_INTRO_TEXT} speed={20} onComplete={() => {}} />
+                {instant ? CODE_INTRO_TEXT : <StreamingText text={CODE_INTRO_TEXT} speed={20} onComplete={() => {}} />}
               </div>
               <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 14 }}>
-                <StreamingText text={CODE_ASSETS_TEXT} speed={20} onComplete={() => setIntroTextDone(true)} />
+                {instant ? CODE_ASSETS_TEXT : <StreamingText text={CODE_ASSETS_TEXT} speed={20} onComplete={() => setIntroTextDone(true)} />}
               </div>
             </>
           )}
@@ -153,7 +153,8 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
 };
 
 const ProgressPanel: React.FC<ProgressPanelProps> = ({ progress, onRetry }) => {
-  const [textDone, setTextDone] = useState(false);
+  const allStagesCompleted = progress.stages.length > 0 && progress.stages.every(stage => stage.status === 'completed');
+  const [textDone, setTextDone] = useState(allStagesCompleted);
   const [imageExpanded, setImageExpanded] = useState(true);
   const [audioExpanded, setAudioExpanded] = useState(true);
   const [codeExpanded, setCodeExpanded] = useState(true);
@@ -166,7 +167,7 @@ const ProgressPanel: React.FC<ProgressPanelProps> = ({ progress, onRetry }) => {
   return (
     <div ref={containerRef} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.7, padding: '14px 18px', background: '#fff', borderRadius: 10, border: '1px solid #E2E8F0' }}>
-        <StreamingText text={CONFIRM_TEXT} speed={25} onComplete={() => setTextDone(true)} />
+        {allStagesCompleted ? CONFIRM_TEXT : <StreamingText text={CONFIRM_TEXT} speed={25} onComplete={() => setTextDone(true)} />}
       </div>
 
       {textDone && imageStage && (
@@ -182,7 +183,7 @@ const ProgressPanel: React.FC<ProgressPanelProps> = ({ progress, onRetry }) => {
       )}
 
       {textDone && codeStages.length > 0 && codeStages[0].status !== 'pending' && (
-        <CodeGenerationPanel stages={codeStages} isExpanded={codeExpanded} onToggle={() => setCodeExpanded(v => !v)} onRetry={onRetry} />
+        <CodeGenerationPanel stages={codeStages} isExpanded={codeExpanded} onToggle={() => setCodeExpanded(v => !v)} onRetry={onRetry} instant={allStagesCompleted} />
       )}
 
       <style>{`

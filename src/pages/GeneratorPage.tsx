@@ -1018,6 +1018,7 @@ export default function GeneratorPage() {
   const frameworkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingFrameworkRef = useRef<string | null>(null);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const forceBottomScrollRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const failAtStageRef = useRef<number | undefined>(undefined);
 
@@ -1113,6 +1114,38 @@ export default function GeneratorPage() {
       });
     }
   }, [activeConversation?.messages.length, phase]);
+
+  useEffect(() => {
+    if (!activeConversationId) return;
+    const shouldScrollToBottom = window.sessionStorage.getItem('openPublishedConversation:scrollToBottom') === '1';
+    if (!shouldScrollToBottom) return;
+    window.sessionStorage.removeItem('openPublishedConversation:scrollToBottom');
+    forceBottomScrollRef.current = true;
+
+    const scrollToBottom = () => {
+      if (chatAreaRef.current) {
+        chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+      }
+    };
+    const rafId = requestAnimationFrame(scrollToBottom);
+    const timers = [120, 360, 800, 1400].map(delay => window.setTimeout(scrollToBottom, delay));
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      timers.forEach(window.clearTimeout);
+    };
+  }, [activeConversationId]);
+
+  useEffect(() => {
+    if (!forceBottomScrollRef.current) return;
+    const timer = window.setTimeout(() => {
+      if (chatAreaRef.current) {
+        chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+      }
+      forceBottomScrollRef.current = false;
+    }, 1800);
+    return () => window.clearTimeout(timer);
+  }, [activeConversation?.messages.length, phase, previewPanelOpen]);
 
   useEffect(() => {
     if (!activeConversation) return;

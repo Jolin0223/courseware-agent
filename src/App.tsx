@@ -47,11 +47,8 @@ function AppContent() {
 
     const conversationId = params.get('conversationId');
     const resourceId = params.get('resourceId');
-    const handledKey = `editCourseware:${conversationId || ''}:${resourceId || ''}`;
-    if (window.sessionStorage.getItem(handledKey)) return;
-    window.sessionStorage.setItem(handledKey, '1');
-
     const target = openPublishedConversation(conversationId, resourceId);
+    window.sessionStorage.setItem('openPublishedConversation:scrollToBottom', '1');
     setSidebarCollapsed(true);
     openPreview(target.coursewareId);
     toast('已打开已发布作品，可继续修改并更新发布');

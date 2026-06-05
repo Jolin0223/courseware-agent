@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Eye, Download, CheckCircle2, Sparkles, Edit3 } from 'lucide-react';
+import { Copy, Eye, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning } from 'lucide-react';
 import type { Courseware } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
@@ -34,12 +34,12 @@ const MOCK_AUDIOS: Array<
 
 export default function CoursewareCard({ courseware, version = 'v1.0', isLatest: isLatestProp = true }: { courseware: Courseware; version?: string; isLatest?: boolean }) {
   const [copied, setCopied] = useState(false);
-  const [copiedIdType, setCopiedIdType] = useState<'resource' | 'session' | null>(null);
+  const [feedbackCopied, setFeedbackCopied] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [images, setImages] = useState(MOCK_IMAGES);
   const [audios, setAudios] = useState(MOCK_AUDIOS);
   const [editDisabledTooltip, setEditDisabledTooltip] = useState(false);
-  const [idTooltip, setIdTooltip] = useState<'resource' | 'session' | null>(null);
+  const [showFeedbackTooltip, setShowFeedbackTooltip] = useState(false);
   const [isLatest, setIsLatest] = useState(isLatestProp);
   const [currentVersion, setCurrentVersion] = useState(version);
   const navigate = useNavigate();
@@ -48,13 +48,15 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
   const addAssistantMessage = useConversationStore((s) => s.addAssistantMessage);
   const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const isEmbedded = appMode === 'embedded';
-  const hasResourceId = courseware.isPublished !== false;
-  const resourceId = hasResourceId ? '2fc7b609481e45868a38a74b4490400a' : null;
-  const sessionVersionId = '123456fc7b609481';
-  const resourceCopyText = resourceId ? `资源ID：${resourceId}` : '';
-  const sessionCopyText = resourceId
-    ? `资源ID：${resourceId}；\n会话版本ID：${sessionVersionId}`
-    : `会话版本ID：${sessionVersionId}`;
+  const feedbackLocator = '2fc7b609481e45868a38a74b4490400a';
+  const feedbackTime = '2026-06-05 14:30';
+  const feedbackText = `【AI互动课件问题反馈】
+课件名称：${courseware.title}
+当前版本：${currentVersion}
+资源定位信息：${feedbackLocator}
+反馈时间：${feedbackTime}
+问题描述：
+请在这里补充你遇到的问题，例如：打不开、有白屏、内容不符合预期等。`;
 
   const handlePreview = () => {
     openHtmlPreview(courseware.htmlContent, courseware.title);
@@ -88,12 +90,12 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
     }
   };
 
-  const handleCopyId = async (type: 'resource' | 'session', value: string) => {
+  const handleCopyFeedback = async () => {
     try {
-      await copyText(value);
-      setCopiedIdType(type);
-      toast(type === 'resource' ? '已复制资源ID，可用于资源库搜索' : '已复制会话版本ID，可发给开发排查');
-      setTimeout(() => setCopiedIdType(null), 1600);
+      await copyText(feedbackText);
+      setFeedbackCopied(true);
+      toast('已复制问题反馈信息，可粘贴给开发排查');
+      setTimeout(() => setFeedbackCopied(false), 1600);
     } catch {
       toast('复制失败，请稍后重试');
     }
@@ -294,72 +296,31 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 14,
-        flexWrap: 'wrap',
         marginTop: 8,
         paddingLeft: 2,
         color: '#A7B0BB',
         fontSize: 12,
       }}>
-        {resourceId && (
-          <span
-            style={{ position: 'relative', display: 'inline-flex' }}
-            onMouseEnter={() => setIdTooltip('resource')}
-            onMouseLeave={() => setIdTooltip(null)}
-          >
-            <button
-              onClick={() => handleCopyId('resource', resourceCopyText)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
-                border: 'none', background: 'transparent',
-                color: copiedIdType === 'resource' ? '#00A987' : '#A7B0BB',
-                cursor: 'pointer', outline: 'none', lineHeight: 1.2,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#00A987'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = copiedIdType === 'resource' ? '#00A987' : '#A7B0BB'; }}
-            >
-              {copiedIdType === 'resource' ? <CheckCircle2 size={13} /> : <Copy size={13} />}
-              <span style={{ fontWeight: 600 }}>{copiedIdType === 'resource' ? '已复制资源ID' : '复制资源ID'}</span>
-            </button>
-            {idTooltip === 'resource' && (
-              <span style={{
-                position: 'absolute',
-                left: 0,
-                bottom: 'calc(100% + 8px)',
-                padding: '7px 10px',
-                borderRadius: 6,
-                background: '#1E293B',
-                color: '#fff',
-                fontSize: 11,
-                whiteSpace: 'nowrap',
-                boxShadow: '0 8px 20px rgba(15,23,42,0.18)',
-                zIndex: 20,
-              }}>
-                可用于资源搜索，各端一致
-              </span>
-            )}
-          </span>
-        )}
         <span
           style={{ position: 'relative', display: 'inline-flex' }}
-          onMouseEnter={() => setIdTooltip('session')}
-          onMouseLeave={() => setIdTooltip(null)}
+          onMouseEnter={() => setShowFeedbackTooltip(true)}
+          onMouseLeave={() => setShowFeedbackTooltip(false)}
         >
           <button
-            onClick={() => handleCopyId('session', sessionCopyText)}
+            onClick={handleCopyFeedback}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
               border: 'none', background: 'transparent',
-              color: copiedIdType === 'session' ? '#00A987' : '#A7B0BB',
+              color: feedbackCopied ? '#00A987' : '#A7B0BB',
               cursor: 'pointer', outline: 'none', lineHeight: 1.2,
             }}
             onMouseEnter={e => { e.currentTarget.style.color = '#00A987'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = copiedIdType === 'session' ? '#00A987' : '#A7B0BB'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = feedbackCopied ? '#00A987' : '#A7B0BB'; }}
           >
-            {copiedIdType === 'session' ? <CheckCircle2 size={13} /> : <Copy size={13} />}
-            <span style={{ fontWeight: 600 }}>{copiedIdType === 'session' ? '已复制会话版本ID' : '复制会话版本ID'}</span>
+            {feedbackCopied ? <CheckCircle2 size={13} /> : <MessageSquareWarning size={13} />}
+            <span style={{ fontWeight: 600 }}>{feedbackCopied ? '已复制反馈信息' : '反馈问题'}</span>
           </button>
-          {idTooltip === 'session' && (
+          {showFeedbackTooltip && (
             <span style={{
               position: 'absolute',
               left: 0,
@@ -373,7 +334,7 @@ export default function CoursewareCard({ courseware, version = 'v1.0', isLatest:
               boxShadow: '0 8px 20px rgba(15,23,42,0.18)',
               zIndex: 20,
             }}>
-              会话版本ID，一般用于开发排查问题
+              复制这节课件的排查信息，发给开发定位问题
             </span>
           )}
         </span>

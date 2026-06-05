@@ -5,6 +5,7 @@ import {
   Languages,
   Layers3,
   Puzzle,
+  RefreshCw,
   Sparkles,
   Wand2,
 } from 'lucide-react';
@@ -425,6 +426,8 @@ export default function InspirationSection({
   onEnhancePrompt,
 }: InspirationSectionProps) {
   const [activeTab, setActiveTab] = useState<TemplateCategory>('featured');
+  const [batchIndex, setBatchIndex] = useState(0);
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
   const visibleTemplates = useMemo(() => {
     if (activeTab === 'featured') {
@@ -435,9 +438,29 @@ export default function InspirationSection({
     return templates.filter(item => item.category === activeTab);
   }, [activeTab]);
 
+  const batchSize = 4;
+  const visibleBatchTemplates = useMemo(() => {
+    if (visibleTemplates.length <= batchSize) return visibleTemplates;
+    const start = (batchIndex * batchSize) % visibleTemplates.length;
+    const batch = visibleTemplates.slice(start, start + batchSize);
+    if (batch.length === batchSize) return batch;
+    return [...batch, ...visibleTemplates.slice(0, batchSize - batch.length)];
+  }, [batchIndex, visibleTemplates]);
+
   const visualTemplates = useMemo(() => (
     templates.filter(item => item.category === 'visual')
   ), []);
+
+  const handleTabChange = (tab: TemplateCategory) => {
+    setActiveTab(tab);
+    setBatchIndex(0);
+    setExpandedCardId(null);
+  };
+
+  const handleRefreshBatch = () => {
+    setBatchIndex(prev => prev + 1);
+    setExpandedCardId(null);
+  };
 
   const handleApply = (template: InteractionTemplate) => {
     const inspiration = toGameplayInspiration(template);
@@ -460,58 +483,53 @@ export default function InspirationSection({
         @media (max-width: 880px) {
           .inspiration-header {
             flex-direction: column;
+            align-items: flex-start !important;
           }
-          .inspiration-visual {
-            align-self: stretch !important;
-            min-height: 88px !important;
+          .inspiration-hint {
+            text-align: left !important;
+          }
+          .inspiration-card-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           }
         }
       `}</style>
       <div className="inspiration-header" style={styles.header}>
-        <div>
-          <div style={styles.eyebrow}>
-            <Sparkles size={15} />
-            灵感推荐区
-          </div>
-          <h2 style={styles.title}>先选一个可复用玩法，AI 会带回输入框</h2>
-          <p style={styles.subtitle}>适合不知道怎么设计互动时快速套用，后续只需要替换知识点。</p>
+        <div style={styles.eyebrow}>
+          <Sparkles size={15} />
+          灵感推荐区
         </div>
-        <div className="inspiration-visual" style={styles.headerVisual} aria-hidden="true">
-          <span style={{ ...styles.visualTile, ...styles.visualTilePrimary }}>
-            <Flag size={18} />
-          </span>
-          <span style={{ ...styles.visualTile, ...styles.visualTileSecondary }}>
-            <Puzzle size={18} />
-          </span>
-          <span style={{ ...styles.visualTile, ...styles.visualTileTertiary }}>
-            <Languages size={18} />
-          </span>
-          <span style={styles.visualPath} />
-          <span style={styles.visualDotA} />
-          <span style={styles.visualDotB} />
+        <div className="inspiration-hint" style={styles.headerHint}>
+          不知道怎么设计互动课件时，可以来这找找灵感
         </div>
       </div>
 
-      <div className="inspiration-scroll" style={styles.tabs}>
-        {tabs.map(tab => {
-          const Icon = tab.icon;
-          const active = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              style={{ ...styles.tab, ...(active ? styles.tabActive : {}) }}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              <Icon size={15} />
-              {tab.label}
-            </button>
-          );
-        })}
+      <div style={styles.tabBar}>
+        <div className="inspiration-scroll" style={styles.tabs}>
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                style={{ ...styles.tab, ...(active ? styles.tabActive : {}) }}
+                onClick={() => handleTabChange(tab.key)}
+              >
+                <Icon size={15} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+        <button style={styles.refreshBtn} onClick={handleRefreshBatch}>
+          <RefreshCw size={14} />
+          换一换
+        </button>
       </div>
 
-      <div style={styles.templateGrid}>
-        {visibleTemplates.map(template => {
+      <div className="inspiration-card-grid" style={styles.templateGrid}>
+        {visibleBatchTemplates.map(template => {
           const selected = selectedInspirationId === template.id;
+          const expanded = expandedCardId === template.id;
           return (
             <article key={template.id} style={{ ...styles.card, ...(selected ? styles.cardSelected : {}) }}>
               <div style={styles.cardHeader}>
@@ -530,19 +548,66 @@ export default function InspirationSection({
               <p style={styles.description}>{template.description}</p>
 
               <div style={styles.compactMeta}>
-                {getTemplateSettings(template).slice(0, 2).join(' · ')}
+                {getTemplateSettings(template).join(' · ')}
               </div>
 
               <div style={styles.compactTags}>
-                {template.suitableFor.slice(0, 3).map(item => <span key={item} style={styles.tag}>{item}</span>)}
+                {template.suitableFor.slice(0, 2).map(item => <span key={item} style={styles.tag}>{item}</span>)}
+                {template.suitableFor.length > 2 && (
+                  <span style={styles.moreTag}>+{template.suitableFor.length - 2}</span>
+                )}
               </div>
 
-              <div style={styles.compactFooter}>
-                <span style={styles.flowSummary}>
-                  {template.classroomFlow.slice(0, 3).join(' → ')}
-                </span>
-                <button style={styles.compactBtn} onClick={() => handleApply(template)}>
-                  套用
+              {expanded && (
+                <div style={styles.detailPanel}>
+                  <div style={styles.sectionBlockCompact}>
+                    <div style={styles.blockLabel}>互动配置</div>
+                    <div style={styles.settingsRow}>
+                      {getTemplateSettings(template).map(setting => (
+                        <span key={setting} style={styles.settingChip}>{setting}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={styles.sectionBlockCompact}>
+                    <div style={styles.blockLabel}>适合</div>
+                    <div style={styles.tagRow}>
+                      {template.suitableFor.map(item => <span key={item} style={styles.tag}>{item}</span>)}
+                    </div>
+                  </div>
+
+                  <div style={styles.sectionBlockCompact}>
+                    <div style={styles.blockLabel}>课堂流程</div>
+                    <div style={styles.flow}>
+                      {template.classroomFlow.map((step, index) => (
+                        <span key={step} style={styles.flowStep}>
+                          {step}{index < template.classroomFlow.length - 1 ? ' →' : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={styles.reuseRow}>
+                    {template.reusableActions.map(action => (
+                      <span key={action} style={styles.reuseBadge}>{action}</span>
+                    ))}
+                  </div>
+
+                  <div style={styles.exampleText}>
+                    例如：{template.examples.join('、')}
+                  </div>
+                </div>
+              )}
+
+              <div style={styles.cardActions}>
+                <button
+                  style={styles.detailBtn}
+                  onClick={() => setExpandedCardId(expanded ? null : template.id)}
+                >
+                  {expanded ? '收起详情' : '展开详情'}
+                </button>
+                <button style={styles.primaryBtn} onClick={() => handleApply(template)}>
+                  套用玩法
                 </button>
               </div>
             </article>
@@ -610,7 +675,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     maxWidth: 1080,
     margin: '0 auto',
-    padding: 18,
+    padding: 16,
     borderRadius: 20,
     background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,253,249,0.94) 48%, rgba(239,246,255,0.9))',
     border: '1px solid rgba(103, 232, 249, 0.58)',
@@ -620,10 +685,10 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     position: 'relative',
     display: 'flex',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 18,
-    marginBottom: 12,
+    gap: 16,
+    marginBottom: 10,
     padding: '2px 2px 0',
   },
   eyebrow: {
@@ -631,99 +696,28 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 7,
     color: '#00A8A0',
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: 900,
-    marginBottom: 4,
+    marginBottom: 0,
   },
-  title: {
-    margin: 0,
-    color: '#0F172A',
-    fontSize: 16,
-    fontWeight: 800,
-  },
-  subtitle: {
-    margin: '4px 0 0',
+  headerHint: {
     color: '#64748B',
     fontSize: 13,
     lineHeight: 1.35,
-    maxWidth: 650,
+    textAlign: 'right',
+    whiteSpace: 'nowrap',
   },
-  headerVisual: {
-    position: 'relative',
-    flexShrink: 0,
-    width: 142,
-    minHeight: 62,
-    alignSelf: 'center',
-  },
-  visualTile: {
-    position: 'absolute',
-    display: 'inline-flex',
+  tabBar: {
+    display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    background: '#FFFFFF',
-    boxShadow: '0 14px 34px rgba(15, 118, 110, 0.14)',
-    zIndex: 2,
-  },
-  visualTilePrimary: {
-    left: 12,
-    top: 14,
-    color: '#047857',
-    background: 'linear-gradient(145deg, #D1FAE5, #FFFFFF)',
-    transform: 'rotate(-8deg)',
-  },
-  visualTileSecondary: {
-    left: 58,
-    top: 0,
-    color: '#0284C7',
-    background: 'linear-gradient(145deg, #E0F2FE, #FFFFFF)',
-    transform: 'rotate(7deg)',
-  },
-  visualTileTertiary: {
-    right: 8,
-    bottom: 4,
-    color: '#0F766E',
-    background: 'linear-gradient(145deg, #CCFBF1, #FFFFFF)',
-    transform: 'rotate(-3deg)',
-  },
-  visualPath: {
-    position: 'absolute',
-    left: 28,
-    right: 24,
-    top: 36,
-    height: 20,
-    borderTop: '2px solid rgba(20, 184, 166, 0.22)',
-    borderRight: '2px solid rgba(14, 165, 233, 0.18)',
-    borderRadius: '0 18px 0 0',
-    transform: 'skewX(-12deg)',
-  },
-  visualDotA: {
-    position: 'absolute',
-    left: 4,
-    bottom: 6,
-    width: 7,
-    height: 7,
-    borderRadius: 999,
-    background: '#34D399',
-    opacity: 0.72,
-  },
-  visualDotB: {
-    position: 'absolute',
-    right: 2,
-    top: 10,
-    width: 9,
-    height: 9,
-    borderRadius: 999,
-    background: '#38BDF8',
-    opacity: 0.62,
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 10,
   },
   tabs: {
     display: 'flex',
     gap: 8,
-    paddingBottom: 8,
-    marginBottom: 12,
+    minWidth: 0,
     overflowX: 'auto',
   },
   tab: {
@@ -747,18 +741,35 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#CCFBF1',
     color: '#047857',
   },
+  refreshBtn: {
+    flexShrink: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    height: 32,
+    padding: '0 12px',
+    borderRadius: 9,
+    border: '1px solid #D6F3EF',
+    background: '#FFFFFF',
+    color: '#0F766E',
+    fontSize: 13,
+    fontWeight: 850,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
   templateGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-    gap: 12,
+    gap: 10,
   },
   card: {
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    minHeight: 188,
-    padding: 14,
-    borderRadius: 14,
+    minHeight: 202,
+    padding: 13,
+    borderRadius: 13,
     border: '1px solid rgba(214, 243, 239, 0.95)',
     background: 'linear-gradient(180deg, #FFFFFF, #FBFEFF)',
     boxShadow: '0 12px 28px rgba(15, 23, 42, 0.06)',
@@ -772,7 +783,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     gap: 8,
-    marginBottom: 7,
+    marginBottom: 6,
   },
   cardKicker: {
     color: '#0F766E',
@@ -783,7 +794,7 @@ const styles: Record<string, React.CSSProperties> = {
   cardTitle: {
     margin: 0,
     color: '#0F172A',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: 900,
   },
   selectedBadge: {
@@ -807,10 +818,11 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: 38,
   },
   compactMeta: {
-    marginTop: 8,
+    marginTop: 9,
     color: '#0F766E',
     fontSize: 12,
     fontWeight: 850,
+    lineHeight: 1.35,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -819,42 +831,50 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexWrap: 'wrap',
     gap: 6,
+    marginTop: 9,
+  },
+  moreTag: {
+    height: 23,
+    padding: '0 7px',
+    borderRadius: 999,
+    background: '#ECFEFF',
+    color: '#0891B2',
+    fontSize: 11,
+    fontWeight: 850,
+    lineHeight: '23px',
+  },
+  detailPanel: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTop: '1px dashed #D6F3EF',
+  },
+  sectionBlockCompact: {
     marginTop: 10,
   },
-  compactFooter: {
+  cardActions: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: 8,
     marginTop: 'auto',
-    paddingTop: 12,
+    paddingTop: 10,
   },
-  flowSummary: {
-    minWidth: 0,
-    color: '#64748B',
-    fontSize: 12,
-    fontWeight: 750,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  compactBtn: {
-    flexShrink: 0,
-    height: 28,
-    padding: '0 12px',
+  detailBtn: {
+    height: 30,
+    padding: '0 10px',
     borderRadius: 8,
-    border: 'none',
-    background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
-    color: '#FFFFFF',
+    border: '1px solid #D6F3EF',
+    background: '#FFFFFF',
+    color: '#0F766E',
     fontSize: 12,
-    fontWeight: 900,
+    fontWeight: 850,
     cursor: 'pointer',
   },
   settingsRow: {
     display: 'flex',
     flexWrap: 'wrap',
     gap: 6,
-    marginTop: 10,
+    marginTop: 0,
     padding: 8,
     borderRadius: 10,
     background: 'linear-gradient(135deg, #F0FDF9, #EFF6FF)',
@@ -930,13 +950,13 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.45,
   },
   primaryBtn: {
-    height: 34,
-    marginTop: 'auto',
+    height: 30,
+    padding: '0 12px',
     borderRadius: 8,
     border: 'none',
     background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 900,
     cursor: 'pointer',
   },

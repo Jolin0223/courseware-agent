@@ -1,30 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useUIStore } from '../store/uiStore';
 import ModeSwitcher from '../components/Layout/ModeSwitcher';
-import ResourceReplaceSidebar from '../components/Editor/ResourceReplaceSidebar';
 import toast from '../utils/toast';
-import type { EnhancedImageItem, AudioItem, VoiceOption } from '../types';
-
-// 默认音色选项
-const DEFAULT_VOICES: VoiceOption[] = [
-  { id: 'female-1', name: '温柔女声', gender: 'female', description: '标准女音', isDefault: true },
-  { id: 'female-2', name: '活泼女童', gender: 'female', description: '童声女音' },
-  { id: 'male-1', name: '标准男声', gender: 'male', description: '标准男音' },
-  { id: 'male-2', name: '活力男童', gender: 'male', description: '童声男音' },
-];
-
-// 模拟资源数据
-const MOCK_IMAGES: EnhancedImageItem[] = [
-  { id: 'img-1', label: '主界面背景', src: '/images/background.png', prompt: '色彩鲜艳的游戏主界面背景', status: 'completed' },
-  { id: 'img-2', label: '动物角色', src: '/images/animal.png', prompt: '可爱的卡通小熊角色', status: 'completed' },
-  { id: 'img-3', label: '奖励星星', src: '/images/star.png', prompt: '金色五角星', status: 'completed' },
-];
-
-const MOCK_AUDIOS: AudioItem[] = [
-  { id: 'audio-1', label: '单词发音 - Apple', type: 'tts', status: 'completed', voiceId: 'female-1', duration: 1.2 },
-  { id: 'audio-2', label: '单词发音 - Banana', type: 'tts', status: 'completed', voiceId: 'female-1', duration: 1.5 },
-  { id: 'audio-3', label: '游戏背景音乐', type: 'bgm', status: 'completed', duration: 30.0 },
-];
 
 export default function EditorPage() {
   const {
@@ -34,10 +11,6 @@ export default function EditorPage() {
     updateInsertedCourseware,
     removeInsertedCourseware,
   } = useUIStore();
-
-  const [images, setImages] = useState<EnhancedImageItem[]>(MOCK_IMAGES);
-  const [audios, setAudios] = useState<AudioItem[]>(MOCK_AUDIOS);
-  const [showResourcePanel, setShowResourcePanel] = useState(true);
 
   const hasInserted = insertedCoursewares.length > 0;
   const hasUpdate = insertedCoursewares.some(c => c.hasUpdate);
@@ -71,59 +44,6 @@ export default function EditorPage() {
     }
   };
 
-  // 资源替换处理函数
-  const handleImageReplace = (imageId: string, file: File) => {
-    setImages(prev => prev.map(img => 
-      img.id === imageId 
-        ? { ...img, src: URL.createObjectURL(file), source: 'upload', uploadFileName: file.name }
-        : img
-    ));
-    toast(`图片 "${file.name}" 已上传`);
-  };
-
-  const handleImageRegenerate = (imageId: string, prompt: string) => {
-    setImages(prev => prev.map(img => 
-      img.id === imageId 
-        ? { ...img, prompt, status: 'generating' }
-        : img
-    ));
-    // 模拟生成完成
-    setTimeout(() => {
-      setImages(prev => prev.map(img => 
-        img.id === imageId 
-          ? { ...img, status: 'completed', src: img.src }
-          : img
-      ));
-      toast('图片重新生成完成');
-    }, 2000);
-  };
-
-  const handleAudioReplace = (audioId: string, file: File) => {
-    setAudios(prev => prev.map(audio => 
-      audio.id === audioId 
-        ? { ...audio, source: 'upload', uploadFileName: file.name }
-        : audio
-    ));
-    toast(`音频 "${file.name}" 已上传`);
-  };
-
-  const handleAudioRegenerate = (audioId: string, voiceId: string) => {
-    const voice = DEFAULT_VOICES.find(v => v.id === voiceId);
-    setAudios(prev => prev.map(audio => 
-      audio.id === audioId 
-        ? { ...audio, voiceId, status: 'generating' }
-        : audio
-    ));
-    setTimeout(() => {
-      setAudios(prev => prev.map(audio => 
-        audio.id === audioId 
-          ? { ...audio, status: 'completed' }
-          : audio
-      ));
-      toast(`已使用"${voice?.name}"重新合成音频`);
-    }, 1500);
-  };
-
   return (
     <div
       onClick={hasUpdate ? handleSync : openEditorDrawer}
@@ -150,53 +70,14 @@ export default function EditorPage() {
           }}
         />
 
-        {/* 资源面板切换按钮 */}
-        <button
-          onClick={(e) => { e.stopPropagation(); setShowResourcePanel(!showResourcePanel); }}
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: showResourcePanel ? 340 : 16,
-            zIndex: 10,
-            padding: '8px 14px',
-            borderRadius: 6,
-            border: '1px solid #E2E8F0',
-            background: '#fff',
-            color: '#64748B',
-            fontSize: 13,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          }}
-        >
-          {showResourcePanel ? '◀ 收起资源面板' : '▶ 打开资源面板'}
-        </button>
-
         {/* 模式切换 */}
         <div
           onClick={(e) => e.stopPropagation()}
-          style={{ position: 'absolute', top: 12, right: showResourcePanel ? 500 : 140, zIndex: 10 }}
+          style={{ position: 'absolute', top: 12, right: 16, zIndex: 10 }}
         >
           <ModeSwitcher />
         </div>
       </div>
-
-      {/* 右侧：资源替换侧边栏 */}
-      {showResourcePanel && (
-        <div onClick={(e) => e.stopPropagation()} style={{ height: '100%' }}>
-          <ResourceReplaceSidebar
-            images={images}
-            audios={audios}
-            voices={DEFAULT_VOICES}
-            onImageReplace={handleImageReplace}
-            onImageRegenerate={handleImageRegenerate}
-            onAudioReplace={handleAudioReplace}
-            onAudioRegenerate={handleAudioRegenerate}
-          />
-        </div>
-      )}
 
       {/* 源课件已下架提示 */}
       {hasSourceDeleted && (

@@ -73,6 +73,10 @@ export default function PublishModal({
   const [selectedTags, setSelectedTags] = useState<string[]>(() =>
     autoTagByTitle(courseware?.title || '', courseware?.subject || '')
   );
+  const [contentTags, setContentTags] = useState<string[]>(['闯关玩法', '语音跟读', '果园视觉风格']);
+  const [contentTagInput, setContentTagInput] = useState('');
+  const [editingContentTagIndex, setEditingContentTagIndex] = useState<number | null>(null);
+  const [editingContentTagValue, setEditingContentTagValue] = useState('');
   const [tagSearch, setTagSearch] = useState('');
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() => {
     const initial = new Set<string>();
@@ -108,6 +112,13 @@ export default function PublishModal({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  useEffect(() => {
+    if (publishScope === 'personal') {
+      setTagDropdownOpen(false);
+      setTagSearch('');
+    }
+  }, [publishScope]);
+
   const toggleTag = useCallback((id: string) => {
     setSelectedTags(prev =>
       prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
@@ -117,6 +128,37 @@ export default function PublishModal({
   const removeTag = useCallback((id: string) => {
     setSelectedTags(prev => prev.filter(t => t !== id));
   }, []);
+
+  const addContentTag = useCallback((value: string) => {
+    const next = value.trim();
+    if (!next) return;
+    setContentTags(prev => prev.includes(next) ? prev : [...prev, next]);
+    setContentTagInput('');
+  }, []);
+
+  const removeContentTag = useCallback((index: number) => {
+    setContentTags(prev => prev.filter((_, i) => i !== index));
+    if (editingContentTagIndex === index) {
+      setEditingContentTagIndex(null);
+      setEditingContentTagValue('');
+    }
+  }, [editingContentTagIndex]);
+
+  const startEditContentTag = useCallback((index: number, value: string) => {
+    setEditingContentTagIndex(index);
+    setEditingContentTagValue(value);
+  }, []);
+
+  const commitEditContentTag = useCallback(() => {
+    if (editingContentTagIndex === null) return;
+    const next = editingContentTagValue.trim();
+    setContentTags(prev => {
+      if (!next) return prev.filter((_, i) => i !== editingContentTagIndex);
+      return prev.map((tag, i) => i === editingContentTagIndex ? next : tag);
+    });
+    setEditingContentTagIndex(null);
+    setEditingContentTagValue('');
+  }, [editingContentTagIndex, editingContentTagValue]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedNodes(prev => {
@@ -168,6 +210,10 @@ export default function PublishModal({
       toast('请选择发布到哪个学校');
       return;
     }
+    if (publishScope !== 'personal' && selectedTags.length === 0) {
+      toast(`请选择${publishScope === 'school' ? '校本标签' : '知识点标签'}`);
+      return;
+    }
     if (mode === 'new-game' && courseware) {
       const nextId = Math.max(...coursewares.map(item => item.id), coursewareId) + 1;
       addCourseware({
@@ -216,6 +262,9 @@ export default function PublishModal({
   const primaryText = mode === 'update' ? '确认更新发布' : mode === 'new-game' ? '确认发布为新游戏' : '确认发布';
   const shouldShowUpdateTargets = mode === 'update' && updateTargets.length > 1;
   const selectedUpdateTarget = updateTargets.find(target => target.id === selectedUpdateTargetId) || updateTargets[0];
+  const shouldShowResourceTags = publishScope !== 'personal';
+  const resourceTagLabel = publishScope === 'school' ? '校本标签' : '知识点标签';
+  const resourceTagPlaceholder = publishScope === 'school' ? '点击选择校本标签...' : '点击选择知识点标签...';
   const openSchoolTagManager = () => {
     window.open(`${SHELL_URL}/?scene=tagAdmin&scope=school`, '_blank', 'noopener,noreferrer');
   };
@@ -422,86 +471,151 @@ export default function PublishModal({
             </div>
           </div>
 
-          {/* 知识点标签 */}
-          <div style={styles.field} ref={tagDropdownRef}>
-            <div style={styles.labelRow}>
-              <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> 游戏标签 <span style={styles.aiTag}>AI默认推荐</span></label>
-              {publishScope === 'school' && (
-                <button type="button" style={styles.tagManageBtn} onClick={openSchoolTagManager}>
-                  编辑校本标签
-                </button>
-              )}
-            </div>
-            
-            <div
-              onClick={() => setTagDropdownOpen(true)}
-              style={{
-                ...styles.tagSelector,
-                ...(tagDropdownOpen ? styles.tagSelectorActive : {}),
-              }}
-            >
-              {selectedTags.length === 0 && (
-                <span style={{ color: '#94A3B8', fontSize: 13, lineHeight: '26px' }}>点击选择知识点标签...</span>
-              )}
-              {selectedTags.map(tagId => {
-                const label = getTagLabel(tagId);
-                if (!label) return null;
-                return (
-                  <span
-                    key={tagId}
-                    style={styles.selectedTag}
-                  >
-                    {label}
-                    <span
-                      onClick={(e) => { e.stopPropagation(); removeTag(tagId); }}
-                      style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: 0.6 }}
-                      onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                      onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
-                    >
-                      <X size={12} />
-                    </span>
-                  </span>
-                );
-              })}
-            </div>
-
-            {tagDropdownOpen && (
-              <div style={styles.tagDropdown}>
-                <div style={styles.tagDropdownHeader}>
-                  <div style={styles.tagSearchBox}>
-                    <Search size={14} color="#94A3B8" />
-                    <input
-                      type="text"
-                      value={tagSearch}
-                      onChange={e => setTagSearch(e.target.value)}
-                      placeholder="搜索知识点..."
-                      style={styles.tagSearchInput}
-                      autoFocus
-                    />
-                  </div>
-                  <span style={styles.tagSelectedCount}>已选 {selectedTags.length}</span>
-                </div>
-                <div style={styles.tagTree}>
-                  {filteredTree.length === 0 ? (
-                    <div style={{ padding: '16px', textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>无匹配结果</div>
-                  ) : (
-                    filteredTree.map(node => (
-                      <TreeNode
-                        key={node.id}
-                        node={node}
-                        depth={0}
-                        selectedTags={selectedTags}
-                        expandedNodes={expandedNodes}
-                        onToggleTag={toggleTag}
-                        onToggleExpand={toggleExpand}
-                        searchQuery={tagSearch}
-                      />
-                    ))
+          {shouldShowResourceTags && (
+            <>
+              <div style={styles.field} ref={tagDropdownRef}>
+                <div style={styles.labelRow}>
+                  <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> {resourceTagLabel} <span style={styles.aiTag}>AI默认推荐</span></label>
+                  {publishScope === 'school' && (
+                    <button type="button" style={styles.tagManageBtn} onClick={openSchoolTagManager}>
+                      编辑校本标签
+                    </button>
                   )}
                 </div>
+                
+                <div
+                  onClick={() => setTagDropdownOpen(true)}
+                  style={{
+                    ...styles.tagSelector,
+                    ...(tagDropdownOpen ? styles.tagSelectorActive : {}),
+                  }}
+                >
+                  {selectedTags.length === 0 && (
+                    <span style={{ color: '#94A3B8', fontSize: 13, lineHeight: '26px' }}>{resourceTagPlaceholder}</span>
+                  )}
+                  {selectedTags.map(tagId => {
+                    const label = getTagLabel(tagId);
+                    if (!label) return null;
+                    return (
+                      <span
+                        key={tagId}
+                        style={styles.selectedTag}
+                      >
+                        {label}
+                        <span
+                          onClick={(e) => { e.stopPropagation(); removeTag(tagId); }}
+                          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: 0.6 }}
+                          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
+                        >
+                          <X size={12} />
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+
+                {tagDropdownOpen && (
+                  <div style={styles.tagDropdown}>
+                    <div style={styles.tagDropdownHeader}>
+                      <div style={styles.tagSearchBox}>
+                        <Search size={14} color="#94A3B8" />
+                        <input
+                          type="text"
+                          value={tagSearch}
+                          onChange={e => setTagSearch(e.target.value)}
+                          placeholder={`搜索${resourceTagLabel}...`}
+                          style={styles.tagSearchInput}
+                          autoFocus
+                        />
+                      </div>
+                      <span style={styles.tagSelectedCount}>已选 {selectedTags.length}</span>
+                    </div>
+                    <div style={styles.tagTree}>
+                      {filteredTree.length === 0 ? (
+                        <div style={{ padding: '16px', textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>无匹配结果</div>
+                      ) : (
+                        filteredTree.map(node => (
+                          <TreeNode
+                            key={node.id}
+                            node={node}
+                            depth={0}
+                            selectedTags={selectedTags}
+                            expandedNodes={expandedNodes}
+                            onToggleTag={toggleTag}
+                            onToggleExpand={toggleExpand}
+                            searchQuery={tagSearch}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+
+              <div style={styles.field}>
+                <div style={styles.labelRow}>
+                  <label style={{ ...styles.label, marginBottom: 0 }}>内容标签 <span style={styles.aiTag}>AI默认推荐</span></label>
+                  <span style={styles.optionalHint}>非必填，用于标记玩法或视觉风格</span>
+                </div>
+                <div style={styles.contentTagBox}>
+                  {contentTags.map((tag, index) => (
+                    editingContentTagIndex === index ? (
+                      <input
+                        key={`editing-${index}`}
+                        value={editingContentTagValue}
+                        onChange={e => setEditingContentTagValue(e.target.value)}
+                        onBlur={commitEditContentTag}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            commitEditContentTag();
+                          }
+                          if (e.key === 'Escape') {
+                            setEditingContentTagIndex(null);
+                            setEditingContentTagValue('');
+                          }
+                        }}
+                        style={styles.contentTagEditInput}
+                        autoFocus
+                      />
+                    ) : (
+                      <span key={`${tag}-${index}`} style={styles.contentTag}>
+                        <button
+                          type="button"
+                          onClick={() => startEditContentTag(index, tag)}
+                          style={styles.contentTagText}
+                          title="点击修改内容标签"
+                        >
+                          {tag}
+                        </button>
+                        <span
+                          onClick={() => removeContentTag(index)}
+                          style={styles.contentTagRemove}
+                          title="删除内容标签"
+                        >
+                          <X size={12} />
+                        </span>
+                      </span>
+                    )
+                  ))}
+                  <input
+                    value={contentTagInput}
+                    onChange={e => setContentTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addContentTag(contentTagInput);
+                      }
+                    }}
+                    onBlur={() => addContentTag(contentTagInput)}
+                    placeholder="输入自定义标签，回车添加"
+                    style={styles.contentTagInput}
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
         </div>
 
@@ -826,6 +940,12 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#64748B',
     lineHeight: 1.4,
   },
+  optionalHint: {
+    fontSize: 12,
+    color: '#94A3B8',
+    lineHeight: 1.4,
+    whiteSpace: 'nowrap',
+  },
   tagSelector: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -854,6 +974,74 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 600,
     lineHeight: '22px',
+  },
+  contentTagBox: {
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    minHeight: 44,
+    padding: '8px 10px',
+    borderRadius: 8,
+    border: '1px solid #E2E8F0',
+    background: '#FAFBFC',
+  },
+  contentTag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    maxWidth: '100%',
+    padding: '3px 7px 3px 10px',
+    borderRadius: 999,
+    background: '#EFF6FF',
+    border: '1px solid #BFDBFE',
+    color: '#2563EB',
+    fontSize: 12,
+    fontWeight: 600,
+    lineHeight: '22px',
+  },
+  contentTagText: {
+    border: 'none',
+    padding: 0,
+    margin: 0,
+    background: 'transparent',
+    color: 'inherit',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'text',
+    maxWidth: 150,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  contentTagRemove: {
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    opacity: 0.65,
+  },
+  contentTagInput: {
+    minWidth: 160,
+    flex: 1,
+    height: 28,
+    border: 'none',
+    outline: 'none',
+    background: 'transparent',
+    color: '#1E293B',
+    fontSize: 13,
+  },
+  contentTagEditInput: {
+    width: 132,
+    height: 28,
+    padding: '0 9px',
+    borderRadius: 999,
+    border: '1px solid #60A5FA',
+    outline: 'none',
+    background: '#FFFFFF',
+    color: '#1E293B',
+    fontSize: 12,
+    fontWeight: 600,
+    boxShadow: '0 0 0 3px rgba(96, 165, 250, 0.14)',
   },
   tagDropdown: {
     marginTop: 6,

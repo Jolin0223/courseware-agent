@@ -552,59 +552,15 @@ export default function InspirationSection({
               </div>
 
               <div style={styles.compactTags}>
-                {template.suitableFor.slice(0, 2).map(item => <span key={item} style={styles.tag}>{item}</span>)}
-                {template.suitableFor.length > 2 && (
-                  <span style={styles.moreTag}>+{template.suitableFor.length - 2}</span>
-                )}
+                {template.suitableFor.map(item => <span key={item} style={styles.tag}>{item}</span>)}
               </div>
-
-              {expanded && (
-                <div style={styles.detailPanel}>
-                  <div style={styles.sectionBlockCompact}>
-                    <div style={styles.blockLabel}>互动配置</div>
-                    <div style={styles.settingsRow}>
-                      {getTemplateSettings(template).map(setting => (
-                        <span key={setting} style={styles.settingChip}>{setting}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={styles.sectionBlockCompact}>
-                    <div style={styles.blockLabel}>适合</div>
-                    <div style={styles.tagRow}>
-                      {template.suitableFor.map(item => <span key={item} style={styles.tag}>{item}</span>)}
-                    </div>
-                  </div>
-
-                  <div style={styles.sectionBlockCompact}>
-                    <div style={styles.blockLabel}>课堂流程</div>
-                    <div style={styles.flow}>
-                      {template.classroomFlow.map((step, index) => (
-                        <span key={step} style={styles.flowStep}>
-                          {step}{index < template.classroomFlow.length - 1 ? ' →' : ''}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={styles.reuseRow}>
-                    {template.reusableActions.map(action => (
-                      <span key={action} style={styles.reuseBadge}>{action}</span>
-                    ))}
-                  </div>
-
-                  <div style={styles.exampleText}>
-                    例如：{template.examples.join('、')}
-                  </div>
-                </div>
-              )}
 
               <div style={styles.cardActions}>
                 <button
-                  style={styles.detailBtn}
+                  style={{ ...styles.detailBtn, ...(expanded ? styles.detailBtnActive : {}) }}
                   onClick={() => setExpandedCardId(expanded ? null : template.id)}
                 >
-                  {expanded ? '收起详情' : '展开详情'}
+                  {expanded ? '收起说明' : '查看说明'}
                 </button>
                 <button style={styles.primaryBtn} onClick={() => handleApply(template)}>
                   套用玩法
@@ -614,6 +570,48 @@ export default function InspirationSection({
           );
         })}
       </div>
+
+      {expandedCardId && (
+        <div style={styles.detailPanel}>
+          {(() => {
+            const template = visibleBatchTemplates.find(item => item.id === expandedCardId);
+            if (!template) return null;
+            return (
+              <>
+                <div style={styles.detailHeader}>
+                  <div>
+                    <div style={styles.detailEyebrow}>玩法说明</div>
+                    <div style={styles.detailTitle}>{template.displayName}</div>
+                  </div>
+                  <button style={styles.detailCloseBtn} onClick={() => setExpandedCardId(null)}>收起</button>
+                </div>
+                <div style={styles.detailGrid}>
+                  <div style={styles.detailBlock}>
+                    <div style={styles.blockLabel}>适合用来做</div>
+                    <div style={styles.tagRow}>
+                      {template.suitableFor.map(item => <span key={item} style={styles.tag}>{item}</span>)}
+                    </div>
+                  </div>
+                  <div style={styles.detailBlock}>
+                    <div style={styles.blockLabel}>课堂流程</div>
+                    <div style={styles.flow}>
+                      {template.classroomFlow.map((step, index) => (
+                        <span key={step} style={styles.flowStep}>
+                          {step}{index < template.classroomFlow.length - 1 ? ' →' : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={styles.detailBlockWide}>
+                    <div style={styles.blockLabel}>可直接替换成这些内容</div>
+                    <div style={styles.exampleText}>{template.examples.join('、')}</div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       <div style={styles.addonPanel}>
         <div style={styles.addonHeader}>
@@ -654,17 +652,17 @@ const getSourceLabel = (source: InternalSource) => {
 
 const getTemplateSettings = (template: InteractionTemplate) => {
   const structure = template.category === 'puzzle' || template.id === 'review-survival' || template.id === 'sokoban-quest'
-    ? '多关卡学练'
+    ? '适合分关卡练习'
     : template.id === 'picture-find' || template.id === 'pinyin-hide'
-      ? '微关卡练习'
-      : '单关卡学练';
+      ? '适合短时练习'
+      : '适合一节课使用';
   const submitMode = template.id === 'six-sudoku'
-    ? '可严格校验'
-    : '可多次尝试';
+    ? '提交后自动校验'
+    : '支持反复尝试';
   const style = template.internalSource === 'starfall'
-    ? '英语启蒙风'
+    ? '英语启蒙画面'
     : template.internalSource === 'puzzle'
-      ? '益智网格风'
+      ? '益智网格画面'
       : template.defaultVisualStyle;
   return [structure, submitMode, style];
 };
@@ -767,7 +765,7 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    minHeight: 202,
+    minHeight: 198,
     padding: 13,
     borderRadius: 13,
     border: '1px solid rgba(214, 243, 239, 0.95)',
@@ -833,23 +831,13 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
     marginTop: 9,
   },
-  moreTag: {
-    height: 23,
-    padding: '0 7px',
-    borderRadius: 999,
-    background: '#ECFEFF',
-    color: '#0891B2',
-    fontSize: 11,
-    fontWeight: 850,
-    lineHeight: '23px',
-  },
   detailPanel: {
-    marginTop: 10,
-    paddingTop: 10,
-    borderTop: '1px dashed #D6F3EF',
-  },
-  sectionBlockCompact: {
-    marginTop: 10,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 14,
+    border: '1px solid rgba(214, 243, 239, 0.95)',
+    background: 'linear-gradient(135deg, #FFFFFF, #F0FDF9)',
+    boxShadow: '0 12px 28px rgba(15, 118, 110, 0.08)',
   },
   cardActions: {
     display: 'flex',
@@ -869,6 +857,57 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 850,
     cursor: 'pointer',
+  },
+  detailBtnActive: {
+    borderColor: '#00C9A7',
+    background: '#CCFBF1',
+  },
+  detailHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  detailEyebrow: {
+    color: '#0F766E',
+    fontSize: 12,
+    fontWeight: 900,
+    marginBottom: 3,
+  },
+  detailTitle: {
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: 900,
+  },
+  detailCloseBtn: {
+    height: 28,
+    padding: '0 10px',
+    borderRadius: 8,
+    border: '1px solid #D6F3EF',
+    background: '#FFFFFF',
+    color: '#0F766E',
+    fontSize: 12,
+    fontWeight: 850,
+    cursor: 'pointer',
+  },
+  detailGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 2fr',
+    gap: 10,
+  },
+  detailBlock: {
+    padding: 10,
+    borderRadius: 12,
+    background: 'rgba(255,255,255,0.72)',
+    border: '1px solid #E0F2FE',
+  },
+  detailBlockWide: {
+    gridColumn: '1 / -1',
+    padding: 10,
+    borderRadius: 12,
+    background: 'rgba(255,255,255,0.72)',
+    border: '1px solid #E0F2FE',
   },
   settingsRow: {
     display: 'flex',
@@ -927,25 +966,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 4,
     fontWeight: 750,
   },
-  reuseRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 11,
-  },
-  reuseBadge: {
-    height: 22,
-    padding: '0 7px',
-    borderRadius: 6,
-    background: '#E0F2FE',
-    color: '#0284C7',
-    fontSize: 11,
-    fontWeight: 850,
-    lineHeight: '22px',
-  },
   exampleText: {
-    marginTop: 9,
-    color: '#94A3B8',
+    color: '#475569',
     fontSize: 12,
     lineHeight: 1.45,
   },

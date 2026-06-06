@@ -1480,7 +1480,7 @@ export default function GeneratorPage() {
   }, [activeConversationId, activeConversation, addUserMessage, addAssistantMessage, startRequirementFlow]);
   
   const renderContent = () => {
-    if (!hasMessages && phase === 'input') {
+    if (!activeConversationId || (!hasMessages && phase === 'input')) {
       return (
         <div style={styles.welcomeSection}>
           <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>

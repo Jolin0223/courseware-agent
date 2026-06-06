@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useUIStore } from '../../store/uiStore';
+import { useConversationStore } from '../../store/conversationStore';
 import { PlusCircle, FolderOpen } from 'lucide-react';
 
 const embeddedTabs = [
@@ -10,8 +11,18 @@ const embeddedTabs = [
 
 const MainLayout = ({ embedded }: { embedded?: boolean }) => {
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
+  const closePreview = useUIStore((s) => s.closePreview);
+  const setActiveConversation = useConversationStore((s) => s.setActiveConversation);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const openTab = (path: string) => {
+    if (path === '/') {
+      setActiveConversation(null);
+      closePreview();
+    }
+    navigate(path);
+  };
 
   if (embedded) {
     return (
@@ -23,7 +34,7 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
             return (
               <button
                 key={tab.key}
-                onClick={() => navigate(tab.key)}
+                onClick={() => openTab(tab.key)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '6px 14px', borderRadius: 6, border: 'none',

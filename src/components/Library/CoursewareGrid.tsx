@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, Copy, Edit3, Trash2, Heart, Star, Download } from 'lucide-react';
+import { Eye, Copy, Edit3, Trash2, Heart, Star, Download, Send, Clock3, CheckCircle2 } from 'lucide-react';
 import type { Courseware } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import toast from '../../utils/toast';
@@ -10,8 +10,11 @@ interface CoursewareGridProps {
   onClone: (id: number) => void;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
+  onPublish?: (id: number) => void;
   showEditDelete?: boolean;
   showInsert?: boolean;
+  showStats?: boolean;
+  showPublishStatus?: boolean;
 }
 
 const CoursewareGrid: React.FC<CoursewareGridProps> = ({
@@ -20,8 +23,11 @@ const CoursewareGrid: React.FC<CoursewareGridProps> = ({
   onClone,
   onEdit,
   onDelete,
+  onPublish,
   showEditDelete = false,
   showInsert = true,
+  showStats = true,
+  showPublishStatus = false,
 }) => {
   return (
     <div
@@ -39,8 +45,11 @@ const CoursewareGrid: React.FC<CoursewareGridProps> = ({
           onClone={onClone}
           onEdit={onEdit}
           onDelete={onDelete}
+          onPublish={onPublish}
           showEditDelete={showEditDelete}
           showInsert={showInsert}
+          showStats={showStats}
+          showPublishStatus={showPublishStatus}
         />
       ))}
     </div>
@@ -53,8 +62,11 @@ interface CardProps {
   onClone: (id: number) => void;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
+  onPublish?: (id: number) => void;
   showEditDelete: boolean;
   showInsert: boolean;
+  showStats: boolean;
+  showPublishStatus: boolean;
 }
 
 const CoursewareCard: React.FC<CardProps> = ({
@@ -63,12 +75,16 @@ const CoursewareCard: React.FC<CardProps> = ({
   onClone,
   onEdit,
   onDelete,
+  onPublish,
   showEditDelete,
   showInsert,
+  showStats,
+  showPublishStatus,
 }) => {
   const [hovered, setHovered] = useState(false);
   const { appMode, insertCourseware } = useUIStore();
   const isEmbedded = appMode === 'embedded';
+  const isHistoricalPublished = Boolean(courseware.isPublished && (courseware.id === 4 || courseware.id === 6));
 
   const handleInsert = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -144,6 +160,30 @@ const CoursewareCard: React.FC<CardProps> = ({
           />
         )}
 
+        {showPublishStatus && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: 10,
+              height: 26,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '0 9px',
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.94)',
+              color: courseware.isPublished ? '#047857' : '#B45309',
+              fontSize: 12,
+              fontWeight: 800,
+              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.10)',
+            }}
+          >
+            {courseware.isPublished ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}
+            {courseware.isPublished ? (isHistoricalPublished ? '历史发布' : '已发布') : '未发布'}
+          </div>
+        )}
+
         {/* Action overlay */}
         <div
           style={{
@@ -186,6 +226,16 @@ const CoursewareCard: React.FC<CardProps> = ({
               >
                 <Edit3 size={14} /> 编辑
               </button>
+              {!courseware.isPublished && onPublish && (
+                <button
+                  style={actionBtnStyle}
+                  onClick={(e) => { e.stopPropagation(); onPublish(courseware.id); }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
+                >
+                  <Send size={14} /> 发布
+                </button>
+              )}
               <button
                 style={actionBtnStyle}
                 onClick={(e) => { e.stopPropagation(); onDelete?.(courseware.id); }}
@@ -216,17 +266,27 @@ const CoursewareCard: React.FC<CardProps> = ({
         <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>
           {courseware.author} · {courseware.publishTime}
         </div>
-        <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#94A3B8', marginTop: 8 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Eye size={13} /> {courseware.views}
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Heart size={13} /> {courseware.favorites}
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Star size={13} /> {courseware.likes}
-          </span>
-        </div>
+        {showStats ? (
+          <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#94A3B8', marginTop: 8 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Eye size={13} /> {courseware.views}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Heart size={13} /> {courseware.favorites}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Star size={13} /> {courseware.likes}
+            </span>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 12, color: '#94A3B8', marginTop: 8 }}>
+            <span>{courseware.subject}</span>
+            <span>·</span>
+            <span>{courseware.grade}</span>
+            <span>·</span>
+            <span>{courseware.isPublished ? '已同步资源库' : '未发布草稿'}</span>
+          </div>
+        )}
         {isEmbedded && showInsert && (
           <button
             onClick={handleInsert}

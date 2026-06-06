@@ -156,7 +156,7 @@ const styles = {
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sidebarCollapsed, toggleSidebar, appMode, setAppMode } = useUIStore();
+  const { sidebarCollapsed, toggleSidebar, appMode, setAppMode, closePreview } = useUIStore();
   const { setActiveConversation } = useConversationStore();
 
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
@@ -164,6 +164,7 @@ function Sidebar() {
   const handleNavClick = (item: NavItem) => {
     if (item.key === 'new') {
       setActiveConversation(null);
+      closePreview();
       navigate('/');
       return;
     }

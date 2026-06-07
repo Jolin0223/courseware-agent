@@ -33,7 +33,7 @@ const MAX_DOCUMENT_COUNT = 10;
 const SUPPORTED_DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'md'];
 
 const HOVER_CSS = `
-  .ci-icon-btn:hover { color: #22C55E !important; background: #F0FDF4 !important; }
+  .ci-icon-btn:hover { color: var(--agent-primary-text) !important; background: var(--agent-soft) !important; }
 `;
 
 import toast from '../../utils/toast';
@@ -438,7 +438,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             }}>
               <div style={{
                 width: 18, height: 18, border: '2px solid #E2E8F0',
-                borderTopColor: '#00C9A7', borderRadius: '50%',
+                borderTopColor: 'var(--agent-primary)', borderRadius: '50%',
                 animation: 'spin 0.8s linear infinite',
               }} />
             </div>
@@ -513,9 +513,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
           style={{
             ...styles.container,
             border: isDraggingFiles
-              ? '2px dashed #00C9A7'
-              : isFocused ? '2px solid #00C9A7' : '1px solid #E2E8F0',
-            background: isDraggingFiles ? '#F0FDF9' : '#FFFFFF',
+              ? '2px dashed var(--agent-primary)'
+              : isFocused ? '2px solid transparent' : '1px solid transparent',
+            background: isDraggingFiles
+              ? 'linear-gradient(#FFFFFF, #FFFFFF) padding-box, var(--agent-gradient) border-box'
+              : isFocused
+                ? 'linear-gradient(#FFFFFF, #FFFFFF) padding-box, var(--agent-gradient) border-box'
+                : 'linear-gradient(#FFFFFF, #FFFFFF) padding-box, var(--agent-gradient) border-box',
+            boxShadow: isFocused
+              ? '0 10px 28px var(--agent-focus-ring-strong)'
+              : '0 2px 8px rgba(0,0,0,0.06)',
           }}
         >
           {isDraggingFiles && (
@@ -649,7 +656,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 <button
                   style={{
                     ...styles.sendBtn,
-                    background: '#00C9A7',
+                    background: 'var(--agent-action-gradient)',
                     cursor: 'pointer',
                   }}
                   onClick={onStop}
@@ -663,7 +670,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <button
                 style={{
                   ...styles.sendBtn,
-                  background: canSend ? '#00C9A7' : '#CBD5E1',
+                  background: canSend ? 'var(--agent-action-gradient)' : '#CBD5E1',
                   cursor: canSend ? 'pointer' : 'not-allowed',
                 }}
                 disabled={!canSend}
@@ -683,7 +690,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '6px 12px', marginTop: 6,
-          fontSize: 12, color: '#00C9A7', fontWeight: 500,
+          fontSize: 12, color: 'var(--agent-primary)', fontWeight: 500,
         }}>
           <Link size={13} />
           已关联 {linkedCoursewareCount} 个课件页面
@@ -735,7 +742,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 }}
                 style={{
                   padding: '7px 20px', borderRadius: 6, border: 'none',
-                  background: '#00C9A7', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  background: 'var(--agent-action-gradient)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                 }}
               >
                 确认关联
@@ -776,7 +783,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
     padding: '18px 24px',
     minWidth: 320,
-    transition: 'border 0.15s, background 0.15s',
+    transition: 'border 0.15s, background 0.15s, box-shadow 0.15s',
   },
   dragHint: {
     display: 'flex',
@@ -785,8 +792,8 @@ const styles: Record<string, React.CSSProperties> = {
     height: 36,
     marginBottom: 10,
     borderRadius: 10,
-    background: '#CCFBF1',
-    color: '#047857',
+    background: 'var(--agent-soft-strong)',
+    color: 'var(--agent-primary-text)',
     fontSize: 13,
     fontWeight: 700,
   },
@@ -811,8 +818,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 10,
     padding: '10px 12px',
     borderRadius: 12,
-    border: '1px solid #A7F3D0',
-    background: 'linear-gradient(135deg, #F0FDF9, #EFF6FF)',
+    border: '1px solid var(--agent-border)',
+    background: 'linear-gradient(135deg, var(--agent-soft), #EFF6FF)',
     cursor: 'default',
   },
   lockedAttachmentIcon: {
@@ -822,8 +829,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#047857',
-    background: '#CCFBF1',
+    color: 'var(--agent-primary-text)',
+    background: 'var(--agent-soft-strong)',
     flexShrink: 0,
   },
   lockedAttachmentBody: {
@@ -852,8 +859,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0 8px',
     borderRadius: 999,
     background: '#FFFFFF',
-    color: '#0F766E',
-    border: '1px solid #A7F3D0',
+    color: 'var(--agent-secondary-text)',
+    border: '1px solid var(--agent-border)',
     fontSize: 11,
     fontWeight: 850,
     lineHeight: '24px',
@@ -953,15 +960,15 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '10px 11px',
     marginTop: 10,
     borderRadius: 10,
-    border: '1px solid #A7F3D0',
-    background: '#F0FDF9',
+    border: '1px solid var(--agent-action-border)',
+    background: 'linear-gradient(135deg, var(--agent-action-soft), #FFFFFF)',
   },
   smartCompletionIcon: {
     width: 24,
     height: 24,
     borderRadius: 7,
-    background: '#CCFBF1',
-    color: '#047857',
+    background: 'var(--agent-action-soft)',
+    color: 'var(--agent-action-text)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -970,7 +977,7 @@ const styles: Record<string, React.CSSProperties> = {
     minWidth: 0,
   },
   smartCompletionTitle: {
-    color: '#047857',
+    color: 'var(--agent-action-text)',
     fontSize: 12,
     fontWeight: 800,
     marginBottom: 3,
@@ -986,7 +993,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '3px 7px',
     borderRadius: 999,
     background: '#FFFFFF',
-    color: '#0F766E',
+    color: '#64748B',
     fontSize: 11,
     fontWeight: 700,
   },
@@ -995,7 +1002,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0 10px',
     borderRadius: 7,
     border: 'none',
-    background: '#00C9A7',
+    background: 'var(--agent-action-gradient)',
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 800,
@@ -1027,7 +1034,8 @@ const styles: Record<string, React.CSSProperties> = {
     height: 36,
     borderRadius: '50%',
     border: 'none',
-    transition: 'background 0.15s',
+    boxShadow: '0 8px 18px var(--agent-shadow)',
+    transition: 'background 0.15s, transform 0.15s',
   },
   previewMask: {
     position: 'fixed',
@@ -1067,7 +1075,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     borderRadius: 6,
     padding: '6px 12px',
-    background: '#00C9A7',
+    background: 'var(--agent-primary)',
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 600,

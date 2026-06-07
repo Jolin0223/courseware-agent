@@ -173,7 +173,7 @@ const CoursewareCard: React.FC<CardProps> = ({
               padding: '0 9px',
               borderRadius: 999,
               background: 'rgba(255,255,255,0.94)',
-              color: courseware.isPublished ? '#047857' : '#B45309',
+              color: courseware.isPublished ? 'var(--agent-primary-text)' : '#B45309',
               fontSize: 12,
               fontWeight: 800,
               boxShadow: '0 4px 14px rgba(15, 23, 42, 0.10)',
@@ -293,7 +293,7 @@ const CoursewareCard: React.FC<CardProps> = ({
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
               width: '100%', padding: '7px 0', borderRadius: 6, border: 'none',
-              background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+              background: 'var(--agent-gradient)',
               color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
               marginTop: 10,
             }}

@@ -419,7 +419,7 @@ export default function PublishModal({
                 maxLength={30}
                 onChange={e => setTitle(e.target.value.slice(0, 30))}
                 style={styles.input}
-                onFocus={e => e.currentTarget.parentElement!.style.borderColor = '#00C9A7'}
+                onFocus={e => e.currentTarget.parentElement!.style.borderColor = 'var(--agent-primary)'}
                 onBlur={e => e.currentTarget.parentElement!.style.borderColor = '#E2E8F0'}
               />
               <span style={styles.count}>{title.length} / 30</span>
@@ -764,7 +764,7 @@ const styles: Record<string, React.CSSProperties> = {
   tagManageBtn: {
     height: 26,
     border: '1px solid #BFEFE4',
-    background: '#F0FDF9',
+    background: 'var(--agent-soft)',
     color: '#008F78',
     borderRadius: 6,
     padding: '0 10px',
@@ -778,7 +778,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   aiTag: {
     fontSize: 11,
-    color: '#00C9A7',
+    color: 'var(--agent-primary)',
     background: '#ECFDF5',
     padding: '1px 6px',
     borderRadius: 4,
@@ -818,8 +818,8 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s',
   },
   updateTargetSelectActive: {
-    borderColor: '#00C9A7',
-    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.08)',
+    borderColor: 'var(--agent-primary)',
+    boxShadow: '0 0 0 3px var(--agent-focus-ring)',
   },
   updateTargetSelected: {
     display: 'flex',
@@ -920,9 +920,9 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s',
   },
   chipActive: {
-    borderColor: '#00C9A7',
-    background: '#CCFBF1',
-    color: '#047857',
+    borderColor: 'var(--agent-primary)',
+    background: 'var(--agent-soft-strong)',
+    color: 'var(--agent-primary-text)',
     fontWeight: 700,
   },
   schoolSelect: {
@@ -940,8 +940,8 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s',
   },
   schoolSelectActive: {
-    borderColor: '#00C9A7',
-    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.08)',
+    borderColor: 'var(--agent-primary)',
+    boxShadow: '0 0 0 3px var(--agent-focus-ring)',
   },
   schoolSelectValue: {
     fontSize: 14,
@@ -1002,7 +1002,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   schoolOptionActive: {
     background: '#ECFDF5',
-    color: '#047857',
+    color: 'var(--agent-primary-text)',
     fontWeight: 700,
   },
   schoolEmpty: {
@@ -1027,9 +1027,9 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s',
   },
   scopeCardActive: {
-    background: '#F0FDF9',
-    borderColor: '#00C9A7',
-    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.08)',
+    background: 'var(--agent-soft)',
+    borderColor: 'var(--agent-primary)',
+    boxShadow: '0 0 0 3px var(--agent-focus-ring)',
   },
   scopeLabelRow: {
     display: 'flex',
@@ -1041,7 +1041,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 16,
     height: 16,
     borderRadius: '50%',
-    border: '1.5px solid #00C9A7',
+    border: '1.5px solid var(--agent-primary)',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1052,7 +1052,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 8,
     height: 8,
     borderRadius: '50%',
-    background: '#00C9A7',
+    background: 'var(--agent-primary)',
   },
   scopeCopy: {
     display: 'flex',
@@ -1098,9 +1098,9 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s',
   },
   tagSelectorActive: {
-    borderColor: '#00C9A7',
+    borderColor: 'var(--agent-primary)',
     background: '#FFFFFF',
-    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.08)',
+    boxShadow: '0 0 0 3px var(--agent-focus-ring)',
   },
   selectedTag: {
     display: 'inline-flex',
@@ -1108,7 +1108,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 4,
     padding: '2px 8px 2px 10px',
     background: '#E0FBF4',
-    color: '#047857',
+    color: 'var(--agent-primary-text)',
     borderRadius: 999,
     fontSize: 12,
     fontWeight: 600,
@@ -1134,7 +1134,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 999,
     background: '#E0FBF4',
     border: '1px solid #BFEFE4',
-    color: '#047857',
+    color: 'var(--agent-primary-text)',
     fontSize: 12,
     fontWeight: 600,
     lineHeight: '22px',
@@ -1174,13 +1174,13 @@ const styles: Record<string, React.CSSProperties> = {
     height: 28,
     padding: '0 9px',
     borderRadius: 999,
-    border: '1px solid #00C9A7',
+    border: '1px solid var(--agent-primary)',
     outline: 'none',
     background: '#FFFFFF',
     color: '#1E293B',
     fontSize: 12,
     fontWeight: 600,
-    boxShadow: '0 0 0 3px rgba(0, 201, 167, 0.12)',
+    boxShadow: '0 0 0 3px var(--agent-focus-ring-strong)',
   },
   tagDropdown: {
     marginTop: 6,
@@ -1287,7 +1287,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #E2E8F0',
   },
   btnPrimary: {
-    background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+    background: 'var(--agent-gradient)',
     color: '#FFFFFF',
   },
 };
@@ -1364,7 +1364,7 @@ function TreeNode({
             height: 16,
             borderRadius: 3,
             border: (isSelected || isAllSelected) ? 'none' : '1.5px solid #CBD5E1',
-            background: (isSelected || isAllSelected) ? '#00C9A7' : isPartial ? '#00C9A7' : '#fff',
+            background: (isSelected || isAllSelected) ? 'var(--agent-primary)' : isPartial ? 'var(--agent-primary)' : '#fff',
             flexShrink: 0,
             transition: 'all 0.15s',
           }}

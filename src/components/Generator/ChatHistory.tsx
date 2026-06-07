@@ -84,12 +84,12 @@ const ChatHistory: React.FC = () => {
               alignItems: 'center',
               gap: '8px',
               padding: '8px 12px',
-              border: '2px solid #00C9A7',
+              border: '2px solid var(--agent-primary)',
               borderRadius: '8px',
               background: '#FFFFFF',
             }}
           >
-            <Search size={16} style={{ color: '#00C9A7', flexShrink: 0 }} />
+            <Search size={16} style={{ color: 'var(--agent-primary)', flexShrink: 0 }} />
             <input
               ref={searchInputRef}
               type="text"
@@ -125,20 +125,20 @@ const ChatHistory: React.FC = () => {
                 gap: '6px',
                 padding: '6px 12px',
                 background: 'transparent',
-                border: '1px solid #A7F3D0',
+                border: '1px solid var(--agent-border)',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontSize: '13px',
-                color: '#059669',
+                color: 'var(--agent-primary-text)',
                 transition: 'background 0.15s, border-color 0.15s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#D1FAE5';
-                e.currentTarget.style.borderColor = '#34D399';
+                e.currentTarget.style.background = 'var(--agent-soft)';
+                e.currentTarget.style.borderColor = 'var(--agent-primary)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = '#A7F3D0';
+                e.currentTarget.style.borderColor = 'var(--agent-border)';
               }}
             >
               <Search size={14} />
@@ -163,7 +163,7 @@ const ChatHistory: React.FC = () => {
                 position: 'relative',
                 padding: '12px 16px',
                 borderBottom: '1px solid rgba(255,255,255,0.3)',
-                borderLeft: isActive ? '3px solid #00C9A7' : '3px solid transparent',
+                borderLeft: isActive ? '3px solid var(--agent-primary)' : '3px solid transparent',
                 background: isActive ? '#FFFFFF' : 'transparent',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
@@ -200,7 +200,7 @@ const ChatHistory: React.FC = () => {
                         fontSize: '14px',
                         fontWeight: 500,
                         color: '#1E293B',
-                        border: '2px solid #00C9A7',
+                        border: '2px solid var(--agent-primary)',
                         borderRadius: '4px',
                         padding: '2px 6px',
                         outline: 'none',
@@ -255,7 +255,7 @@ const ChatHistory: React.FC = () => {
                       padding: 0,
                       transition: 'background 0.15s',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = '#D1FAE5')}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--agent-soft)')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     <MoreHorizontal size={16} />

@@ -153,8 +153,8 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
           <div style={{
             padding: '5px 10px',
             borderRadius: 999,
-            background: '#CCFBF1',
-            color: '#047857',
+            background: 'var(--agent-soft-strong)',
+            color: 'var(--agent-primary-text)',
             fontSize: 12,
             fontWeight: 800,
             flexShrink: 0,
@@ -182,7 +182,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                   ref={el => { if (el) autoResize(el); }}
                   onInput={e => autoResize(e.target as HTMLTextAreaElement)}
                   onFocus={e => {
-                    e.target.style.borderColor = '#00C9A7';
+                    e.target.style.borderColor = 'var(--agent-primary)';
                     e.target.style.boxShadow = '0 0 0 3px rgba(0,201,167,0.1)';
                   }}
                   onBlur={e => {
@@ -199,7 +199,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                     display: 'inline-block',
                     width: 2,
                     height: 16,
-                    background: '#00C9A7',
+                    background: 'var(--agent-primary)',
                     marginLeft: 2,
                     animation: 'blink 0.8s infinite',
                     verticalAlign: 'text-bottom',

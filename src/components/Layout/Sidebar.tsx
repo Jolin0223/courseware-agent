@@ -12,6 +12,7 @@ import { useUIStore } from '../../store/uiStore';
 import { useConversationStore } from '../../store/conversationStore';
 import Logo from './Logo';
 import ChatHistory from '../Generator/ChatHistory';
+import { AGENT_THEMES, applyAgentTheme, getStoredThemeId, type AgentThemeId } from '../../theme';
 
 const EXPANDED_WIDTH = 280;
 const COLLAPSED_WIDTH = 64;
@@ -37,7 +38,7 @@ const styles = {
     top: 0,
     height: '100vh',
     width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
-    background: '#DFF6FF',
+    background: 'var(--agent-sidebar)',
     borderRight: '1px solid #E2E8F0',
     display: 'flex',
     flexDirection: 'column',
@@ -107,7 +108,7 @@ const styles = {
     gap: 10,
     width: '100%',
     padding: collapsed ? '10px 0' : '10px 14px',
-    background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+    background: 'var(--agent-gradient)',
     color: '#FFFFFF',
     border: 'none',
     borderRadius: 8,
@@ -127,11 +128,11 @@ const styles = {
     width: '100%',
     padding: collapsed ? '10px 0' : '10px 14px',
     background: active ? '#FFFFFF' : 'transparent',
-    color: active ? '#00C9A7' : '#475569',
+    color: active ? 'var(--agent-primary)' : '#475569',
     border: 'none',
     borderRadius: active ? '0 8px 8px 0' : 8,
     marginRight: active ? '8px' : '0',
-    borderLeft: active ? '3px solid #00C9A7' : '3px solid transparent',
+    borderLeft: active ? '3px solid var(--agent-primary)' : '3px solid transparent',
     cursor: 'pointer',
     fontSize: 14,
     fontWeight: active ? 600 : 400,
@@ -151,6 +152,57 @@ const styles = {
     overflow: 'hidden',
   }),
 
+  themeArea: {
+    flexShrink: 0,
+    padding: '10px 12px 8px',
+    borderTop: '1px solid #E2E8F0',
+  } as React.CSSProperties,
+
+  themeTitle: {
+    marginBottom: 8,
+    paddingLeft: 4,
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 800,
+  } as React.CSSProperties,
+
+  themeButtons: {
+    display: 'grid',
+    gap: 6,
+  } as React.CSSProperties,
+
+  themeBtn: {
+    height: 30,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '0 10px',
+    borderRadius: 7,
+    border: '1px solid transparent',
+    background: 'rgba(255,255,255,0.44)',
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+    textAlign: 'left',
+  } as React.CSSProperties,
+
+  themeBtnActive: {
+    background: '#FFFFFF',
+    color: 'var(--agent-primary-text)',
+    borderColor: 'var(--agent-border)',
+    boxShadow: '0 4px 12px var(--agent-shadow)',
+  } as React.CSSProperties,
+
+  themeDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 4,
+    flexShrink: 0,
+    border: '1px solid rgba(15, 23, 42, 0.08)',
+  } as React.CSSProperties,
+
 } as const;
 
 function Sidebar() {
@@ -160,6 +212,7 @@ function Sidebar() {
   const { setActiveConversation } = useConversationStore();
 
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [themeId, setThemeId] = useState<AgentThemeId>(() => getStoredThemeId());
 
   const handleNavClick = (item: NavItem) => {
     if (item.key === 'new') {
@@ -178,6 +231,11 @@ function Sidebar() {
     if (item.key === 'new') return location.pathname === '/';
     if (item.route) return location.pathname === item.route;
     return false;
+  };
+
+  const switchTheme = (id: AgentThemeId) => {
+    setThemeId(id);
+    applyAgentTheme(id);
   };
 
   return (
@@ -277,6 +335,35 @@ function Sidebar() {
       )}
 
       {/* Mode Switch */}
+      {!sidebarCollapsed && (
+        <div
+          style={styles.themeArea}
+          title="仅供 demo 演示：正式产品不会展示配色方案选择器。"
+        >
+          <div style={styles.themeTitle}>配色方案</div>
+          <div style={styles.themeButtons}>
+            {AGENT_THEMES.map(theme => (
+              <button
+                key={theme.id}
+                type="button"
+                title={theme.description}
+                onClick={() => switchTheme(theme.id)}
+                style={{
+                  ...styles.themeBtn,
+                  ...(themeId === theme.id ? styles.themeBtnActive : {}),
+                }}
+              >
+                <span style={{
+                  ...styles.themeDot,
+                  background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
+                }} />
+                {theme.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ ...styles.userArea(sidebarCollapsed), justifyContent: 'space-between' }}>
         {!sidebarCollapsed && (
           <div style={{ display: 'flex', gap: 2, marginLeft: 'auto' }}>
@@ -328,7 +415,7 @@ function ModeIconBtn({
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 28, height: 28, borderRadius: 6, border: 'none',
-        background: active ? '#00C9A7' : 'transparent',
+        background: active ? 'var(--agent-primary)' : 'transparent',
         color: active ? '#fff' : '#94A3B8',
         cursor: 'pointer', transition: 'all 0.15s',
       }}

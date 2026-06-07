@@ -15,8 +15,8 @@ interface ImageGenerationPanelV2Props {
 }
 
 const StatusIcon: React.FC<{ status: string }> = ({ status }) => {
-  if (status === 'completed') return <CheckCircle2 size={16} color="#00C9A7" />;
-  if (status === 'in-progress') return <Loader2 size={16} color="#00C9A7" style={{ animation: 'spin 1s linear infinite' }} />;
+  if (status === 'completed') return <CheckCircle2 size={16} color="var(--agent-primary)" />;
+  if (status === 'in-progress') return <Loader2 size={16} color="var(--agent-primary)" style={{ animation: 'spin 1s linear infinite' }} />;
   if (status === 'failed') return <XCircle size={16} color="#EF4444" />;
   return null;
 };
@@ -71,7 +71,7 @@ const ImageCard: React.FC<{ image: EnhancedImageItem }> = ({ image }) => {
               )}
             </>
           ) : image.status === 'generating' ? (
-            <Loader2 size={24} color="#00C9A7" style={{ animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={24} color="var(--agent-primary)" style={{ animation: 'spin 1s linear infinite' }} />
           ) : (
             <ImageIcon size={24} color="#CBD5E1" />
           )}
@@ -155,12 +155,12 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
         cursor: 'pointer',
       }} onClick={onToggle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ImageIcon size={18} color="#00C9A7" />
+          <ImageIcon size={18} color="var(--agent-primary)" />
           <span style={{ fontSize: 14, fontWeight: 600, color: '#1E293B' }}>图片生成</span>
           <StatusIcon status={stage.status} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {stage.status !== 'pending' && <span style={{ fontSize: 13, color: '#00C9A7', fontWeight: 600 }}>{stage.progress}%</span>}
+          {stage.status !== 'pending' && <span style={{ fontSize: 13, color: 'var(--agent-primary)', fontWeight: 600 }}>{stage.progress}%</span>}
           {isExpanded ? <ChevronUp size={16} color="#64748B" /> : <ChevronDown size={16} color="#64748B" />}
         </div>
       </div>
@@ -173,7 +173,7 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
                 height: '100%',
                 borderRadius: 2,
                 width: `${stage.progress}%`,
-                background: stage.status === 'completed' ? '#00C9A7' : stage.status === 'failed' ? '#EF4444' : 'linear-gradient(90deg, #00C9A7, #00A8E8)',
+                background: stage.status === 'completed' ? 'var(--agent-primary)' : stage.status === 'failed' ? '#EF4444' : 'linear-gradient(90deg, var(--agent-primary), var(--agent-secondary))',
                 transition: 'width 0.4s ease',
               }} />
             </div>
@@ -183,7 +183,7 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
             为课件生成配套图片资源。
           </p>
           {stage.status === 'completed' && (
-            <p style={{ fontSize: 12, color: '#00C9A7', marginBottom: 12 }}>
+            <p style={{ fontSize: 12, color: 'var(--agent-primary)', marginBottom: 12 }}>
               ✅ 已完成，可在编辑阶段重新生成或上传本地图片
             </p>
           )}
@@ -267,7 +267,7 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
                           height: 28,
                           borderRadius: '50%',
                           border: '2.5px solid rgba(0,201,167,0.2)',
-                          borderTopColor: '#00C9A7',
+                          borderTopColor: 'var(--agent-primary)',
                           animation: 'spin 1s linear infinite',
                         }} />
                         <span style={{ fontSize: 10, color: '#94A3B8' }}>生成中</span>

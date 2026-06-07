@@ -179,7 +179,7 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
     height: '100vh',
-    background: '#F8FAFE',
+    background: 'var(--agent-page-bg)',
   },
   mainContent: {
     flex: 1,
@@ -244,7 +244,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'flex-end',
   },
   userBubble: {
-    background: 'linear-gradient(135deg, #00C9A7, #00D4A0)',
+    background: 'var(--agent-gradient)',
     color: '#FFFFFF',
     padding: '12px 16px',
     borderRadius: '16px 16px 4px 16px',
@@ -274,12 +274,12 @@ const replayStyles: Record<string, React.CSSProperties> = {
     marginTop: 12,
     padding: 14,
     borderRadius: 12,
-    border: '1px solid #A7F3D0',
-    background: '#F0FDF9',
-    boxShadow: '0 8px 24px rgba(0, 201, 167, 0.08)',
+    border: '1px solid var(--agent-border)',
+    background: 'var(--agent-soft)',
+    boxShadow: '0 8px 24px var(--agent-shadow)',
   },
   title: {
-    color: '#047857',
+    color: 'var(--agent-primary-text)',
     fontSize: 14,
     fontWeight: 800,
     marginBottom: 8,
@@ -299,8 +299,8 @@ const replayStyles: Record<string, React.CSSProperties> = {
     padding: '5px 9px',
     borderRadius: 999,
     background: '#FFFFFF',
-    border: '1px solid #A7F3D0',
-    color: '#047857',
+    border: '1px solid var(--agent-border)',
+    color: 'var(--agent-primary-text)',
     fontSize: 12,
     fontWeight: 700,
   },
@@ -374,7 +374,7 @@ const intentCardStyles: Record<string, React.CSSProperties> = {
     width: 36,
     height: 36,
     borderRadius: 6,
-    background: 'linear-gradient(135deg, #E0F2FE, #CCFBF1)',
+    background: 'linear-gradient(135deg, #E0F2FE, var(--agent-soft-strong))',
     color: '#0284C7',
     display: 'flex',
     alignItems: 'center',
@@ -409,8 +409,8 @@ const intentCardStyles: Record<string, React.CSSProperties> = {
     gap: 4,
     padding: '10px 12px',
     borderRadius: 8,
-    border: '1px solid #A7F3D0',
-    background: '#F0FDF9',
+    border: '1px solid var(--agent-border)',
+    background: 'var(--agent-soft)',
     cursor: 'pointer',
     textAlign: 'left',
     transition: 'all 0.15s',
@@ -418,7 +418,7 @@ const intentCardStyles: Record<string, React.CSSProperties> = {
   optionTitle: {
     fontSize: 13,
     fontWeight: 700,
-    color: '#047857',
+    color: 'var(--agent-primary-text)',
   },
   optionDesc: {
     fontSize: 12,
@@ -495,7 +495,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     width: 108,
     height: 80,
     padding: 0,
-    border: '2px solid #A7F3D0',
+    border: '2px solid var(--agent-border)',
     borderRadius: 10,
     background: '#FFFFFF',
     overflow: 'hidden',
@@ -559,16 +559,16 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     maxWidth: 340,
     padding: '10px 12px',
     borderRadius: 10,
-    background: '#F0FDF9',
-    border: '1px solid #A7F3D0',
+    background: 'var(--agent-soft)',
+    border: '1px solid var(--agent-border)',
     boxShadow: '0 6px 18px rgba(15, 23, 42, 0.06)',
   },
   htmlIcon: {
     width: 30,
     height: 30,
     borderRadius: 8,
-    background: '#CCFBF1',
-    color: '#047857',
+    background: 'var(--agent-soft-strong)',
+    color: 'var(--agent-primary-text)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -614,7 +614,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     border: 'none',
     borderRadius: 6,
     padding: '6px 12px',
-    background: '#00C9A7',
+    background: 'var(--agent-primary)',
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 600,
@@ -698,7 +698,7 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
 }
 
 const AIAvatar: React.FC = () => (
-  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--agent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
     <span style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>AI</span>
   </div>
 );
@@ -726,7 +726,7 @@ const SimpleStreamText: React.FC<{ text: string; speed?: number }> = ({ text, sp
     <span>
       {displayed}
       {displayed.length < text.length && (
-        <span style={{ display: 'inline-block', width: 2, height: 16, background: '#00C9A7', marginLeft: 2, animation: 'blink 0.8s infinite', verticalAlign: 'text-bottom' }} />
+        <span style={{ display: 'inline-block', width: 2, height: 16, background: 'var(--agent-primary)', marginLeft: 2, animation: 'blink 0.8s infinite', verticalAlign: 'text-bottom' }} />
       )}
     </span>
   );
@@ -800,8 +800,8 @@ function MaterialIntentCard({
                     onClick={() => setSelectedIntents(prev => ({ ...prev, [file.id]: option.intent }))}
                     style={{
                       ...intentCardStyles.optionBtn,
-                      borderColor: selected === option.intent ? '#00C9A7' : '#A7F3D0',
-                      background: selected === option.intent ? '#CCFBF1' : '#F0FDF9',
+                      borderColor: selected === option.intent ? 'var(--agent-primary)' : 'var(--agent-border)',
+                      background: selected === option.intent ? 'var(--agent-soft-strong)' : 'var(--agent-soft)',
                     }}
                   >
                     <span style={intentCardStyles.optionTitle}>{option.title}</span>
@@ -841,7 +841,7 @@ function MaterialIntentCard({
           disabled={!allSelected}
           style={{
             ...intentCardStyles.confirmBtn,
-            background: allSelected ? '#00C9A7' : '#CBD5E1',
+            background: allSelected ? 'var(--agent-primary)' : '#CBD5E1',
             cursor: allSelected ? 'pointer' : 'not-allowed',
           }}
         >
@@ -1483,7 +1483,7 @@ export default function GeneratorPage() {
     if (!activeConversationId || (!hasMessages && phase === 'input')) {
       return (
         <div style={styles.welcomeSection}>
-          <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
+          <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
           <p style={styles.welcomeSubtitle}>输入教学内容，AI 会补全玩法；也可以先套用一个课堂互动模板，或跟灵感助手聊聊看。</p>
           <div style={{ width: '100%', maxWidth: 720 }}>
             <ChatInput
@@ -1560,8 +1560,8 @@ export default function GeneratorPage() {
                       <svg width="56" height="56" viewBox="0 0 56 56" style={{ animation: 'spin 1.2s linear infinite' }}>
                         <defs>
                           <linearGradient id="spinnerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#00C9A7" />
-                            <stop offset="100%" stopColor="#00A8E8" />
+                            <stop offset="0%" stopColor="var(--agent-primary)" />
+                            <stop offset="100%" stopColor="var(--agent-secondary)" />
                           </linearGradient>
                         </defs>
                         <circle cx="28" cy="28" r="24" fill="none" stroke="#F1F5F9" strokeWidth="4" />
@@ -1581,9 +1581,9 @@ export default function GeneratorPage() {
                   style={{ padding: '8px 0 8px 44px' }}
                 >
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00C9A7', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0s' }} />
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00A8E8', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0.16s' }} />
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00C9A7', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0.32s' }} />
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--agent-primary)', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0s' }} />
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--agent-secondary)', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0.16s' }} />
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--agent-primary)', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0.32s' }} />
                   </div>
                 </motion.div>
               )}
@@ -1599,8 +1599,8 @@ export default function GeneratorPage() {
                 style={{
                   padding: '10px 28px',
                   background: '#fff',
-                  color: '#00C9A7',
-                  border: '1px solid #00C9A7',
+                  color: 'var(--agent-primary)',
+                  border: '1px solid var(--agent-primary)',
                   borderRadius: 8,
                   fontSize: 14,
                   fontWeight: 500,
@@ -1618,7 +1618,7 @@ export default function GeneratorPage() {
                 onClick={() => handleConfirmFramework()}
                 style={{
                   padding: '10px 28px',
-                  background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+                  background: 'var(--agent-gradient)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: 8,
@@ -1669,7 +1669,7 @@ export default function GeneratorPage() {
               style={{
                 width: 6,
                 cursor: 'col-resize',
-                background: isDragging ? '#00C9A7' : '#E2E8F0',
+                background: isDragging ? 'var(--agent-primary)' : '#E2E8F0',
                 transition: isDragging ? 'none' : 'background 0.15s',
                 flexShrink: 0,
                 position: 'relative',

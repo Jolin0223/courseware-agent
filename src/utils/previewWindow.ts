@@ -57,7 +57,7 @@ export function openCoursewarePreview(courseware: Courseware, allCoursewares: Co
       background: #fff; font-size: 12px; color: #94A3B8; cursor: pointer;
       transition: all 0.15s; display: flex; align-items: center; gap: 4px;
     }
-    .nav-download:hover { border-color: #00C9A7; color: #00C9A7; }
+    .nav-download:hover { border-color: var(--agent-primary); color: var(--agent-primary); }
 
     /* Main Layout */
     .main-layout {
@@ -114,7 +114,7 @@ export function openCoursewarePreview(courseware: Courseware, allCoursewares: Co
     }
     .desc-badge {
       flex-shrink: 0; padding: 6px 18px;
-      background: linear-gradient(135deg, #00C9A7, #00B4A0);
+      background: var(--agent-gradient);
       border: none; border-radius: 8px;
       font-size: 13px; color: #fff; cursor: pointer; font-weight: 500;
       transition: all 0.15s; white-space: nowrap;
@@ -129,7 +129,7 @@ export function openCoursewarePreview(courseware: Courseware, allCoursewares: Co
     }
     .author-avatar {
       width: 32px; height: 32px; border-radius: 50%;
-      background: linear-gradient(135deg, #00C9A7, #00A8E8);
+      background: var(--agent-gradient);
       display: flex; align-items: center; justify-content: center;
       color: #fff; font-size: 14px; font-weight: 600;
     }
@@ -141,18 +141,18 @@ export function openCoursewarePreview(courseware: Courseware, allCoursewares: Co
       display: flex; align-items: center; gap: 4px; font-size: 12px; color: #94A3B8;
       cursor: pointer; transition: color 0.15s; user-select: none;
     }
-    .stat-item:hover { color: #00C9A7; }
-    .stat-item.active { color: #00C9A7; }
+    .stat-item:hover { color: var(--agent-primary); }
+    .stat-item.active { color: var(--agent-primary); }
     .action-buttons { display: flex; gap: 10px; }
     .btn-secondary {
       padding: 8px 20px; border: 1px solid #E2E8F0; border-radius: 8px;
       background: #fff; font-size: 13px; color: #475569; cursor: pointer;
       display: flex; align-items: center; gap: 6px; transition: all 0.15s;
     }
-    .btn-secondary:hover { border-color: #00C9A7; color: #00C9A7; }
+    .btn-secondary:hover { border-color: var(--agent-primary); color: var(--agent-primary); }
     .btn-primary {
       padding: 8px 24px; border: none; border-radius: 8px;
-      background: linear-gradient(135deg, #00C9A7, #00B4A0);
+      background: var(--agent-gradient);
       font-size: 13px; color: #fff; cursor: pointer; font-weight: 500;
       display: flex; align-items: center; gap: 6px; transition: all 0.15s;
     }

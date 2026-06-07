@@ -59,8 +59,8 @@ const styles: Record<string, React.CSSProperties> = {
     outline: 'none',
   },
   filterTagActive: {
-    background: '#00C9A7',
-    borderColor: '#00C9A7',
+    background: 'var(--agent-primary)',
+    borderColor: 'var(--agent-primary)',
     color: '#fff',
   },
   sortRow: {

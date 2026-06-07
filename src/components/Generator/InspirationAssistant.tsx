@@ -109,7 +109,7 @@ export default function InspirationAssistant({ onApplyPrompt }: InspirationAssis
   return (
     <>
       <button type="button" style={styles.fab} onClick={() => setOpen(true)}>
-        <Sparkles size={18} />
+        <span style={styles.fabIcon}><Sparkles size={16} /></span>
         灵感助手
       </button>
 
@@ -207,7 +207,7 @@ export default function InspirationAssistant({ onApplyPrompt }: InspirationAssis
             )}
 
             <div style={styles.inputBar}>
-              <MessageCircle size={17} color="#0F766E" />
+              <MessageCircle size={17} color="var(--agent-primary-text)" />
               <input
                 value={input}
                 onChange={e => setInput(e.target.value)}
@@ -231,22 +231,32 @@ export default function InspirationAssistant({ onApplyPrompt }: InspirationAssis
 const styles: Record<string, React.CSSProperties> = {
   fab: {
     position: 'fixed',
-    right: 28,
-    bottom: 28,
+    right: 26,
+    bottom: 26,
     zIndex: 1200,
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 8,
-    height: 44,
-    padding: '0 17px',
-    border: '1px solid rgba(0, 201, 167, 0.28)',
+    gap: 9,
+    height: 52,
+    padding: '0 22px',
+    border: '2px solid rgba(255,255,255,0.88)',
     borderRadius: 999,
-    background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+    background: 'linear-gradient(135deg, var(--agent-primary), var(--agent-secondary))',
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 900,
-    boxShadow: '0 18px 42px rgba(0, 168, 232, 0.22)',
+    boxShadow: '0 18px 44px var(--agent-shadow), 0 0 0 1px rgba(255,255,255,0.6)',
     cursor: 'pointer',
+  },
+  fabIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: '50%',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(255,255,255,0.24)',
+    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.24)',
   },
   overlay: {
     position: 'fixed',
@@ -268,8 +278,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     borderRadius: 22,
-    background: 'linear-gradient(180deg, #FFFFFF, #F8FEFF 44%, #F0FDF9)',
-    border: '1px solid rgba(103, 232, 249, 0.62)',
+    background: 'linear-gradient(180deg, #FFFFFF, #F8FEFF 44%, var(--agent-soft))',
+    border: '1px solid var(--agent-border)',
     boxShadow: '0 30px 90px rgba(15, 23, 42, 0.28), inset 0 1px 0 rgba(255,255,255,0.95)',
     overflow: 'hidden',
   },
@@ -278,8 +288,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '18px 20px',
-    background: 'linear-gradient(135deg, #ECFEFF, #F0FDF9 58%, #EFF6FF)',
-    borderBottom: '1px solid rgba(214, 243, 239, 0.9)',
+    background: 'linear-gradient(135deg, var(--agent-soft), var(--agent-soft) 58%, #EFF6FF)',
+    borderBottom: '1px solid var(--agent-border)',
   },
   headerLeft: {
     display: 'flex',
@@ -293,9 +303,9 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#047857',
-    background: 'linear-gradient(135deg, #CCFBF1, #E0F2FE)',
-    boxShadow: '0 10px 24px rgba(0, 201, 167, 0.16)',
+    color: 'var(--agent-primary-text)',
+    background: 'linear-gradient(135deg, var(--agent-soft-strong), #FFFFFF)',
+    boxShadow: '0 10px 24px var(--agent-focus-ring-strong)',
   },
   title: {
     color: '#0F172A',
@@ -311,7 +321,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 32,
     height: 32,
     borderRadius: 8,
-    border: '1px solid #D6F3EF',
+    border: '1px solid var(--agent-border)',
     background: '#FFFFFF',
     color: '#64748B',
     cursor: 'pointer',
@@ -328,8 +338,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0 10px',
     borderRadius: 999,
     background: 'rgba(255,255,255,0.72)',
-    border: '1px solid #D6F3EF',
-    color: '#0F766E',
+    border: '1px solid var(--agent-border)',
+    color: 'var(--agent-primary-text)',
     fontSize: 12,
     fontWeight: 850,
   },
@@ -337,8 +347,8 @@ const styles: Record<string, React.CSSProperties> = {
     width: 7,
     height: 7,
     borderRadius: '50%',
-    background: '#00C9A7',
-    boxShadow: '0 0 0 4px rgba(0, 201, 167, 0.12)',
+    background: 'var(--agent-primary)',
+    boxShadow: '0 0 0 4px var(--agent-focus-ring-strong)',
   },
   agentStrip: {
     display: 'flex',
@@ -353,9 +363,9 @@ const styles: Record<string, React.CSSProperties> = {
     height: 26,
     padding: '0 9px',
     borderRadius: 999,
-    background: '#F0FDF9',
-    color: '#0F766E',
-    border: '1px solid #CFFAFE',
+    background: 'var(--agent-soft)',
+    color: 'var(--agent-primary-text)',
+    border: '1px solid var(--agent-border)',
     fontSize: 11,
     fontWeight: 850,
   },
@@ -371,9 +381,9 @@ const styles: Record<string, React.CSSProperties> = {
     height: 30,
     padding: '0 10px',
     borderRadius: 999,
-    border: '1px solid rgba(0, 201, 167, 0.22)',
+    border: '1px solid var(--agent-border)',
     background: 'rgba(255,255,255,0.76)',
-    color: '#0F766E',
+    color: 'var(--agent-secondary-text)',
     fontSize: 12,
     fontWeight: 800,
     whiteSpace: 'nowrap',
@@ -386,7 +396,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: 12,
-    background: 'linear-gradient(180deg, rgba(248,250,252,0.92), rgba(240,253,249,0.82))',
+    background: 'linear-gradient(180deg, rgba(248,250,252,0.92), var(--agent-soft))',
   },
   messageRow: {
     display: 'flex',
@@ -401,8 +411,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    color: '#047857',
-    background: 'linear-gradient(135deg, #CCFBF1, #E0F2FE)',
+    color: 'var(--agent-primary-text)',
+    background: 'linear-gradient(135deg, var(--agent-soft-strong), #FFFFFF)',
   },
   assistantBubble: {
     maxWidth: '88%',
@@ -419,7 +429,7 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: '82%',
     padding: '10px 12px',
     borderRadius: '13px 13px 4px 13px',
-    background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+    background: 'var(--agent-action-gradient)',
     color: '#FFFFFF',
     fontSize: 13,
     lineHeight: 1.55,
@@ -429,7 +439,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 11,
     borderRadius: 11,
     background: 'linear-gradient(180deg, #FFFFFF, #F8FAFC)',
-    border: '1px solid #D6F3EF',
+    border: '1px solid var(--agent-border)',
     boxShadow: '0 8px 20px rgba(14, 165, 233, 0.06)',
   },
   replyTitle: {
@@ -448,8 +458,8 @@ const styles: Record<string, React.CSSProperties> = {
     height: 22,
     padding: '0 7px',
     borderRadius: 999,
-    background: '#ECFEFF',
-    color: '#0E7490',
+    background: 'var(--agent-soft)',
+    color: 'var(--agent-secondary-text)',
     fontSize: 11,
     fontWeight: 850,
     lineHeight: '22px',
@@ -472,7 +482,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: 34,
     border: 'none',
     borderRadius: 8,
-    background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+    background: 'var(--agent-action-gradient)',
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: 900,
@@ -484,9 +494,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   footerHint: {
     padding: '8px 16px',
-    color: '#0F766E',
-    background: '#F0FDF9',
-    borderTop: '1px solid #D6F3EF',
+    color: 'var(--agent-secondary-text)',
+    background: 'var(--agent-soft)',
+    borderTop: '1px solid var(--agent-border)',
     fontSize: 12,
     fontWeight: 750,
   },
@@ -501,7 +511,7 @@ const styles: Record<string, React.CSSProperties> = {
   input: {
     flex: 1,
     height: 36,
-    border: '1px solid #BDEFE8',
+    border: '1px solid var(--agent-border)',
     borderRadius: 12,
     padding: '0 10px',
     outline: 'none',
@@ -513,7 +523,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: 36,
     borderRadius: 12,
     border: 'none',
-    background: '#00C9A7',
+    background: 'var(--agent-action-gradient)',
     color: '#FFFFFF',
     display: 'inline-flex',
     alignItems: 'center',

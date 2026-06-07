@@ -38,7 +38,7 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '6px 14px', borderRadius: 6, border: 'none',
-                  background: active ? '#00C9A7' : 'transparent',
+                  background: active ? 'var(--agent-primary)' : 'transparent',
                   color: active ? '#fff' : '#64748B',
                   fontSize: 13, fontWeight: active ? 600 : 400,
                   cursor: 'pointer', transition: 'all 0.15s',
@@ -50,7 +50,7 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
             );
           })}
         </div>
-        <main style={{ flex: 1, overflowY: 'auto', background: '#F8FAFE' }}>
+        <main style={{ flex: 1, overflowY: 'auto', background: 'var(--agent-page-bg)' }}>
           <Outlet />
         </main>
       </div>
@@ -65,7 +65,7 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
           marginLeft: sidebarCollapsed ? 64 : 260,
           height: '100vh',
           overflowY: 'auto',
-          background: '#F8FAFE',
+          background: 'var(--agent-page-bg)',
           flex: 1,
           transition: 'margin-left 0.2s ease',
           position: 'relative',

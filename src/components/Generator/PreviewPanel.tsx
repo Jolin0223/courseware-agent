@@ -315,7 +315,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
               <>
                 <button
                   onClick={handleUpdatePublishClick}
-                  style={{ ...panelStyle.actionBtn, background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', color: '#fff' }}
+                  style={{ ...panelStyle.actionBtn, background: 'var(--agent-gradient)', color: '#fff' }}
                   title="更新发布"
                 >
                   <Upload size={14} />
@@ -336,7 +336,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                 disabled={!!publishBtnDisabled}
                 style={{
                   ...panelStyle.actionBtn,
-                  background: publishBtnDisabled ? '#F1F5F9' : 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+                  background: publishBtnDisabled ? '#F1F5F9' : 'var(--agent-gradient)',
                   color: publishBtnDisabled ? '#94A3B8' : '#fff',
                   cursor: publishBtnDisabled ? 'default' : 'pointer',
                 }}
@@ -440,8 +440,8 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                   style={{
                     ...panelStyle.deviceTab,
                     background: previewDevice === device.id ? '#F0FDFA' : 'transparent',
-                    color: previewDevice === device.id ? '#00C9A7' : '#64748B',
-                    borderBottom: previewDevice === device.id ? '2px solid #00C9A7' : '2px solid transparent',
+                    color: previewDevice === device.id ? 'var(--agent-primary)' : '#64748B',
+                    borderBottom: previewDevice === device.id ? '2px solid var(--agent-primary)' : '2px solid transparent',
                   }}
                   title={device.label}
                 >
@@ -497,14 +497,14 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                   style={{
                     ...panelStyle.versionItem,
                     background: v.version === selectedVersion ? '#F0FDFA' : '#F8FAFC',
-                    color: v.version === selectedVersion ? '#00C9A7' : '#64748B',
-                    border: v.version === selectedVersion ? '1.5px solid #00C9A7' : '1px solid #E2E8F0',
+                    color: v.version === selectedVersion ? 'var(--agent-primary)' : '#64748B',
+                    border: v.version === selectedVersion ? '1.5px solid var(--agent-primary)' : '1px solid #E2E8F0',
                   }}
                 >
                   <span style={panelStyle.versionMain}>{getVersionMainLabel(v)}</span>
                   <span style={{
                     ...panelStyle.versionBadge,
-                    color: v.isCurrentPublished ? '#047857' : v.isHistoricalPublished ? '#94A3B8' : '#F59E0B',
+                    color: v.isCurrentPublished ? 'var(--agent-primary-text)' : v.isHistoricalPublished ? '#94A3B8' : '#F59E0B',
                   }}>
                     {getVersionPublishLabel(v)}
                   </span>
@@ -860,7 +860,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     padding: '7px 16px',
     borderRadius: 6,
     border: 'none',
-    background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+    background: 'var(--agent-gradient)',
     color: '#fff',
     fontSize: 13,
     fontWeight: 500,

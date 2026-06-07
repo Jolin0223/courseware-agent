@@ -45,14 +45,14 @@ const InlinePlayer: React.FC<{ label: string; duration?: number }> = ({ duration
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
       <button onClick={toggle} style={{
         width: 22, height: 22, borderRadius: '50%', border: 'none', flexShrink: 0,
-        background: isPlaying ? '#00C9A7' : '#F1F5F9', color: isPlaying ? '#fff' : '#64748B',
+        background: isPlaying ? 'var(--agent-primary)' : '#F1F5F9', color: isPlaying ? '#fff' : '#64748B',
         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
       }}>
         {isPlaying ? <Pause size={8} /> : <Play size={8} style={{ marginLeft: 1 }} />}
       </button>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ height: 3, background: '#EEF2F6', borderRadius: 2, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${progress * 100}%`, background: '#00C9A7', borderRadius: 2, transition: 'width 0.1s linear' }} />
+          <div style={{ height: '100%', width: `${progress * 100}%`, background: 'var(--agent-primary)', borderRadius: 2, transition: 'width 0.1s linear' }} />
         </div>
       </div>
       <span style={{ fontSize: 9, color: '#94A3B8', flexShrink: 0 }}>{durationText}</span>
@@ -163,10 +163,10 @@ const ImageEditCard: React.FC<{
               <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
                 {([['text', '文生图', ImagePlus], ['image', '图生图', Wand2], ['upload', '本地上传', Upload], ['transparent', '图片透明化', Globe]] as const).map(([key, label, Icon]) => (
                   <button key={key} onClick={() => setActiveTab(key as 'text' | 'image' | 'upload' | 'transparent')} style={{
-                    padding: '6px 14px', borderRadius: 6, border: '1px solid ' + (activeTab === key ? '#00C9A7' : '#E2E8F0'),
+                    padding: '6px 14px', borderRadius: 6, border: '1px solid ' + (activeTab === key ? 'var(--agent-primary)' : '#E2E8F0'),
                     fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: activeTab === key ? '#F0FDF9' : '#fff',
-                    color: activeTab === key ? '#00C9A7' : '#94A3B8',
+                    background: activeTab === key ? 'var(--agent-soft)' : '#fff',
+                    color: activeTab === key ? 'var(--agent-primary)' : '#94A3B8',
                     transition: '0.15s', display: 'flex', alignItems: 'center', gap: 4,
                   }}>
                     <Icon size={13} /> {label}
@@ -191,7 +191,7 @@ const ImageEditCard: React.FC<{
                   }} />
                   <button onClick={() => handleGenerate('text')} disabled={!promptText.trim()} style={{
                     width: '100%', padding: '8px 14px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: !promptText.trim() ? '#F1F5F9' : '#00C9A7', color: !promptText.trim() ? '#CBD5E1' : '#fff',
+                    background: !promptText.trim() ? '#F1F5F9' : 'var(--agent-primary)', color: !promptText.trim() ? '#CBD5E1' : '#fff',
                   }}>
                     生成
                   </button>
@@ -205,7 +205,7 @@ const ImageEditCard: React.FC<{
                   }} />
                   <button onClick={() => handleGenerate('image')} style={{
                     width: '100%', padding: '8px 14px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: '#00C9A7', color: '#fff',
+                    background: 'var(--agent-primary)', color: '#fff',
                   }}>
                     生成
                   </button>
@@ -225,7 +225,7 @@ const ImageEditCard: React.FC<{
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                   <div style={{ fontSize: 11, color: '#64748B', textAlign: 'center' }}>点击下方按钮去除当前图片背景</div>
                   <button onClick={handleTransparent} style={{
-                    padding: '8px 24px', borderRadius: 6, border: 'none', background: '#00C9A7', color: '#fff',
+                    padding: '8px 24px', borderRadius: 6, border: 'none', background: 'var(--agent-primary)', color: '#fff',
                     fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
                   }}>
                     <Globe size={13} /> 开始透明化
@@ -240,7 +240,7 @@ const ImageEditCard: React.FC<{
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {(isUploading || isGenerating) ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <span style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid #00C9A7', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  <span style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid var(--agent-primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                   <span style={{ fontSize: 11, color: '#64748B' }}>
                     {isUploading ? '上传中...' : activeTab === 'transparent' ? '图片透明化中...' : '生成中...'}
                   </span>
@@ -257,7 +257,7 @@ const ImageEditCard: React.FC<{
                   {/* 按钮 */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 65 }}>
                     <button onClick={confirmUse} style={{
-                      padding: '8px 20px', borderRadius: 6, border: 'none', background: '#00C9A7', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                      padding: '8px 20px', borderRadius: 6, border: 'none', background: 'var(--agent-primary)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                       display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
                     }}>
                       <Check size={14} /> 使用此图
@@ -389,7 +389,7 @@ const AudioEditCard: React.FC<{
             <InlinePlayer label={audio.label} duration={audio.duration} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
-            <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #00C9A7', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid var(--agent-primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
             <span style={{ fontSize: 11, color: '#64748B' }}>{isUploading ? '上传中...' : '合成中...'}</span>
           </div>
         </div>
@@ -402,12 +402,12 @@ const AudioEditCard: React.FC<{
             <InlinePlayer label={audio.label} duration={audio.duration} />
           </div>
 
-          <div style={{ width: 220, flexShrink: 0, padding: '6px 8px', background: '#F0FDF9', borderRadius: 6, border: '1px solid rgba(0,201,167,0.15)' }}>
+          <div style={{ width: 220, flexShrink: 0, padding: '6px 8px', background: 'var(--agent-soft)', borderRadius: 6, border: '1px solid rgba(0,201,167,0.15)' }}>
             <InlinePlayer label="新音频" duration={audio.duration} />
           </div>
 
           <button onClick={handleUseThis} style={{
-            padding: '6px 12px', borderRadius: 5, border: 'none', background: '#00C9A7', color: '#fff', fontSize: 11, cursor: 'pointer',
+            padding: '6px 12px', borderRadius: 5, border: 'none', background: 'var(--agent-primary)', color: '#fff', fontSize: 11, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', fontWeight: 600,
           }}>
             <Check size={11} /> 使用此音频
@@ -445,7 +445,7 @@ const VoiceRegenerateDropdown: React.FC<{
   return (
     <div ref={ref} style={{ position: 'relative', flex: 1 }}>
       <button onClick={() => setOpen(!open)} style={{
-        padding: '6px 12px', borderRadius: 5, border: 'none', background: '#F0FDF9', color: '#00C9A7', fontSize: 11, cursor: 'pointer',
+        padding: '6px 12px', borderRadius: 5, border: 'none', background: 'var(--agent-soft)', color: 'var(--agent-primary)', fontSize: 11, cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, whiteSpace: 'nowrap', fontWeight: 500, width: '100%',
       }}>
         <RotateCcw size={11} /> 重新合成 <ChevronDown size={12} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
@@ -459,8 +459,8 @@ const VoiceRegenerateDropdown: React.FC<{
           {voices.map(v => (
             <div key={v.id} onClick={() => { onRegenerate(v.id); setOpen(false); }} style={{
               padding: '7px 10px', fontSize: 11, cursor: 'pointer',
-              background: v.id === selectedVoice ? '#F0FDF9' : '#fff',
-              color: v.id === selectedVoice ? '#00C9A7' : '#334155',
+              background: v.id === selectedVoice ? 'var(--agent-soft)' : '#fff',
+              color: v.id === selectedVoice ? 'var(--agent-primary)' : '#334155',
             }}
               onMouseEnter={e => { if (v.id !== selectedVoice) e.currentTarget.style.background = '#F8FAFC'; }}
               onMouseLeave={e => { if (v.id !== selectedVoice) e.currentTarget.style.background = '#fff'; }}
@@ -601,9 +601,9 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
         {/* Tab - 精致胶囊风格（绿色主题） */}
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexShrink: 0, display: 'flex', gap: 10 }}>
           <button onClick={() => setActiveTab('images')} style={{
-            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1px solid ' + (activeTab === 'images' ? '#00C9A7' : '#E2E8F0'),
-            cursor: 'pointer', fontSize: 12, fontWeight: 600, background: activeTab === 'images' ? '#F0FDF9' : '#fff',
-            color: activeTab === 'images' ? '#00C9A7' : '#64748B',
+            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1px solid ' + (activeTab === 'images' ? 'var(--agent-primary)' : '#E2E8F0'),
+            cursor: 'pointer', fontSize: 12, fontWeight: 600, background: activeTab === 'images' ? 'var(--agent-soft)' : '#fff',
+            color: activeTab === 'images' ? 'var(--agent-primary)' : '#64748B',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             transition: 'all 0.2s ease',
           }}>
@@ -611,14 +611,14 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
             <span style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9,
-              background: activeTab === 'images' ? '#00C9A7' : '#F1F5F9',
+              background: activeTab === 'images' ? 'var(--agent-primary)' : '#F1F5F9',
               fontSize: 10, fontWeight: 700, color: activeTab === 'images' ? '#fff' : '#94A3B8',
             }}>{images.length}</span>
           </button>
           <button onClick={() => setActiveTab('audios')} style={{
-            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1px solid ' + (activeTab === 'audios' ? '#00C9A7' : '#E2E8F0'),
-            cursor: 'pointer', fontSize: 12, fontWeight: 600, background: activeTab === 'audios' ? '#F0FDF9' : '#fff',
-            color: activeTab === 'audios' ? '#00C9A7' : '#64748B',
+            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1px solid ' + (activeTab === 'audios' ? 'var(--agent-primary)' : '#E2E8F0'),
+            cursor: 'pointer', fontSize: 12, fontWeight: 600, background: activeTab === 'audios' ? 'var(--agent-soft)' : '#fff',
+            color: activeTab === 'audios' ? 'var(--agent-primary)' : '#64748B',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             transition: 'all 0.2s ease',
           }}>
@@ -626,7 +626,7 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
             <span style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9,
-              background: activeTab === 'audios' ? '#00C9A7' : '#F1F5F9',
+              background: activeTab === 'audios' ? 'var(--agent-primary)' : '#F1F5F9',
               fontSize: 10, fontWeight: 700, color: activeTab === 'audios' ? '#fff' : '#94A3B8',
             }}>{audios.length}</span>
           </button>
@@ -677,8 +677,8 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
                         {voices.map(v => (
                           <div key={v.id} onClick={() => { setBatchVoiceId(v.id); setShowBatchVoiceDropdown(false); }} style={{
                             padding: '8px 12px', fontSize: 11, cursor: 'pointer',
-                            color: v.id === batchVoiceId ? '#00C9A7' : '#334155',
-                            background: v.id === batchVoiceId ? '#F0FDF9' : '#fff',
+                            color: v.id === batchVoiceId ? 'var(--agent-primary)' : '#334155',
+                            background: v.id === batchVoiceId ? 'var(--agent-soft)' : '#fff',
                             fontWeight: v.id === batchVoiceId ? 600 : 400,
                           }}
                             onMouseEnter={e => { if (v.id !== batchVoiceId) e.currentTarget.style.background = '#F8FAFC'; }}
@@ -693,7 +693,7 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
                   {/* 批量合成按钮 */}
                   <button onClick={handleBatchRegenerate} disabled={selectedAudioIds.size === 0} style={{
                     padding: '5px 12px', borderRadius: 5, border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: selectedAudioIds.size === 0 ? '#F1F5F9' : '#00C9A7',
+                    background: selectedAudioIds.size === 0 ? '#F1F5F9' : 'var(--agent-primary)',
                     color: selectedAudioIds.size === 0 ? '#CBD5E1' : '#fff',
                     display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
                   }}>
@@ -704,7 +704,7 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
                     <>
                       <button onClick={handleBatchUseAll} style={{
                         padding: '5px 12px', borderRadius: 5, border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                        background: '#00C9A7', color: '#fff',
+                        background: 'var(--agent-primary)', color: '#fff',
                         display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
                       }}>
                         <Check size={11} /> 全部使用
@@ -776,7 +776,7 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
             </button>
             <button onClick={handleConfirm} style={{
               flex: 2, padding: '10px 20px', borderRadius: 8, border: 'none',
-              background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', color: '#fff',
+              background: 'var(--agent-gradient)', color: '#fff',
               fontSize: 13, fontWeight: 600, cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(0,201,167,0.2)',
             }}>
@@ -801,8 +801,8 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
           flex-shrink: 0;
         }
         .custom-checkbox:checked {
-          background: #00C9A7;
-          border-color: #00C9A7;
+          background: var(--agent-primary);
+          border-color: var(--agent-primary);
         }
         .custom-checkbox:checked::after {
           content: '';

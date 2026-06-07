@@ -83,8 +83,8 @@ const ImageResourceCard: React.FC<{
             borderRadius: 4,
             display: 'inline-block',
             marginTop: 4,
-            background: isUploaded ? '#FEF3C7' : '#F0FDF9',
-            color: isUploaded ? '#D97706' : '#00C9A7',
+            background: isUploaded ? '#FEF3C7' : 'var(--agent-soft)',
+            color: isUploaded ? '#D97706' : 'var(--agent-primary)',
           }}>
             {isUploaded ? '本地上传' : 'AI生成'}
           </span>
@@ -105,8 +105,8 @@ const ImageResourceCard: React.FC<{
                 padding: '6px 10px',
                 borderRadius: 6,
                 border: '1px solid #E2E8F0',
-                background: activeTab === 'generate' ? '#F0FDF9' : '#fff',
-                color: activeTab === 'generate' ? '#00C9A7' : '#64748B',
+                background: activeTab === 'generate' ? 'var(--agent-soft)' : '#fff',
+                color: activeTab === 'generate' ? 'var(--agent-primary)' : '#64748B',
                 fontSize: 12,
                 cursor: 'pointer',
               }}
@@ -124,8 +124,8 @@ const ImageResourceCard: React.FC<{
                 padding: '6px 10px',
                 borderRadius: 6,
                 border: '1px solid #E2E8F0',
-                background: activeTab === 'upload' ? '#F0FDF9' : '#fff',
-                color: activeTab === 'upload' ? '#00C9A7' : '#64748B',
+                background: activeTab === 'upload' ? 'var(--agent-soft)' : '#fff',
+                color: activeTab === 'upload' ? 'var(--agent-primary)' : '#64748B',
                 fontSize: 12,
                 cursor: 'pointer',
               }}
@@ -163,7 +163,7 @@ const ImageResourceCard: React.FC<{
                   padding: '8px 16px',
                   borderRadius: 6,
                   border: 'none',
-                  background: 'linear-gradient(135deg, #00C9A7, #00A8E8)',
+                  background: 'var(--agent-gradient)',
                   color: '#fff',
                   fontSize: 13,
                   fontWeight: 500,
@@ -233,7 +233,7 @@ const ImageResourceCard: React.FC<{
               cursor: 'pointer',
               background: '#FAFBFC',
             }} onClick={handleUploadClick}>
-              <Upload size={24} color="#00C9A7" />
+              <Upload size={24} color="var(--agent-primary)" />
               <span style={{ fontSize: 13, color: '#64748B' }}>点击上传图片</span>
               <span style={{ fontSize: 11, color: '#94A3B8' }}>支持 JPG、PNG、WebP</span>
             </div>
@@ -285,12 +285,12 @@ const AudioResourceCard: React.FC<{
           borderRadius: 6,
           overflow: 'hidden',
           flexShrink: 0,
-          background: '#F0FDF9',
+          background: 'var(--agent-soft)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <Music size={20} color="#00C9A7" />
+          <Music size={20} color="var(--agent-primary)" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 13, fontWeight: 500, color: '#1E293B', display: 'block' }}>
@@ -302,8 +302,8 @@ const AudioResourceCard: React.FC<{
             borderRadius: 4,
             display: 'inline-block',
             marginTop: 4,
-            background: isUploaded ? '#FEF3C7' : '#F0FDF9',
-            color: isUploaded ? '#D97706' : '#00C9A7',
+            background: isUploaded ? '#FEF3C7' : 'var(--agent-soft)',
+            color: isUploaded ? '#D97706' : 'var(--agent-primary)',
           }}>
             {isUploaded ? '本地上传' : currentVoice?.name || 'AI生成'}
           </span>
@@ -346,8 +346,8 @@ const AudioResourceCard: React.FC<{
                   padding: '6px 12px',
                   borderRadius: 6,
                   border: 'none',
-                  background: '#F0FDF9',
-                  color: '#00C9A7',
+                  background: 'var(--agent-soft)',
+                  color: 'var(--agent-primary)',
                   fontSize: 12,
                   cursor: 'pointer',
                 }}
@@ -379,7 +379,7 @@ const AudioResourceCard: React.FC<{
             <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileChange} style={{ display: 'none' }} />
           </div>
           {isUploaded && audio.uploadFileName && (
-            <div style={{ marginTop: 8, fontSize: 11, color: '#00C9A7' }}>
+            <div style={{ marginTop: 8, fontSize: 11, color: 'var(--agent-primary)' }}>
               当前文件: {audio.uploadFileName}
             </div>
           )}
@@ -433,8 +433,8 @@ const ResourceReplaceSidebar: React.FC<ResourceReplaceSidebarProps> = ({
             padding: '8px 12px',
             borderRadius: 6,
             border: '1px solid #E2E8F0',
-            background: activeSection === 'images' ? '#F0FDF9' : '#fff',
-            color: activeSection === 'images' ? '#00C9A7' : '#64748B',
+            background: activeSection === 'images' ? 'var(--agent-soft)' : '#fff',
+            color: activeSection === 'images' ? 'var(--agent-primary)' : '#64748B',
             fontSize: 13,
             cursor: 'pointer',
           }}
@@ -452,8 +452,8 @@ const ResourceReplaceSidebar: React.FC<ResourceReplaceSidebarProps> = ({
             padding: '8px 12px',
             borderRadius: 6,
             border: '1px solid #E2E8F0',
-            background: activeSection === 'audios' ? '#F0FDF9' : '#fff',
-            color: activeSection === 'audios' ? '#00C9A7' : '#64748B',
+            background: activeSection === 'audios' ? 'var(--agent-soft)' : '#fff',
+            color: activeSection === 'audios' ? 'var(--agent-primary)' : '#64748B',
             fontSize: 13,
             cursor: 'pointer',
           }}

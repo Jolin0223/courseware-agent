@@ -15,8 +15,8 @@ interface AudioGenerationPanelProps {
 }
 
 const StatusIcon: React.FC<{ status: string }> = ({ status }) => {
-  if (status === 'completed') return <CheckCircle2 size={16} color="#00C9A7" />;
-  if (status === 'in-progress') return <Loader2 size={16} color="#00C9A7" style={{ animation: 'spin 1s linear infinite' }} />;
+  if (status === 'completed') return <CheckCircle2 size={16} color="var(--agent-primary)" />;
+  if (status === 'in-progress') return <Loader2 size={16} color="var(--agent-primary)" style={{ animation: 'spin 1s linear infinite' }} />;
   if (status === 'failed') return <XCircle size={16} color="#EF4444" />;
   return null;
 };
@@ -81,7 +81,7 @@ const CompactAudioCard: React.FC<{ audio: AudioItem }> = ({ audio }) => {
           <circle cx="15" cy="15" r="13" fill="none" stroke="#E2E8F0" strokeWidth="2" />
           <circle
             cx="15" cy="15" r="13" fill="none"
-            stroke="#00C9A7"
+            stroke="var(--agent-primary)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -91,7 +91,7 @@ const CompactAudioCard: React.FC<{ audio: AudioItem }> = ({ audio }) => {
         </svg>
         <button onClick={togglePlay} style={{
           position: 'absolute', inset: 0, borderRadius: '50%', border: 'none',
-          background: 'transparent', color: isPlaying ? '#00C9A7' : '#64748B',
+          background: 'transparent', color: isPlaying ? 'var(--agent-primary)' : '#64748B',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', fontSize: 0,
         }}>
@@ -118,7 +118,7 @@ const CompactAudioCard: React.FC<{ audio: AudioItem }> = ({ audio }) => {
           <div key={i} style={{
             width: 2, borderRadius: 1,
             height: isPlaying ? [8, 12, 6, 10][i] : [4, 6, 4, 5][i],
-            background: isPlaying ? '#00C9A7' : '#CBD5E1',
+            background: isPlaying ? 'var(--agent-primary)' : '#CBD5E1',
             transition: 'height 0.3s ease',
             animation: isPlaying ? `waveAnim 0.8s ease-in-out ${i * 0.1}s infinite alternate` : 'none',
           }} />
@@ -208,12 +208,12 @@ const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, isEx
         padding: '12px 16px', cursor: 'pointer',
       }} onClick={onToggle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Music size={18} color="#00C9A7" />
+          <Music size={18} color="var(--agent-primary)" />
           <span style={{ fontSize: 14, fontWeight: 600, color: '#1E293B' }}>音频生成</span>
           <StatusIcon status={stage.status} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {stage.status !== 'pending' && <span style={{ fontSize: 13, color: '#00C9A7', fontWeight: 600 }}>{stage.progress}%</span>}
+          {stage.status !== 'pending' && <span style={{ fontSize: 13, color: 'var(--agent-primary)', fontWeight: 600 }}>{stage.progress}%</span>}
           {isExpanded ? <ChevronUp size={16} color="#64748B" /> : <ChevronDown size={16} color="#64748B" />}
         </div>
       </div>
@@ -225,14 +225,14 @@ const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, isEx
               <div style={{
                 height: '100%', borderRadius: 2,
                 width: `${stage.progress}%`,
-                background: stage.status === 'completed' ? '#00C9A7' : stage.status === 'failed' ? '#EF4444' : 'linear-gradient(90deg, #00C9A7, #00A8E8)',
+                background: stage.status === 'completed' ? 'var(--agent-primary)' : stage.status === 'failed' ? '#EF4444' : 'linear-gradient(90deg, var(--agent-primary), var(--agent-secondary))',
                 transition: 'width 0.4s ease',
               }} />
             </div>
           )}
 
           {stage.status === 'completed' && (
-            <p style={{ fontSize: 11, color: '#00C9A7', margin: '0 0 10px' }}>
+            <p style={{ fontSize: 11, color: 'var(--agent-primary)', margin: '0 0 10px' }}>
               ✅ 已完成，可在编辑阶段替换音色或上传本地音频
             </p>
           )}

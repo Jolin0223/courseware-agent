@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Eye, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning } from 'lucide-react';
+import { Copy, Eye, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2 } from 'lucide-react';
 import type { Courseware } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
@@ -190,7 +190,7 @@ export default function CoursewareCard({
         <div
           onClick={() => onOpenPreview?.(courseware.id)}
           style={{
-          background: 'linear-gradient(135deg, #00C9A7 0%, #00A8E8 100%)',
+          background: 'var(--agent-gradient)',
           padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
@@ -201,8 +201,12 @@ export default function CoursewareCard({
           <div style={{
             width: 44, height: 44, borderRadius: 12,
             background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
-          }}>📚</div>
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            color: '#FFFFFF', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.22)',
+          }}>
+            <FileCode2 size={21} strokeWidth={2.2} />
+            <span style={{ fontSize: 8, fontWeight: 900, lineHeight: 1, marginTop: 1 }}>HTML</span>
+          </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>{courseware.title}</div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 3 }}>刚刚生成</div>
@@ -224,10 +228,10 @@ export default function CoursewareCard({
             style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
               borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
-              background: 'linear-gradient(135deg, #00C9A7, #00A8E8)', color: '#fff',
+              background: 'var(--agent-gradient)', color: '#fff',
               transition: 'all 0.15s', outline: 'none',
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,201,167,0.3)'; }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px var(--agent-shadow)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
           >
             {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
@@ -243,13 +247,13 @@ export default function CoursewareCard({
                 display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
                 borderRadius: 8, fontSize: 13, fontWeight: 500,
                 cursor: isLatest ? 'pointer' : 'not-allowed',
-                border: isLatest ? '1.5px solid #00C9A7' : '1px solid #E2E8F0',
+                border: isLatest ? '1.5px solid var(--agent-primary)' : '1px solid #E2E8F0',
                 background: '#fff',
-                color: isLatest ? '#00C9A7' : '#CBD5E1',
+                color: isLatest ? 'var(--agent-primary)' : '#CBD5E1',
                 opacity: isLatest ? 1 : 0.7,
                 transition: 'all 0.15s', outline: 'none',
               }}
-              onMouseEnter={e => { if (isLatest) { e.currentTarget.style.background = '#F0FDF9'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,201,167,0.15)'; } }}
+              onMouseEnter={e => { if (isLatest) { e.currentTarget.style.background = 'var(--agent-soft)'; e.currentTarget.style.boxShadow = '0 2px 8px var(--agent-shadow)'; } }}
               onMouseLeave={e => { if (isLatest) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = 'none'; } }}
             >
               <Edit3 size={15} />
@@ -273,7 +277,7 @@ export default function CoursewareCard({
               border: '1px solid #E2E8F0', background: '#fff', color: '#475569',
               transition: 'all 0.15s', outline: 'none',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#00C9A7'; e.currentTarget.style.color = '#00C9A7'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--agent-primary)'; e.currentTarget.style.color = 'var(--agent-primary)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
           >
             <Eye size={15} />
@@ -295,10 +299,10 @@ export default function CoursewareCard({
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
                 borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
-                background: '#F59E0B', color: '#fff',
+                background: 'var(--agent-action-gradient)', color: '#fff',
                 transition: 'all 0.15s', outline: 'none',
               }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(245,158,11,0.3)'; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px var(--agent-shadow)'; }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               <Download size={15} />
@@ -314,7 +318,7 @@ export default function CoursewareCard({
         alignItems: 'center',
         marginTop: 8,
         paddingLeft: 2,
-        color: '#A7B0BB',
+        color: '#94A3B8',
         fontSize: 12,
       }}>
         <button
@@ -322,11 +326,11 @@ export default function CoursewareCard({
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
             border: 'none', background: 'transparent',
-            color: feedbackCopied ? '#00A987' : '#A7B0BB',
+            color: feedbackCopied ? 'var(--agent-primary-text)' : '#94A3B8',
             cursor: 'pointer', outline: 'none', lineHeight: 1.2,
           }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#00A987'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = feedbackCopied ? '#00A987' : '#A7B0BB'; }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--agent-primary-text)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = feedbackCopied ? 'var(--agent-primary-text)' : '#94A3B8'; }}
         >
           {feedbackCopied ? <CheckCircle2 size={13} /> : <MessageSquareWarning size={13} />}
           <span style={{ fontWeight: 600 }}>{feedbackCopied ? '已复制反馈信息' : '反馈问题'}</span>

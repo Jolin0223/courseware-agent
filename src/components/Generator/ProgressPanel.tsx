@@ -14,8 +14,8 @@ interface ProgressPanelProps {
 const CONFIRM_TEXT = '需求已明确，您需要一款面向三年级学生的英语身体部位听力互动游戏，通过听音辨位和触屏操作匹配英文指令，实现趣味动作反馈与奖励机制，提升词汇理解与学习兴趣。接下来我将根据您的需求开始开发。';
 
 const StatusIcon: React.FC<{ status: string }> = ({ status }) => {
-  if (status === 'completed') return <CheckCircle2 size={16} color="#00C9A7" />;
-  if (status === 'in-progress') return <Loader2 size={16} color="#00C9A7" style={{ animation: 'spin 1s linear infinite' }} />;
+  if (status === 'completed') return <CheckCircle2 size={16} color="var(--agent-primary)" />;
+  if (status === 'in-progress') return <Loader2 size={16} color="var(--agent-primary)" style={{ animation: 'spin 1s linear infinite' }} />;
   if (status === 'failed') return <XCircle size={16} color="#EF4444" />;
   return null;
 };
@@ -46,7 +46,7 @@ const StreamingText: React.FC<{ text: string; speed?: number; onComplete?: () =>
     <span>
       {displayed}
       {displayed.length < text.length && (
-        <span style={{ display: 'inline-block', width: 2, height: 16, background: '#00C9A7', marginLeft: 2, animation: 'blink 0.8s infinite', verticalAlign: 'text-bottom' }} />
+        <span style={{ display: 'inline-block', width: 2, height: 16, background: 'var(--agent-primary)', marginLeft: 2, animation: 'blink 0.8s infinite', verticalAlign: 'text-bottom' }} />
       )}
     </span>
   );
@@ -68,7 +68,7 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
     <div style={panelStyles.card}>
       <div style={panelStyles.header} onClick={onToggle}>
         <div style={panelStyles.headerLeft}>
-          <Code size={18} color="#00C9A7" />
+          <Code size={18} color="var(--agent-primary)" />
           <span style={panelStyles.headerTitle}>课件生成</span>
           <StatusIcon status={overallStatus} />
         </div>
@@ -81,7 +81,7 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
         <div style={{ padding: '12px 16px' }}>
           {codeStage && codeStage.status !== 'pending' && (
             <div style={panelStyles.progressBar}>
-              <div style={{ ...panelStyles.progressFill, width: `${overallProgress}%`, background: overallStatus === 'completed' ? '#00C9A7' : overallStatus === 'failed' ? '#EF4444' : 'linear-gradient(90deg, #00C9A7, #00A8E8)' }} />
+              <div style={{ ...panelStyles.progressFill, width: `${overallProgress}%`, background: overallStatus === 'completed' ? 'var(--agent-primary)' : overallStatus === 'failed' ? '#EF4444' : 'linear-gradient(90deg, var(--agent-primary), var(--agent-secondary))' }} />
             </div>
           )}
 
@@ -234,7 +234,7 @@ const panelStyles: Record<string, React.CSSProperties> = {
   },
   percentage: {
     fontSize: 13,
-    color: '#00C9A7',
+    color: 'var(--agent-primary)',
     fontWeight: 600,
   },
   progressBar: {

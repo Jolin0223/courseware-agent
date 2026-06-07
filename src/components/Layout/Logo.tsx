@@ -15,7 +15,7 @@ export default function Logo({ size = 32 }: { size?: number }) {
         width="20"
         height="20"
         rx="4"
-        fill="#22D3EE"
+        fill="var(--agent-secondary)"
         opacity="0.8"
       />
       {/* 上层绿色方块 */}
@@ -25,7 +25,7 @@ export default function Logo({ size = 32 }: { size?: number }) {
         width="20"
         height="20"
         rx="4"
-        fill="#4ADE80"
+        fill="var(--agent-primary)"
         opacity="0.9"
       />
       {/* 交集处的亮绿色 */}
@@ -35,7 +35,7 @@ export default function Logo({ size = 32 }: { size?: number }) {
         width="12"
         height="14"
         rx="2"
-        fill="#4ADE80"
+        fill="var(--agent-accent)"
       />
     </svg>
   );

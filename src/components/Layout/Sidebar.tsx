@@ -5,6 +5,7 @@ import {
   ChevronRight,
   PlusCircle,
   FolderOpen,
+  Palette,
   Monitor,
   PanelRight,
 } from 'lucide-react';
@@ -154,12 +155,37 @@ const styles = {
 
   themeArea: {
     flexShrink: 0,
-    padding: '10px 12px 8px',
+    padding: '8px 12px',
     borderTop: '1px solid #E2E8F0',
   } as React.CSSProperties,
 
+  themeMiniBtn: {
+    width: '100%',
+    height: 30,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    padding: '0 8px',
+    border: '1px solid rgba(148, 163, 184, 0.28)',
+    borderRadius: 7,
+    background: 'rgba(255,255,255,0.32)',
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'background 0.15s ease, color 0.15s ease, border-color 0.15s ease',
+  } as React.CSSProperties,
+
+  themeMiniLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  } as React.CSSProperties,
+
   themeTitle: {
-    marginBottom: 8,
+    margin: '8px 0 6px',
     paddingLeft: 4,
     color: '#64748B',
     fontSize: 12,
@@ -213,6 +239,7 @@ function Sidebar() {
 
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [themeId, setThemeId] = useState<AgentThemeId>(() => getStoredThemeId());
+  const [themePanelOpen, setThemePanelOpen] = useState(false);
 
   const handleNavClick = (item: NavItem) => {
     if (item.key === 'new') {
@@ -237,6 +264,8 @@ function Sidebar() {
     setThemeId(id);
     applyAgentTheme(id);
   };
+
+  const currentTheme = AGENT_THEMES.find(theme => theme.id === themeId) || AGENT_THEMES[0];
 
   return (
     <aside style={styles.sidebar(sidebarCollapsed)}>
@@ -340,27 +369,52 @@ function Sidebar() {
           style={styles.themeArea}
           title="仅供 demo 演示：正式产品不会展示配色方案选择器。"
         >
-          <div style={styles.themeTitle}>配色方案</div>
-          <div style={styles.themeButtons}>
-            {AGENT_THEMES.map(theme => (
-              <button
-                key={theme.id}
-                type="button"
-                title={theme.description}
-                onClick={() => switchTheme(theme.id)}
-                style={{
-                  ...styles.themeBtn,
-                  ...(themeId === theme.id ? styles.themeBtnActive : {}),
-                }}
-              >
-                <span style={{
-                  ...styles.themeDot,
-                  background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
-                }} />
-                {theme.name}
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setThemePanelOpen(open => !open)}
+            style={styles.themeMiniBtn}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.56)';
+              e.currentTarget.style.color = '#64748B';
+              e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.42)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.32)';
+              e.currentTarget.style.color = '#94A3B8';
+              e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.28)';
+            }}
+          >
+            <span style={styles.themeMiniLeft}>
+              <Palette size={13} />
+              <span>演示配色</span>
+            </span>
+            <span>{currentTheme.shortName}</span>
+          </button>
+          {themePanelOpen && (
+            <>
+              <div style={styles.themeTitle}>配色方案</div>
+              <div style={styles.themeButtons}>
+                {AGENT_THEMES.map(theme => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    title={theme.description}
+                    onClick={() => switchTheme(theme.id)}
+                    style={{
+                      ...styles.themeBtn,
+                      ...(themeId === theme.id ? styles.themeBtnActive : {}),
+                    }}
+                  >
+                    <span style={{
+                      ...styles.themeDot,
+                      background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
+                    }} />
+                    {theme.name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 

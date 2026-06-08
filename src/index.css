@@ -70,6 +70,8 @@
   --agent-shadow: rgba(15, 118, 110, 0.13);
   --agent-focus-ring: rgba(0, 201, 167, 0.10);
   --agent-focus-ring-strong: rgba(0, 201, 167, 0.14);
+  --agent-default-logo-display: block;
+  --agent-workbench-logo-display: none;
 }
 
 :root[data-agent-theme="iteach"] {
@@ -138,6 +140,41 @@
   --agent-focus-ring-strong: rgba(2, 116, 252, 0.16);
 }
 
+:root[data-agent-theme="workbench"] {
+  --bg-primary: #F4F6FA;
+  --primary: #0F7BFF;
+  --primary-hover: #0A68DD;
+  --primary-light: #EAF3FF;
+  --primary-dark: #0B57B7;
+  --accent: #0F7BFF;
+  --gradient-primary: linear-gradient(135deg, #0F7BFF 0%, #2A93FF 100%);
+  --gradient-hover: linear-gradient(135deg, #0A68DD 0%, #197DEB 100%);
+  --agent-primary: #0F7BFF;
+  --agent-secondary: #54A9FF;
+  --agent-accent: #0F7BFF;
+  --agent-primary-dark: #0B57B7;
+  --agent-primary-text: #0B57B7;
+  --agent-secondary-text: #2F6FB3;
+  --agent-soft: #F6FAFF;
+  --agent-soft-strong: #EAF3FF;
+  --agent-border: #D9E6F7;
+  --agent-sidebar: #F7FBFF;
+  --agent-page-bg: #F4F6FA;
+  --agent-gradient: linear-gradient(135deg, #0F7BFF, #2A93FF);
+  --agent-action: #0F7BFF;
+  --agent-action-text: #0B57B7;
+  --agent-action-soft: #F6FAFF;
+  --agent-action-border: #C8DDF8;
+  --agent-action-gradient: linear-gradient(135deg, #0F7BFF, #2A93FF);
+  --agent-hero-gradient: linear-gradient(135deg, #0F7BFF, #2A93FF);
+  --agent-panel-gradient: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 58%, #F8FBFF 100%);
+  --agent-shadow: rgba(37, 74, 120, 0.08);
+  --agent-focus-ring: rgba(15, 123, 255, 0.08);
+  --agent-focus-ring-strong: rgba(15, 123, 255, 0.13);
+  --agent-default-logo-display: none;
+  --agent-workbench-logo-display: block;
+}
+
 :root[data-agent-theme="orange"] {
   --bg-primary: #FFF7EC;
   --primary: #FF7A1A;
@@ -169,6 +206,32 @@
   --agent-shadow: rgba(224, 100, 21, 0.15);
   --agent-focus-ring: rgba(255, 122, 26, 0.12);
   --agent-focus-ring-strong: rgba(255, 122, 26, 0.18);
+}
+
+:root[data-agent-theme="workbench"] body {
+  background: #F4F6FA;
+}
+
+:root[data-agent-theme="workbench"] aside {
+  border-right-color: #E5EAF2 !important;
+  box-shadow: 1px 0 0 rgba(15, 23, 42, 0.02);
+}
+
+:root[data-agent-theme="workbench"] .inspiration-scroll article,
+:root[data-agent-theme="workbench"] .inspiration-scroll button {
+  border-color: #E4ECF7 !important;
+  box-shadow: none !important;
+}
+
+:root[data-agent-theme="workbench"] .inspiration-scroll article:hover,
+:root[data-agent-theme="workbench"] .inspiration-scroll button:hover {
+  border-color: #BFD7F5 !important;
+  box-shadow: 0 8px 24px rgba(37, 74, 120, 0.08) !important;
+}
+
+:root[data-agent-theme="workbench"] .ci-send-button,
+:root[data-agent-theme="workbench"] .ci-adopt-button {
+  box-shadow: 0 8px 20px rgba(15, 123, 255, 0.18) !important;
 }
 
 body {

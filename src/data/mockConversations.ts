@@ -106,6 +106,20 @@ export const mockConversations: Conversation[] = [
       {
         id: generateId(),
         role: 'user',
+        content: '再帮我新做一个颜色单词认一认',
+        type: 'text',
+        timestamp: new Date('2026-04-06T15:00:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: demoVersionResults[3],
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-06T15:04:00'),
+      },
+      {
+        id: generateId(),
+        role: 'user',
         content: '帮我把会话第二版最后一关玩一玩拆出来',
         type: 'text',
         timestamp: new Date('2026-04-06T15:06:00'),
@@ -113,7 +127,7 @@ export const mockConversations: Conversation[] = [
       {
         id: generateId(),
         role: 'assistant',
-        content: demoVersionResults[3],
+        content: demoVersionResults[4],
         type: 'courseware-result',
         timestamp: new Date('2026-04-06T15:10:00'),
       },

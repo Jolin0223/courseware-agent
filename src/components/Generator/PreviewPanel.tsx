@@ -36,6 +36,7 @@ interface SessionHtmlVersion {
   publishTargetId?: string;
   isCurrentPublished?: boolean;
   isHistoricalPublished?: boolean;
+  isRemoved?: boolean;
 }
 
 interface PublishedGameTarget {
@@ -137,7 +138,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
   const [publishedTargets, setPublishedTargets] = useState<PublishedGameTarget[]>(() => buildPublishedTargets(versionSourceCourseware));
 
-  const [selectedVersion, setSelectedVersion] = useState('v4');
+  const [selectedVersion, setSelectedVersion] = useState(() => buildSessionVersions(versionSourceCourseware).at(-1)?.version || 'v1');
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
   const [selectedUpdateTargetId, setSelectedUpdateTargetId] = useState<string | null>('game-b');
@@ -148,9 +149,10 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   const versionScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setVersions(buildSessionVersions(versionSourceCourseware));
+    const nextVersions = buildSessionVersions(versionSourceCourseware);
+    setVersions(nextVersions);
     setPublishedTargets(buildPublishedTargets(versionSourceCourseware));
-    setSelectedVersion('v4');
+    setSelectedVersion(nextVersions.at(-1)?.version || 'v1');
     setSelectedUpdateTargetId('game-b');
     setIsEditing(false);
     setEditContent('');
@@ -173,7 +175,8 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   const selectedUpdateTarget = publishedTargets.find(target => target.id === selectedUpdateTargetId) || publishedTargets[0];
   const hasPublishedTargets = publishedTargets.length > 0;
   const hasMultiplePublishedGames = publishedTargets.length > 1;
-  const isUnpublishedVersion = !!currentVersion && !currentVersion.isCurrentPublished && !currentVersion.isHistoricalPublished;
+  const isRemovedVersion = !!currentVersion?.isRemoved;
+  const isUnpublishedVersion = !!currentVersion && !currentVersion.isCurrentPublished && !currentVersion.isHistoricalPublished && !currentVersion.isRemoved;
   const canUpdateCurrentDraft = hasPublishedTargets && latestVersion && selectedVersion === latestVersion.version && isUnpublishedVersion;
 
   const srcDoc = currentVersion?.htmlContent || PLACEHOLDER_HTML;
@@ -269,6 +272,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   if (!courseware) return null;
 
   const getVersionPublishLabel = (version: SessionHtmlVersion) => {
+    if (version.isRemoved) return '已下架';
     if (version.isCurrentPublished) return '当前发布';
     if (version.isHistoricalPublished) return '已发布(历史版本)';
     return '未发布草稿';
@@ -292,12 +296,14 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
   const publishBtnText = canUpdateCurrentDraft
     ? '更新发布'
-    : currentVersion?.isCurrentPublished
+    : currentVersion?.isRemoved
+      ? '已下架'
+      : currentVersion?.isCurrentPublished
       ? '已发布'
       : currentVersion?.isHistoricalPublished
         ? '已发布(历史版本)'
         : '发布';
-  const publishBtnDisabled = (currentVersion?.isCurrentPublished || currentVersion?.isHistoricalPublished) && !canUpdateCurrentDraft;
+  const publishBtnDisabled = (currentVersion?.isCurrentPublished || currentVersion?.isHistoricalPublished || currentVersion?.isRemoved) && !canUpdateCurrentDraft;
 
   return (
     <div style={panelStyle.container}>
@@ -347,7 +353,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
               </button>
             )}
           </div>
-          {isEmbedded && courseware && (
+          {isEmbedded && courseware && !isRemovedVersion && (
             <button
               onClick={() => {
                 insertCourseware({
@@ -375,7 +381,15 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
           <button onClick={handleFullscreen} style={panelStyle.iconBtn} title="全屏">
             <Maximize2 size={15} />
           </button>
-          <button onClick={handleEdit} style={panelStyle.iconBtn} title="编辑">
+          <button
+            onClick={handleEdit}
+            disabled={isRemovedVersion}
+            style={{
+              ...panelStyle.iconBtn,
+              ...(isRemovedVersion ? { color: '#CBD5E1', cursor: 'default', background: '#F8FAFC' } : {}),
+            }}
+            title={isRemovedVersion ? '已下架资源不可编辑' : '编辑'}
+          >
             <Edit3 size={15} />
           </button>
           <button onClick={onClose} style={panelStyle.iconBtn} title="关闭">
@@ -497,14 +511,15 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                   style={{
                     ...panelStyle.versionItem,
                     background: v.version === selectedVersion ? '#F0FDFA' : '#F8FAFC',
-                    color: v.version === selectedVersion ? 'var(--agent-primary)' : '#64748B',
-                    border: v.version === selectedVersion ? '1.5px solid var(--agent-primary)' : '1px solid #E2E8F0',
+                    color: v.isRemoved ? '#94A3B8' : v.version === selectedVersion ? 'var(--agent-primary)' : '#64748B',
+                    border: v.isRemoved ? '1px dashed #CBD5E1' : v.version === selectedVersion ? '1.5px solid var(--agent-primary)' : '1px solid #E2E8F0',
+                    opacity: v.isRemoved ? 0.78 : 1,
                   }}
                 >
                   <span style={panelStyle.versionMain}>{getVersionMainLabel(v)}</span>
                   <span style={{
                     ...panelStyle.versionBadge,
-                    color: v.isCurrentPublished ? 'var(--agent-primary-text)' : v.isHistoricalPublished ? '#94A3B8' : '#F59E0B',
+                    color: v.isRemoved ? '#EF4444' : v.isCurrentPublished ? 'var(--agent-primary-text)' : v.isHistoricalPublished ? '#94A3B8' : '#F59E0B',
                   }}>
                     {getVersionPublishLabel(v)}
                   </span>

@@ -21,8 +21,13 @@ export const demoVersionResults: CoursewareResult[] = [
     htmlContent: fruitGardenReadAloudOnlyHTML,
   },
   {
-    title: '动物单词玩一玩',
+    title: '颜色单词认一认',
     version: 'v4.0',
+    htmlContent: fruitGardenReadAloudOnlyHTML,
+  },
+  {
+    title: '动物单词玩一玩',
+    version: 'v5.0',
     htmlContent: animalsPlayOnlyHTML,
   },
 ];
@@ -58,6 +63,15 @@ export const demoSessionVersions = [
   {
     version: 'v4',
     sessionNumber: 4,
+    title: '颜色单词认一认',
+    htmlContent: fruitGardenReadAloudOnlyHTML,
+    publishTargetId: 'game-removed',
+    isRemoved: true,
+    createdAt: '2026-06-05 19:55',
+  },
+  {
+    version: 'v5',
+    sessionNumber: 5,
     title: '动物单词玩一玩',
     htmlContent: animalsPlayOnlyHTML,
     createdAt: '2026-06-05 20:02',

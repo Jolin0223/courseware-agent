@@ -1,4 +1,4 @@
-export type AgentThemeId = 'green' | 'iteach' | 'cyan' | 'orange';
+export type AgentThemeId = 'green' | 'iteach' | 'cyan' | 'workbench' | 'orange';
 
 export interface AgentThemeOption {
   id: AgentThemeId;
@@ -47,6 +47,17 @@ export const AGENT_THEMES: AgentThemeOption[] = [
     },
   },
   {
+    id: 'workbench',
+    name: 'iTeach 工作台',
+    shortName: '工',
+    description: '贴近小学工作台的浅蓝白界面，弱化演示感',
+    colors: {
+      primary: '#1677FF',
+      secondary: '#68B8FF',
+      accent: '#1677FF',
+    },
+  },
+  {
     id: 'orange',
     name: '橙光创作',
     shortName: '橙',
@@ -73,6 +84,10 @@ const aliases: Record<string, AgentThemeId> = {
   blueai: 'cyan',
   smartblue: 'cyan',
   qing: 'cyan',
+  workbench: 'workbench',
+  iteachworkbench: 'workbench',
+  platform: 'workbench',
+  xiaoxue: 'workbench',
   orange: 'orange',
   b: 'orange',
 };

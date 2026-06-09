@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { BarChart3, Check, Eye, RefreshCw, X } from 'lucide-react';
+import { BarChart3, Check, Eye, RefreshCw, Tag, X } from 'lucide-react';
 import type { LearningDataRecoveryItem } from '../../types';
 import { defaultRecoveryItems } from '../../utils/learningDataRecovery';
 
@@ -76,7 +76,7 @@ export default function LearningDataRecoveryModal({
             onClick={() => setActiveTab('preview')}
           >
             <Eye size={15} />
-            查看样式图
+            预览学情报告
           </button>
         </div>
 
@@ -123,7 +123,7 @@ export default function LearningDataRecoveryModal({
                 disabled={selectedCount === 0 || isSubmitting}
                 onClick={handleRegenerate}
               >
-                {isSubmitting ? '生成中...' : '确定'}
+                {isSubmitting ? '生成中...' : '确定并重新生成课件'}
               </button>
             </div>
           </div>
@@ -168,17 +168,13 @@ function StudentReportPreview({ selectedItems }: { selectedItems: LearningDataRe
 
       <div style={styles.reportSection}>
         <div style={styles.sectionTitle}>知识点掌握</div>
-        <div style={styles.radarWrap}>
-          <div style={styles.radar}>
-            <div style={{ ...styles.radarLine, transform: 'rotate(0deg)' }} />
-            <div style={{ ...styles.radarLine, transform: 'rotate(72deg)' }} />
-            <div style={{ ...styles.radarLine, transform: 'rotate(144deg)' }} />
-            <div style={styles.radarShape} />
-          </div>
-          <div style={styles.tagList}>
-            {['apple', 'banana', 'orange', 'grape'].map(tag => (
-              <span key={tag} style={styles.tag}>{tag}</span>
-            ))}
+        <div style={styles.radarPending}>
+          <div style={styles.radarPendingIcon}><Tag size={18} /></div>
+          <div style={styles.radarPendingText}>
+            <div style={styles.radarPendingTitle}>发布并完成知识点标签后生成真实雷达图</div>
+            <div style={styles.radarPendingDesc}>
+              当前仅预览报告样式。知识点维度将读取资源发布后绑定的集团标签或校本标签，再结合学生作答数据计算掌握度。
+            </div>
           </div>
         </div>
       </div>
@@ -373,7 +369,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   primaryBtn: {
     height: 36,
-    minWidth: 84,
+    minWidth: 168,
     padding: '0 20px',
     borderRadius: 8,
     border: 'none',
@@ -501,6 +497,41 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#0F766E',
     fontSize: 12,
     fontWeight: 800,
+  },
+  radarPending: {
+    display: 'flex',
+    gap: 12,
+    alignItems: 'flex-start',
+    padding: 14,
+    borderRadius: 12,
+    border: '1px dashed #99F6E4',
+    background: '#F0FDFA',
+  },
+  radarPendingIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    background: '#FFFFFF',
+    color: 'var(--agent-primary-text)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    boxShadow: '0 4px 12px rgba(15, 118, 110, 0.08)',
+  },
+  radarPendingText: {
+    minWidth: 0,
+  },
+  radarPendingTitle: {
+    fontSize: 13,
+    fontWeight: 900,
+    color: '#0F172A',
+    marginBottom: 5,
+  },
+  radarPendingDesc: {
+    fontSize: 12,
+    lineHeight: 1.55,
+    color: '#64748B',
   },
   suggestion: {
     padding: 12,

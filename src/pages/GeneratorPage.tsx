@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Headphones, Info, Mic } from 'lucide-react';
 import ChatInput from '../components/Generator/ChatInput';
 // ChatHistory moved to Sidebar
 import RequirementCard from '../components/Generator/RequirementCard';
@@ -23,6 +24,9 @@ import type {
   MaterialIntentOption,
   MaterialIntentResolution,
   UserMaterialMessage,
+  VoiceCapabilityConfirmation,
+  VoiceCapabilityIntent,
+  VoiceCapabilitySelection,
 } from '../types';
 import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
@@ -167,6 +171,43 @@ const buildIntentPrompt = (
   }).join('\n');
   const originalPrompt = prompt.trim() || '请根据上传材料生成互动课件';
   return `${originalPrompt}\n\n上传材料：${attachmentNames}\n材料用途：\n${usageLines}`;
+};
+
+const detectVoiceCapabilityIntent = (value: string): VoiceCapabilityIntent | null => {
+  const text = value.trim();
+  if (!text) return null;
+
+  const explicitNoVoice = /(不需要|无需|不要|不用|不启用|不用接入).*(录音|收音|语音|口语|朗读|评测|发音)/.test(text)
+    || /(录音|收音|语音|口语|朗读|评测|发音).*(不需要|无需|不要|不用|不启用)/.test(text);
+  const clearNonVoiceInteraction = /(只做|仅做|做一个|生成).*(点击|拖拽|选择|配对|排序|连线|消除|翻牌|分类|填空|判断)/.test(text)
+    && !/(录音|收音|语音|口语|朗读|跟读|背诵|口述|发音|开口|说出|读出|评测)/.test(text);
+  if (explicitNoVoice || clearNonVoiceInteraction) return null;
+
+  const englishAssessmentSignal = /(英语口语|英文口语|口语评测|发音评价|发音评测|pronunciation|speaking|speak|read aloud)/i.test(text)
+    || /(英语|英文|单词|短句|对话|句子).*(跟读|朗读|读一读|我来读|开口读|发音|口语|评测)/.test(text)
+    || /(跟读|朗读|读一读|我来读|开口读|发音|口语|评测).*(英语|英文|单词|短句|对话|句子)/.test(text);
+  if (englishAssessmentSignal) return 'english-oral';
+
+  const recordOnlySignal = /(古诗|诗词|课文朗读|中文朗读|语文朗读|背诵|口述|看图说话|复述|朗读|录音|收音|开口作答|语音作答|说一说|读一读)/.test(text);
+  if (recordOnlySignal) return 'record-only';
+
+  return null;
+};
+
+const buildVoiceCapabilityAppendix = (selection: VoiceCapabilitySelection) => {
+  if (!selection.smallScreenRecording && !selection.englishOralAssessment) return '';
+
+  const lines = ['', '语音服务配置：'];
+  if (selection.smallScreenRecording) {
+    lines.push('- 启用学习机小屏真实收音：学生在学习机小屏点击录音并提交真实作答。');
+  }
+  if (selection.englishOralAssessment) {
+    lines.push('- 启用英语口语评测：仅用于英语单词、短句、简单对话等当前支持范围；需要展示真实评测结果。');
+  } else if (selection.smallScreenRecording) {
+    lines.push('- 不启用自动口语评测：古诗词朗读、中文朗读、背诵、开放口述等场景只做录音提交或完成反馈。');
+  }
+  lines.push('- 生成后需校验：不支持评测的录音题不得出现随机分数、星级评测、发音准确率等伪评测结果。');
+  return lines.join('\n');
 };
 
 const isUserMaterialMessage = (content: ConversationMessage['content']): content is UserMaterialMessage => (
@@ -474,6 +515,156 @@ const intentCardStyles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 700,
     flexShrink: 0,
+  },
+};
+
+const voiceCardStyles: Record<string, React.CSSProperties> = {
+  card: {
+    background: '#FFFFFF',
+    border: '1px solid #BAE6FD',
+    borderRadius: 12,
+    boxShadow: '0 12px 32px rgba(14, 165, 233, 0.1)',
+    padding: 16,
+    maxWidth: 720,
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 14,
+    marginBottom: 14,
+  },
+  titleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 5,
+  },
+  titleIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    background: '#E0F2FE',
+    color: '#0284C7',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: 800,
+    color: '#0F172A',
+  },
+  summary: {
+    fontSize: 13,
+    lineHeight: 1.55,
+    color: '#64748B',
+  },
+  badge: {
+    flexShrink: 0,
+    padding: '4px 8px',
+    borderRadius: 999,
+    background: '#E0F2FE',
+    color: '#0369A1',
+    fontSize: 12,
+    fontWeight: 700,
+  },
+  options: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: 10,
+  },
+  optionBtn: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 10,
+    minHeight: 86,
+    padding: '12px 13px',
+    borderRadius: 10,
+    border: '1px solid #E2E8F0',
+    background: '#F8FAFC',
+    cursor: 'pointer',
+    textAlign: 'left',
+    outline: 'none',
+    transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
+  },
+  optionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  optionTitle: {
+    display: 'block',
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: 800,
+    marginBottom: 4,
+  },
+  optionDesc: {
+    display: 'block',
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.45,
+  },
+  note: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginTop: 12,
+    padding: '10px 12px',
+    borderRadius: 10,
+    background: '#F8FAFC',
+    border: '1px solid #E2E8F0',
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 1.5,
+  },
+  footer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 14,
+    paddingTop: 12,
+    borderTop: '1px solid #E2E8F0',
+  },
+  countdown: {
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.5,
+  },
+  actions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: 10,
+    flexShrink: 0,
+  },
+  ghostBtn: {
+    border: '1px solid #CBD5E1',
+    borderRadius: 8,
+    padding: '9px 14px',
+    background: '#FFFFFF',
+    color: '#334155',
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+    outline: 'none',
+  },
+  confirmBtn: {
+    border: 'none',
+    borderRadius: 8,
+    padding: '9px 16px',
+    background: 'var(--agent-primary)',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: 'pointer',
+    outline: 'none',
   },
 };
 
@@ -852,6 +1043,139 @@ function MaterialIntentCard({
   );
 }
 
+function VoiceCapabilityCard({
+  confirmation,
+  onConfirm,
+}: {
+  confirmation: VoiceCapabilityConfirmation;
+  onConfirm?: (selection: VoiceCapabilitySelection) => void;
+}) {
+  const AUTO_CONFIRM_SECONDS = 60;
+  const [selection, setSelection] = useState<VoiceCapabilitySelection>({
+    smallScreenRecording: true,
+    englishOralAssessment: confirmation.intent === 'english-oral',
+  });
+  const [remainingSeconds, setRemainingSeconds] = useState(AUTO_CONFIRM_SECONDS);
+  const selectionRef = useRef(selection);
+  const confirmedRef = useRef(false);
+
+  useEffect(() => {
+    selectionRef.current = selection;
+  }, [selection]);
+
+  const confirmSelection = useCallback((nextSelection: VoiceCapabilitySelection) => {
+    if (confirmedRef.current) return;
+    confirmedRef.current = true;
+    onConfirm?.(nextSelection);
+  }, [onConfirm]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setRemainingSeconds(prev => {
+        if (prev <= 1) {
+          window.clearInterval(timer);
+          confirmSelection(selectionRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [confirmSelection]);
+
+  const toggleRecording = () => {
+    setSelection(prev => {
+      const nextRecording = !prev.smallScreenRecording;
+      return {
+        smallScreenRecording: nextRecording,
+        englishOralAssessment: nextRecording ? prev.englishOralAssessment : false,
+      };
+    });
+  };
+
+  const toggleAssessment = () => {
+    setSelection(prev => {
+      const nextAssessment = !prev.englishOralAssessment;
+      return {
+        smallScreenRecording: nextAssessment ? true : prev.smallScreenRecording,
+        englishOralAssessment: nextAssessment,
+      };
+    });
+  };
+
+  const optionStyle = (selected: boolean): React.CSSProperties => ({
+    ...voiceCardStyles.optionBtn,
+    borderColor: selected ? 'var(--agent-primary)' : '#E2E8F0',
+    background: selected ? 'var(--agent-soft-strong)' : '#F8FAFC',
+    boxShadow: selected ? '0 8px 22px rgba(14, 165, 233, 0.12)' : 'none',
+  });
+
+  const iconStyle = (selected: boolean): React.CSSProperties => ({
+    ...voiceCardStyles.optionIcon,
+    background: selected ? '#FFFFFF' : '#E0F2FE',
+    color: selected ? 'var(--agent-primary)' : '#0284C7',
+  });
+
+  return (
+    <div style={voiceCardStyles.card}>
+      <div style={voiceCardStyles.header}>
+        <div>
+          <div style={voiceCardStyles.titleRow}>
+            <span style={voiceCardStyles.titleIcon}><Mic size={17} /></span>
+            <div style={voiceCardStyles.title}>确认是否启用语音服务</div>
+          </div>
+          <div style={voiceCardStyles.summary}>
+            检测到本课件可能需要学生开口作答，请确认是否需要真实收音或英语口语评测。
+          </div>
+        </div>
+        <div style={voiceCardStyles.badge}>
+          {confirmation.intent === 'english-oral' ? '疑似英语口语' : '疑似录音作答'}
+        </div>
+      </div>
+
+      <div style={voiceCardStyles.options}>
+        <button type="button" onClick={toggleRecording} style={optionStyle(selection.smallScreenRecording)}>
+          <span style={iconStyle(selection.smallScreenRecording)}><Mic size={17} /></span>
+          <span>
+            <span style={voiceCardStyles.optionTitle}>学习机小屏真实收音</span>
+            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，可用于朗读、背诵、口述等开口互动。</span>
+          </span>
+        </button>
+
+        <button type="button" onClick={toggleAssessment} style={optionStyle(selection.englishOralAssessment)}>
+          <span style={iconStyle(selection.englishOralAssessment)}><Headphones size={17} /></span>
+          <span>
+            <span style={voiceCardStyles.optionTitle}>英语口语评测</span>
+            <span style={voiceCardStyles.optionDesc}>当前仅支持英语单词、短句、简单对话；勾选后会自动启用真实收音。</span>
+          </span>
+        </button>
+      </div>
+
+      <div style={voiceCardStyles.note}>
+        <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+        <span>古诗词朗读评测、中文朗读评测、背诵评测、开放口述评价暂未开放，可先使用真实收音完成录音作答。</span>
+      </div>
+
+      <div style={voiceCardStyles.footer}>
+        <span style={voiceCardStyles.countdown}>{remainingSeconds}s 后将自动按当前选择继续</span>
+        <div style={voiceCardStyles.actions}>
+          <button
+            type="button"
+            onClick={() => confirmSelection({ smallScreenRecording: false, englishOralAssessment: false })}
+            style={voiceCardStyles.ghostBtn}
+          >
+            不需要语音服务，继续
+          </button>
+          <button type="button" onClick={() => confirmSelection(selection)} style={voiceCardStyles.confirmBtn}>
+            确认并继续
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GameplayReplayCard({ item }: { item: GameplayInspiration }) {
   return (
     <div style={replayStyles.card}>
@@ -877,6 +1201,7 @@ function AssistantMessage({
   onRetry,
   onContinue,
   onMaterialIntentConfirm,
+  onVoiceCapabilityConfirm,
   onOpenPreview,
 }: { 
   message: ConversationMessage; 
@@ -887,6 +1212,7 @@ function AssistantMessage({
   onRetry?: (stageIndex: number) => void;
   onContinue?: (stageIndex: number) => void;
   onMaterialIntentConfirm?: (messageId: string, resolutions: MaterialIntentResolution[]) => void;
+  onVoiceCapabilityConfirm?: (messageId: string, selection: VoiceCapabilitySelection) => void;
   onOpenPreview?: (coursewareId: number) => void;
 }) {
   const conversations = useConversationStore(s => s.conversations);
@@ -983,6 +1309,20 @@ function AssistantMessage({
           <MaterialIntentCard
             confirmation={message.content as MaterialIntentConfirmation}
             onConfirm={(resolutions) => onMaterialIntentConfirm?.(message.id, resolutions)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (message.type === 'voice-capability-confirmation') {
+    return (
+      <div style={styles.messageAssistant}>
+        <AIAvatar />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <VoiceCapabilityCard
+            confirmation={message.content as VoiceCapabilityConfirmation}
+            onConfirm={(selection) => onVoiceCapabilityConfirm?.(message.id, selection)}
           />
         </div>
       </div>
@@ -1114,6 +1454,27 @@ export default function GeneratorPage() {
     }, demoMs(1500));
   }, [addAssistantMessage]);
 
+  const maybeAskVoiceCapability = useCallback((
+    convId: string,
+    originalPrompt: string,
+    promptForFramework: string,
+    source: VoiceCapabilityConfirmation['source'] = 'user-prompt',
+  ) => {
+    const intent = detectVoiceCapabilityIntent(`${originalPrompt}\n${promptForFramework}`);
+    if (!intent) {
+      startRequirementFlow(convId, promptForFramework);
+      return;
+    }
+
+    addAssistantMessage(convId, {
+      prompt: originalPrompt,
+      promptForFramework,
+      intent,
+      source,
+    }, 'voice-capability-confirmation');
+    setPhase('input');
+  }, [addAssistantMessage, startRequirementFlow]);
+
   useEffect(() => {
     if (chatAreaRef.current) {
       requestAnimationFrame(() => {
@@ -1209,8 +1570,9 @@ export default function GeneratorPage() {
           c.id === convId ? { ...c, cloneDraft: undefined } : c
         ),
       }));
-      startRequirementFlow(
+      maybeAskVoiceCapability(
         convId,
+        text,
         `${text}\n\n同款参考附件：${cloneAttachments.map(file => `HTML「${file.name}」`).join('、')}。该附件仅作为隐藏上下文，不展示、不打开、不下载。`
       );
       return;
@@ -1236,12 +1598,12 @@ export default function GeneratorPage() {
         `已识别 ${resolvedIntents.length} 个上传材料用途：\n${resolvedIntents.map(item => `- ${item.title}：${item.reason}`).join('\n')}\n接下来我会把这些用途带入需求分析。`,
         'text'
       );
-      startRequirementFlow(convId, buildIntentPrompt(text, materialAttachments, resolvedIntents));
+      maybeAskVoiceCapability(convId, text, buildIntentPrompt(text, materialAttachments, resolvedIntents), 'material-intent');
       return;
     }
 
-    startRequirementFlow(convId, text);
-  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, startRequirementFlow, selectedInspiration]);
+    maybeAskVoiceCapability(convId, text, text);
+  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability, selectedInspiration]);
 
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
@@ -1476,8 +1838,32 @@ export default function GeneratorPage() {
       `好的，已确认全部上传材料用途：\n${allResolutions.map(item => `- ${item.title}：${item.customText || item.description}`).join('\n')}\n接下来我会把这些用途带入需求分析。`,
       'text'
     );
-    startRequirementFlow(activeConversationId, buildIntentPrompt(originalPrompt, allAttachments, allResolutions));
-  }, [activeConversationId, activeConversation, addUserMessage, addAssistantMessage, startRequirementFlow]);
+    maybeAskVoiceCapability(
+      activeConversationId,
+      originalPrompt,
+      buildIntentPrompt(originalPrompt, allAttachments, allResolutions),
+      'material-intent',
+    );
+  }, [activeConversationId, activeConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
+
+  const handleVoiceCapabilityConfirm = useCallback((messageId: string, selection: VoiceCapabilitySelection) => {
+    if (!activeConversationId) return;
+    const message = activeConversation?.messages.find(m => m.id === messageId);
+    if (!message || message.type !== 'voice-capability-confirmation') return;
+
+    const confirmation = message.content as VoiceCapabilityConfirmation;
+    const selectedText = selection.englishOralAssessment
+      ? '启用学习机小屏真实收音和英语口语评测'
+      : selection.smallScreenRecording
+        ? '启用学习机小屏真实收音，不启用口语评测'
+        : '不需要语音服务，继续';
+
+    addUserMessage(activeConversationId, selectedText);
+    startRequirementFlow(
+      activeConversationId,
+      `${confirmation.promptForFramework}${buildVoiceCapabilityAppendix(selection)}`,
+    );
+  }, [activeConversationId, activeConversation, addUserMessage, startRequirementFlow]);
   
   const renderContent = () => {
     if (!activeConversationId || (!hasMessages && phase === 'input')) {
@@ -1534,6 +1920,7 @@ export default function GeneratorPage() {
                         onRetry={handleRetryStage}
                         onContinue={handleContinueStage}
                         onMaterialIntentConfirm={handleMaterialIntentConfirm}
+                        onVoiceCapabilityConfirm={handleVoiceCapabilityConfirm}
                         onOpenPreview={(coursewareId) => {
                           setSidebarCollapsed(true);
                           openPreview(coursewareId);

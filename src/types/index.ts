@@ -28,6 +28,7 @@ export type MessageType =
   | 'generation-progress'
   | 'courseware-result'
   | 'material-intent-confirmation'
+  | 'voice-capability-confirmation'
   | 'analyzing';
 
 export interface RequirementFramework {
@@ -107,6 +108,20 @@ export interface MaterialIntentConfirmation {
   summary: string;
 }
 
+export type VoiceCapabilityIntent = 'english-oral' | 'record-only';
+
+export interface VoiceCapabilityConfirmation {
+  prompt: string;
+  promptForFramework: string;
+  intent: VoiceCapabilityIntent;
+  source: 'user-prompt' | 'material-intent';
+}
+
+export interface VoiceCapabilitySelection {
+  smallScreenRecording: boolean;
+  englishOralAssessment: boolean;
+}
+
 export interface UserMaterialMessage {
   text: string;
   attachments?: UploadedAttachment[];
@@ -116,7 +131,7 @@ export interface UserMaterialMessage {
 export interface ConversationMessage {
   id: string;
   role: MessageRole;
-  content: string | UserMaterialMessage | RequirementFramework | GenerationProgress | CoursewareResult | MaterialIntentConfirmation;
+  content: string | UserMaterialMessage | RequirementFramework | GenerationProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
   type?: MessageType;
   timestamp: Date;
 }

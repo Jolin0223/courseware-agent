@@ -59,9 +59,12 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
   const codeStage = stages[0];
   const reviewStage = stages[1];
   const fixStage = stages[2];
+  const learningDataStage = stages[3];
   const hasFailed = stages.some(s => s.status === 'failed');
-  const overallStatus = hasFailed ? 'failed' : fixStage?.status === 'completed' ? 'completed' : codeStage?.status === 'pending' ? 'pending' : 'in-progress';
-  const overallProgress = Math.round(((codeStage?.progress || 0) + (reviewStage?.progress || 0) + (fixStage?.progress || 0)) / 3);
+  const finalStage = learningDataStage || fixStage;
+  const overallStatus = hasFailed ? 'failed' : finalStage?.status === 'completed' ? 'completed' : codeStage?.status === 'pending' ? 'pending' : 'in-progress';
+  const stageCount = learningDataStage ? 4 : 3;
+  const overallProgress = Math.round(((codeStage?.progress || 0) + (reviewStage?.progress || 0) + (fixStage?.progress || 0) + (learningDataStage?.progress || 0)) / stageCount);
   const [introTextDone, setIntroTextDone] = useState(instant);
 
   return (
@@ -131,7 +134,7 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
           )}
 
           {introTextDone && fixStage && fixStage.status !== 'pending' && (
-            <div>
+            <div style={{ marginBottom: learningDataStage && learningDataStage.status !== 'pending' ? 10 : 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <StatusIcon status={fixStage.status} />
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>代码修复</span>
@@ -142,6 +145,23 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
               {fixStage.status === 'failed' && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 8, marginLeft: 22 }}>
                   <button onClick={() => onRetry?.(4)} style={failedBtnStyle}><RotateCcw size={12} /> 重试</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {introTextDone && learningDataStage && learningDataStage.status !== 'pending' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <StatusIcon status={learningDataStage.status} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>学情数据回收</span>
+                {learningDataStage.status === 'in-progress' && <span style={{ fontSize: 12, color: '#94A3B8' }}>学情数据回收数据设计中...</span>}
+                {learningDataStage.status === 'completed' && <span style={{ fontSize: 12, color: '#94A3B8' }}>学情数据回收数据设计完成</span>}
+                {learningDataStage.status === 'failed' && <span style={{ fontSize: 12, color: '#EF4444' }}>{learningDataStage.error || '设计失败'}</span>}
+              </div>
+              {learningDataStage.status === 'failed' && (
+                <div style={{ display: 'flex', gap: 8, marginTop: 8, marginLeft: 22 }}>
+                  <button onClick={() => onRetry?.(5)} style={failedBtnStyle}><RotateCcw size={12} /> 重试</button>
                 </div>
               )}
             </div>

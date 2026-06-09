@@ -3,6 +3,7 @@ import type { Conversation, ConversationMessage, GenerationProgress, GenerationS
 import { mockConversations, createEmptyConversation, generateRequirementFromPrompt } from '../data/mockConversations';
 import { demoMs } from '../constants/demoTiming';
 import fruitGardenHTML from '../assets/courseware/fruit_garden_adventure.html?raw';
+import { createLearningDataRecoverySummary, defaultRecoveryItems } from '../utils/learningDataRecovery';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
@@ -212,13 +213,14 @@ export async function simulateGeneration(
   signal?: AbortSignal,
   failAtStage?: number
 ): Promise<void> {
-  const stageNames = ['图片生成', '音频生成', '代码生成', '代码审查', '代码修复'];
+  const stageNames = ['图片生成', '音频生成', '代码生成', '代码审查', '代码修复', '学情数据回收数据设计'];
   const stageErrors: Record<number, string> = {
     0: '图片生成超时，服务响应时间过长',
     1: '音频合成服务异常，连接中断',
     2: '代码生成失败，模型推理超时',
     3: '代码审查服务不可用',
     4: '代码修复过程中发生未知错误',
+    5: '学情数据回收数据设计失败',
   };
 
   const stages: GenerationStage[] = stageNames.map((name) => ({
@@ -259,7 +261,7 @@ export async function simulateGeneration(
     return 'completed';
   };
 
-  const durations = [8000, 6000, 2500, 2500, 2500].map(demoMs);
+  const durations = [8000, 6000, 2500, 2500, 2500, 2200].map(demoMs);
   for (let i = 0; i < durations.length; i++) {
     const result = await runStage(i, durations[i]);
     if (signal?.aborted) return;
@@ -270,6 +272,7 @@ export async function simulateGeneration(
     title: '水果单词互动乐园',
     version: 'v1.0',
     htmlContent: fruitGardenHTML,
+    learningDataRecovery: createLearningDataRecoverySummary(defaultRecoveryItems),
   };
 
   onComplete(result, Date.now());

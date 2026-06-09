@@ -18,6 +18,7 @@ import type {
   GenerationProgress,
   CoursewareResult,
   Courseware,
+  LearningDataRecoveryRequest,
   UploadedAttachment,
   MaterialIntent,
   MaterialIntentConfirmation,
@@ -31,6 +32,7 @@ import type {
 import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
 import { demoMs } from '../constants/demoTiming';
+import { createLearningDataRecoverySummary } from '../utils/learningDataRecovery';
 
 type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 
@@ -1203,6 +1205,7 @@ function AssistantMessage({
   onMaterialIntentConfirm,
   onVoiceCapabilityConfirm,
   onOpenPreview,
+  onLearningDataRecoveryRequest,
 }: { 
   message: ConversationMessage; 
   phase?: string;
@@ -1214,6 +1217,7 @@ function AssistantMessage({
   onMaterialIntentConfirm?: (messageId: string, resolutions: MaterialIntentResolution[]) => void;
   onVoiceCapabilityConfirm?: (messageId: string, selection: VoiceCapabilitySelection) => void;
   onOpenPreview?: (coursewareId: number) => void;
+  onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
 }) {
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
@@ -1264,6 +1268,7 @@ function AssistantMessage({
             likes: 0,
             htmlContent: result.htmlContent,
             isOwn: true,
+            learningDataRecovery: result.learningDataRecovery,
           }
         : mockCoursewares.find(c => c.title === result.title)
     ) || {
@@ -1279,6 +1284,7 @@ function AssistantMessage({
       likes: 0,
       htmlContent: demoCourseware.htmlContent,
       isOwn: true,
+      learningDataRecovery: result.learningDataRecovery || demoCourseware.learningDataRecovery,
     };
 
     const allCoursewareMessages = activeConversation?.messages.filter(m => m.type === 'courseware-result') || [];
@@ -1295,6 +1301,7 @@ function AssistantMessage({
             version={`会话第${versionNum}版`}
             isLatest={isLatestVersion}
             onOpenPreview={onOpenPreview}
+            onLearningDataRecoveryRequest={onLearningDataRecoveryRequest}
           />
         </div>
       </div>
@@ -1549,7 +1556,7 @@ export default function GeneratorPage() {
     const failMatch = text.match(/(?:模拟失败|fail:?)(\d)?/);
     if (failMatch) {
       const stageIdx = failMatch[1] ? parseInt(failMatch[1]) : 2;
-      failAtStageRef.current = Math.min(4, Math.max(0, stageIdx));
+      failAtStageRef.current = Math.min(5, Math.max(0, stageIdx));
     } else {
       failAtStageRef.current = undefined;
     }
@@ -1621,6 +1628,7 @@ export default function GeneratorPage() {
           { name: '代码生成', status: 'pending', progress: 0 },
           { name: '代码审查', status: 'pending', progress: 0 },
           { name: '代码修复', status: 'pending', progress: 0 },
+          { name: '学情数据回收数据设计', status: 'pending', progress: 0 },
         ],
       };
       addAssistantMessage(activeConversationId, initialProgress, 'generation-progress');
@@ -1659,6 +1667,7 @@ export default function GeneratorPage() {
             htmlContent: mockCoursewares[0].htmlContent,
             isOwn: true,
             isPublished: false,
+            learningDataRecovery: result.learningDataRecovery,
           };
           addCourseware(newCourseware);
           addAssistantMessage(activeConversationId!, result, 'courseware-result');
@@ -1733,6 +1742,7 @@ export default function GeneratorPage() {
           id: coursewareId, title: result.title, subject: '英语', grade: '一年级', type: '水果单词',
           author: '张老师', publishTime: new Date().toISOString().split('T')[0],
           views: 0, favorites: 0, likes: 0, htmlContent: mockCoursewares[0].htmlContent, isOwn: true, isPublished: false,
+          learningDataRecovery: result.learningDataRecovery,
         };
         addCourseware(newCourseware);
         addAssistantMessage(activeConversationId!, result, 'courseware-result');
@@ -1783,6 +1793,7 @@ export default function GeneratorPage() {
           id: coursewareId, title: result.title, subject: '英语', grade: '一年级', type: '水果单词',
           author: '张老师', publishTime: new Date().toISOString().split('T')[0],
           views: 0, favorites: 0, likes: 0, htmlContent: mockCoursewares[0].htmlContent, isOwn: true, isPublished: false,
+          learningDataRecovery: result.learningDataRecovery,
         };
         addCourseware(newCourseware);
         addAssistantMessage(activeConversationId!, result, 'courseware-result');
@@ -1924,6 +1935,25 @@ export default function GeneratorPage() {
                         onOpenPreview={(coursewareId) => {
                           setSidebarCollapsed(true);
                           openPreview(coursewareId);
+                        }}
+                        onLearningDataRecoveryRequest={(request) => {
+                          if (!activeConversationId) return;
+                          const selectedItems = request.initialItems || [];
+                          const summary = createLearningDataRecoverySummary(selectedItems);
+                          const selectedLabels = selectedItems.map(item => item.label).join('、') || '基础完成数据';
+                          addAssistantMessage(
+                            activeConversationId,
+                            `已根据您修改后的「${selectedLabels}」重新生成支持学情数据回收的下一版 HTML。`,
+                            'text'
+                          );
+                          window.setTimeout(() => {
+                            addAssistantMessage(activeConversationId, {
+                              title: request.coursewareTitle,
+                              version: request.version || '下一版',
+                              htmlContent: request.htmlContent,
+                              learningDataRecovery: summary,
+                            }, 'courseware-result');
+                          }, demoMs(700));
                         }}
                       />
                       {msg.type === 'courseware-result' && lastGeneratedInspiration && (

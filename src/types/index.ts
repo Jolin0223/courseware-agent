@@ -17,6 +17,7 @@ export interface Courseware {
   isOwn?: boolean;
   isPublished?: boolean;
   showConversation?: boolean;
+  learningDataRecovery?: LearningDataRecoverySummary;
 }
 
 // 对话消息类型
@@ -62,6 +63,29 @@ export interface CoursewareResult {
   version: string;
   thumbnail?: string;
   htmlContent?: string;
+  learningDataRecovery?: LearningDataRecoverySummary;
+}
+
+export type LearningDataRecoveryStatus = 'not-started' | 'configured';
+
+export interface LearningDataRecoveryItem {
+  id: string;
+  label: string;
+  description: string;
+  checked: boolean;
+}
+
+export interface LearningDataRecoverySummary {
+  status: LearningDataRecoveryStatus;
+  selectedItems: LearningDataRecoveryItem[];
+}
+
+export interface LearningDataRecoveryRequest {
+  coursewareTitle: string;
+  htmlContent?: string;
+  version?: string;
+  mode?: 'create' | 'edit';
+  initialItems?: LearningDataRecoveryItem[];
 }
 
 export type UploadedAttachmentType = 'image' | 'document' | 'html';

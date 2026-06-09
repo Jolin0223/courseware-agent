@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Eye, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2 } from 'lucide-react';
-import type { Courseware } from '../../types';
+import { Copy, Eye, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2, BarChart3 } from 'lucide-react';
+import type { Courseware, LearningDataRecoveryRequest } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
 import { openHtmlPreview } from '../../utils/openHtmlPreview';
+import LearningDataRecoveryModal from './LearningDataRecoveryModal';
 
 // 默认音色选项
 const DEFAULT_VOICES = [
@@ -37,11 +38,13 @@ export default function CoursewareCard({
   version = 'v1.0',
   isLatest: isLatestProp = true,
   onOpenPreview,
+  onLearningDataRecoveryRequest,
 }: {
   courseware: Courseware;
   version?: string;
   isLatest?: boolean;
   onOpenPreview?: (coursewareId: number) => void;
+  onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [feedbackCopied, setFeedbackCopied] = useState(false);
@@ -51,6 +54,7 @@ export default function CoursewareCard({
   const [editDisabledTooltip, setEditDisabledTooltip] = useState(false);
   const [isLatest, setIsLatest] = useState(isLatestProp);
   const [currentVersion, setCurrentVersion] = useState(version);
+  const [showLearningDataModal, setShowLearningDataModal] = useState(false);
   const navigate = useNavigate();
   const { appMode, insertCourseware, closePreview } = useUIStore();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
@@ -283,6 +287,22 @@ export default function CoursewareCard({
             <Eye size={15} />
             全屏预览
           </button>
+          <button
+            onClick={() => setShowLearningDataModal(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              border: '1.5px solid var(--agent-primary)',
+              background: '#F0FDFA',
+              color: 'var(--agent-primary-text)',
+              transition: 'all 0.15s', outline: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 8px var(--agent-shadow)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
+          >
+            <BarChart3 size={15} />
+            查看学情数据
+          </button>
           {isEmbedded && (
             <button
               onClick={() => {
@@ -363,6 +383,23 @@ export default function CoursewareCard({
         onImageRegenerate={handleImageRegenerate}
         onAudioReplace={handleAudioReplace}
         onAudioRegenerate={handleAudioRegenerate}
+      />
+
+      <LearningDataRecoveryModal
+        isOpen={showLearningDataModal}
+        coursewareTitle={courseware.title}
+        initialItems={courseware.learningDataRecovery?.selectedItems}
+        onClose={() => setShowLearningDataModal(false)}
+        onRegenerate={(items) => {
+          setIsLatest(false);
+          onLearningDataRecoveryRequest?.({
+            coursewareTitle: courseware.title,
+            htmlContent: courseware.htmlContent,
+            version: '下一版',
+            mode: 'edit',
+            initialItems: items,
+          });
+        }}
       />
     </>
   );

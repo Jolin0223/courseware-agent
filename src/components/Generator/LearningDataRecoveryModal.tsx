@@ -355,7 +355,7 @@ function StudentReportPreview({
         </section>
 
         <section style={styles.reportSection}>
-          <div style={styles.sectionTitle}>动态模块（按组件白名单渲染）</div>
+          <div style={styles.sectionTitle}>学习表现</div>
           <div style={styles.moduleStack}>
             {showMetrics && (
               <DynamicModule icon={<Target size={15} />} title="本次表现">

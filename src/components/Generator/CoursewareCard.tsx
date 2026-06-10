@@ -33,53 +33,6 @@ const MOCK_AUDIOS: Array<
   { id: 'audio-3', label: '游戏背景音乐', type: 'bgm', status: 'completed', duration: 30.0 },
 ];
 
-const cardActionBarStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))',
-  gap: 10,
-  alignItems: 'center',
-};
-
-const cardActionBaseStyle: React.CSSProperties = {
-  height: 42,
-  width: '100%',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 7,
-  padding: '0 14px',
-  borderRadius: 8,
-  fontSize: 13,
-  fontWeight: 700,
-  cursor: 'pointer',
-  transition: 'border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s',
-  outline: 'none',
-  whiteSpace: 'nowrap',
-};
-
-const primaryActionStyle: React.CSSProperties = {
-  ...cardActionBaseStyle,
-  border: '1px solid transparent',
-  background: 'var(--agent-gradient)',
-  color: '#FFFFFF',
-  boxShadow: '0 8px 18px rgba(14, 184, 177, 0.18)',
-};
-
-const secondaryActionStyle: React.CSSProperties = {
-  ...cardActionBaseStyle,
-  border: '1px solid #CBD5E1',
-  background: '#FFFFFF',
-  color: '#334155',
-};
-
-const disabledActionStyle: React.CSSProperties = {
-  ...secondaryActionStyle,
-  cursor: 'not-allowed',
-  color: '#CBD5E1',
-  background: '#F8FAFC',
-  opacity: 0.78,
-};
-
 export default function CoursewareCard({
   courseware,
   version = 'v1.0',
@@ -105,8 +58,6 @@ export default function CoursewareCard({
   const navigate = useNavigate();
   const { appMode, insertCourseware, closePreview } = useUIStore();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
-  const addAssistantMessage = useConversationStore((s) => s.addAssistantMessage);
-  const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const isEmbedded = appMode === 'embedded';
   const feedbackLocator = '2fc7b609481e45868a38a74b4490400a';
   const feedbackTime = '2026-06-05 14:30';
@@ -272,13 +223,18 @@ export default function CoursewareCard({
           </div>
         </div>
 
-        <div style={{ padding: '14px 18px 16px', background: '#FAFBFC', borderTop: '1px solid #E2E8F0' }} onClick={(e) => e.stopPropagation()}>
-          <div style={cardActionBarStyle}>
+        <div style={{ padding: '14px 20px', background: '#FAFBFC' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
             onClick={handleClone}
-            style={primaryActionStyle}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 22px rgba(14, 184, 177, 0.24)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 18px rgba(14, 184, 177, 0.18)'; }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
+              background: 'var(--agent-gradient)', color: '#fff',
+              transition: 'all 0.15s', outline: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px var(--agent-shadow)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
           >
             {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
             {copied ? '已复制' : '一键同款'}
@@ -289,9 +245,18 @@ export default function CoursewareCard({
           >
             <button
               onClick={() => { if (isLatest) setShowEditModal(true); }}
-              style={isLatest ? secondaryActionStyle : disabledActionStyle}
-              onMouseEnter={e => { if (isLatest) { e.currentTarget.style.borderColor = 'var(--agent-primary)'; e.currentTarget.style.color = 'var(--agent-primary-text)'; e.currentTarget.style.background = '#F0FDFA'; } }}
-              onMouseLeave={e => { if (isLatest) { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#334155'; e.currentTarget.style.background = '#FFFFFF'; } }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+                borderRadius: 8, fontSize: 13, fontWeight: 500,
+                cursor: isLatest ? 'pointer' : 'not-allowed',
+                border: isLatest ? '1.5px solid var(--agent-primary)' : '1px solid #E2E8F0',
+                background: '#fff',
+                color: isLatest ? 'var(--agent-primary)' : '#CBD5E1',
+                opacity: isLatest ? 1 : 0.7,
+                transition: 'all 0.15s', outline: 'none',
+              }}
+              onMouseEnter={e => { if (isLatest) { e.currentTarget.style.background = 'var(--agent-soft)'; e.currentTarget.style.boxShadow = '0 2px 8px var(--agent-shadow)'; } }}
+              onMouseLeave={e => { if (isLatest) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = 'none'; } }}
             >
               <Edit3 size={15} />
               编辑资源
@@ -308,18 +273,30 @@ export default function CoursewareCard({
           </div>
           <button
             onClick={handlePreview}
-            style={secondaryActionStyle}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--agent-primary)'; e.currentTarget.style.color = 'var(--agent-primary-text)'; e.currentTarget.style.background = '#F0FDFA'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#334155'; e.currentTarget.style.background = '#FFFFFF'; }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              border: '1px solid #E2E8F0', background: '#fff', color: '#475569',
+              transition: 'all 0.15s', outline: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--agent-primary)'; e.currentTarget.style.color = 'var(--agent-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
           >
             <Eye size={15} />
             全屏预览
           </button>
           <button
             onClick={() => setShowLearningDataModal(true)}
-            style={secondaryActionStyle}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--agent-primary)'; e.currentTarget.style.color = 'var(--agent-primary-text)'; e.currentTarget.style.background = '#F0FDFA'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#334155'; e.currentTarget.style.background = '#FFFFFF'; }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              border: '1.5px solid var(--agent-primary)',
+              background: '#F0FDFA',
+              color: 'var(--agent-primary-text)',
+              transition: 'all 0.15s', outline: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 8px var(--agent-shadow)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
           >
             <BarChart3 size={15} />
             查看学情数据
@@ -384,18 +361,6 @@ export default function CoursewareCard({
         onConfirmReplace={() => {
           setIsLatest(false);
           setCurrentVersion(currentVersion);
-          if (activeConversationId) {
-            setTimeout(() => {
-              addAssistantMessage(activeConversationId, '好的，已根据您替换的资源重新生成互动游戏 V2.0 版本 ✨', 'text');
-              setTimeout(() => {
-                const v2Result: import('../../types').CoursewareResult = {
-                  title: courseware.title,
-                  version: 'v2.0',
-                };
-                addAssistantMessage(activeConversationId, v2Result, 'courseware-result');
-              }, 500);
-            }, 800);
-          }
         }}
         images={images}
         audios={audios}
@@ -410,6 +375,7 @@ export default function CoursewareCard({
         isOpen={showLearningDataModal}
         coursewareTitle={courseware.title}
         initialItems={courseware.learningDataRecovery?.selectedItems}
+        isLatestVersion={isLatest}
         onClose={() => setShowLearningDataModal(false)}
         onRegenerate={(items) => {
           setIsLatest(false);

@@ -22,6 +22,7 @@ interface LearningDataRecoveryModalProps {
   isOpen?: boolean;
   coursewareTitle?: string;
   initialItems?: LearningDataRecoveryItem[];
+  isLatestVersion?: boolean;
   mode?: 'create' | 'edit';
   onClose?: () => void;
   onRegenerate?: (items: LearningDataRecoveryItem[]) => void;
@@ -168,6 +169,7 @@ export default function LearningDataRecoveryModal({
   isOpen,
   coursewareTitle,
   initialItems,
+  isLatestVersion = true,
   onClose,
   onRegenerate,
   onConfirm,
@@ -179,11 +181,12 @@ export default function LearningDataRecoveryModal({
   const [showCaseSwitch, setShowCaseSwitch] = useState(false);
   const selectedItems = useMemo(() => items.filter(item => item.checked), [items]);
   const selectedCount = selectedItems.length;
+  const canModifyRecovery = isLatestVersion;
 
   if (isOpen === false) return null;
 
   const toggleItem = (id: string) => {
-    if (isSubmitting) return;
+    if (!canModifyRecovery || isSubmitting) return;
     setItems(prev => prev.map(item =>
       item.id === id ? { ...item, checked: !item.checked } : item
     ));
@@ -222,7 +225,7 @@ export default function LearningDataRecoveryModal({
             onClick={() => setActiveTab('config')}
           >
             <RefreshCw size={15} />
-            修改回收数据
+            {canModifyRecovery ? '修改回收数据' : '查看回收数据'}
           </button>
           <button
             style={{ ...styles.tab, ...(activeTab === 'preview' ? styles.tabActive : {}) }}
@@ -254,7 +257,9 @@ export default function LearningDataRecoveryModal({
         {activeTab === 'config' ? (
           <div style={styles.content}>
             <div style={styles.notice}>
-              当前 HTML 已自动写入学情数据回收能力。老师可修改需要回收的数据；修改后需要重新生成下一版 HTML。
+              {canModifyRecovery
+                ? '当前 HTML 已自动写入学情数据回收能力。老师可修改需要回收的数据；修改后需要重新生成下一版 HTML。'
+                : '当前为历史版本，仅可查看本版已生效的学情数据回收配置，无法修改。'}
             </div>
 
             <div style={styles.itemList}>
@@ -266,7 +271,7 @@ export default function LearningDataRecoveryModal({
                   style={{
                     ...styles.item,
                     ...(item.checked ? styles.itemChecked : {}),
-                    ...(isSubmitting ? styles.itemDisabled : {}),
+                    ...(!canModifyRecovery || isSubmitting ? styles.itemDisabled : {}),
                   }}
                 >
                   <span style={{
@@ -284,18 +289,24 @@ export default function LearningDataRecoveryModal({
             </div>
 
             <div style={styles.footer}>
-              <div style={styles.footerHint}>已选择 {selectedCount} 项回收数据</div>
-              <button
-                style={{
-                  ...styles.primaryBtn,
-                  opacity: selectedCount === 0 || isSubmitting ? 0.55 : 1,
-                  cursor: selectedCount === 0 || isSubmitting ? 'not-allowed' : 'pointer',
-                }}
-                disabled={selectedCount === 0 || isSubmitting}
-                onClick={handleRegenerate}
-              >
-                {isSubmitting ? '生成中...' : '确定并重新生成课件'}
-              </button>
+              <div style={styles.footerHint}>
+                {canModifyRecovery ? `已选择 ${selectedCount} 项回收数据` : `本版已回收 ${selectedCount} 项学情数据`}
+              </div>
+              {canModifyRecovery ? (
+                <button
+                  style={{
+                    ...styles.primaryBtn,
+                    opacity: selectedCount === 0 || isSubmitting ? 0.55 : 1,
+                    cursor: selectedCount === 0 || isSubmitting ? 'not-allowed' : 'pointer',
+                  }}
+                  disabled={selectedCount === 0 || isSubmitting}
+                  onClick={handleRegenerate}
+                >
+                  {isSubmitting ? '生成中...' : '确定并重新生成课件'}
+                </button>
+              ) : (
+                <div style={styles.readOnlyHint}>历史版本仅支持查看，请在最新版本中修改回收数据</div>
+              )}
             </div>
           </div>
         ) : (
@@ -673,6 +684,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   itemDisabled: {
     cursor: 'default',
+    opacity: 0.86,
   },
   checkbox: {
     width: 20,
@@ -728,6 +740,15 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: 800,
+  },
+  readOnlyHint: {
+    fontSize: 13,
+    color: '#64748B',
+    background: '#F8FAFC',
+    border: '1px solid #E2E8F0',
+    borderRadius: 8,
+    padding: '8px 12px',
+    lineHeight: 1.4,
   },
   previewContent: {
     padding: '16px 20px 22px',

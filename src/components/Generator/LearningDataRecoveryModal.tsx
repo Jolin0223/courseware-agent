@@ -164,17 +164,6 @@ const iconMap = {
   wrong: FileText,
 };
 
-const componentRules = [
-  ['指标类数据', '指标组卡片', '得分、正确率、耗时、答对题数、奖励数量'],
-  ['明细类数据', '明细列表卡片', '答题详情、题目复盘、每题作答结果'],
-  ['表格类数据', '统计表格卡片', '班级表现、关卡统计、任务统计'],
-  ['错因类数据', '错词/错题卡片', '错词记录、错题关卡、易错知识点'],
-  ['过程类数据', '关卡进度卡片', '关卡表现、任务完成度、阶段表现'],
-  ['表现评价数据', '评价说明卡片', '口语表现、奖励成就、个性化建议'],
-  ['知识点数据', '雷达图/标签卡片', '发布并完成知识点标签后展示'],
-  ['未匹配数据', '通用明细兜底卡片', '仅展示名称、结果和原始说明，不生成新样式'],
-];
-
 export default function LearningDataRecoveryModal({
   isOpen,
   coursewareTitle,
@@ -311,7 +300,6 @@ export default function LearningDataRecoveryModal({
           </div>
         ) : (
           <div style={styles.previewContent}>
-            <ReportComponentRules />
             <StudentReportPreview
               coursewareTitle={coursewareTitle}
               selectedItems={selectedItems}
@@ -319,34 +307,6 @@ export default function LearningDataRecoveryModal({
             />
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function ReportComponentRules() {
-  return (
-    <div style={styles.rulePanel}>
-      <div style={styles.ruleHeader}>
-        <div>
-          <div style={styles.ruleTitle}>前端组件承接规则</div>
-          <div style={styles.ruleDesc}>
-            AI 只负责识别可回收数据并归类，学情报告前端只按 iTeach 预置组件白名单渲染。
-          </div>
-        </div>
-        <div style={styles.ruleBadge}>样式受控</div>
-      </div>
-      <div style={styles.ruleGrid}>
-        {componentRules.map(([dimension, component, examples]) => (
-          <div key={dimension} style={styles.ruleItem}>
-            <div style={styles.ruleDimension}>{dimension}</div>
-            <div style={styles.ruleComponent}>{component}</div>
-            <div style={styles.ruleExamples}>{examples}</div>
-          </div>
-        ))}
-      </div>
-      <div style={styles.fallbackNotice}>
-        兜底逻辑：若 AI 识别到的数据无法匹配预置组件，不允许生成新 UI，统一进入“通用明细兜底卡片”，后续由产品确认是否新增正式组件。
       </div>
     </div>
   );
@@ -773,81 +733,6 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '16px 20px 22px',
     overflowY: 'auto',
     background: '#F8FAFC',
-  },
-  rulePanel: {
-    width: 'min(680px, 100%)',
-    margin: '0 auto 14px',
-    padding: 14,
-    borderRadius: 14,
-    background: '#FFFFFF',
-    border: '1px solid #D1FAE5',
-    boxShadow: '0 10px 28px rgba(15, 23, 42, 0.08)',
-  },
-  ruleHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: 12,
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  ruleTitle: {
-    fontSize: 14,
-    fontWeight: 900,
-    color: '#0F172A',
-  },
-  ruleDesc: {
-    marginTop: 4,
-    fontSize: 12,
-    lineHeight: 1.55,
-    color: '#64748B',
-  },
-  ruleBadge: {
-    flexShrink: 0,
-    padding: '5px 9px',
-    borderRadius: 999,
-    background: '#DCFCE7',
-    color: '#15803D',
-    fontSize: 12,
-    fontWeight: 900,
-  },
-  ruleGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: 8,
-  },
-  ruleItem: {
-    padding: 10,
-    borderRadius: 10,
-    background: '#F8FAFC',
-    border: '1px solid #E2E8F0',
-  },
-  ruleDimension: {
-    fontSize: 12,
-    fontWeight: 900,
-    color: '#14532D',
-  },
-  ruleComponent: {
-    marginTop: 4,
-    fontSize: 13,
-    fontWeight: 900,
-    color: '#0F172A',
-  },
-  ruleExamples: {
-    marginTop: 4,
-    fontSize: 11,
-    lineHeight: 1.45,
-    color: '#64748B',
-  },
-  fallbackNotice: {
-    marginTop: 10,
-    padding: '9px 10px',
-    borderRadius: 10,
-    background: '#FFF7ED',
-    border: '1px solid #FED7AA',
-    color: '#9A3412',
-    fontSize: 12,
-    lineHeight: 1.55,
-    fontWeight: 700,
   },
   reportCanvas: {
     width: 'min(460px, 100%)',

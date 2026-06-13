@@ -29,7 +29,7 @@ interface LearningDataRecoveryModalProps {
   onConfirm?: (items: LearningDataRecoveryItem[]) => void;
 }
 
-type ReportCaseKey = 'animal' | 'bilingual' | 'level';
+type ReportCaseKey = 'animal' | 'bowen' | 'bilingual' | 'brain';
 
 interface AnswerReviewItem {
   question: string;
@@ -51,7 +51,7 @@ interface ReportProfile {
   overview: string;
   tags: string[];
   suggestion: string;
-  metricRows: Array<{ label: string; value: string; icon: 'score' | 'accuracy' | 'time' | 'reward' | 'wrong' }>;
+  metricRows: Array<{ label: string; value: string; icon: 'score' | 'accuracy' | 'time' | 'reward' | 'wrong' | 'correct' | 'complete' | 'level' }>;
   answerReview?: AnswerReviewItem[];
   words?: string[];
   levels?: Array<{ level: string; desc: string; value: string }>;
@@ -61,66 +61,59 @@ interface ReportProfile {
 }
 
 const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfile => {
-  if (caseKey === 'bilingual') {
+  if (caseKey === 'bowen') {
     return {
-      key: 'bilingual',
-      title: '双语课堂闯关',
-      student: '一年级二班 · 王小雨',
-      overview: '汇总孩子在「双语课堂闯关」互动游戏中的表现，覆盖 1 个班级、3 个任务环节和 5 个错题关卡。',
-      tags: ['双语理解', '课堂反应', '错题巩固'],
-      suggestion: '孩子整体完成度较高，正确率达到 90%。建议继续复盘 5 个错题关卡，并在双语听辨环节增加一次巩固练习。',
+      key: 'bowen',
+      title: '近义词大挑战',
+      student: '',
+      overview: '',
+      tags: ['近义词辨析', '语境理解', '准确用词'],
+      suggestion: '本次能根据句子语境选择合适的近义词，整体掌握较好；“屹立、矗立、耸立”这类易混词还可以继续通过例句巩固。',
       metricRows: [
-        { label: '正确率', value: '90%', icon: 'accuracy' },
-        { label: '耗时', value: '25s', icon: 'time' },
-        { label: '错题关卡', value: '5', icon: 'wrong' },
-      ],
-      tables: [
-        {
-          title: '班级表现',
-          headers: ['班级', '正确率', '耗时', '错题关卡'],
-          rows: [['一年级二班', '90%', '25s', '5']],
-          accent: 'orange',
-        },
-        {
-          title: '题目复盘',
-          headers: ['得分', '正确率', '用时(s)', '详情'],
-          rows: [['3 / 3', '100.0%', '17s', '✅✅✅']],
-        },
-      ],
-      levels: [
-        { level: '任务 1', desc: '双语词义匹配', value: '100%' },
-        { level: '任务 2', desc: '听音判断', value: '90%' },
-        { level: '任务 3', desc: '错题复盘', value: '80%' },
+        { label: '总得分', value: '40分', icon: 'score' },
+        { label: '正确率', value: '80%', icon: 'accuracy' },
+        { label: '总用时', value: '2分16秒', icon: 'time' },
+        { label: '答对题数', value: '4/5', icon: 'correct' },
+        { label: '完成次数', value: '1次', icon: 'complete' },
       ],
     };
   }
 
-  if (caseKey === 'level') {
+  if (caseKey === 'bilingual') {
     return {
-      key: 'level',
-      title: '颜色单词闯关',
-      student: '学生：王小雨 · 本次练习',
-      overview: '汇总孩子在「颜色单词闯关」互动游戏中的表现，覆盖 4 个关卡、10 道图词匹配和听音选择题。',
-      tags: ['颜色识别', '听音辨词', '图词匹配'],
-      suggestion: '孩子在基础颜色识别上表现稳定，综合匹配关卡仍有提升空间。建议优先复习 orange、purple，并再次完成第 3 关。',
+      key: 'bilingual',
+      title: '单词神枪手',
+      student: '',
+      overview: '',
+      tags: ['图词匹配', '单词辨认', '快速反应'],
+      suggestion: '本次能较快完成图片与英文单词的匹配，身体部位类单词掌握稳定；个别形近词、音近词还可以继续巩固。',
       metricRows: [
-        { label: '总得分', value: '88分', icon: 'score' },
-        { label: '正确率', value: '82%', icon: 'accuracy' },
-        { label: '答题耗时', value: '4分05秒', icon: 'time' },
+        { label: '总得分', value: '110分', icon: 'score' },
+        { label: '正确率', value: '85%', icon: 'accuracy' },
+        { label: '总用时', value: '1分42秒', icon: 'time' },
+        { label: '答对题数', value: '11/13', icon: 'correct' },
+        { label: '完成次数', value: '1次', icon: 'complete' },
+        { label: '奖励数量', value: '5个', icon: 'reward' },
       ],
-      answerReview: [
-        { question: '第 2 题 · 图片识词', result: 'red 回答正确', isCorrect: true },
-        { question: '第 6 题 · 听音选颜色', result: 'orange 选成 purple', isCorrect: false },
-        { question: '第 9 题 · 图词匹配', result: 'green 回答正确', isCorrect: true },
+    };
+  }
+
+  if (caseKey === 'brain') {
+    return {
+      key: 'brain',
+      title: '比绳子长短',
+      student: '',
+      overview: '',
+      tags: ['长短比较', '空间观察', '路径判断'],
+      suggestion: '本次能通过观察和拉直比较绳子长短，基础比较能力较好；遇到路径更复杂的关卡时，可以继续练习按格数判断长短。',
+      metricRows: [
+        { label: '总得分', value: '90分', icon: 'score' },
+        { label: '正确率', value: '90%', icon: 'accuracy' },
+        { label: '总用时', value: '3分42秒', icon: 'time' },
+        { label: '答对题数', value: '9/10', icon: 'correct' },
+        { label: '完成次数', value: '1次', icon: 'complete' },
+        { label: '通关关卡数', value: '10关', icon: 'level' },
       ],
-      words: ['orange', 'purple'],
-      levels: [
-        { level: '关卡 1', desc: '基础颜色识别', value: '100%' },
-        { level: '关卡 2', desc: '听音辨词', value: '80%' },
-        { level: '关卡 3', desc: '综合匹配', value: '70%' },
-        { level: '关卡 4', desc: '错题复盘', value: '75%' },
-      ],
-      reward: '本次获得 3 枚星星，完成 4 个关卡中的 3 个。',
     };
   }
 
@@ -163,6 +156,9 @@ const iconMap = {
   time: Clock3,
   reward: Award,
   wrong: FileText,
+  correct: Check,
+  complete: RefreshCw,
+  level: Layers3,
 };
 
 export default function LearningDataRecoveryModal({
@@ -219,7 +215,15 @@ export default function LearningDataRecoveryModal({
           </button>
         </div>
 
-        <div style={styles.tabs} onDoubleClick={() => setShowCaseSwitch(prev => !prev)}>
+        <div
+          style={styles.tabs}
+          onDoubleClick={() => {
+            setShowCaseSwitch(prev => {
+              if (!prev) setReportCase('bowen');
+              return !prev;
+            });
+          }}
+        >
           <button
             style={{ ...styles.tab, ...(activeTab === 'config' ? styles.tabActive : {}) }}
             onClick={() => setActiveTab('config')}
@@ -237,9 +241,9 @@ export default function LearningDataRecoveryModal({
           {showCaseSwitch && activeTab === 'preview' && (
             <div style={styles.caseSwitch}>
               {[
-                ['animal', '英语'],
+                ['bowen', '博文'],
                 ['bilingual', '双语'],
-                ['level', '闯关'],
+                ['brain', '脑力'],
               ].map(([key, label]) => (
                 <button
                   key={key}
@@ -315,6 +319,7 @@ export default function LearningDataRecoveryModal({
               coursewareTitle={coursewareTitle}
               selectedItems={selectedItems}
               reportCase={reportCase}
+              isSimpleDemo={showCaseSwitch}
             />
           </div>
         )}
@@ -327,14 +332,16 @@ function StudentReportPreview({
   coursewareTitle,
   selectedItems,
   reportCase,
+  isSimpleDemo,
 }: {
   coursewareTitle?: string;
   selectedItems: LearningDataRecoveryItem[];
   reportCase: ReportCaseKey;
+  isSimpleDemo?: boolean;
 }) {
   const [showPublishedRadar, setShowPublishedRadar] = useState(false);
   const [showKnowledgeTags, setShowKnowledgeTags] = useState(false);
-  const profile = getReportProfile(coursewareTitle || '动物单词玩一玩', reportCase);
+  const profile = getReportProfile(coursewareTitle || '动物单词玩一玩', isSimpleDemo ? reportCase : 'animal');
   const names = selectedItems.map(item => item.label);
   const has = (label: string) => names.includes(label);
   const hasAny = (...labels: string[]) => labels.some(label => has(label));
@@ -353,22 +360,24 @@ function StudentReportPreview({
           <div>
             <div style={styles.reportKicker}>学生个性化学情报告</div>
             <div style={styles.reportTitle}>{profile.title}</div>
-            <div style={styles.reportMeta}>{profile.student}</div>
+            {profile.student && <div style={styles.reportMeta}>{profile.student}</div>}
           </div>
           <div style={styles.reportBadge}>已完成</div>
         </div>
       </div>
 
       <div style={styles.reportBody}>
-        <section style={styles.reportSection}>
-          <div style={styles.sectionTitle}>学习概览</div>
-          <div style={styles.overviewCard}>{profile.overview}</div>
-        </section>
+        {!isSimpleDemo && (
+          <section style={styles.reportSection}>
+            <div style={styles.sectionTitle}>学习概览</div>
+            <div style={styles.overviewCard}>{profile.overview}</div>
+          </section>
+        )}
 
         <section style={styles.reportSection}>
           <div style={styles.sectionTitle}>学习表现</div>
           <div style={styles.moduleStack}>
-            {showMetrics && (
+            {(isSimpleDemo || showMetrics) && (
               <DynamicModule icon={<Target size={15} />} title="本次表现">
                 <div style={styles.metricList}>
                   {profile.metricRows.map(metric => {
@@ -385,7 +394,7 @@ function StudentReportPreview({
               </DynamicModule>
             )}
 
-            {profile.tables?.map(table => (
+            {!isSimpleDemo && profile.tables?.map(table => (
               <DynamicModule key={table.title} icon={<FileText size={15} />} title={table.title}>
                 <div style={styles.tableWrap}>
                   <div style={{ ...styles.tableHeader, ...(table.accent === 'orange' ? styles.tableHeaderOrange : {}) }}>
@@ -400,7 +409,7 @@ function StudentReportPreview({
               </DynamicModule>
             ))}
 
-            {showAnswerReview && profile.answerReview && (
+            {!isSimpleDemo && showAnswerReview && profile.answerReview && (
               <DynamicModule icon={<FileText size={15} />} title="答题详情">
                 <div style={styles.answerRows}>
                   {profile.answerReview.map(item => (
@@ -413,7 +422,7 @@ function StudentReportPreview({
               </DynamicModule>
             )}
 
-            {showWrongWords && profile.words?.length ? (
+            {!isSimpleDemo && showWrongWords && profile.words?.length ? (
               <DynamicModule icon={<BookOpenCheck size={15} />} title="错词记录">
                 <div style={styles.wordList}>
                   {profile.words.map(word => <span key={word} style={styles.wordPill}>{word}</span>)}
@@ -422,7 +431,7 @@ function StudentReportPreview({
               </DynamicModule>
             ) : null}
 
-            {showLevel && profile.levels && (
+            {!isSimpleDemo && showLevel && profile.levels && (
               <DynamicModule icon={<Layers3 size={15} />} title="关卡表现">
                 <div style={styles.levelList}>
                   {profile.levels.map(item => (
@@ -438,13 +447,13 @@ function StudentReportPreview({
               </DynamicModule>
             )}
 
-            {showReward && profile.reward && (
+            {!isSimpleDemo && showReward && profile.reward && (
               <DynamicModule icon={<Award size={15} />} title="奖励成就">
                 <div style={styles.achievement}>{profile.reward}</div>
               </DynamicModule>
             )}
 
-            {showOral && profile.oral && (
+            {!isSimpleDemo && showOral && profile.oral && (
               <DynamicModule icon={<Mic2 size={15} />} title="口语表现">
                 <div style={styles.oralGrid}>
                   {profile.oral.map(item => <span key={item.label}>{item.label}：{item.value}</span>)}
@@ -457,10 +466,10 @@ function StudentReportPreview({
         <section style={styles.reportSection}>
           <div style={styles.sectionTitle}>知识点雷达图</div>
           <div
-            style={showPublishedRadar ? styles.radarReady : styles.radarPending}
+            style={isSimpleDemo || showPublishedRadar ? styles.radarReady : styles.radarPending}
             onDoubleClick={() => setShowPublishedRadar(prev => !prev)}
           >
-            {showPublishedRadar ? (
+            {isSimpleDemo || showPublishedRadar ? (
               <>
                 <div style={styles.radarChart}>
                   <div style={{ ...styles.radarAxis, transform: 'rotate(0deg)' }} />
@@ -494,7 +503,7 @@ function StudentReportPreview({
         <section style={{ ...styles.reportSection, ...styles.overallSection }}>
           <div style={styles.sectionTitle}>整体表现</div>
           <div style={styles.tagToggleArea} onDoubleClick={() => setShowKnowledgeTags(prev => !prev)}>
-            {showKnowledgeTags ? (
+            {isSimpleDemo || showKnowledgeTags ? (
               <div style={styles.tagList}>
                 {profile.tags.map(tag => <span key={tag} style={styles.tag}>{tag}</span>)}
               </div>

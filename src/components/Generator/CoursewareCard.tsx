@@ -192,7 +192,7 @@ export default function CoursewareCard({
         <div
           onClick={() => onOpenPreview?.(courseware.id)}
           style={{
-          background: 'var(--agent-gradient)',
+          background: 'var(--agent-surface-gradient, var(--agent-gradient))',
           padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
@@ -202,21 +202,22 @@ export default function CoursewareCard({
         >
           <div style={{
             width: 44, height: 44, borderRadius: 12,
-            background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
+            background: 'rgba(6, 72, 150, 0.22)', backdropFilter: 'blur(8px)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            color: '#FFFFFF', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.22)',
+            color: '#FFFFFF', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.34), 0 8px 18px rgba(7, 89, 201, 0.12)',
           }}>
             <FileCode2 size={21} strokeWidth={2.2} />
             <span style={{ fontSize: 8, fontWeight: 900, lineHeight: 1, marginTop: 1 }}>HTML</span>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>{courseware.title}</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 3 }}>刚刚生成</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px rgba(5, 35, 86, 0.18)' }}>{courseware.title}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.86)', marginTop: 3, textShadow: '0 1px 2px rgba(5, 35, 86, 0.14)' }}>刚刚生成</div>
           </div>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 5,
-            background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
-            padding: '6px 12px', borderRadius: 20, fontSize: 13, color: '#fff', fontWeight: 500,
+            background: 'rgba(255,255,255,0.26)', backdropFilter: 'blur(8px)',
+            padding: '6px 12px', borderRadius: 20, fontSize: 13, color: '#fff', fontWeight: 600,
+            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.24)',
           }}>
             <Sparkles size={14} />
             {currentVersion}

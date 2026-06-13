@@ -31,7 +31,7 @@ export const AGENT_THEMES: AgentThemeOption[] = [
     description: '蓝青承接小学工作台，橙色突出生成动作',
     colors: {
       primary: '#0274FC',
-      secondary: '#00FFF6',
+      secondary: '#35DDE7',
       accent: '#FF8A00',
     },
   },

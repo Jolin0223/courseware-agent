@@ -51,7 +51,7 @@ function AppContent() {
     window.sessionStorage.setItem('openPublishedConversation:scrollToBottom', '1');
     setSidebarCollapsed(true);
     openPreview(target.coursewareId);
-    toast('已打开已发布作品，可继续修改并更新发布');
+    toast('已打开已发布作品，可继续修改并替换发布版本');
     params.delete('mode');
     params.delete('conversationId');
     params.delete('resourceId');

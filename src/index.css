@@ -75,35 +75,35 @@
 }
 
 :root[data-agent-theme="iteach"] {
-  --bg-primary: #F2F8FF;
+  --bg-primary: #F3F9FF;
   --primary: #0274FC;
   --primary-hover: #025DCC;
-  --primary-light: #EAF4FF;
+  --primary-light: #E8F7FF;
   --primary-dark: #0759C9;
   --accent: #FF8A00;
   --gradient-primary: linear-gradient(135deg, #0274FC 0%, #00FFF6 100%);
-  --gradient-hover: linear-gradient(135deg, #0264D8 0%, #04D9E0 100%);
+  --gradient-hover: linear-gradient(135deg, #025DCC 0%, #00DDE8 100%);
   --agent-primary: #0274FC;
   --agent-secondary: #00FFF6;
   --agent-accent: #FF8A00;
   --agent-primary-dark: #0759C9;
   --agent-primary-text: #0759C9;
-  --agent-secondary-text: #0E7490;
-  --agent-soft: #EAF4FF;
-  --agent-soft-strong: #D7F7FF;
-  --agent-border: #B7D8FF;
-  --agent-sidebar: #EAF4FF;
-  --agent-page-bg: #F7FBFF;
+  --agent-secondary-text: #047C89;
+  --agent-soft: #F0FBFF;
+  --agent-soft-strong: #DFF9FF;
+  --agent-border: #BFE9F5;
+  --agent-sidebar: #EAF8FF;
+  --agent-page-bg: #F6FBFF;
   --agent-gradient: linear-gradient(135deg, #0274FC, #00FFF6);
   --agent-action: #FF8A00;
-  --agent-action-text: #C2410C;
-  --agent-action-soft: #FFF4E5;
-  --agent-action-border: #FDBA74;
+  --agent-action-text: #B45309;
+  --agent-action-soft: #FFF7ED;
+  --agent-action-border: #FED7AA;
   --agent-action-gradient: linear-gradient(135deg, #FF8A00, #FFB347);
   --agent-hero-gradient: linear-gradient(135deg, #0274FC, #00FFF6);
-  --agent-panel-gradient: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(234,244,255,0.96) 50%, rgba(229,255,253,0.86));
-  --agent-shadow: rgba(2, 116, 252, 0.13);
-  --agent-focus-ring: rgba(2, 116, 252, 0.10);
+  --agent-panel-gradient: linear-gradient(180deg, rgba(255,255,255,0.99), rgba(240,251,255,0.98));
+  --agent-shadow: rgba(2, 116, 252, 0.10);
+  --agent-focus-ring: rgba(0, 255, 246, 0.12);
   --agent-focus-ring-strong: rgba(2, 116, 252, 0.16);
 }
 
@@ -232,6 +232,29 @@
 :root[data-agent-theme="workbench"] .ci-send-button,
 :root[data-agent-theme="workbench"] .ci-adopt-button {
   box-shadow: 0 8px 20px rgba(15, 123, 255, 0.18) !important;
+}
+
+:root[data-agent-theme="iteach"] aside {
+  border-right-color: #CFEAF7 !important;
+}
+
+:root[data-agent-theme="iteach"] .inspiration-scroll article,
+:root[data-agent-theme="iteach"] .inspiration-scroll button {
+  border-color: #CFEAF7 !important;
+}
+
+:root[data-agent-theme="iteach"] .inspiration-scroll article:hover,
+:root[data-agent-theme="iteach"] .inspiration-scroll button:hover {
+  border-color: #7EDFF1 !important;
+  box-shadow: 0 10px 24px rgba(2, 116, 252, 0.10) !important;
+}
+
+:root[data-agent-theme="iteach"] .ci-send-button {
+  box-shadow: 0 8px 18px rgba(2, 116, 252, 0.16) !important;
+}
+
+:root[data-agent-theme="iteach"] .ci-adopt-button {
+  box-shadow: 0 8px 18px rgba(255, 138, 31, 0.18) !important;
 }
 
 body {

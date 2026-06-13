@@ -210,11 +210,11 @@ export default function PublishModal({
 
   const handlePublish = () => {
     if (!title.trim()) {
-      toast('请输入游戏名称');
+      toast('请输入课件名称');
       return;
     }
     if (mode === 'update' && updateTargets.length > 1 && !selectedUpdateTargetId) {
-      toast('请选择要更新的互动游戏');
+      toast('请选择要替换的互动课件');
       return;
     }
     if (publishScope === 'school' && !selectedSchool) {
@@ -253,7 +253,7 @@ export default function PublishModal({
       });
     }
     const scopeLabel = publishScopes.find(item => item.key === publishScope)?.label || '资源库';
-    toast(mode === 'update' ? `已更新发布到${scopeLabel}~` : mode === 'new-game' ? `已发布为新互动游戏，并同步到${scopeLabel}~` : `发布成功，已同步到${scopeLabel}~`);
+    toast(mode === 'update' ? `已替换并同步到${scopeLabel}~` : mode === 'new-game' ? `已发布为新互动课件，并同步到${scopeLabel}~` : `发布成功，已同步到${scopeLabel}~`);
     onPublishSuccess?.();
     onClose();
 
@@ -269,8 +269,8 @@ export default function PublishModal({
     }
   };
 
-  const modalTitle = mode === 'update' ? '更新发布' : mode === 'new-game' ? '发布为新互动游戏' : '发布作品';
-  const primaryText = mode === 'update' ? '确认更新发布' : mode === 'new-game' ? '确认发布为新游戏' : '确认发布';
+  const modalTitle = mode === 'update' ? '替换' : mode === 'new-game' ? '发布' : '发布作品';
+  const primaryText = mode === 'update' ? '确认替换' : '确认发布';
   const shouldShowUpdateTargets = mode === 'update' && updateTargets.length > 1;
   const selectedUpdateTarget = updateTargets.find(target => target.id === selectedUpdateTargetId) || updateTargets[0];
   const shouldShowResourceTags = publishScope !== 'personal';
@@ -303,13 +303,13 @@ export default function PublishModal({
         <div style={styles.content}>
           {mode === 'update' && (
             <div style={styles.updateNotice}>
-              本次发布会更新当前互动游戏的已发布版本，已插入课件中的互动游戏会同步使用新版本。
+              本次替换会更新当前互动课件的已发布版本，已插入课件中的互动课件会同步使用新版本。
             </div>
           )}
 
           {mode === 'new-game' && (
             <div style={styles.newGameNotice}>
-              本次发布会创建一个新的互动游戏资源，原已发布/插入课件的互动游戏不会受到影响。
+              本次发布会创建一个新的互动课件资源，原已发布/插入课件的互动课件不会受到影响。
             </div>
           )}
 
@@ -409,9 +409,9 @@ export default function PublishModal({
             </div>
           )}
 
-          {/* 游戏名称 */}
+          {/* 课件名称 */}
           <div style={styles.field}>
-            <label style={styles.label}><span style={styles.required}>*</span> 游戏名称</label>
+            <label style={styles.label}><span style={styles.required}>*</span> 课件名称</label>
             <div style={styles.inputWrap}>
               <input
                 type="text"
@@ -429,8 +429,8 @@ export default function PublishModal({
           {shouldShowUpdateTargets && selectedUpdateTarget && (
             <div style={styles.field} ref={updateTargetDropdownRef}>
               <div style={styles.labelRow}>
-                <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> 选择要更新的游戏</label>
-                <span style={styles.inlineHelp}>当前会话窗口中有多个已发布的游戏，需要选择更新哪个已发布的游戏。</span>
+                <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> 选择要替换的互动课件</label>
+                <span style={styles.inlineHelp}>当前会话窗口中有多个已发布的互动课件，需要选择替换哪一个。</span>
               </div>
               <button
                 type="button"
@@ -868,7 +868,7 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'background 0.12s',
   },
   updateTargetOptionActive: {
-    background: '#F0FDFA',
+    background: 'var(--agent-soft)',
   },
   updateTargetOptionTop: {
     display: 'flex',

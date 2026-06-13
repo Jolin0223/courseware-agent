@@ -145,7 +145,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       return '请分别说明图片和文档的用途，例如：图片作为角色素材，文档用于提取题目内容';
     }
     if (imageFiles.length > 0) {
-      return '请描述这些图片要怎么用于互动游戏，例如：作为背景、角色、道具、题目素材或参考风格';
+      return '请描述这些图片要怎么用于互动课件，例如：作为背景、角色、道具、题目素材或参考风格';
     }
     if (documentFiles.length > 0) {
       return '请描述文档要怎么使用，例如：提取题目、作为知识内容、生成脚本或参考结构';
@@ -656,7 +656,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 <button
                   style={{
                     ...styles.sendBtn,
-                    background: 'var(--agent-action-gradient)',
+                    background: 'var(--agent-hero-gradient)',
                     cursor: 'pointer',
                   }}
                   onClick={onStop}
@@ -670,7 +670,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <button
                 style={{
                   ...styles.sendBtn,
-                  background: canSend ? 'var(--agent-action-gradient)' : '#CBD5E1',
+                  background: canSend ? 'var(--agent-hero-gradient)' : '#CBD5E1',
                   cursor: canSend ? 'pointer' : 'not-allowed',
                 }}
                 disabled={!canSend}

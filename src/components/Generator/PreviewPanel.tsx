@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { Maximize2, X, Edit3, Upload, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap } from 'lucide-react';
+import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
@@ -180,7 +180,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   const canUpdateCurrentDraft = hasPublishedTargets && latestVersion && selectedVersion === latestVersion.version && isUnpublishedVersion;
 
   const srcDoc = currentVersion?.htmlContent || PLACEHOLDER_HTML;
-  const currentTitle = currentVersion?.title || courseware?.title || '互动游戏';
+  const currentTitle = currentVersion?.title || courseware?.title || '互动课件';
 
   const handleFullscreen = () => {
     setFullscreenOpen(true);
@@ -197,7 +197,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
     const newVersion: SessionHtmlVersion = {
       version: `v${newVersionNum}`,
       sessionNumber: newVersionNum,
-      title: currentVersion?.title || courseware?.title || '未命名互动游戏',
+      title: currentVersion?.title || courseware?.title || '未命名互动课件',
       htmlContent: editContent,
       createdAt: new Date().toISOString(),
     };
@@ -295,7 +295,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   });
 
   const publishBtnText = canUpdateCurrentDraft
-    ? '更新发布'
+    ? '替换'
     : currentVersion?.isRemoved
       ? '已下架'
       : currentVersion?.isCurrentPublished
@@ -322,18 +322,18 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                 <button
                   onClick={handleUpdatePublishClick}
                   style={{ ...panelStyle.actionBtn, background: 'var(--agent-gradient)', color: '#fff' }}
-                  title="更新发布"
+                  title="替换"
                 >
-                  <Upload size={14} />
-                  更新发布
+                  <RefreshCw size={14} />
+                  替换
                 </button>
                 <button
                   onClick={() => setPublishMode('new-game')}
                   style={{ ...panelStyle.actionBtn, background: '#F59E0B', color: '#fff' }}
-                  title="发布为新互动游戏"
+                  title="发布"
                 >
-                  <Upload size={14} />
-                  发布为新游戏
+                  <Send size={14} />
+                  发布
                 </button>
               </>
             ) : (
@@ -348,7 +348,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                 }}
                 title={publishBtnText}
               >
-                <Upload size={14} />
+                <Send size={14} />
                 {publishBtnText}
               </button>
             )}
@@ -453,7 +453,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                   onClick={() => setPreviewDevice(device.id)}
                   style={{
                     ...panelStyle.deviceTab,
-                    background: previewDevice === device.id ? '#F0FDFA' : 'transparent',
+                    background: previewDevice === device.id ? 'var(--agent-soft)' : 'transparent',
                     color: previewDevice === device.id ? 'var(--agent-primary)' : '#64748B',
                     borderBottom: previewDevice === device.id ? '2px solid var(--agent-primary)' : '2px solid transparent',
                   }}
@@ -510,7 +510,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                   onClick={() => setSelectedVersion(v.version)}
                   style={{
                     ...panelStyle.versionItem,
-                    background: v.version === selectedVersion ? '#F0FDFA' : '#F8FAFC',
+                    background: v.version === selectedVersion ? 'var(--agent-soft)' : '#F8FAFC',
                     color: v.isRemoved ? '#94A3B8' : v.version === selectedVersion ? 'var(--agent-primary)' : '#64748B',
                     border: v.isRemoved ? '1px dashed #CBD5E1' : v.version === selectedVersion ? '1.5px solid var(--agent-primary)' : '1px solid #E2E8F0',
                     opacity: v.isRemoved ? 0.78 : 1,

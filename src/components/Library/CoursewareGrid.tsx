@@ -102,14 +102,14 @@ const CoursewareCard: React.FC<CardProps> = ({
   const actionBtnStyle: React.CSSProperties = {
     padding: '6px 12px',
     background: 'rgba(255,255,255,0.95)',
-    borderRadius: 6,
+    borderRadius: 7,
     fontSize: 12,
-    color: '#1E293B',
+    color: '#334155',
     display: 'flex',
     alignItems: 'center',
     gap: 4,
     cursor: 'pointer',
-    border: 'none',
+    border: '1px solid rgba(255,255,255,0.72)',
     transition: '0.15s',
   };
 
@@ -119,13 +119,13 @@ const CoursewareCard: React.FC<CardProps> = ({
       onMouseLeave={() => setHovered(false)}
       style={{
         background: '#fff',
-        borderRadius: 12,
+        borderRadius: 10,
         overflow: 'hidden',
-        border: `1px solid ${hovered ? '#CBD5E1' : '#E2E8F0'}`,
+        border: `1px solid ${hovered ? 'var(--agent-border)' : '#E2E8F0'}`,
         transition: 'all 0.2s',
         cursor: 'pointer',
-        boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.08)' : 'none',
-        transform: hovered ? 'translateY(-2px)' : 'none',
+        boxShadow: hovered ? '0 10px 26px var(--agent-shadow)' : '0 1px 2px rgba(15,23,42,0.03)',
+        transform: hovered ? 'translateY(-1px)' : 'none',
       }}
     >
       {/* Thumbnail */}
@@ -171,12 +171,13 @@ const CoursewareCard: React.FC<CardProps> = ({
               alignItems: 'center',
               gap: 5,
               padding: '0 9px',
-              borderRadius: 999,
+              borderRadius: 8,
               background: 'rgba(255,255,255,0.94)',
               color: courseware.isPublished ? 'var(--agent-primary-text)' : '#B45309',
               fontSize: 12,
               fontWeight: 800,
-              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.10)',
+              border: '1px solid rgba(226, 232, 240, 0.92)',
+              boxShadow: '0 4px 12px rgba(37, 74, 120, 0.08)',
             }}
           >
             {courseware.isPublished ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}
@@ -191,7 +192,7 @@ const CoursewareCard: React.FC<CardProps> = ({
             bottom: 0,
             left: 0,
             right: 0,
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.6))',
+            background: 'linear-gradient(transparent, rgba(15, 23, 42, 0.58))',
             padding: 12,
             display: 'flex',
             gap: 8,
@@ -293,7 +294,7 @@ const CoursewareCard: React.FC<CardProps> = ({
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
               width: '100%', padding: '7px 0', borderRadius: 6, border: 'none',
-              background: 'var(--agent-gradient)',
+              background: 'var(--agent-action-gradient)',
               color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
               marginTop: 10,
             }}

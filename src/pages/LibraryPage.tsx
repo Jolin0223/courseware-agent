@@ -42,7 +42,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     gap: 4,
     padding: '4px',
-    background: '#F1F5F9',
+    background: 'var(--agent-soft)',
+    border: '1px solid var(--agent-border)',
     borderRadius: 10,
     width: 'fit-content',
   },
@@ -66,8 +67,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tabActive: {
     background: '#FFFFFF',
-    color: '#1E293B',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 1px 3px rgba(37, 74, 120, 0.08)',
   },
   emptyState: {
     textAlign: 'center',
@@ -100,10 +101,10 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 8,
     padding: '0 12px',
-    border: '1px solid #DDE7F2',
+    border: '1px solid var(--agent-border)',
     borderRadius: 8,
     background: '#FFFFFF',
-    color: '#94A3B8',
+    color: 'var(--agent-primary-text)',
     flexShrink: 0,
   },
   searchInput: {

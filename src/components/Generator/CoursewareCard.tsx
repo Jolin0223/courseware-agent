@@ -291,7 +291,7 @@ export default function CoursewareCard({
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
               borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
               border: '1.5px solid var(--agent-primary)',
-              background: '#F0FDFA',
+              background: 'var(--agent-soft)',
               color: 'var(--agent-primary-text)',
               transition: 'all 0.15s', outline: 'none',
             }}

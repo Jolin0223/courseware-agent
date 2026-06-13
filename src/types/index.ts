@@ -17,6 +17,7 @@ export interface Courseware {
   isOwn?: boolean;
   isPublished?: boolean;
   showConversation?: boolean;
+  learningDataRecovery?: LearningDataRecoverySummary;
 }
 
 // 对话消息类型
@@ -28,6 +29,7 @@ export type MessageType =
   | 'generation-progress'
   | 'courseware-result'
   | 'material-intent-confirmation'
+  | 'voice-capability-confirmation'
   | 'analyzing';
 
 export interface RequirementFramework {
@@ -61,6 +63,29 @@ export interface CoursewareResult {
   version: string;
   thumbnail?: string;
   htmlContent?: string;
+  learningDataRecovery?: LearningDataRecoverySummary;
+}
+
+export type LearningDataRecoveryStatus = 'not-started' | 'configured';
+
+export interface LearningDataRecoveryItem {
+  id: string;
+  label: string;
+  description: string;
+  checked: boolean;
+}
+
+export interface LearningDataRecoverySummary {
+  status: LearningDataRecoveryStatus;
+  selectedItems: LearningDataRecoveryItem[];
+}
+
+export interface LearningDataRecoveryRequest {
+  coursewareTitle: string;
+  htmlContent?: string;
+  version?: string;
+  mode?: 'create' | 'edit';
+  initialItems?: LearningDataRecoveryItem[];
 }
 
 export type UploadedAttachmentType = 'image' | 'document' | 'html';
@@ -107,6 +132,20 @@ export interface MaterialIntentConfirmation {
   summary: string;
 }
 
+export type VoiceCapabilityIntent = 'english-oral' | 'record-only';
+
+export interface VoiceCapabilityConfirmation {
+  prompt: string;
+  promptForFramework: string;
+  intent: VoiceCapabilityIntent;
+  source: 'user-prompt' | 'material-intent';
+}
+
+export interface VoiceCapabilitySelection {
+  smallScreenRecording: boolean;
+  englishOralAssessment: boolean;
+}
+
 export interface UserMaterialMessage {
   text: string;
   attachments?: UploadedAttachment[];
@@ -116,7 +155,7 @@ export interface UserMaterialMessage {
 export interface ConversationMessage {
   id: string;
   role: MessageRole;
-  content: string | UserMaterialMessage | RequirementFramework | GenerationProgress | CoursewareResult | MaterialIntentConfirmation;
+  content: string | UserMaterialMessage | RequirementFramework | GenerationProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
   type?: MessageType;
   timestamp: Date;
 }

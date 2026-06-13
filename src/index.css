@@ -274,8 +274,32 @@ body {
 }
 
 /* Focus styles */
+button:focus,
+[role="button"]:focus,
+a:focus,
+summary:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--agent-primary);
+  outline-offset: 2px;
+}
+
+:root[data-input-modality="keyboard"] button:focus-visible,
+:root[data-input-modality="keyboard"] [role="button"]:focus-visible,
+:root[data-input-modality="keyboard"] a:focus-visible,
+:root[data-input-modality="keyboard"] summary:focus-visible {
+  outline: 2px solid var(--agent-primary);
   outline-offset: 2px;
 }
 

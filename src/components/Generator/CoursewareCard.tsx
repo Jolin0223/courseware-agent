@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Eye, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2 } from 'lucide-react';
-import type { Courseware } from '../../types';
+import { Copy, Eye, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2, BarChart3 } from 'lucide-react';
+import type { Courseware, LearningDataRecoveryRequest } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
 import { openHtmlPreview } from '../../utils/openHtmlPreview';
+import LearningDataRecoveryModal from './LearningDataRecoveryModal';
 
 // 默认音色选项
 const DEFAULT_VOICES = [
@@ -37,11 +38,13 @@ export default function CoursewareCard({
   version = 'v1.0',
   isLatest: isLatestProp = true,
   onOpenPreview,
+  onLearningDataRecoveryRequest,
 }: {
   courseware: Courseware;
   version?: string;
   isLatest?: boolean;
   onOpenPreview?: (coursewareId: number) => void;
+  onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [feedbackCopied, setFeedbackCopied] = useState(false);
@@ -51,11 +54,10 @@ export default function CoursewareCard({
   const [editDisabledTooltip, setEditDisabledTooltip] = useState(false);
   const [isLatest, setIsLatest] = useState(isLatestProp);
   const [currentVersion, setCurrentVersion] = useState(version);
+  const [showLearningDataModal, setShowLearningDataModal] = useState(false);
   const navigate = useNavigate();
   const { appMode, insertCourseware, closePreview } = useUIStore();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
-  const addAssistantMessage = useConversationStore((s) => s.addAssistantMessage);
-  const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const isEmbedded = appMode === 'embedded';
   const feedbackLocator = '2fc7b609481e45868a38a74b4490400a';
   const feedbackTime = '2026-06-05 14:30';
@@ -265,7 +267,7 @@ export default function CoursewareCard({
                 marginBottom: 6, padding: '6px 10px', borderRadius: 6, background: '#1E293B', color: '#fff',
                 fontSize: 11, whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}>
-                当前为旧版，不支持编辑，请在最新版互动游戏上编辑资源哦~
+                当前为旧版，不支持编辑，请在最新版互动课件上编辑资源哦~
               </div>
             )}
           </div>
@@ -282,6 +284,22 @@ export default function CoursewareCard({
           >
             <Eye size={15} />
             全屏预览
+          </button>
+          <button
+            onClick={() => setShowLearningDataModal(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              border: '1.5px solid var(--agent-primary)',
+              background: '#F0FDFA',
+              color: 'var(--agent-primary-text)',
+              transition: 'all 0.15s', outline: 'none',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 8px var(--agent-shadow)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
+          >
+            <BarChart3 size={15} />
+            查看学情数据
           </button>
           {isEmbedded && (
             <button
@@ -343,18 +361,6 @@ export default function CoursewareCard({
         onConfirmReplace={() => {
           setIsLatest(false);
           setCurrentVersion(currentVersion);
-          if (activeConversationId) {
-            setTimeout(() => {
-              addAssistantMessage(activeConversationId, '好的，已根据您替换的资源重新生成互动游戏 V2.0 版本 ✨', 'text');
-              setTimeout(() => {
-                const v2Result: import('../../types').CoursewareResult = {
-                  title: courseware.title,
-                  version: 'v2.0',
-                };
-                addAssistantMessage(activeConversationId, v2Result, 'courseware-result');
-              }, 500);
-            }, 800);
-          }
         }}
         images={images}
         audios={audios}
@@ -363,6 +369,24 @@ export default function CoursewareCard({
         onImageRegenerate={handleImageRegenerate}
         onAudioReplace={handleAudioReplace}
         onAudioRegenerate={handleAudioRegenerate}
+      />
+
+      <LearningDataRecoveryModal
+        isOpen={showLearningDataModal}
+        coursewareTitle={courseware.title}
+        initialItems={courseware.learningDataRecovery?.selectedItems}
+        isLatestVersion={isLatest}
+        onClose={() => setShowLearningDataModal(false)}
+        onRegenerate={(items) => {
+          setIsLatest(false);
+          onLearningDataRecoveryRequest?.({
+            coursewareTitle: courseware.title,
+            htmlContent: courseware.htmlContent,
+            version: '下一版',
+            mode: 'edit',
+            initialItems: items,
+          });
+        }}
       />
     </>
   );

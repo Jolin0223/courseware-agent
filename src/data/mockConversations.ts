@@ -1,6 +1,7 @@
 import type { Conversation, RequirementFramework, GenerationProgress, CoursewareResult } from '../types';
 import { demoVersionResults } from './demoCoursewareVersions';
 import { isFruitCoursewarePrompt } from './fruitCoursewarePrompt';
+import { createLearningDataRecoverySummary, defaultRecoveryItems } from '../utils/learningDataRecovery';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
@@ -18,6 +19,7 @@ const generationProgress: GenerationProgress = {
     { name: '代码生成', status: 'completed', progress: 100 },
     { name: '代码审查', status: 'completed', progress: 100 },
     { name: '代码修复', status: 'completed', progress: 100 },
+    { name: '学情数据回收数据设计', status: 'completed', progress: 100 },
   ],
   images: [
     { id: '1', purpose: '动物图片-狗' },
@@ -32,6 +34,7 @@ const coursewareResult: CoursewareResult = {
   title: '水果单词互动乐园',
   version: 'v1.0',
   htmlContent: demoVersionResults[0].htmlContent,
+  learningDataRecovery: createLearningDataRecoverySummary(defaultRecoveryItems),
 };
 
 export const mockConversations: Conversation[] = [

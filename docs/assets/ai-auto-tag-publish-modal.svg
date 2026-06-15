@@ -1,0 +1,58 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .h1{font:700 24px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#102033}
+      .label{font:700 18px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#102033}
+      .txt{font:500 15px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#526174}
+      .small{font:600 13px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#047857}
+      .hint{font:500 14px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#94A3B8}
+      .box{fill:#fff;stroke:#D8E5EF;stroke-width:2}
+      .chip{fill:#E0FBF4;stroke:#BFEFE4;stroke-width:1.5}
+      .btn{fill:#fff;stroke:#BFEFE4;stroke-width:1.5}
+      .primary{fill:#ECFDF5;stroke:#00A67D;stroke-width:2}
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="#EEF3F8"/>
+  <rect x="120" y="50" width="1040" height="620" rx="18" fill="#fff"/>
+  <text x="150" y="96" class="h1">发布</text>
+
+  <rect x="150" y="126" width="300" height="68" rx="10" class="box"/>
+  <text x="182" y="156" class="label">集团资源库</text>
+  <text x="182" y="180" class="txt">全国/集团老师可见</text>
+  <rect x="470" y="126" width="300" height="68" rx="10" class="primary"/>
+  <text x="502" y="156" class="label">校本资源库</text>
+  <text x="502" y="180" class="txt">按学校沉淀校本内容</text>
+  <rect x="790" y="126" width="300" height="68" rx="10" class="box"/>
+  <text x="822" y="156" class="label">个人资源库</text>
+  <text x="822" y="180" class="txt">仅自己可见</text>
+
+  <text x="150" y="246" class="label">* 科目</text>
+  <rect x="150" y="270" width="80" height="38" rx="19" class="box"/><text x="176" y="294" class="txt">语文</text>
+  <rect x="246" y="270" width="80" height="38" rx="19" class="box"/><text x="272" y="294" class="txt">数学</text>
+  <rect x="342" y="270" width="80" height="38" rx="19" class="primary"/><text x="368" y="294" class="small">英语</text>
+
+  <text x="150" y="364" class="label">* 校本标签</text>
+  <rect x="254" y="344" width="78" height="28" rx="6" fill="#ECFDF5"/><text x="270" y="363" class="small">AI默认推荐</text>
+  <rect x="844" y="340" width="118" height="32" rx="7" class="btn"/>
+  <text x="872" y="361" class="small">AI智能打标</text>
+  <rect x="976" y="340" width="124" height="32" rx="7" class="btn"/>
+  <text x="1000" y="361" class="small">编辑校本标签</text>
+  <rect x="150" y="386" width="950" height="62" rx="10" class="box"/>
+  <text x="174" y="424" class="hint">点击选择校本标签...</text>
+
+  <text x="150" y="506" class="label">内容标签</text>
+  <rect x="238" y="486" width="78" height="28" rx="6" fill="#ECFDF5"/><text x="254" y="505" class="small">AI默认推荐</text>
+  <text x="850" y="506" class="hint">非必填，用于标记玩法或视觉风格</text>
+  <rect x="150" y="528" width="950" height="62" rx="10" class="box"/>
+  <rect x="170" y="546" width="92" height="30" rx="15" class="chip"/><text x="190" y="566" class="small">闯关玩法</text>
+  <rect x="276" y="546" width="92" height="30" rx="15" class="chip"/><text x="296" y="566" class="small">语音跟读</text>
+  <rect x="382" y="546" width="116" height="30" rx="15" class="chip"/><text x="402" y="566" class="small">果园视觉风格</text>
+  <text x="520" y="566" class="hint">输入自定义标签，回车添加</text>
+
+  <rect x="120" y="612" width="1040" height="58" rx="0" fill="#FFFFFF"/>
+  <rect x="904" y="622" width="96" height="38" rx="8" class="box"/><text x="936" y="647" class="txt">取消</text>
+  <rect x="1016" y="622" width="116" height="38" rx="8" fill="#00A8E8"/><text x="1044" y="647" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif" font-size="15" font-weight="700" fill="#fff">确认发布</text>
+
+  <path d="M842 356H760" stroke="#00A67D" stroke-width="2" stroke-dasharray="6 6"/>
+  <text x="622" y="362" class="hint">按钮位于标签标题右侧，不单独占一行</text>
+</svg>

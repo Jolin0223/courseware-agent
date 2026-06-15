@@ -285,13 +285,14 @@ const styles: Record<string, React.CSSProperties> = {
   messageUser: {
     display: 'flex',
     justifyContent: 'flex-end',
+    width: '100%',
   },
   userBubble: {
     background: 'var(--agent-gradient)',
     color: '#FFFFFF',
     padding: '12px 16px',
     borderRadius: '16px 16px 4px 16px',
-    maxWidth: '80%',
+    maxWidth: '100%',
     fontSize: 15,
     lineHeight: 1.5,
   },
@@ -676,7 +677,8 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     alignItems: 'flex-end',
     gap: 8,
-    maxWidth: '80%',
+    width: 'calc(100% - 42px)',
+    maxWidth: 760,
   },
   imageGrid: {
     display: 'flex',

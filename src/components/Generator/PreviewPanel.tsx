@@ -46,6 +46,12 @@ interface PublishedGameTarget {
   urlLabel: string;
 }
 
+const REAL_CASE_TITLES = ['近义词大挑战', '单词神枪手', '比绳子长短'];
+
+const isRealCaseCourseware = (title?: string) => {
+  return REAL_CASE_TITLES.some(caseTitle => title?.includes(caseTitle));
+};
+
 const buildSessionVersions = (courseware?: { title?: string; htmlContent?: string } | null): SessionHtmlVersion[] => {
   if (!courseware) return [];
   if (courseware.title?.includes('水果单词互动乐园')) {
@@ -53,6 +59,17 @@ const buildSessionVersions = (courseware?: { title?: string; htmlContent?: strin
   }
   const baseHtml = courseware.htmlContent || '';
   const baseTitle = courseware.title || '互动课件';
+  if (isRealCaseCourseware(baseTitle)) {
+    return [
+      {
+        version: 'v1',
+        sessionNumber: 1,
+        title: baseTitle,
+        htmlContent: baseHtml,
+        createdAt: '2026-06-15 10:00',
+      },
+    ];
+  }
   return [
     {
       version: 'v1',
@@ -94,6 +111,9 @@ const buildSessionVersions = (courseware?: { title?: string; htmlContent?: strin
 const buildPublishedTargets = (courseware?: { title?: string } | null): PublishedGameTarget[] => {
   if (courseware?.title?.includes('水果单词互动乐园')) {
     return demoPublishedTargets.map(target => ({ ...target }));
+  }
+  if (isRealCaseCourseware(courseware?.title)) {
+    return [];
   }
   const baseTitle = courseware?.title || '互动课件';
   return [

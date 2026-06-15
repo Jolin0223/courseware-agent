@@ -225,11 +225,17 @@ export default function CoursewareCard({
         </div>
 
         <div style={{ padding: '14px 20px', background: '#FAFBFC' }} onClick={(e) => e.stopPropagation()}>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
+          }}>
           <button
             onClick={handleClone}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 13px',
+              minHeight: 34,
               borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
               background: 'var(--agent-gradient)', color: '#fff',
               transition: 'all 0.15s', outline: 'none',
@@ -247,7 +253,8 @@ export default function CoursewareCard({
             <button
               onClick={() => { if (isLatest) setShowEditModal(true); }}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 13px',
+                minHeight: 34,
                 borderRadius: 8, fontSize: 13, fontWeight: 500,
                 cursor: isLatest ? 'pointer' : 'not-allowed',
                 border: isLatest ? '1.5px solid var(--agent-primary)' : '1px solid #E2E8F0',
@@ -275,7 +282,8 @@ export default function CoursewareCard({
           <button
             onClick={handlePreview}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 13px',
+              minHeight: 34,
               borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
               border: '1px solid #E2E8F0', background: '#fff', color: '#475569',
               transition: 'all 0.15s', outline: 'none',
@@ -289,7 +297,8 @@ export default function CoursewareCard({
           <button
             onClick={() => setShowLearningDataModal(true)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 13px',
+              minHeight: 34,
               borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
               border: '1.5px solid var(--agent-primary)',
               background: 'var(--agent-soft)',
@@ -300,7 +309,7 @@ export default function CoursewareCard({
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
           >
             <BarChart3 size={15} />
-            查看学情数据
+            学情数据
           </button>
           {isEmbedded && (
             <button
@@ -316,7 +325,8 @@ export default function CoursewareCard({
                 toast(`"${courseware.title}" 已插入课件`);
               }}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 13px',
+                minHeight: 34,
                 borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
                 background: 'var(--agent-action-gradient)', color: '#fff',
                 transition: 'all 0.15s', outline: 'none',

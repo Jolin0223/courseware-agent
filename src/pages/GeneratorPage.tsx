@@ -1045,6 +1045,29 @@ function MaterialIntentCard({
   );
 }
 
+type VoiceCapabilityChoice = 'record-with-assessment' | 'record-only' | 'none';
+
+const getVoiceSelectionFromChoice = (choice: VoiceCapabilityChoice): VoiceCapabilitySelection => {
+  if (choice === 'record-with-assessment') {
+    return {
+      smallScreenRecording: true,
+      englishOralAssessment: true,
+    };
+  }
+
+  if (choice === 'record-only') {
+    return {
+      smallScreenRecording: true,
+      englishOralAssessment: false,
+    };
+  }
+
+  return {
+    smallScreenRecording: false,
+    englishOralAssessment: false,
+  };
+};
+
 function VoiceCapabilityCard({
   confirmation,
   onConfirm,
@@ -1053,22 +1076,22 @@ function VoiceCapabilityCard({
   onConfirm?: (selection: VoiceCapabilitySelection) => void;
 }) {
   const AUTO_CONFIRM_SECONDS = 60;
-  const [selection, setSelection] = useState<VoiceCapabilitySelection>({
-    smallScreenRecording: true,
-    englishOralAssessment: confirmation.intent === 'english-oral',
-  });
+  const defaultChoice: VoiceCapabilityChoice = confirmation.intent === 'english-oral'
+    ? 'record-with-assessment'
+    : 'record-only';
+  const [selectedChoice, setSelectedChoice] = useState<VoiceCapabilityChoice>(defaultChoice);
   const [remainingSeconds, setRemainingSeconds] = useState(AUTO_CONFIRM_SECONDS);
-  const selectionRef = useRef(selection);
+  const selectedChoiceRef = useRef(selectedChoice);
   const confirmedRef = useRef(false);
 
   useEffect(() => {
-    selectionRef.current = selection;
-  }, [selection]);
+    selectedChoiceRef.current = selectedChoice;
+  }, [selectedChoice]);
 
-  const confirmSelection = useCallback((nextSelection: VoiceCapabilitySelection) => {
+  const confirmSelection = useCallback((choice: VoiceCapabilityChoice) => {
     if (confirmedRef.current) return;
     confirmedRef.current = true;
-    onConfirm?.(nextSelection);
+    onConfirm?.(getVoiceSelectionFromChoice(choice));
   }, [onConfirm]);
 
   useEffect(() => {
@@ -1076,7 +1099,7 @@ function VoiceCapabilityCard({
       setRemainingSeconds(prev => {
         if (prev <= 1) {
           window.clearInterval(timer);
-          confirmSelection(selectionRef.current);
+          confirmSelection(selectedChoiceRef.current);
           return 0;
         }
         return prev - 1;
@@ -1085,26 +1108,6 @@ function VoiceCapabilityCard({
 
     return () => window.clearInterval(timer);
   }, [confirmSelection]);
-
-  const toggleRecording = () => {
-    setSelection(prev => {
-      const nextRecording = !prev.smallScreenRecording;
-      return {
-        smallScreenRecording: nextRecording,
-        englishOralAssessment: nextRecording ? prev.englishOralAssessment : false,
-      };
-    });
-  };
-
-  const toggleAssessment = () => {
-    setSelection(prev => {
-      const nextAssessment = !prev.englishOralAssessment;
-      return {
-        smallScreenRecording: nextAssessment ? true : prev.smallScreenRecording,
-        englishOralAssessment: nextAssessment,
-      };
-    });
-  };
 
   const optionStyle = (selected: boolean): React.CSSProperties => ({
     ...voiceCardStyles.optionBtn,
@@ -1137,19 +1140,27 @@ function VoiceCapabilityCard({
       </div>
 
       <div style={voiceCardStyles.options}>
-        <button type="button" onClick={toggleRecording} style={optionStyle(selection.smallScreenRecording)}>
-          <span style={iconStyle(selection.smallScreenRecording)}><Mic size={17} /></span>
+        <button
+          type="button"
+          onClick={() => setSelectedChoice('record-with-assessment')}
+          style={optionStyle(selectedChoice === 'record-with-assessment')}
+        >
+          <span style={iconStyle(selectedChoice === 'record-with-assessment')}><Headphones size={17} /></span>
           <span>
-            <span style={voiceCardStyles.optionTitle}>学习机小屏真实收音</span>
-            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，可用于朗读、背诵、口述等开口互动。</span>
+            <span style={voiceCardStyles.optionTitle}>学习机小屏真实收音+ 英语口语评测</span>
+            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，同时展示英语口语评测结果。</span>
           </span>
         </button>
 
-        <button type="button" onClick={toggleAssessment} style={optionStyle(selection.englishOralAssessment)}>
-          <span style={iconStyle(selection.englishOralAssessment)}><Headphones size={17} /></span>
+        <button
+          type="button"
+          onClick={() => setSelectedChoice('record-only')}
+          style={optionStyle(selectedChoice === 'record-only')}
+        >
+          <span style={iconStyle(selectedChoice === 'record-only')}><Mic size={17} /></span>
           <span>
-            <span style={voiceCardStyles.optionTitle}>英语口语评测</span>
-            <span style={voiceCardStyles.optionDesc}>当前仅支持英语单词、短句、简单对话；勾选后会自动启用真实收音。</span>
+            <span style={voiceCardStyles.optionTitle}>仅学习机小屏真实收音</span>
+            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，不展示英语口语评测结果。</span>
           </span>
         </button>
       </div>
@@ -1164,12 +1175,16 @@ function VoiceCapabilityCard({
         <div style={voiceCardStyles.actions}>
           <button
             type="button"
-            onClick={() => confirmSelection({ smallScreenRecording: false, englishOralAssessment: false })}
+            onClick={() => confirmSelection('none')}
             style={voiceCardStyles.ghostBtn}
           >
             不需要语音服务，继续
           </button>
-          <button type="button" onClick={() => confirmSelection(selection)} style={voiceCardStyles.confirmBtn}>
+          <button
+            type="button"
+            onClick={() => confirmSelection(selectedChoice)}
+            style={voiceCardStyles.confirmBtn}
+          >
             确认并继续
           </button>
         </div>

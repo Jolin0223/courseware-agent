@@ -33,6 +33,7 @@ interface SessionHtmlVersion {
   title: string;
   htmlContent?: string;
   createdAt: string;
+  visualStylePrompt?: string;
   publishTargetId?: string;
   isCurrentPublished?: boolean;
   isHistoricalPublished?: boolean;
@@ -46,6 +47,12 @@ interface PublishedGameTarget {
   urlLabel: string;
 }
 
+const REAL_CASE_TITLES = ['近义词大挑战', '单词神枪手', '比绳子长短'];
+
+const isRealCaseCourseware = (title?: string) => {
+  return REAL_CASE_TITLES.some(caseTitle => title?.includes(caseTitle));
+};
+
 const buildSessionVersions = (courseware?: { title?: string; htmlContent?: string } | null): SessionHtmlVersion[] => {
   if (!courseware) return [];
   if (courseware.title?.includes('水果单词互动乐园')) {
@@ -53,6 +60,17 @@ const buildSessionVersions = (courseware?: { title?: string; htmlContent?: strin
   }
   const baseHtml = courseware.htmlContent || '';
   const baseTitle = courseware.title || '互动课件';
+  if (isRealCaseCourseware(baseTitle)) {
+    return [
+      {
+        version: 'v1',
+        sessionNumber: 1,
+        title: baseTitle,
+        htmlContent: baseHtml,
+        createdAt: '2026-06-15 10:00',
+      },
+    ];
+  }
   return [
     {
       version: 'v1',
@@ -94,6 +112,9 @@ const buildSessionVersions = (courseware?: { title?: string; htmlContent?: strin
 const buildPublishedTargets = (courseware?: { title?: string } | null): PublishedGameTarget[] => {
   if (courseware?.title?.includes('水果单词互动乐园')) {
     return demoPublishedTargets.map(target => ({ ...target }));
+  }
+  if (isRealCaseCourseware(courseware?.title)) {
+    return [];
   }
   const baseTitle = courseware?.title || '互动课件';
   return [
@@ -468,6 +489,12 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
           {/* Preview Container */}
           <div style={panelStyle.previewContainer}>
+            {currentVersion?.visualStylePrompt && (
+              <div style={panelStyle.stylePromptNote}>
+                <span style={panelStyle.stylePromptLabel}>画面优化说明</span>
+                <span style={panelStyle.stylePromptText}>{currentVersion.visualStylePrompt}</span>
+              </div>
+            )}
             {previewDevice === 'default' ? (
               <div style={panelStyle.defaultFrame}>
                 <iframe
@@ -610,6 +637,69 @@ const panelStyle: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s',
     whiteSpace: 'nowrap',
   },
+  stylePanel: {
+    position: 'absolute',
+    right: 0,
+    bottom: 34,
+    zIndex: 30,
+    width: 320,
+    maxHeight: 520,
+    overflowY: 'auto',
+    padding: 10,
+    borderRadius: 12,
+    border: '1px solid rgba(15, 118, 110, 0.16)',
+    background: 'rgba(255,255,255,0.98)',
+    boxShadow: '0 18px 46px rgba(15, 23, 42, 0.14)',
+  },
+  stylePanelHeader: {
+    padding: '2px 2px 10px',
+    borderBottom: '1px solid #E2E8F0',
+    marginBottom: 8,
+  },
+  stylePanelTitle: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: 850,
+    marginBottom: 3,
+  },
+  stylePanelDesc: {
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.45,
+  },
+  styleOptionList: {
+    display: 'grid',
+    gap: 7,
+  },
+  styleGroupTitle: {
+    margin: '10px 2px 7px',
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: 850,
+  },
+  styleOption: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 3,
+    width: '100%',
+    padding: '9px 10px',
+    borderRadius: 9,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    cursor: 'pointer',
+    textAlign: 'left',
+  },
+  styleOptionName: {
+    color: '#0F766E',
+    fontSize: 13,
+    fontWeight: 850,
+  },
+  styleOptionDesc: {
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.35,
+  },
   iconBtn: {
     width: 30,
     height: 30,
@@ -711,6 +801,36 @@ const panelStyle: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     padding: 16,
     overflow: 'hidden',
+    position: 'relative',
+  },
+  stylePromptNote: {
+    position: 'absolute',
+    top: 12,
+    left: 16,
+    right: 16,
+    zIndex: 2,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '8px 10px',
+    borderRadius: 10,
+    border: '1px solid rgba(0,201,167,0.22)',
+    background: 'rgba(255,255,255,0.94)',
+    boxShadow: '0 8px 22px rgba(15, 23, 42, 0.08)',
+  },
+  stylePromptLabel: {
+    flexShrink: 0,
+    color: '#0F766E',
+    fontSize: 12,
+    fontWeight: 850,
+  },
+  stylePromptText: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: '#475569',
+    fontSize: 12,
   },
   defaultFrame: {
     width: '100%',
@@ -834,6 +954,28 @@ const panelStyle: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     outline: 'none',
     flexShrink: 0,
+  },
+  versionStyleBtn: {
+    height: 24,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    padding: '0 9px',
+    borderRadius: 6,
+    border: '1px solid #D8F3EF',
+    background: '#FFFFFF',
+    color: '#0F766E',
+    fontSize: 12,
+    fontWeight: 750,
+    cursor: 'pointer',
+    outline: 'none',
+    whiteSpace: 'nowrap',
+  },
+  versionStyleBtnActive: {
+    borderColor: 'rgba(0,201,167,0.38)',
+    background: 'var(--agent-soft-strong)',
+    color: 'var(--agent-primary-text)',
   },
   iframe: {
     width: '100%',

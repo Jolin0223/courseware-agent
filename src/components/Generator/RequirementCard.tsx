@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { RequirementFramework } from '../../types';
 import toast from '../../utils/toast';
 import { demoMs } from '../../constants/demoTiming';
+import { visualStylePresets, type VisualStylePreset } from '../../data/visualStylePresets';
 
 interface RequirementCardProps {
   framework: RequirementFramework;
@@ -20,6 +21,8 @@ const getSections = (framework: RequirementFramework) => [
 ];
 
 const TOTAL_DURATION_MS = demoMs(15000);
+
+const visualStyleOptions = visualStylePresets;
 
 const sectionTitleStyle: React.CSSProperties = {
   fontSize: 15,
@@ -55,6 +58,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
   const [currentSection, setCurrentSection] = useState(0);
   const [streamComplete, setStreamComplete] = useState(false);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [selectedVisualStyle, setSelectedVisualStyle] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const charIndexRef = useRef(0);
@@ -123,6 +127,18 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
     setEditValues(prev => ({ ...prev, [key]: value }));
   };
 
+  const applyVisualStyle = (option: VisualStylePreset) => {
+    setSelectedVisualStyle(option.id);
+    setEditValues(prev => {
+      const current = prev.designStyle || framework.designStyle || '';
+      const next = /请只调整画面(感觉|风格)：/.test(current)
+        ? current.replace(/请只调整画面(感觉|风格)：[\s\S]*?(?=\n\n|$)/, option.prompt)
+        : `${current.trim()}\n\n${option.prompt}`.trim();
+      return { ...prev, designStyle: next };
+    });
+    toast(`已加入「${option.name}」画面风格`);
+  };
+
   const autoResize = (el: HTMLTextAreaElement) => {
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
@@ -130,6 +146,14 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
 
   return (
     <div ref={containerRef} style={{ width: '100%' }}>
+      <style>{`
+        .requirement-style-scroll {
+          scrollbar-width: none;
+        }
+        .requirement-style-scroll::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       <div style={{
         background: '#fff',
         borderRadius: 12,
@@ -174,6 +198,31 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                 <span>{section.icon}</span>
                 <span>{section.title}</span>
               </div>
+              {section.key === 'designStyle' && isSectionDone && (
+                <div style={visualStyleStyles.panel}>
+                  <div style={visualStyleStyles.header}>
+                    <span style={visualStyleStyles.title}>调整画面风格</span>
+                  </div>
+                  <div className="requirement-style-scroll" style={visualStyleStyles.optionRow}>
+                    {visualStyleOptions.map(option => {
+                      const selected = selectedVisualStyle === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => applyVisualStyle(option)}
+                          style={{
+                            ...visualStyleStyles.optionBtn,
+                            ...(selected ? visualStyleStyles.optionBtnSelected : {}),
+                          }}
+                        >
+                          {option.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {isSectionDone ? (
                 <textarea
                   value={editText}
@@ -212,6 +261,59 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
       </div>
     </div>
   );
+};
+
+const visualStyleStyles: Record<string, React.CSSProperties> = {
+  panel: {
+    margin: '-2px 0 10px',
+    padding: '10px 12px',
+    borderRadius: 10,
+    border: '1px solid rgba(0,201,167,0.18)',
+    background: 'linear-gradient(135deg, rgba(240,253,250,0.84), rgba(255,255,255,0.96))',
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 8,
+  },
+  title: {
+    color: '#0F766E',
+    fontSize: 13,
+    fontWeight: 800,
+  },
+  desc: {
+    color: '#94A3B8',
+    fontSize: 12,
+    whiteSpace: 'nowrap',
+  },
+  optionRow: {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    gap: 8,
+    overflowX: 'auto',
+    paddingBottom: 2,
+  },
+  optionBtn: {
+    height: 28,
+    padding: '0 11px',
+    borderRadius: 999,
+    border: '1px solid #D8F3EF',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: 750,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+  },
+  optionBtnSelected: {
+    borderColor: 'var(--agent-primary)',
+    background: 'var(--agent-soft-strong)',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 6px 16px rgba(0, 201, 167, 0.14)',
+  },
 };
 
 export default RequirementCard;

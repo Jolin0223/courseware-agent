@@ -1,13 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Headphones, Info, Mic } from 'lucide-react';
+import { Headphones, Info, Mic, Sparkles } from 'lucide-react';
 import ChatInput from '../components/Generator/ChatInput';
 // ChatHistory moved to Sidebar
 import RequirementCard from '../components/Generator/RequirementCard';
 import ProgressPanel from '../components/Generator/ProgressPanel';
 import PreviewPanel from '../components/Generator/PreviewPanel';
 import CoursewareCard from '../components/Generator/CoursewareCard';
-import InspirationSection, { type GameplayInspiration } from '../components/Generator/InspirationSection';
+import InspirationSection, { buildStructuredInspirationPrompt, type GameplayInspiration } from '../components/Generator/InspirationSection';
 import InspirationAssistant from '../components/Generator/InspirationAssistant';
 import { useConversationStore, simulateGeneration } from '../store/conversationStore';
 import { useUIStore } from '../store/uiStore';
@@ -19,6 +19,7 @@ import type {
   CoursewareResult,
   Courseware,
   LearningDataRecoveryRequest,
+  VisualStyleRegenerationRequest,
   UploadedAttachment,
   MaterialIntent,
   MaterialIntentConfirmation,
@@ -35,6 +36,13 @@ import { demoMs } from '../constants/demoTiming';
 import { createLearningDataRecoverySummary } from '../utils/learningDataRecovery';
 
 type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
+
+type PromptFlyState = {
+  id: number;
+  title: string;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+};
 
 const imageIntentOptions: MaterialIntentOption[] = [
   { intent: 'use-as-courseware-material', title: '作为课件素材', description: '直接用于背景、角色、道具或题目插图' },
@@ -273,6 +281,44 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 28,
     textAlign: 'center',
   },
+  promptFlyCard: {
+    position: 'fixed',
+    left: 0,
+    top: 0,
+    zIndex: 21000,
+    pointerEvents: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    width: 236,
+    height: 44,
+    padding: '0 12px',
+    borderRadius: 14,
+    border: '1px solid rgba(79, 209, 197, 0.48)',
+    background: 'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(231, 255, 250, 0.94))',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 18px 46px rgba(15, 118, 110, 0.22), inset 0 1px 0 rgba(255,255,255,0.92)',
+    backdropFilter: 'blur(12px)',
+  },
+  promptFlyIcon: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 26,
+    height: 26,
+    borderRadius: 9,
+    background: 'var(--agent-action-gradient)',
+    color: '#FFFFFF',
+    flexShrink: 0,
+  },
+  promptFlyText: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    fontSize: 13,
+    fontWeight: 900,
+  },
   analyzingContainer: {
     display: 'flex',
     flexDirection: 'column',
@@ -285,13 +331,14 @@ const styles: Record<string, React.CSSProperties> = {
   messageUser: {
     display: 'flex',
     justifyContent: 'flex-end',
+    width: '100%',
   },
   userBubble: {
     background: 'var(--agent-gradient)',
     color: '#FFFFFF',
     padding: '12px 16px',
     borderRadius: '16px 16px 4px 16px',
-    maxWidth: '80%',
+    maxWidth: '100%',
     fontSize: 15,
     lineHeight: 1.5,
   },
@@ -676,7 +723,8 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     alignItems: 'flex-end',
     gap: 8,
-    maxWidth: '80%',
+    width: 'calc(100% - 42px)',
+    maxWidth: 760,
   },
   imageGrid: {
     display: 'flex',
@@ -1045,6 +1093,29 @@ function MaterialIntentCard({
   );
 }
 
+type VoiceCapabilityChoice = 'record-with-assessment' | 'record-only' | 'none';
+
+const getVoiceSelectionFromChoice = (choice: VoiceCapabilityChoice): VoiceCapabilitySelection => {
+  if (choice === 'record-with-assessment') {
+    return {
+      smallScreenRecording: true,
+      englishOralAssessment: true,
+    };
+  }
+
+  if (choice === 'record-only') {
+    return {
+      smallScreenRecording: true,
+      englishOralAssessment: false,
+    };
+  }
+
+  return {
+    smallScreenRecording: false,
+    englishOralAssessment: false,
+  };
+};
+
 function VoiceCapabilityCard({
   confirmation,
   onConfirm,
@@ -1053,22 +1124,22 @@ function VoiceCapabilityCard({
   onConfirm?: (selection: VoiceCapabilitySelection) => void;
 }) {
   const AUTO_CONFIRM_SECONDS = 60;
-  const [selection, setSelection] = useState<VoiceCapabilitySelection>({
-    smallScreenRecording: true,
-    englishOralAssessment: confirmation.intent === 'english-oral',
-  });
+  const defaultChoice: VoiceCapabilityChoice = confirmation.intent === 'english-oral'
+    ? 'record-with-assessment'
+    : 'record-only';
+  const [selectedChoice, setSelectedChoice] = useState<VoiceCapabilityChoice>(defaultChoice);
   const [remainingSeconds, setRemainingSeconds] = useState(AUTO_CONFIRM_SECONDS);
-  const selectionRef = useRef(selection);
+  const selectedChoiceRef = useRef(selectedChoice);
   const confirmedRef = useRef(false);
 
   useEffect(() => {
-    selectionRef.current = selection;
-  }, [selection]);
+    selectedChoiceRef.current = selectedChoice;
+  }, [selectedChoice]);
 
-  const confirmSelection = useCallback((nextSelection: VoiceCapabilitySelection) => {
+  const confirmSelection = useCallback((choice: VoiceCapabilityChoice) => {
     if (confirmedRef.current) return;
     confirmedRef.current = true;
-    onConfirm?.(nextSelection);
+    onConfirm?.(getVoiceSelectionFromChoice(choice));
   }, [onConfirm]);
 
   useEffect(() => {
@@ -1076,7 +1147,7 @@ function VoiceCapabilityCard({
       setRemainingSeconds(prev => {
         if (prev <= 1) {
           window.clearInterval(timer);
-          confirmSelection(selectionRef.current);
+          confirmSelection(selectedChoiceRef.current);
           return 0;
         }
         return prev - 1;
@@ -1085,26 +1156,6 @@ function VoiceCapabilityCard({
 
     return () => window.clearInterval(timer);
   }, [confirmSelection]);
-
-  const toggleRecording = () => {
-    setSelection(prev => {
-      const nextRecording = !prev.smallScreenRecording;
-      return {
-        smallScreenRecording: nextRecording,
-        englishOralAssessment: nextRecording ? prev.englishOralAssessment : false,
-      };
-    });
-  };
-
-  const toggleAssessment = () => {
-    setSelection(prev => {
-      const nextAssessment = !prev.englishOralAssessment;
-      return {
-        smallScreenRecording: nextAssessment ? true : prev.smallScreenRecording,
-        englishOralAssessment: nextAssessment,
-      };
-    });
-  };
 
   const optionStyle = (selected: boolean): React.CSSProperties => ({
     ...voiceCardStyles.optionBtn,
@@ -1137,19 +1188,27 @@ function VoiceCapabilityCard({
       </div>
 
       <div style={voiceCardStyles.options}>
-        <button type="button" onClick={toggleRecording} style={optionStyle(selection.smallScreenRecording)}>
-          <span style={iconStyle(selection.smallScreenRecording)}><Mic size={17} /></span>
+        <button
+          type="button"
+          onClick={() => setSelectedChoice('record-with-assessment')}
+          style={optionStyle(selectedChoice === 'record-with-assessment')}
+        >
+          <span style={iconStyle(selectedChoice === 'record-with-assessment')}><Headphones size={17} /></span>
           <span>
-            <span style={voiceCardStyles.optionTitle}>学习机小屏真实收音</span>
-            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，可用于朗读、背诵、口述等开口互动。</span>
+            <span style={voiceCardStyles.optionTitle}>学习机小屏真实收音+ 英语口语评测</span>
+            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，同时展示英语口语评测结果。</span>
           </span>
         </button>
 
-        <button type="button" onClick={toggleAssessment} style={optionStyle(selection.englishOralAssessment)}>
-          <span style={iconStyle(selection.englishOralAssessment)}><Headphones size={17} /></span>
+        <button
+          type="button"
+          onClick={() => setSelectedChoice('record-only')}
+          style={optionStyle(selectedChoice === 'record-only')}
+        >
+          <span style={iconStyle(selectedChoice === 'record-only')}><Mic size={17} /></span>
           <span>
-            <span style={voiceCardStyles.optionTitle}>英语口语评测</span>
-            <span style={voiceCardStyles.optionDesc}>当前仅支持英语单词、短句、简单对话；勾选后会自动启用真实收音。</span>
+            <span style={voiceCardStyles.optionTitle}>仅学习机小屏真实收音</span>
+            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，不展示英语口语评测结果。</span>
           </span>
         </button>
       </div>
@@ -1164,12 +1223,16 @@ function VoiceCapabilityCard({
         <div style={voiceCardStyles.actions}>
           <button
             type="button"
-            onClick={() => confirmSelection({ smallScreenRecording: false, englishOralAssessment: false })}
+            onClick={() => confirmSelection('none')}
             style={voiceCardStyles.ghostBtn}
           >
             不需要语音服务，继续
           </button>
-          <button type="button" onClick={() => confirmSelection(selection)} style={voiceCardStyles.confirmBtn}>
+          <button
+            type="button"
+            onClick={() => confirmSelection(selectedChoice)}
+            style={voiceCardStyles.confirmBtn}
+          >
             确认并继续
           </button>
         </div>
@@ -1206,6 +1269,7 @@ function AssistantMessage({
   onVoiceCapabilityConfirm,
   onOpenPreview,
   onLearningDataRecoveryRequest,
+  onVisualStyleRegenerate,
 }: { 
   message: ConversationMessage; 
   phase?: string;
@@ -1218,6 +1282,7 @@ function AssistantMessage({
   onVoiceCapabilityConfirm?: (messageId: string, selection: VoiceCapabilitySelection) => void;
   onOpenPreview?: (coursewareId: number) => void;
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
+  onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
 }) {
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
@@ -1253,10 +1318,11 @@ function AssistantMessage({
   if (message.type === 'courseware-result') {
     const result = message.content as CoursewareResult;
     const demoCourseware = mockCoursewares[0];
+    const matchedMockCourseware = mockCoursewares.find(c => c.title === result.title);
     const courseware = (
-      result.htmlContent
+      result.htmlContent && !matchedMockCourseware
         ? {
-            id: Date.now(),
+            id: result.coursewareId || Date.now(),
             title: result.title,
             subject: '英语',
             grade: '一年级',
@@ -1270,7 +1336,12 @@ function AssistantMessage({
             isOwn: true,
             learningDataRecovery: result.learningDataRecovery,
           }
-        : mockCoursewares.find(c => c.title === result.title)
+        : matchedMockCourseware
+          ? {
+              ...matchedMockCourseware,
+              learningDataRecovery: result.learningDataRecovery || matchedMockCourseware.learningDataRecovery,
+            }
+          : undefined
     ) || {
       id: Date.now(),
       title: demoCourseware.title,
@@ -1302,6 +1373,7 @@ function AssistantMessage({
             isLatest={isLatestVersion}
             onOpenPreview={onOpenPreview}
             onLearningDataRecoveryRequest={onLearningDataRecoveryRequest}
+            onVisualStyleRegenerate={onVisualStyleRegenerate}
           />
         </div>
       </div>
@@ -1369,12 +1441,15 @@ export default function GeneratorPage() {
   const [draftVersion, setDraftVersion] = useState(0);
   const [selectedInspiration, setSelectedInspiration] = useState<GameplayInspiration | null>(null);
   const [lastGeneratedInspiration, setLastGeneratedInspiration] = useState<GameplayInspiration | null>(null);
+  const [promptFly, setPromptFly] = useState<PromptFlyState | null>(null);
   const frameworkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingFrameworkRef = useRef<string | null>(null);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const forceBottomScrollRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const failAtStageRef = useRef<number | undefined>(undefined);
+  const centeredInputAnchorRef = useRef<HTMLDivElement>(null);
+  const bottomInputAnchorRef = useRef<HTMLDivElement>(null);
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -1415,28 +1490,45 @@ export default function GeneratorPage() {
     setDraftVersion(prev => prev + 1);
   }, []);
 
-  const handleApplyInspiration = useCallback((item: GameplayInspiration) => {
-    setSelectedInspiration(item);
-    const current = draftPrompt.trim();
-    if (current.includes(item.promptEnhancement)) {
-      injectPrompt(current);
-      return;
-    }
-    const next = current
-      ? `${current}\n\n已套用「${item.title}」：${item.promptEnhancement}`
-      : `已选择「${item.title}」玩法。请补充要教学的内容，例如：${item.keywords.join('、')}。\n\n${item.promptEnhancement}`;
-    injectPrompt(next);
-  }, [draftPrompt, injectPrompt]);
+  const getActiveInputAnchor = useCallback(() => {
+    if (!hasMessages && phase === 'input') return centeredInputAnchorRef.current;
+    return bottomInputAnchorRef.current || centeredInputAnchorRef.current;
+  }, [hasMessages, phase]);
 
-  const handleEnhancePrompt = useCallback((enhancement: string) => {
-    const current = draftPrompt.trim();
-    const sentence = enhancement.endsWith('。') ? enhancement : `${enhancement}。`;
-    if (current.includes(sentence) || current.includes(enhancement)) {
-      injectPrompt(current);
+  const injectPromptWithApplyMotion = useCallback((
+    item: GameplayInspiration,
+    nextText: string,
+    sourceElement?: HTMLElement | null,
+  ) => {
+    const targetElement = getActiveInputAnchor();
+    if (!sourceElement || !targetElement) {
+      injectPrompt(nextText);
       return;
     }
-    injectPrompt(current ? `${current}\n${sentence}` : sentence);
-  }, [draftPrompt, injectPrompt]);
+
+    const sourceRect = sourceElement.getBoundingClientRect();
+    const targetRect = targetElement.getBoundingClientRect();
+    const from = {
+      x: sourceRect.left + sourceRect.width / 2,
+      y: sourceRect.top + sourceRect.height / 2,
+    };
+    const to = {
+      x: targetRect.left + targetRect.width / 2,
+      y: targetRect.top + Math.min(targetRect.height * 0.55, 88),
+    };
+
+    setPromptFly({ id: Date.now(), title: item.title, from, to });
+    window.setTimeout(() => {
+      injectPrompt(nextText);
+      window.setTimeout(() => setPromptFly(null), 120);
+    }, 560);
+  }, [getActiveInputAnchor, injectPrompt]);
+
+  const handleApplyInspiration = useCallback((item: GameplayInspiration, sourceElement?: HTMLElement | null) => {
+    setSelectedInspiration(item);
+    const next = buildStructuredInspirationPrompt(item, draftPrompt);
+    injectPromptWithApplyMotion(item, next, sourceElement);
+  }, [draftPrompt, injectPromptWithApplyMotion]);
 
   const handleApplyAssistantPrompt = useCallback((prompt: string) => {
     injectPrompt(prompt);
@@ -1882,7 +1974,7 @@ export default function GeneratorPage() {
         <div style={styles.welcomeSection}>
           <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
           <p style={styles.welcomeSubtitle}>输入教学内容，AI 会补全玩法；也可以先套用一个课堂互动模板，或跟灵感助手聊聊看。</p>
-          <div style={{ width: '100%', maxWidth: 720 }}>
+          <div ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 720 }}>
             <ChatInput
               onSend={handleSend}
               centered
@@ -1898,7 +1990,6 @@ export default function GeneratorPage() {
             <InspirationSection
               selectedInspirationId={selectedInspiration?.id}
               onApplyInspiration={handleApplyInspiration}
-              onEnhancePrompt={handleEnhancePrompt}
             />
           </div>
         </div>
@@ -1952,6 +2043,40 @@ export default function GeneratorPage() {
                               version: request.version || '下一版',
                               htmlContent: request.htmlContent,
                               learningDataRecovery: summary,
+                            }, 'courseware-result');
+                          }, demoMs(700));
+                        }}
+                        onVisualStyleRegenerate={(request) => {
+                          if (!activeConversationId) return;
+                          const newCoursewareId = Date.now();
+                          addCourseware({
+                            id: newCoursewareId,
+                            title: request.coursewareTitle,
+                            subject: '英语',
+                            grade: '一年级',
+                            type: '画面风格重生成',
+                            author: '张老师',
+                            publishTime: new Date().toISOString().split('T')[0],
+                            views: 0,
+                            favorites: 0,
+                            likes: 0,
+                            htmlContent: request.htmlContent,
+                            isOwn: true,
+                            isPublished: false,
+                          });
+                          addUserMessage(activeConversationId, `使用${request.styleName}重新生成课件`);
+                          addAssistantMessage(
+                            activeConversationId,
+                            '需求已明确，正在为您重新生成课件，请稍后。',
+                            'text'
+                          );
+                          window.setTimeout(() => {
+                            addAssistantMessage(activeConversationId, {
+                              coursewareId: newCoursewareId,
+                              title: request.coursewareTitle,
+                              version: request.version || '下一版',
+                              htmlContent: request.htmlContent,
+                              visualStylePrompt: request.stylePrompt,
                             }, 'courseware-result');
                           }, demoMs(700));
                         }}
@@ -2054,7 +2179,7 @@ export default function GeneratorPage() {
           </div>
         )}
 
-        <div style={styles.inputArea}>
+        <div ref={bottomInputAnchorRef} style={styles.inputArea}>
           <ChatInput 
             onSend={handleSend} 
             disabled={false} 
@@ -2110,6 +2235,32 @@ export default function GeneratorPage() {
       {phase === 'input' && (
         <InspirationAssistant onApplyPrompt={handleApplyAssistantPrompt} />
       )}
+
+      <AnimatePresence>
+        {promptFly && (
+          <motion.div
+            key={promptFly.id}
+            initial={{
+              x: promptFly.from.x - 118,
+              y: promptFly.from.y - 22,
+              scale: 0.86,
+              opacity: 0,
+            }}
+            animate={{
+              x: promptFly.to.x - 118,
+              y: promptFly.to.y - 22,
+              scale: [0.86, 1.04, 0.72],
+              opacity: [0, 1, 1, 0],
+            }}
+            exit={{ opacity: 0, scale: 0.65 }}
+            transition={{ duration: 0.68, ease: [0.22, 0.9, 0.22, 1] }}
+            style={styles.promptFlyCard}
+          >
+            <span style={styles.promptFlyIcon}><Sparkles size={14} /></span>
+            <span style={styles.promptFlyText}>结构化提示词 · {promptFly.title}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Global styles */}
       <style>{`

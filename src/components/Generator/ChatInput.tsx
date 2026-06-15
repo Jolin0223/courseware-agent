@@ -7,6 +7,8 @@ import {
   SendHorizontal,
   Sparkles,
   Square,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 import type { UploadedAttachment } from '../../types';
@@ -45,6 +47,42 @@ interface AttachedFile {
   url?: string;
   loading?: boolean;
 }
+
+const parseAppliedInspirationDraft = (value: string) => {
+  const match = value.match(/^教学内容：([\s\S]*?)\n\n<已套用玩法>\n([\s\S]*?)\n<\/已套用玩法>$/);
+  if (!match) return null;
+  const body = match[2];
+  const pick = (label: string) => body.match(new RegExp(`${label}：([^\\n]+)`))?.[1]?.trim() || '';
+  const section = (label: string, nextLabel: string) => {
+    const result = body.match(new RegExp(`${label}：\\n([\\s\\S]*?)\\n\\n${nextLabel}：`));
+    return result?.[1]?.trim() || '';
+  };
+  const prompt = body.match(/玩法要求：\n([\s\S]*?)\n\n(?:本次生成要求|生成要求)：/)?.[1]?.trim() || '';
+  return {
+    teachingContent: match[1].trim(),
+    playwayName: pick('玩法名称'),
+    playwayType: pick('玩法类型'),
+    ageRange: pick('适用年龄'),
+    suitableFor: pick('适合内容'),
+    flow: section('课堂互动流程', '可替换内容'),
+    replaceable: section('可替换内容', '玩法要求'),
+    prompt,
+  };
+};
+
+const buildAppliedInspirationDraft = (
+  currentText: string,
+  nextTeachingContent: string,
+) => currentText.replace(
+  /^教学内容：[\s\S]*?\n\n<已套用玩法>/,
+  `教学内容：${nextTeachingContent}\n\n<已套用玩法>`,
+);
+
+const formatDraftFlow = (flow: string) => flow
+  .split('\n')
+  .map(item => item.replace(/^\d+\.\s*/, '').trim())
+  .filter(Boolean)
+  .join(' → ');
 
 const getSmartCompletion = (value: string) => {
   const text = value.trim();
@@ -125,6 +163,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [isDraftPromptOpen, setIsDraftPromptOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -139,6 +178,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const smartCompletion = centered && smartCompletionCandidate && !text.includes(smartCompletionCandidate.text)
     ? smartCompletionCandidate
     : null;
+  const appliedInspirationDraft = parseAppliedInspirationDraft(text);
+  const draftPromptPreview = appliedInspirationDraft
+    ? appliedInspirationDraft.prompt
+    : '';
 
   const materialUsagePlaceholder = (() => {
     if (imageFiles.length > 0 && documentFiles.length > 0) {
@@ -157,9 +200,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, MAX_HEIGHT)}px`;
-    el.style.overflowY = el.scrollHeight > MAX_HEIGHT ? 'auto' : 'hidden';
-  }, []);
+    const maxHeight = appliedInspirationDraft ? 260 : MAX_HEIGHT;
+    el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, [appliedInspirationDraft]);
 
   useEffect(() => {
     resizeTextarea();
@@ -567,22 +611,75 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
           )}
 
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={(e) => {
-              setText(e.target.value);
-              onTextChange?.(e.target.value);
-            }}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder={materialUsagePlaceholder}
-            disabled={disabled}
-            rows={3}
-            style={styles.textarea}
-          />
+          {appliedInspirationDraft && (
+            <div style={styles.structuredDraftPanel}>
+              <div style={styles.structuredDraftTop}>
+                <div style={styles.structuredDraftLabel}>
+                  <Sparkles size={14} />
+                  基于玩法生成
+                </div>
+                <div style={styles.structuredDraftHint}>先补充教学内容，已选玩法会自动带入；切换其他玩法时，只替换玩法，不覆盖这里填写的内容。</div>
+              </div>
+              <div style={styles.structuredFieldLabel}>
+                <span style={styles.structuredFieldName}>教学内容</span>
+                <span style={styles.structuredRequired}>请填写</span>
+              </div>
+              <textarea
+                ref={textareaRef}
+                value={appliedInspirationDraft.teachingContent}
+                onChange={(event) => {
+                  const next = buildAppliedInspirationDraft(text, event.target.value);
+                  setText(next);
+                  onTextChange?.(next);
+                }}
+                placeholder="例如：小学一年级英语，常见水果单词 apple、banana、orange..."
+                disabled={disabled}
+                rows={3}
+                style={styles.teachingContentTextarea}
+              />
+              <div style={styles.appliedPlaywayCard}>
+                <div style={styles.appliedPlaywayHeader}>
+                  <span style={styles.appliedPlaywayName}>已套用：{appliedInspirationDraft.playwayName}</span>
+                  <span style={styles.appliedPlaywayMeta}>{appliedInspirationDraft.playwayType} · {appliedInspirationDraft.ageRange}</span>
+                </div>
+                <div style={styles.appliedPlaywayFlow}>{formatDraftFlow(appliedInspirationDraft.flow)}</div>
+                <div style={styles.appliedPlaywayHint}>可替换：{appliedInspirationDraft.replaceable}</div>
+              </div>
+              <div style={styles.promptPreviewBox}>
+                <button
+                  type="button"
+                  onClick={() => setIsDraftPromptOpen(prev => !prev)}
+                  style={styles.promptPreviewToggle}
+                >
+                  <span>生成提示词预览</span>
+                  <span style={styles.promptPreviewMeta}>系统会自动带入，不需要手动修改</span>
+                  {isDraftPromptOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                </button>
+                {isDraftPromptOpen && (
+                  <pre style={styles.promptPreviewText}>{draftPromptPreview}</pre>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!appliedInspirationDraft && (
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+                onTextChange?.(e.target.value);
+              }}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder={materialUsagePlaceholder}
+              disabled={disabled}
+              rows={3}
+              style={styles.textarea}
+            />
+          )}
 
           {smartCompletion && !disabled && (
             <div style={styles.smartCompletion}>
@@ -945,6 +1042,159 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     color: '#1E293B',
     overflowY: 'hidden',
+  },
+  textareaWithStructuredDraft: {
+    marginTop: 10,
+    padding: '10px 12px',
+    borderRadius: 12,
+    border: '1px dashed #CBD5E1',
+    background: '#F8FAFC',
+    color: '#64748B',
+    fontSize: 13,
+    lineHeight: 1.55,
+  },
+  structuredDraftPanel: {
+    display: 'grid',
+    gap: 9,
+    marginBottom: 10,
+    padding: 14,
+    borderRadius: 16,
+    border: '1px solid rgba(0, 201, 167, 0.26)',
+    background: 'linear-gradient(135deg, rgba(232, 255, 249, 0.92), #FFFFFF 78%)',
+  },
+  structuredDraftTop: {
+    display: 'grid',
+    gap: 4,
+  },
+  structuredDraftLabel: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    width: 'fit-content',
+    padding: '4px 9px',
+    borderRadius: 999,
+    background: '#FFFFFF',
+    color: 'var(--agent-primary-text)',
+    border: '1px solid var(--agent-border)',
+    fontSize: 13,
+    fontWeight: 900,
+  },
+  structuredDraftHint: {
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.45,
+  },
+  structuredFieldLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 2,
+  },
+  structuredFieldName: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: 900,
+  },
+  structuredRequired: {
+    padding: '2px 7px',
+    borderRadius: 999,
+    background: '#FFF7ED',
+    color: '#EA580C',
+    fontSize: 11,
+    fontWeight: 850,
+  },
+  teachingContentTextarea: {
+    width: '100%',
+    minHeight: 92,
+    padding: '12px 13px',
+    borderRadius: 12,
+    border: '1.5px solid rgba(15, 118, 110, 0.28)',
+    outline: 'none',
+    background: '#FFFFFF',
+    color: '#0F172A',
+    fontSize: 15,
+    lineHeight: 1.55,
+    resize: 'vertical' as const,
+    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.72)',
+  },
+  appliedPlaywayCard: {
+    padding: 10,
+    borderRadius: 12,
+    background: '#FFFFFF',
+    border: '1px solid var(--agent-border)',
+  },
+  appliedPlaywayHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 6,
+  },
+  appliedPlaywayName: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: 900,
+  },
+  appliedPlaywayMeta: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 750,
+    whiteSpace: 'nowrap',
+  },
+  appliedPlaywayFlow: {
+    color: 'var(--agent-primary-text)',
+    fontSize: 12,
+    fontWeight: 850,
+    lineHeight: 1.5,
+  },
+  appliedPlaywayHint: {
+    marginTop: 5,
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.45,
+  },
+  promptPreviewBox: {
+    borderRadius: 12,
+    border: '1px solid #E2E8F0',
+    background: 'rgba(255,255,255,0.78)',
+    overflow: 'hidden',
+  },
+  promptPreviewToggle: {
+    width: '100%',
+    minHeight: 38,
+    padding: '0 11px',
+    border: 'none',
+    background: 'transparent',
+    display: 'grid',
+    gridTemplateColumns: 'auto 1fr auto',
+    alignItems: 'center',
+    gap: 8,
+    color: '#334155',
+    fontSize: 12,
+    fontWeight: 850,
+    cursor: 'pointer',
+    textAlign: 'left' as const,
+  },
+  promptPreviewMeta: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: 650,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+  },
+  promptPreviewText: {
+    margin: 0,
+    maxHeight: 150,
+    overflowY: 'auto' as const,
+    padding: '10px 12px 12px',
+    borderTop: '1px solid #E2E8F0',
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.55,
+    whiteSpace: 'pre-wrap' as const,
+    fontFamily: 'inherit',
   },
   toolbar: {
     display: 'flex',

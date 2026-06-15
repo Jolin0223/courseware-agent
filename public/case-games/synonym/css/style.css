@@ -1,0 +1,301 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: #87CEEB; /* 清新天空蓝底色 */
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    user-select: none;
+}
+
+#app {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1920px;
+    height: 1080px;
+    transform-origin: center center;
+    visibility: hidden;
+    overflow: hidden;
+}
+
+/* 背景图层 */
+#bg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#bg-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 1s ease-in-out;
+}
+
+/* 顶部进度条与得分面板 */
+#header-panel {
+    position: absolute;
+    top: 40px;
+    right: 60px;
+    width: 600px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+#progress-container {
+    width: 380px;
+    height: 36px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 18px;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #32CD32; /* 草地绿 */
+    transition: width 0.4s ease;
+}
+
+#score-panel {
+    background-color: #FF8C00; /* 橘红 */
+    color: white;
+    padding: 10px 30px;
+    border-radius: 30px;
+    font-size: 40px;
+    font-weight: bold;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    border: 4px solid #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 中央超大字号句子题干区 */
+#question-area {
+    position: absolute;
+    top: 180px;
+    left: 0;
+    width: 100%;
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+#sentence-container {
+    font-size: 76px;
+    color: #333;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 50px 100px;
+    border-radius: 50px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    text-align: center;
+    line-height: 1.6;
+    border: 6px solid #fff;
+    max-width: 1600px;
+}
+
+/* 空缺处虚线框 */
+.drop-zone {
+    display: inline-block;
+    width: 260px;
+    height: 100px;
+    border: 6px dashed #FF8C00;
+    border-radius: 20px;
+    vertical-align: bottom;
+    margin: 0 20px;
+    background-color: rgba(255, 140, 0, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* 吸附提示效果 */
+.drop-zone.highlight {
+    background-color: rgba(255, 140, 0, 0.3);
+    border-color: #FF4500;
+    transform: scale(1.05);
+}
+
+/* 底部词语卡片拖拽区 */
+#cards-area {
+    position: absolute;
+    bottom: 100px;
+    left: 0;
+    width: 100%;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 80px;
+    z-index: 20;
+}
+
+/* 词语卡片 */
+.word-card {
+    width: 260px;
+    height: 110px;
+    background: linear-gradient(135deg, #FFD700, #FF8C00); /* 明黄到橘红 */
+    color: white;
+    font-size: 64px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 25px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    cursor: grab;
+    border: 6px solid #fff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: absolute; /* 用于JS控制拖拽位置 */
+}
+
+/* 悬浮放大效果 */
+.word-card:active, .word-card.dragging {
+    cursor: grabbing;
+    transform: scale(1.15);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    z-index: 100;
+}
+
+/* 错误时的左右抖动动画 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-20px); }
+    40%, 80% { transform: translateX(20px); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* 正确时的嵌入闪烁动画 */
+@keyframes flash-success {
+    0%, 100% { background-color: rgba(50, 205, 50, 0.2); border-color: #32CD32; }
+    50% { background-color: rgba(50, 205, 50, 0.6); border-color: #fff; }
+}
+
+.success-flash {
+    animation: flash-success 1s ease-in-out;
+    border: 6px solid #32CD32 !important;
+    background-color: rgba(50, 205, 50, 0.2) !important;
+}
+
+/* 错题解析图鉴弹窗 */
+#result-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+#result-modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    width: 1300px;
+    max-height: 850px;
+    background-color: #fff;
+    border-radius: 50px;
+    padding: 60px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 10px solid #87CEEB;
+}
+
+.modal-title {
+    font-size: 72px;
+    color: #FF8C00;
+    margin-top: 0;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+#mistakes-list {
+    width: 100%;
+    overflow-y: auto;
+    flex-grow: 1;
+    margin-bottom: 40px;
+    padding-right: 20px;
+}
+
+/* 自定义滚动条 */
+#mistakes-list::-webkit-scrollbar {
+    width: 12px;
+}
+#mistakes-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 6px;
+}
+#mistakes-list::-webkit-scrollbar-thumb {
+    background: #FF8C00;
+    border-radius: 6px;
+}
+
+.mistake-item {
+    background-color: #F0F8FF;
+    border-radius: 25px;
+    padding: 35px;
+    margin-bottom: 25px;
+    border-left: 12px solid #FF8C00;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.mistake-sentence {
+    font-size: 46px;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.mistake-analysis {
+    font-size: 36px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.highlight-word {
+    color: #FF4500;
+    font-weight: bold;
+}
+
+#restart-btn {
+    font-size: 56px;
+    padding: 20px 80px;
+    background-color: #32CD32;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    transition: transform 0.2s, background-color 0.2s;
+    font-weight: bold;
+    border: 6px solid #fff;
+}
+
+#restart-btn:hover {
+    background-color: #28A428;
+    transform: scale(1.05);
+}

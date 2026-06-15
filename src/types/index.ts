@@ -59,10 +59,12 @@ export interface GenerationProgress {
 }
 
 export interface CoursewareResult {
+  coursewareId?: number;
   title: string;
   version: string;
   thumbnail?: string;
   htmlContent?: string;
+  visualStylePrompt?: string;
   learningDataRecovery?: LearningDataRecoverySummary;
 }
 
@@ -86,6 +88,14 @@ export interface LearningDataRecoveryRequest {
   version?: string;
   mode?: 'create' | 'edit';
   initialItems?: LearningDataRecoveryItem[];
+}
+
+export interface VisualStyleRegenerationRequest {
+  coursewareTitle: string;
+  htmlContent?: string;
+  version?: string;
+  styleName: string;
+  stylePrompt: string;
 }
 
 export type UploadedAttachmentType = 'image' | 'document' | 'html';

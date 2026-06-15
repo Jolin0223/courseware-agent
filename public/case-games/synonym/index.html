@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>近义词大挑战</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 背景图层 -->
+        <div id="bg-layer">
+            <img id="bg-image" src="images/bg_default.png" alt="background">
+        </div>
+
+        <!-- 顶部进度条与得分面板 -->
+        <div id="header-panel">
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+            <div id="score-panel">
+                <span class="score-label">得分:</span>
+                <span id="score">0</span>
+            </div>
+        </div>
+
+        <!-- 中央超大字号句子题干区 -->
+        <div id="question-area">
+            <div id="sentence-container">
+                <!-- 句子内容将由JS动态渲染，包含空缺下划线放置区 -->
+            </div>
+        </div>
+
+        <!-- 底部词语卡片拖拽区 -->
+        <div id="cards-area">
+            <!-- 词语卡片将由JS动态渲染 -->
+        </div>
+
+        <!-- 错题解析图鉴弹窗 -->
+        <div id="result-modal" class="hidden">
+            <div class="modal-content">
+                <h2 class="modal-title">游戏结束！错题图鉴</h2>
+                <div id="mistakes-list">
+                    <!-- 错题解析将由JS动态渲染 -->
+                </div>
+                <button id="restart-btn">再玩一次</button>
+            </div>
+        </div>
+
+        <!-- 欢迎音频 -->
+        <audio id="welcome-audio" src="audio/welcome.mp3" preload="auto"></audio>
+    </div>
+
+    <!-- 附加任务要求的外部script -->
+    <script src="https://iteachcdn.xdf.cn/aijiajiao/app/ppt/icwsync.min.js"></script>
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/egret/egretinitmessage.js"></script>
+    
+    <!-- 引入主逻辑JS -->
+    <script src="js/main.js"></script>
+</body>
+</html>

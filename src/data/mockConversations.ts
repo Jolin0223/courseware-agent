@@ -1,7 +1,8 @@
 import type { Conversation, RequirementFramework, GenerationProgress, CoursewareResult } from '../types';
 import { demoVersionResults } from './demoCoursewareVersions';
 import { isFruitCoursewarePrompt } from './fruitCoursewarePrompt';
-import { createLearningDataRecoverySummary, defaultRecoveryItems } from '../utils/learningDataRecovery';
+import { createLearningDataRecoverySummary, getRecoveryItemsForCourseware } from '../utils/learningDataRecovery';
+import { mockCoursewares } from './mockCoursewares';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
@@ -34,7 +35,17 @@ const coursewareResult: CoursewareResult = {
   title: '水果单词互动乐园',
   version: 'v1.0',
   htmlContent: demoVersionResults[0].htmlContent,
-  learningDataRecovery: createLearningDataRecoverySummary(defaultRecoveryItems),
+  learningDataRecovery: createLearningDataRecoverySummary(getRecoveryItemsForCourseware('水果单词互动乐园')),
+};
+
+const getCaseResult = (title: string, version: string): CoursewareResult => {
+  const courseware = mockCoursewares.find(item => item.title === title);
+  return {
+    title,
+    version,
+    htmlContent: courseware?.htmlContent,
+    learningDataRecovery: createLearningDataRecoverySummary(getRecoveryItemsForCourseware(title)),
+  };
 };
 
 export const mockConversations: Conversation[] = [
@@ -141,15 +152,22 @@ export const mockConversations: Conversation[] = [
   },
   {
     id: 'conv_2',
-    title: '一年级·加减法气球爆炸游戏',
+    title: '近义词大挑战',
     createdAt: '2026-04-05 10:15',
     messages: [
       {
         id: generateId(),
         role: 'user',
-        content: '帮我生成一个一年级数学加减法练习游戏',
+        content: '生成一个近义词辨析互动游戏',
         type: 'text',
         timestamp: new Date('2026-04-05T10:15:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: getCaseResult('近义词大挑战', 'v1.0'),
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-05T10:18:00'),
       },
     ],
     isPinned: false,
@@ -158,20 +176,51 @@ export const mockConversations: Conversation[] = [
   },
   {
     id: 'conv_3',
-    title: '三年级·古诗填空练习',
+    title: '单词神枪手',
     createdAt: '2026-04-04 16:45',
     messages: [
       {
         id: generateId(),
         role: 'user',
-        content: '生成一个三年级古诗填空游戏，古诗是望庐山瀑布',
+        content: '生成一个英语单词图词匹配射击游戏',
         type: 'text',
         timestamp: new Date('2026-04-04T16:45:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: getCaseResult('单词神枪手', 'v1.0'),
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-04T16:49:00'),
       },
     ],
     isPinned: false,
     isGenerating: false,
     coursewareId: 3,
+  },
+  {
+    id: 'conv_4',
+    title: '比绳子长短',
+    createdAt: '2026-04-03 15:20',
+    messages: [
+      {
+        id: generateId(),
+        role: 'user',
+        content: '生成一个比较绳子长短的脑力游戏',
+        type: 'text',
+        timestamp: new Date('2026-04-03T15:20:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: getCaseResult('比绳子长短', 'v1.0'),
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-03T15:24:00'),
+      },
+    ],
+    isPinned: false,
+    isGenerating: false,
+    coursewareId: 7,
   },
 ];
 
@@ -208,10 +257,10 @@ export function generateRequirementFromPrompt(prompt: string): RequirementFramew
 
   if (isFruitCoursewarePrompt(prompt)) {
     return {
-      generationSettings: `课件结构：9 页横版 16:9 互动课件，包含封面、认一认、读一读、玩一玩和课堂总结。\n提交方式：练习模式，所有环节允许重试，语音评测用 1-3 颗星鼓励反馈。\n默认风格：可爱水果花园风，主色 #6CCB5F，辅助色 #FFD166，强调色 #FF7A7A，按钮大而圆润，避免成人化网页表单。`,
+      generationSettings: `课件结构：9 页横版 16:9 互动课件，包含封面、认一认、读一读、玩一玩和课堂总结。\n提交方式：练习模式，所有环节允许重试，语音评测用 1-3 颗星鼓励反馈。\n默认风格：清新秋日橘子树，暖橙色秋日果园主题，按钮大而圆润，避免成人化网页表单。`,
       userRequirement: `学习对象：小学一年级英语学习儿童\n课件主题：《Fruit Garden 水果乐园大冒险》\n课程目标：认识 apple、banana、orange、pear、grape、watermelon、strawberry、peach 8 个常见水果单词；完成听音、看图、跟读、语音评测和游戏巩固。${materialLine}${intentLine}`,
       featureDesign: `整体结构：\n1. 课程封面：水果花园场景，小朋友进入花园，水果角色从树和篮子里探出头，点击“开始学习”。\n2. 认一认：第 2-4 页展示水果插画、英文单词、中文含义、小喇叭和“我认识了”按钮，点击水果可放大查看单词并获得星星。\n3. 读一读：第 5-6 页支持“听一听”“我来读”，录音 3 秒后用 1-3 颗星反馈发音，不显示复杂分数。\n4. 玩一玩：第 7-8 页设计《Fruit Catch 水果抓抓乐》，参考抓取目标物、堆叠物件、收集槽和轮次递进的节奏，不复刻任何现成品牌或界面。\n5. 课堂总结：第 9 页展示 8 个水果徽章，点击可再次播放发音，并提供“再玩一次”“完成学习”。${materialDesign}`,
-      designStyle: `视觉方向：精品儿童学习 App / 课堂绘本质感，水果花园全屏沉浸式布局，阳光、草地、小篮子、果树和软萌水果角色构成主画面。\n互动反馈：水果角色轻轻漂浮、眨眼；正确反馈用绿色星星粒子、轻快音效和开心表情；错误反馈只做轻微晃动和橙色提示光圈，不使用强惩罚。\n关键要求：所有按钮大而圆润，字体大且清晰，少文字、多图像、多语音、多动画；不要出现密集表格、复杂菜单、后台页面或题库列表。${materialStyle}`,
+      designStyle: `默认画面风格：使用【清新秋日橘子树】。\n视觉规格：背景为秋日果园场景和暖色调渐变，浅色系像秋天的阳光一样温暖；画面可包含橘子树、蓝天白云、绿色山丘、果篮、树叶和水果角色，整体温暖明亮，有收获感。\nUI与反馈：按钮可设计为橘子形或树叶形，使用橙色系；卡片和按钮保持大圆角；动画使用水果轻微摇摆、落叶飘动、采摘收集、星星奖励和轻柔提示。保留低龄友好、少文字、多图像、多语音、多动画，不出现密集表格、复杂菜单、后台页面或题库列表。${materialStyle}`,
     };
   }
 

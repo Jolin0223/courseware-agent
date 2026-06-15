@@ -17,6 +17,9 @@ import animalsAdventureHTML from '../../assets/courseware/animals_adventure.html
 import animalsPlayOnlyHTML from '../../assets/courseware/animals_play_only.html?raw';
 import fruitGardenHTML from '../../assets/courseware/fruit_garden_adventure.html?raw';
 import fruitReadAloudHTML from '../../assets/courseware/fruit_garden_read_aloud_only.html?raw';
+import mathRacingDemoHTML from '../../assets/courseware/examples/math_racing_demo.html?raw';
+import wisdomJumpPinyinDemoHTML from '../../assets/courseware/examples/wisdom_jump_pinyin_demo.html?raw';
+import wordDisguiseDemoHTML from '../../assets/courseware/examples/word_disguise_demo.html?raw';
 import {
   inspirationSeedData,
   type InspirationAgeBandId,
@@ -62,6 +65,9 @@ const exampleHtmlById: Record<string, string> = {
   fruit_read_aloud: fruitReadAloudHTML,
   animals_spelling: animalsAdventureHTML,
   animals_play_only: animalsPlayOnlyHTML,
+  wisdom_jump_pinyin_demo: wisdomJumpPinyinDemoHTML,
+  math_racing_demo: mathRacingDemoHTML,
+  word_disguise_demo: wordDisguiseDemoHTML,
 };
 
 const exampleFallbackLabel: Record<string, string> = {
@@ -69,6 +75,9 @@ const exampleFallbackLabel: Record<string, string> = {
   fruit_read_aloud: '听音跟读互动示例',
   animals_spelling: '单词拼写互动示例',
   animals_play_only: '闯关答题节奏示例',
+  wisdom_jump_pinyin_demo: '拼音跳跃玩法示例',
+  math_racing_demo: '口算赛车玩法示例',
+  word_disguise_demo: '单词找物玩法示例',
 };
 
 const ageBandTabs: Array<{ id: InspirationAgeBandId; name: string; ageText: string }> = [
@@ -330,6 +339,8 @@ export default function InspirationSection({
                 <button
                   style={styles.detailBtn}
                   title={exampleTitle}
+                  data-playway-id={playway.id}
+                  data-example-id={playway.exampleId}
                   onPointerUp={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
                   onClick={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
                 >

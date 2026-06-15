@@ -120,6 +120,36 @@
         "math-ranking"
       ],
       "readonly": true
+    },
+    {
+      "id": "wisdom_jump_pinyin_demo",
+      "title": "拼音跳跃玩法示例",
+      "htmlAssetPath": "src/assets/courseware/examples/wisdom_jump_pinyin_demo.html",
+      "note": "你可以先看学生怎么听题、选拼音平台、跳跃验证并获得星星反馈。套用后，会换成你填写的拼音、汉字或听辨内容。",
+      "suitablePlaywayIds": [
+        "wisdom-jump-pinyin"
+      ],
+      "readonly": true
+    },
+    {
+      "id": "math_racing_demo",
+      "title": "口算赛车玩法示例",
+      "htmlAssetPath": "src/assets/courseware/examples/math_racing_demo.html",
+      "note": "你可以先看学生怎么选择答案、赛车加速、连对推进到终点。套用后，会换成你填写的口算题、知识点或复习题。",
+      "suitablePlaywayIds": [
+        "math-racing"
+      ],
+      "readonly": true
+    },
+    {
+      "id": "word_disguise_demo",
+      "title": "单词找物玩法示例",
+      "htmlAssetPath": "src/assets/courseware/examples/word_disguise_demo.html",
+      "note": "你可以先看学生怎么在场景里找隐藏字母、拼出目标单词并获得反馈。套用后，会换成你填写的单词、主题场景和干扰项。",
+      "suitablePlaywayIds": [
+        "word-hide-seek"
+      ],
+      "readonly": true
     }
   ],
   "visualStyles": [
@@ -446,7 +476,7 @@
         "soft-racing",
         "cartoon-literacy"
       ],
-      "exampleId": null,
+      "exampleId": "wisdom_jump_pinyin_demo",
       "sourceRefs": [
         "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/action/01-jump-obstacle/egg-party/001_障碍跳跳跳_拼音启蒙_蛋仔风_6-10岁_v4.md"
       ],
@@ -536,7 +566,7 @@
         "soft-racing",
         "candy-childlike"
       ],
-      "exampleId": "animals_play_only",
+      "exampleId": "math_racing_demo",
       "sourceRefs": [
         "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/action/02-race-speed/egg-party/001_糖果赛车_口算加速_蛋仔风_6-10岁.md"
       ],
@@ -761,7 +791,7 @@
         "english-card",
         "forest-adventure"
       ],
-      "exampleId": "fruit_garden_full",
+      "exampleId": "word_disguise_demo",
       "sourceRefs": [
         "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/action/03-hide-seek/egg-party/003_单词伪装者_英语捉迷藏_蛋仔风_6-10岁.md"
       ],

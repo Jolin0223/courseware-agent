@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智慧跳跃-拼音启蒙</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #ffe9b8; color: #39233b; }
+    body { display: grid; place-items: center; }
+    .stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; isolation: isolate; background:
+      radial-gradient(circle at 12% 14%, rgba(255,255,255,.9) 0 7%, transparent 7.4%),
+      radial-gradient(circle at 78% 15%, rgba(255,255,255,.78) 0 6%, transparent 6.6%),
+      linear-gradient(180deg, #ffd4e5 0%, #fff3a8 43%, #9be783 44%, #5fcf70 100%); }
+    .stage::before { content: ""; position: absolute; inset: 0; z-index: -2; background-image: var(--asset-candy-kingdom-bg); background-size: cover; background-position: center; opacity: var(--asset-bg-opacity, 0); }
+    .asset-note { position: absolute; left: 2.4%; bottom: 2.2%; z-index: 12; padding: 7px 10px; border-radius: 999px; background: rgba(255,255,255,.68); color: #8a5b2f; font-size: 11px; font-weight: 900; }
+    .rainbow { position: absolute; left: 9%; top: 21%; width: 26%; height: 22%; border-radius: 50% 50% 0 0; border: 18px solid rgba(255,122,162,.56); border-bottom: 0; box-shadow: 0 0 0 14px rgba(255,209,102,.6), 0 0 0 28px rgba(111,207,151,.52); opacity: .72; }
+    .sweet { position: absolute; border-radius: 999px; filter: drop-shadow(0 10px 8px rgba(80,42,62,.12)); }
+    .sweet.one { right: 11%; top: 27%; width: 8%; height: 8%; background: repeating-linear-gradient(45deg, #ff7eb2 0 12px, #fff 12px 22px); transform: rotate(-12deg); }
+    .sweet.two { left: 5%; bottom: 23%; width: 5%; height: 18%; background: linear-gradient(180deg, #fff2b7, #ff8fc4); border: 8px solid #fff; }
+    .hud { position: absolute; left: 4%; right: 4%; top: 4%; z-index: 8; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .title { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 20px; background: rgba(255,255,255,.76); box-shadow: 0 14px 34px rgba(113,71,43,.14), inset 0 1px 0 rgba(255,255,255,.9); font-size: clamp(18px, 3vw, 34px); font-weight: 1000; }
+    .title span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(180deg, #ff9fcb, #ff6ba7); color: #fff; box-shadow: 0 7px 0 #d94c8d; }
+    .meter { display: flex; align-items: center; gap: 9px; padding: 9px 13px; border-radius: 999px; background: rgba(255,255,255,.76); font-size: clamp(13px, 1.7vw, 20px); font-weight: 950; box-shadow: 0 12px 28px rgba(113,71,43,.12); }
+    .question { position: absolute; left: 50%; top: 17%; transform: translateX(-50%); z-index: 9; width: min(66%, 760px); padding: 15px 18px 14px; border-radius: 26px; background: rgba(255,255,255,.88); box-shadow: 0 18px 46px rgba(106,72,45,.18), inset 0 2px 0 #fff; text-align: center; border: 3px solid rgba(255,255,255,.75); }
+    .question::before { content: ""; position: absolute; left: 24px; top: -16px; width: 50px; height: 32px; border-radius: 999px; background: linear-gradient(180deg, #ffb8d5, #ff75ae); transform: rotate(-8deg); }
+    .question h1 { margin: 0 0 5px; font-size: clamp(24px, 4.4vw, 52px); line-height: 1.05; color: #5b3478; }
+    .question p { margin: 0; color: #8b5d2b; font-size: clamp(13px, 1.8vw, 18px); font-weight: 850; }
+    .ground { position: absolute; left: 4%; right: 4%; bottom: 12%; height: 37%; border-radius: 55% 55% 0 0 / 45% 45% 0 0; background: linear-gradient(180deg, #88e16d, #52bf5a); box-shadow: inset 0 18px 0 rgba(255,255,255,.24), 0 -8px 0 rgba(255,255,255,.22); }
+    .platform { position: absolute; bottom: 31%; z-index: 5; width: 15.5%; height: 13%; border: 0; border-radius: 36px; display: grid; place-items: center; font-size: clamp(34px, 6vw, 76px); font-weight: 1000; color: #633582; cursor: pointer; transition: transform .18s ease, filter .18s ease; box-shadow: 0 16px 0 var(--shadow), 0 26px 30px rgba(73,46,56,.2); }
+    .platform:hover { transform: translateY(-8px) scale(1.03); filter: brightness(1.03); }
+    .platform::after { content: ""; position: absolute; left: 18%; right: 18%; top: 12%; height: 14%; border-radius: 999px; background: rgba(255,255,255,.55); }
+    .p0 { left: 17%; --shadow: #e79bc6; background: linear-gradient(180deg, #fff, #ffd3ec); }
+    .p1 { left: 42.3%; --shadow: #85ddcf; background: linear-gradient(180deg, #fff, #d1fff0); }
+    .p2 { right: 17%; --shadow: #e4c961; background: linear-gradient(180deg, #fff, #fff0a8); }
+    .hero { position: absolute; left: 8%; bottom: 32%; z-index: 7; width: clamp(76px, 11vw, 142px); aspect-ratio: 1; border-radius: 54% 54% 48% 48%; background: var(--asset-egg-hero, radial-gradient(circle at 36% 34%, #fff 0 7%, transparent 7.6%), radial-gradient(circle at 64% 34%, #fff 0 7%, transparent 7.6%), linear-gradient(180deg, #ff9fcb, #ff67a8)); background-size: contain; background-repeat: no-repeat; background-position: center; box-shadow: inset 0 -12px 0 rgba(167,53,104,.2), 0 18px 22px rgba(98,50,75,.2); transition: left .52s cubic-bezier(.2, 1.35, .32, 1), bottom .52s cubic-bezier(.2, 1.35, .32, 1), transform .2s; animation: idle 2.4s ease-in-out infinite; }
+    .hero::before, .hero::after { content: ""; position: absolute; top: 35%; width: 9%; height: 13%; border-radius: 50%; background: #402139; }
+    .hero::before { left: 34%; } .hero::after { right: 34%; }
+    .mouth { position: absolute; left: 42%; top: 55%; width: 16%; height: 9%; border: 4px solid #402139; border-top: 0; border-radius: 0 0 999px 999px; }
+    .hero.jump { bottom: 49%; transform: rotate(-10deg) scaleY(.94); }
+    .finish { position: absolute; right: 5%; bottom: 31%; z-index: 6; width: 9%; height: 34%; border-left: 8px dashed #fff; color: #e84d8f; font-size: clamp(13px, 2vw, 22px); font-weight: 1000; display: grid; place-items: center; transform: rotate(-3deg); text-shadow: 0 2px 0 #fff; }
+    .jumpBtn { position: absolute; left: 50%; bottom: 4.5%; transform: translateX(-50%); z-index: 10; border: 0; border-radius: 999px; min-width: 25%; padding: 13px 22px; background: linear-gradient(180deg, #ff8fc4, #ff5f9d); color: #fff; font-size: clamp(16px, 2.4vw, 26px); font-weight: 1000; cursor: pointer; box-shadow: 0 10px 0 #c93a7a, 0 18px 28px rgba(163,58,99,.22); }
+    .feedback { position: absolute; left: 50%; top: 49%; transform: translate(-50%, -50%) scale(.8); z-index: 12; padding: 10px 18px; border-radius: 999px; background: #fff; color: #16844a; font-size: clamp(20px, 3.3vw, 42px); font-weight: 1000; box-shadow: 0 20px 44px rgba(44,50,31,.18); opacity: 0; pointer-events: none; }
+    .feedback.show { animation: pop .8s ease both; }
+    .summary { position: absolute; inset: 0; z-index: 20; display: none; place-items: center; background: rgba(255,245,214,.7); backdrop-filter: blur(5px); }
+    .summary.show { display: grid; }
+    .panel { width: min(70%, 700px); padding: 30px; border-radius: 34px; background: rgba(255,255,255,.92); text-align: center; box-shadow: 0 34px 90px rgba(90,59,45,.22); border: 4px solid #fff; }
+    .panel h2 { margin: 0 0 10px; font-size: clamp(30px, 5vw, 58px); color: #5b3478; }
+    .panel button { border: 0; border-radius: 999px; padding: 12px 20px; background: #ff6ba7; color: #fff; font-weight: 1000; cursor: pointer; }
+    @keyframes idle { 50% { transform: translateY(-7px); } }
+    @keyframes pop { 0%{opacity:0; transform:translate(-50%,-50%) scale(.7)} 28%{opacity:1; transform:translate(-50%,-50%) scale(1.08)} 100%{opacity:0; transform:translate(-50%,-72%) scale(1)} }
+  </style>
+</head>
+<body>
+  <main class="stage" data-source-md="001_障碍跳跳跳_拼音启蒙_蛋仔风_6-10岁_v4.md">
+    <div class="rainbow"></div><div class="sweet one"></div><div class="sweet two"></div>
+    <div class="hud"><div class="title"><span>a</span>智慧跳跃-拼音启蒙</div><div class="meter">金币 <b id="coins">0</b> · 星星 <b id="stars">0</b>/3</div></div>
+    <section class="question"><h1 id="question">“a” 的正确写法是？</h1><p id="hint">跳到正确拼音平台，答对获得金币和星星</p></section>
+    <div class="ground"></div>
+    <button class="platform p0" data-answer="a">a</button>
+    <button class="platform p1" data-answer="o">o</button>
+    <button class="platform p2" data-answer="e">e</button>
+    <div class="hero" id="hero" data-asset="egg-hero"><div class="mouth"></div></div>
+    <div class="finish">FINISH</div>
+    <button class="jumpBtn" id="jumpBtn">跳一跳</button>
+    <div class="feedback" id="feedback">Great!</div>
+    <div class="summary" id="summary"><div class="panel"><h2>拼音大冒险完成！</h2><p id="result">星级：⭐⭐⭐ · 金币：30</p><button onclick="location.reload()">再玩一次</button></div></div>
+    <div class="asset-note">图片占位：糖果王国背景 / 蛋形主角 / 糖果平台，可按资产清单替换</div>
+  </main>
+  <script>
+    const tasks = [
+      { q: '“a” 的正确写法是？', answer: 'a', hint: '嘴巴张大，像个小蝌蚪' },
+      { q: '“o” 的发音口型是？', answer: 'o', hint: '嘴巴圆圆，像个小圆圈' },
+      { q: '“鹅” 的拼音是？', answer: 'e', hint: '白鹅弯曲脖子，像字母 e' }
+    ];
+    let index = 0, coins = 0, stars = 0;
+    const hero = document.getElementById('hero'), feedback = document.getElementById('feedback'), question = document.getElementById('question'), hint = document.getElementById('hint');
+    function say(text, good) { feedback.textContent = text; feedback.style.color = good ? '#16844a' : '#f97316'; feedback.classList.remove('show'); void feedback.offsetWidth; feedback.classList.add('show'); }
+    function render() { if (index >= tasks.length) { document.getElementById('result').textContent = '星级：' + '⭐'.repeat(Math.max(1, stars)) + ' · 金币：' + coins; document.getElementById('summary').classList.add('show'); return; } question.textContent = tasks[index].q; hint.textContent = '提示：' + tasks[index].hint; }
+    document.querySelectorAll('.platform').forEach((btn, pos) => btn.addEventListener('click', () => { hero.classList.add('jump'); hero.style.left = [18,45,72][pos] + '%'; setTimeout(() => hero.classList.remove('jump'), 540); const good = btn.dataset.answer === tasks[index].answer; if (good) { coins += 10; stars += 1; index += 1; say('Great! +10', true); } else { say('Look again!', false); } document.getElementById('coins').textContent = coins; document.getElementById('stars').textContent = stars; setTimeout(render, good ? 650 : 260); }));
+    document.getElementById('jumpBtn').addEventListener('click', () => { hero.classList.add('jump'); setTimeout(() => hero.classList.remove('jump'), 520); });
+  </script>
+</body>
+</html>

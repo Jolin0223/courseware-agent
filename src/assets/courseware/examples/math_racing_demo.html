@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>口算赛车</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #dff8ff; color: #183047; }
+    body { display: grid; place-items: center; }
+    .stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; background:
+      radial-gradient(circle at 14% 18%, rgba(255,255,255,.9) 0 8%, transparent 8.6%),
+      radial-gradient(circle at 83% 14%, rgba(255,255,255,.78) 0 7%, transparent 7.6%),
+      linear-gradient(180deg, #a9ecff 0%, #ffd8ed 38%, #ffe9a8 39%, #ffd29b 100%); isolation: isolate; }
+    .stage::before { content: ""; position: absolute; inset: 0; z-index: -2; background-image: var(--asset-candy-race-bg); background-size: cover; background-position: center; opacity: var(--asset-bg-opacity, 0); }
+    .castle { position: absolute; right: 5%; top: 13%; width: 15%; aspect-ratio: 1; border-radius: 28px 28px 8px 8px; background: linear-gradient(180deg, #fff4b3, #ff9fcb); box-shadow: 0 18px 0 #d97aa9, 0 25px 34px rgba(90,54,72,.16); }
+    .castle::before, .castle::after { content: ""; position: absolute; bottom: 78%; width: 34%; aspect-ratio: 1; border-radius: 18px 18px 3px 3px; background: linear-gradient(180deg,#fff,#9de8ff); }
+    .castle::before { left: 8%; } .castle::after { right: 8%; }
+    .hud { position: absolute; left: 4%; right: 4%; top: 4%; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .title, .status { padding: 10px 15px; border-radius: 19px; background: rgba(255,255,255,.78); box-shadow: 0 16px 36px rgba(40,90,110,.13), inset 0 1px 0 #fff; font-weight: 1000; }
+    .title { font-size: clamp(20px, 3.2vw, 38px); display: flex; align-items: center; gap: 10px; }
+    .title span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(180deg, #ff7fb1, #ff4f94); color: #fff; box-shadow: 0 7px 0 #c83876; }
+    .status { font-size: clamp(13px, 1.65vw, 20px); color: #25506a; }
+    .track-wrap { position: absolute; left: 8%; right: 8%; bottom: 0; height: 82%; z-index: 1; }
+    .track { position: absolute; left: 18%; right: 18%; bottom: -3%; height: 96%; clip-path: polygon(39% 0, 61% 0, 100% 100%, 0 100%); background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,.22) 0 28px, transparent 29px 62px),
+      linear-gradient(90deg, #ff8fbe, #fff06a 35%, #8bf0a2 65%, #7ecbff); box-shadow: inset 0 0 0 10px rgba(255,255,255,.36), 0 -10px 28px rgba(96,76,42,.16); }
+    .track::before, .track::after { content: ""; position: absolute; top: 0; bottom: 0; width: 2.5%; background: rgba(255,255,255,.82); transform-origin: top; }
+    .track::before { left: 43%; transform: skewX(-13deg); } .track::after { right: 43%; transform: skewX(13deg); }
+    .speed-lines { position: absolute; inset: 12% 18% 0; clip-path: polygon(39% 0,61% 0,100% 100%,0 100%); background: repeating-linear-gradient(180deg, transparent 0 38px, rgba(255,255,255,.42) 39px 44px); animation: road 1.1s linear infinite; opacity: .55; }
+    .question-card { position: absolute; left: 50%; top: 18%; transform: translateX(-50%); z-index: 8; width: min(58%, 690px); padding: 16px 18px; text-align: center; border-radius: 30px; background: rgba(255,255,255,.9); border: 4px solid rgba(255,255,255,.76); box-shadow: 0 22px 52px rgba(55,90,110,.18); }
+    .question-card h1 { margin: 0; font-size: clamp(32px, 5vw, 62px); color: #1f4261; line-height: 1; }
+    .question-card p { margin: 8px 0 0; color: #64748b; font-weight: 850; }
+    .options { display: flex; justify-content: center; gap: 14px; margin-top: 13px; }
+    .option { position: relative; width: clamp(78px, 10vw, 132px); height: clamp(58px, 7vw, 88px); border: 0; border-radius: 23px; background: linear-gradient(180deg,#fff,#fff2ad); color: #21344a; font-size: clamp(26px, 4vw, 46px); font-weight: 1000; cursor: pointer; box-shadow: 0 10px 0 #dfc75b, 0 18px 20px rgba(70,60,30,.13); }
+    .option:hover { transform: translateY(-4px); }
+    .option.good { background: linear-gradient(180deg,#f1fff4,#9dffb8); box-shadow: 0 10px 0 #55cc78; }
+    .option.bad { background: linear-gradient(180deg,#fff5e8,#ffbd78); box-shadow: 0 10px 0 #e48a35; }
+    .car { position: absolute; bottom: 10%; left: 48%; z-index: 7; width: clamp(70px, 10vw, 132px); aspect-ratio: 1.14; border-radius: 42% 42% 34% 34%; background: var(--asset-player-car, radial-gradient(circle at 36% 38%, #fff 0 6%, transparent 6.6%), radial-gradient(circle at 63% 38%, #fff 0 6%, transparent 6.6%), linear-gradient(180deg, #ff86ba, #ff5198)); background-size: contain; background-position: center; background-repeat: no-repeat; box-shadow: 0 14px 0 #c83d79, 0 24px 26px rgba(65,48,61,.22); transition: left .26s ease, transform .22s ease; }
+    .car::before, .car::after { content: ""; position: absolute; bottom: -7%; width: 23%; aspect-ratio: 1; border-radius: 50%; background: #26364a; box-shadow: inset 0 0 0 6px #fff; }
+    .car::before { left: 15%; } .car::after { right: 15%; }
+    .car.fast { transform: translateY(-14px) scale(1.06); filter: drop-shadow(0 0 18px rgba(255,241,102,.9)); }
+    .rival { position: absolute; z-index: 4; width: 7%; aspect-ratio: 1.2; border-radius: 42%; box-shadow: 0 12px 0 rgba(0,0,0,.12); }
+    .r1 { left: 36%; bottom: 55%; background: #75a8ff; } .r2 { left: 51%; bottom: 48%; background: #8af1a6; } .r3 { left: 61%; bottom: 60%; background: #ffd166; }
+    .energy { position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%); z-index: 9; width: min(58%, 650px); height: 50px; padding: 7px; border-radius: 999px; background: rgba(255,255,255,.86); box-shadow: 0 15px 32px rgba(50,80,90,.14); }
+    .bar { height: 100%; width: 20%; border-radius: 999px; background: linear-gradient(90deg, #ff7aa7, #ffd166, #68d391); transition: width .25s; }
+    .toast { position: absolute; left: 50%; top: 54%; transform: translate(-50%, -50%) scale(.8); z-index: 14; padding: 10px 18px; border-radius: 999px; background: #fff; color: #16844a; font-size: clamp(20px, 3.2vw, 40px); font-weight: 1000; opacity: 0; box-shadow: 0 22px 48px rgba(40,80,70,.18); pointer-events: none; }
+    .toast.show { animation: pop .8s ease both; }
+    .summary { position: absolute; inset: 0; display: none; z-index: 20; place-items: center; background: rgba(222,248,255,.72); backdrop-filter: blur(6px); }
+    .summary.show { display: grid; }
+    .panel { width: min(70%, 700px); padding: 30px; border-radius: 34px; background: rgba(255,255,255,.94); text-align: center; box-shadow: 0 34px 90px rgba(30,72,100,.22); border: 4px solid #fff; }
+    .panel h2 { margin: 0 0 12px; font-size: clamp(30px, 5vw, 58px); color: #1f4261; }
+    .panel button { border: 0; border-radius: 999px; padding: 12px 20px; background: #ff7aa7; color: white; font-weight: 1000; cursor: pointer; }
+    .asset-note { position: absolute; left: 2.4%; bottom: 2.2%; z-index: 12; padding: 7px 10px; border-radius: 999px; background: rgba(255,255,255,.68); color: #2e6380; font-size: 11px; font-weight: 900; }
+    @keyframes road { to { background-position: 0 76px; } }
+    @keyframes pop { 0%{opacity:0; transform:translate(-50%,-50%) scale(.7)} 28%{opacity:1; transform:translate(-50%,-50%) scale(1.08)} 100%{opacity:0; transform:translate(-50%,-72%) scale(1)} }
+  </style>
+</head>
+<body>
+  <main class="stage" data-source-md="001_糖果赛车_口算加速_蛋仔风_6-10岁.md">
+    <div class="castle"></div>
+    <div class="hud"><div class="title"><span>20</span>口算赛车</div><div class="status">速度 <b id="speed">0</b> km/h · 连对 x<b id="combo">0</b> · 第<b id="rank">4</b>名</div></div>
+    <div class="track-wrap"><div class="track"></div><div class="speed-lines"></div></div>
+    <div class="rival r1"></div><div class="rival r2"></div><div class="rival r3"></div>
+    <section class="question-card"><h1 id="question">5 + 3 = ?</h1><p>选择正确答案，赛车会加速冲向终点</p><div class="options" id="options"></div></section>
+    <div class="car" id="car" data-asset="player-car"></div>
+    <div class="energy"><div class="bar" id="bar"></div></div>
+    <div class="toast" id="toast">加速！</div>
+    <div class="summary" id="summary"><div class="panel"><h2>冲过终点！</h2><p id="result"></p><button onclick="location.reload()">再跑一次</button></div></div>
+    <div class="asset-note">图片占位：糖果王国赛道 / 蛋形赛车 / 对手赛车，可按资产清单替换</div>
+  </main>
+  <script>
+    const tasks = [['5 + 3 = ?', 8, [7,8,9]], ['10 - 4 = ?', 6, [5,6,7]], ['6 + 7 = ?', 13, [12,13,14]], ['15 - 7 = ?', 8, [7,8,9]], ['8 + 9 = ?', 17, [16,17,18]], ['7 + 7 = ?', 14, [13,14,15]]];
+    let i = 0, speed = 0, combo = 0, energy = 20, correct = 0;
+    const car = document.getElementById('car'), toast = document.getElementById('toast'), options = document.getElementById('options');
+    function say(text, good) { toast.textContent = text; toast.style.color = good ? '#16844a' : '#f97316'; toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show'); }
+    function render() { if (i >= tasks.length) { document.getElementById('result').textContent = `答对 ${correct}/${tasks.length} 题 · 最高速度 ${speed} km/h · 星级：${correct >= 5 ? '⭐⭐⭐' : correct >= 3 ? '⭐⭐' : '⭐'}`; document.getElementById('summary').classList.add('show'); return; } document.getElementById('question').textContent = tasks[i][0]; options.innerHTML = ''; tasks[i][2].forEach((n, idx) => { const b = document.createElement('button'); b.className = 'option'; b.textContent = n; b.onclick = () => answer(n, b, idx); options.appendChild(b); }); }
+    function answer(n, button, idx) { const good = n === tasks[i][1]; button.classList.add(good ? 'good' : 'bad'); car.style.left = [32,48,64][idx] + '%'; car.classList.add('fast'); setTimeout(() => car.classList.remove('fast'), 280); if (good) { speed += 20 + (combo > 1 ? 10 : 0); combo++; energy = Math.min(100, energy + 18); correct++; i++; say('答对，加速！', true); } else { speed = Math.max(0, speed - 15); combo = 0; energy = Math.max(0, energy - 12); say('再算一次', false); } document.getElementById('speed').textContent = speed; document.getElementById('combo').textContent = combo; document.getElementById('rank').textContent = Math.max(1, 4 - Math.floor(correct / 2)); document.getElementById('bar').style.width = energy + '%'; setTimeout(render, good ? 650 : 300); }
+    render();
+  </script>
+</body>
+</html>

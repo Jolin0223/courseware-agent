@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { X, Search, ChevronRight, ChevronDown, Check } from 'lucide-react';
+import { X, Search, ChevronRight, ChevronDown, Check, Wand2, Loader2 } from 'lucide-react';
 import { mockCoursewares } from '../../data/mockCoursewares';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { knowledgeTagTree, autoTagByTitle, getTagLabel } from '../../data/knowledgeTags';
@@ -30,6 +30,176 @@ const SHELL_URL = (import.meta.env.VITE_SHELL_URL || 'http://localhost:5174').re
 const schools = ['北京学校', '上海学校', '广州学校', '武汉学校', '天津学校', '西安学校', '南京学校', '深圳学校'];
 
 type PublishMode = 'publish' | 'update' | 'new-game';
+type PublishScope = 'group' | 'school' | 'personal';
+
+type TagPermission = {
+  id: string;
+  scope: Exclude<PublishScope, 'personal'>;
+  subject: string;
+  schoolName?: string;
+  label: string;
+};
+
+type AutoTagStatus = 'idle' | 'loading' | 'ready';
+
+type AutoTagCacheItem = {
+  resourceTags: string[];
+  contentTags: string[];
+  hasManualTagEdit?: boolean;
+};
+
+const AUTO_TAG_CACHE_KEY = 'ai-courseware-publish-auto-tags-v4';
+const DEMO_INVALID_TAG_ID = 'demo-iteach-deleted-tag';
+const DEMO_INVALID_TAG_LABEL = '水果';
+
+const demoTagPermissions: TagPermission[] = [
+  { id: 'group-english', scope: 'group', subject: '英语', label: '集团英语教研员' },
+  { id: 'school-guangzhou-english', scope: 'school', subject: '英语', schoolName: '广州学校', label: '广州学校英语教研员' },
+  { id: 'school-beijing-math', scope: 'school', subject: '数学', schoolName: '北京学校', label: '北京学校数学教研员' },
+];
+
+const readAutoTagCache = (): Record<string, AutoTagCacheItem> => {
+  try {
+    const raw = window.localStorage.getItem(AUTO_TAG_CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeAutoTagCache = (cache: Record<string, AutoTagCacheItem>) => {
+  try {
+    window.localStorage.setItem(AUTO_TAG_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // localStorage may be unavailable in private browser contexts.
+  }
+};
+
+const cloneTagTree = (nodes: KnowledgeTag[]): KnowledgeTag[] => nodes.map(node => ({
+  ...node,
+  children: node.children ? cloneTagTree(node.children) : undefined,
+}));
+
+const getSubjectTree = (subject: string) => {
+  const subjectMap: Record<string, string> = {
+    '语文': 'chinese', '数学': 'math', '英语': 'english', '科学': 'science',
+  };
+  const matchId = subjectMap[subject];
+  if (!matchId) return cloneTagTree(knowledgeTagTree);
+  const matched = knowledgeTagTree.find(n => n.id === matchId);
+  return matched ? cloneTagTree(matched.children || []) : cloneTagTree(knowledgeTagTree);
+};
+
+const fetchGroupKnowledgeTree = async (subject: string) => getSubjectTree(subject);
+
+const fetchSchoolTagTree = async (schoolName: string, subject: string) => {
+  const tree = getSubjectTree(subject);
+  if (subject === '英语') {
+    tree.push({
+      id: `school-${schoolName}-english-oral`,
+      label: '校本口语表达',
+      children: [
+        { id: `school-${schoolName}-english-oral-read`, label: '跟读表达' },
+        { id: `school-${schoolName}-english-oral-listen`, label: '听说联动' },
+      ],
+    });
+  }
+  return tree;
+};
+
+const getTagLabelFromTree = (id: string, tree: KnowledgeTag[]): string | null => {
+  for (const node of tree) {
+    if (node.id === id) return node.label;
+    if (node.children) {
+      const found = getTagLabelFromTree(id, node.children);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+const getDisplayTagLabel = (id: string, tree: KnowledgeTag[]) => (
+  id === DEMO_INVALID_TAG_ID
+    ? DEMO_INVALID_TAG_LABEL
+    : getTagLabelFromTree(id, tree) || getTagLabel(id) || id
+);
+
+const collectTagIds = (nodes: KnowledgeTag[], ids = new Set<string>()) => {
+  nodes.forEach(node => {
+    ids.add(node.id);
+    if (node.children) collectTagIds(node.children, ids);
+  });
+  return ids;
+};
+
+const getPermissionKey = (scope: PublishScope, subject: string, schoolName?: string) => (
+  scope === 'school' ? `${scope}:${schoolName || 'unknown'}:${subject}` : `${scope}:${subject}`
+);
+
+const getAutoTagCacheKey = (coursewareId: number, scope: PublishScope, subject: string, schoolName?: string) => (
+  `${coursewareId}:${getPermissionKey(scope, subject, schoolName)}`
+);
+
+const inferContentTags = (title: string, subject: string, htmlContent = ''): string[] => {
+  const text = `${title} ${subject} ${htmlContent.slice(0, 20000)}`.toLowerCase();
+  const tags = new Set<string>();
+
+  if (/闯关|关卡|adventure|level|挑战/.test(text)) tags.add('闯关玩法');
+  if (/跟读|朗读|口语|语音|read|speak|oral/.test(text)) tags.add('语音跟读');
+  if (/果园|水果|fruit|garden/.test(text)) tags.add('果园视觉风格');
+  if (/森林|动物|animal/.test(text)) tags.add('森林视觉风格');
+  if (/配对|匹配|match/.test(text)) tags.add('配对玩法');
+  if (/拼写|字母|letter|spell/.test(text)) tags.add('拼写练习');
+  if (/颜色|color/.test(text)) tags.add('颜色认知');
+  if (/数学|加法|减法|乘法|除法/.test(text)) tags.add('数感练习');
+
+  if (tags.size === 0) {
+    tags.add('互动练习');
+    tags.add('轻游戏玩法');
+  }
+
+  return Array.from(tags).slice(0, 5);
+};
+
+const inferKnowledgeTags = (title: string, subject: string, tagTree: KnowledgeTag[], htmlContent = '') => {
+  const sourceText = `${title} ${htmlContent.slice(0, 12000)}`.toLowerCase();
+  const titleText = title.toLowerCase();
+  const priorityTags: string[] = [];
+  const findIdByLabel = (nodes: KnowledgeTag[], label: string): string | null => {
+    for (const node of nodes) {
+      if (node.label === label) return node.id;
+      if (node.children) {
+        const found = findIdByLabel(node.children, label);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  if (subject === '英语') {
+    if (/水果|fruit/.test(titleText)) priorityTags.push('english-words-fruit');
+    if (/动物|animal/.test(titleText)) priorityTags.push('english-words-animal');
+    if (/颜色|color/.test(titleText)) priorityTags.push('english-words-color');
+    if (/身体|body/.test(titleText)) priorityTags.push('english-words-body');
+    if (/跟读|朗读|口语|read|speak|oral/.test(sourceText)) {
+      const oralReadId = findIdByLabel(tagTree, '跟读表达');
+      if (oralReadId) priorityTags.push(oralReadId);
+    }
+  }
+
+  const autoTags = priorityTags.length > 0
+    ? priorityTags
+    : autoTagByTitle(title, subject);
+  const availableIds = new Set<string>();
+  const collectIds = (nodes: KnowledgeTag[]) => {
+    nodes.forEach(node => {
+      availableIds.add(node.id);
+      if (node.children) collectIds(node.children);
+    });
+  };
+  collectIds(tagTree);
+  return Array.from(new Set(autoTags.filter(id => availableIds.has(id)))).slice(0, 4);
+};
 
 interface UpdateTargetOption {
   id: string;
@@ -66,7 +236,7 @@ export default function PublishModal({
   }, [coursewareId, coursewares]);
 
   const [title, setTitle] = useState(courseware?.title || '');
-  const [publishScope, setPublishScope] = useState<'group' | 'school' | 'personal'>(courseware?.resourceScope || 'school');
+  const [publishScope, setPublishScope] = useState<PublishScope>(courseware?.resourceScope || 'school');
   const [selectedSchool, setSelectedSchool] = useState(courseware?.schoolName || '广州学校');
   const [subject, setSubject] = useState(courseware?.subject || '语文');
   const [grade, setGrade] = useState(courseware?.grade || '一年级');
@@ -74,6 +244,13 @@ export default function PublishModal({
     autoTagByTitle(courseware?.title || '', courseware?.subject || '')
   );
   const [contentTags, setContentTags] = useState<string[]>(['闯关玩法', '语音跟读', '果园视觉风格']);
+  const [resourceTagTree, setResourceTagTree] = useState<KnowledgeTag[]>(() => getSubjectTree(courseware?.subject || '语文'));
+  const [autoTagStatus, setAutoTagStatus] = useState<AutoTagStatus>('idle');
+  const [autoTagCache, setAutoTagCache] = useState<Record<string, AutoTagCacheItem>>(() => readAutoTagCache());
+  const [hasManualTagEdit, setHasManualTagEdit] = useState(false);
+  const [confirmRetagOpen, setConfirmRetagOpen] = useState(false);
+  const [confirmRetagAnchor, setConfirmRetagAnchor] = useState<PublishScope | null>(null);
+  const [demoInvalidTagDismissed, setDemoInvalidTagDismissed] = useState(false);
   const [contentTagInput, setContentTagInput] = useState('');
   const [editingContentTagIndex, setEditingContentTagIndex] = useState<number | null>(null);
   const [editingContentTagValue, setEditingContentTagValue] = useState('');
@@ -101,6 +278,13 @@ export default function PublishModal({
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
   const [schoolDropdownOpen, setSchoolDropdownOpen] = useState(false);
   const [updateTargetDropdownOpen, setUpdateTargetDropdownOpen] = useState(false);
+  const shouldDemoInvalidTag = useMemo(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('demoInvalidTag') === '1';
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -125,30 +309,196 @@ export default function PublishModal({
     }
   }, [publishScope]);
 
+  useEffect(() => {
+    if (!shouldDemoInvalidTag || demoInvalidTagDismissed || publishScope === 'personal') return;
+    setSelectedTags(prev => (
+      prev.includes(DEMO_INVALID_TAG_ID) ? prev : [DEMO_INVALID_TAG_ID, ...prev]
+    ));
+  }, [demoInvalidTagDismissed, publishScope, shouldDemoInvalidTag]);
+
+  const userTreePermissions = useMemo(
+    () => demoTagPermissions.filter(permission => permission.subject === subject),
+    [subject],
+  );
+  const singlePermission = userTreePermissions.length === 1 ? userTreePermissions[0] : null;
+  const canAutoTagImmediately = publishScope !== 'personal' && Boolean(
+    singlePermission
+    && singlePermission.scope === publishScope
+    && (publishScope === 'group' || singlePermission.schoolName === selectedSchool),
+  );
+  const activeAutoTagCacheKey = useMemo(
+    () => getAutoTagCacheKey(coursewareId, publishScope, subject, selectedSchool),
+    [coursewareId, publishScope, selectedSchool, subject],
+  );
+  const validResourceTagIds = useMemo(() => collectTagIds(resourceTagTree), [resourceTagTree]);
+  const invalidSelectedTagIds = useMemo(
+    () => publishScope === 'personal' ? [] : selectedTags.filter(tagId => !validResourceTagIds.has(tagId)),
+    [publishScope, selectedTags, validResourceTagIds],
+  );
+
+  const runAutoTag = useCallback(async (options: { silent?: boolean } = {}) => {
+    setAutoTagStatus('loading');
+    try {
+      const nextTree = publishScope === 'school'
+        ? await fetchSchoolTagTree(selectedSchool, subject)
+        : publishScope === 'group'
+          ? await fetchGroupKnowledgeTree(subject)
+          : [];
+      const nextResourceTags = publishScope === 'personal'
+        ? []
+        : inferKnowledgeTags(title, subject, nextTree, courseware?.htmlContent);
+      const nextContentTags = inferContentTags(title, subject, courseware?.htmlContent);
+
+      await new Promise(resolve => window.setTimeout(resolve, options.silent ? 0 : 650));
+      setResourceTagTree(nextTree);
+      if (publishScope !== 'personal') {
+        setSelectedTags(nextResourceTags);
+      }
+      setContentTags(nextContentTags);
+      setHasManualTagEdit(false);
+      setAutoTagStatus('ready');
+      if (!options.silent) {
+        toast('AI智能打标完成~如有问题可人工修改。');
+      }
+
+      const nextCache = {
+        ...autoTagCache,
+        [activeAutoTagCacheKey]: {
+          resourceTags: nextResourceTags,
+          contentTags: nextContentTags,
+          hasManualTagEdit: false,
+        },
+      };
+      setAutoTagCache(nextCache);
+      writeAutoTagCache(nextCache);
+    } catch {
+      setAutoTagStatus('idle');
+      if (!options.silent) {
+        toast('AI智能打标失败，已保留当前标签，请稍后重试或手动修改。');
+      }
+    }
+  }, [activeAutoTagCacheKey, autoTagCache, courseware?.htmlContent, publishScope, selectedSchool, subject, title]);
+
+  const handleAutoTagClick = useCallback((anchor: PublishScope = publishScope) => {
+    if (autoTagStatus === 'loading') return;
+    if (hasManualTagEdit) {
+      setConfirmRetagAnchor(anchor);
+      setConfirmRetagOpen(true);
+      return;
+    }
+    runAutoTag();
+  }, [autoTagStatus, hasManualTagEdit, publishScope, runAutoTag]);
+
+  const updateCurrentTagCache = useCallback((
+    nextResourceTags: string[],
+    nextContentTags: string[],
+    manualEdited = true,
+  ) => {
+    const nextCache = {
+      ...autoTagCache,
+      [activeAutoTagCacheKey]: {
+        resourceTags: publishScope === 'personal' ? [] : nextResourceTags,
+        contentTags: nextContentTags,
+        hasManualTagEdit: manualEdited,
+      },
+    };
+    setAutoTagCache(nextCache);
+    writeAutoTagCache(nextCache);
+  }, [activeAutoTagCacheKey, autoTagCache, publishScope]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadTree = async () => {
+      const nextTree = publishScope === 'school'
+        ? await fetchSchoolTagTree(selectedSchool, subject)
+        : publishScope === 'group'
+          ? await fetchGroupKnowledgeTree(subject)
+          : [];
+      if (!cancelled) setResourceTagTree(nextTree);
+    };
+    loadTree();
+    return () => {
+      cancelled = true;
+    };
+  }, [publishScope, selectedSchool, subject]);
+
+  useEffect(() => {
+    const cached = autoTagCache[activeAutoTagCacheKey];
+    if (cached) {
+      if (publishScope !== 'personal') {
+        setSelectedTags(
+          shouldDemoInvalidTag && !demoInvalidTagDismissed
+            ? Array.from(new Set([DEMO_INVALID_TAG_ID, ...cached.resourceTags]))
+            : cached.resourceTags,
+        );
+      }
+      setContentTags(cached.contentTags);
+      setHasManualTagEdit(Boolean(cached.hasManualTagEdit));
+      setAutoTagStatus('ready');
+      return;
+    }
+
+    if (publishScope === 'personal') {
+      setAutoTagStatus('ready');
+      return;
+    }
+
+    setSelectedTags(shouldDemoInvalidTag && !demoInvalidTagDismissed ? [DEMO_INVALID_TAG_ID] : []);
+    setContentTags([]);
+    setHasManualTagEdit(false);
+    setAutoTagStatus(canAutoTagImmediately ? 'loading' : 'idle');
+
+    if (canAutoTagImmediately) {
+      runAutoTag({ silent: true });
+    }
+  }, [activeAutoTagCacheKey, autoTagCache, canAutoTagImmediately, demoInvalidTagDismissed, publishScope, runAutoTag, shouldDemoInvalidTag]);
+
   const toggleTag = useCallback((id: string) => {
-    setSelectedTags(prev =>
-      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
-    );
-  }, []);
+    setHasManualTagEdit(true);
+    setSelectedTags(prev => {
+      const next = prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id];
+      updateCurrentTagCache(next, contentTags);
+      return next;
+    });
+  }, [contentTags, updateCurrentTagCache]);
 
   const removeTag = useCallback((id: string) => {
-    setSelectedTags(prev => prev.filter(t => t !== id));
-  }, []);
+    if (id === DEMO_INVALID_TAG_ID) {
+      setDemoInvalidTagDismissed(true);
+    }
+    setHasManualTagEdit(true);
+    setSelectedTags(prev => {
+      const next = prev.filter(t => t !== id);
+      updateCurrentTagCache(next, contentTags);
+      return next;
+    });
+  }, [contentTags, updateCurrentTagCache]);
 
   const addContentTag = useCallback((value: string) => {
     const next = value.trim();
     if (!next) return;
-    setContentTags(prev => prev.includes(next) ? prev : [...prev, next]);
+    setContentTags(prev => {
+      if (prev.includes(next)) return prev;
+      const nextTags = [...prev, next];
+      setHasManualTagEdit(true);
+      updateCurrentTagCache(selectedTags, nextTags);
+      return nextTags;
+    });
     setContentTagInput('');
-  }, []);
+  }, [selectedTags, updateCurrentTagCache]);
 
   const removeContentTag = useCallback((index: number) => {
-    setContentTags(prev => prev.filter((_, i) => i !== index));
+    setContentTags(prev => {
+      const nextTags = prev.filter((_, i) => i !== index);
+      setHasManualTagEdit(true);
+      updateCurrentTagCache(selectedTags, nextTags);
+      return nextTags;
+    });
     if (editingContentTagIndex === index) {
       setEditingContentTagIndex(null);
       setEditingContentTagValue('');
     }
-  }, [editingContentTagIndex]);
+  }, [editingContentTagIndex, selectedTags, updateCurrentTagCache]);
 
   const startEditContentTag = useCallback((index: number, value: string) => {
     setEditingContentTagIndex(index);
@@ -159,12 +509,19 @@ export default function PublishModal({
     if (editingContentTagIndex === null) return;
     const next = editingContentTagValue.trim();
     setContentTags(prev => {
-      if (!next) return prev.filter((_, i) => i !== editingContentTagIndex);
-      return prev.map((tag, i) => i === editingContentTagIndex ? next : tag);
+      const current = prev[editingContentTagIndex];
+      const nextTags = next
+        ? prev.map((tag, i) => i === editingContentTagIndex ? next : tag)
+        : prev.filter((_, i) => i !== editingContentTagIndex);
+      if (current !== next) {
+        setHasManualTagEdit(true);
+        updateCurrentTagCache(selectedTags, nextTags);
+      }
+      return nextTags;
     });
     setEditingContentTagIndex(null);
     setEditingContentTagValue('');
-  }, [editingContentTagIndex, editingContentTagValue]);
+  }, [editingContentTagIndex, editingContentTagValue, selectedTags, updateCurrentTagCache]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedNodes(prev => {
@@ -191,17 +548,7 @@ export default function PublishModal({
     }, []);
   }, []);
 
-  const subjectTagTree = useMemo(() => {
-    const subjectMap: Record<string, string> = {
-      '语文': 'chinese', '数学': 'math', '英语': 'english', '科学': 'science',
-    };
-    const matchId = subjectMap[subject];
-    if (!matchId) return knowledgeTagTree;
-    const matched = knowledgeTagTree.find(n => n.id === matchId);
-    return matched ? (matched.children || []) : knowledgeTagTree;
-  }, [subject]);
-
-  const filteredTree = useMemo(() => filterTree(subjectTagTree, tagSearch), [tagSearch, filterTree, subjectTagTree]);
+  const filteredTree = useMemo(() => filterTree(resourceTagTree, tagSearch), [tagSearch, filterTree, resourceTagTree]);
   const filteredSchools = useMemo(() => {
     const query = schoolSearch.trim().toLowerCase();
     if (!query) return schools;
@@ -210,7 +557,7 @@ export default function PublishModal({
 
   const handlePublish = () => {
     if (!title.trim()) {
-      toast('请输入课件名称');
+      toast('请输入AI互动课件名称');
       return;
     }
     if (mode === 'update' && updateTargets.length > 1 && !selectedUpdateTargetId) {
@@ -223,6 +570,10 @@ export default function PublishModal({
     }
     if (publishScope !== 'personal' && selectedTags.length === 0) {
       toast(`请选择${publishScope === 'school' ? '校本标签' : '知识点标签'}`);
+      return;
+    }
+    if (publishScope !== 'personal' && invalidSelectedTagIds.length > 0) {
+      toast('当前标签已失效，请删除后重新选择标签');
       return;
     }
     if (mode === 'new-game' && courseware) {
@@ -409,9 +760,9 @@ export default function PublishModal({
             </div>
           )}
 
-          {/* 课件名称 */}
+          {/* AI互动课件名称 */}
           <div style={styles.field}>
-            <label style={styles.label}><span style={styles.required}>*</span> 课件名称</label>
+            <label style={styles.label}><span style={styles.required}>*</span> AI互动课件名称</label>
             <div style={styles.inputWrap}>
               <input
                 type="text"
@@ -430,7 +781,7 @@ export default function PublishModal({
             <div style={styles.field} ref={updateTargetDropdownRef}>
               <div style={styles.labelRow}>
                 <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> 选择要替换的互动课件</label>
-                <span style={styles.inlineHelp}>当前会话窗口中有多个已发布的互动课件，需要选择替换哪一个。</span>
+                    <span style={styles.inlineHelp}>当前会话窗口中有多个已发布的互动课件，需要选择替换哪一个。</span>
               </div>
               <button
                 type="button"
@@ -530,11 +881,42 @@ export default function PublishModal({
             <div style={styles.field} ref={tagDropdownRef}>
                 <div style={styles.labelRow}>
                   <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> {resourceTagLabel} <span style={styles.aiTag}>AI默认推荐</span></label>
-                  {publishScope === 'school' && (
-                    <button type="button" style={styles.tagManageBtn} onClick={openSchoolTagManager}>
-                      编辑校本标签
-                    </button>
-                  )}
+                  <div style={styles.labelActions}>
+                    <span style={styles.autoTagBtnWrap}>
+                      {confirmRetagOpen && confirmRetagAnchor !== 'personal' && (
+                        <RetagConfirmPopover
+                          onCancel={() => {
+                            setConfirmRetagOpen(false);
+                            setConfirmRetagAnchor(null);
+                          }}
+                          onConfirm={() => {
+                            setConfirmRetagOpen(false);
+                            setConfirmRetagAnchor(null);
+                            runAutoTag();
+                          }}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        style={{
+                          ...styles.autoTagInlineBtn,
+                          ...(autoTagStatus === 'loading' ? styles.autoTagInlineBtnLoading : {}),
+                        }}
+                        onClick={() => handleAutoTagClick(publishScope)}
+                        disabled={autoTagStatus === 'loading'}
+                      >
+                        {autoTagStatus === 'loading'
+                          ? <Loader2 size={13} style={styles.spinIcon} />
+                          : <Wand2 size={13} />}
+                        {autoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
+                      </button>
+                    </span>
+                    {publishScope === 'school' && (
+                      <button type="button" style={styles.tagManageBtn} onClick={openSchoolTagManager}>
+                        编辑校本标签
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
                 <div
@@ -548,14 +930,18 @@ export default function PublishModal({
                     <span style={{ color: '#94A3B8', fontSize: 13, lineHeight: '26px' }}>{resourceTagPlaceholder}</span>
                   )}
                   {selectedTags.map(tagId => {
-                    const label = getTagLabel(tagId);
-                    if (!label) return null;
+                    const label = getDisplayTagLabel(tagId, resourceTagTree);
+                    const invalid = invalidSelectedTagIds.includes(tagId);
                     return (
                       <span
                         key={tagId}
-                        style={styles.selectedTag}
+                        style={{
+                          ...styles.selectedTag,
+                          ...(invalid ? styles.selectedTagInvalid : {}),
+                        }}
                       >
                         {label}
+                        {invalid && <span style={styles.invalidTagBadge}>已失效</span>}
                         <span
                           onClick={(e) => { e.stopPropagation(); removeTag(tagId); }}
                           style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: 0.6 }}
@@ -611,8 +997,46 @@ export default function PublishModal({
           <div style={styles.field}>
             <div style={styles.labelRow}>
               <label style={{ ...styles.label, marginBottom: 0 }}>内容标签 <span style={styles.aiTag}>AI默认推荐</span></label>
-              <span style={styles.optionalHint}>非必填，用于标记玩法或视觉风格</span>
+              <div style={styles.labelActions}>
+                {publishScope === 'personal' && (
+                  <span style={styles.autoTagBtnWrap}>
+                    {confirmRetagOpen && confirmRetagAnchor === 'personal' && (
+                      <RetagConfirmPopover
+                        onCancel={() => {
+                          setConfirmRetagOpen(false);
+                          setConfirmRetagAnchor(null);
+                        }}
+                        onConfirm={() => {
+                          setConfirmRetagOpen(false);
+                          setConfirmRetagAnchor(null);
+                          runAutoTag();
+                        }}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      style={{
+                        ...styles.autoTagInlineBtn,
+                        ...(autoTagStatus === 'loading' ? styles.autoTagInlineBtnLoading : {}),
+                      }}
+                      onClick={() => handleAutoTagClick('personal')}
+                      disabled={autoTagStatus === 'loading'}
+                    >
+                      {autoTagStatus === 'loading'
+                        ? <Loader2 size={13} style={styles.spinIcon} />
+                        : <Wand2 size={13} />}
+                      {autoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
+                    </button>
+                  </span>
+                )}
+                {publishScope !== 'personal' && (
+                  <span style={styles.optionalHint}>非必填，用于标记玩法或视觉风格</span>
+                )}
+              </div>
             </div>
+            {publishScope === 'personal' && (
+              <div style={styles.contentTagHint}>非必填，用于标记玩法或视觉风格</div>
+            )}
             <div style={styles.contentTagBox}>
               {contentTags.map((tag, index) => (
                 editingContentTagIndex === index ? (
@@ -702,6 +1126,7 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 2000,
   },
   modal: {
+    position: 'relative' as const,
     background: '#FFFFFF',
     borderRadius: 12,
     width: '100%',
@@ -761,6 +1186,17 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 12,
     marginBottom: 8,
   },
+  labelActions: {
+    position: 'relative' as const,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
+  autoTagBtnWrap: {
+    position: 'relative' as const,
+    display: 'inline-flex',
+  },
   tagManageBtn: {
     height: 26,
     border: '1px solid #BFEFE4',
@@ -783,6 +1219,31 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '1px 6px',
     borderRadius: 4,
     fontWeight: 500,
+  },
+  autoTagInlineBtn: {
+    height: 26,
+    padding: '0 10px',
+    borderRadius: 6,
+    border: '1px solid #BFEFE4',
+    background: '#FFFFFF',
+    color: 'var(--agent-primary-text)',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+  },
+  autoTagInlineBtnLoading: {
+    background: 'var(--agent-soft)',
+    color: 'var(--agent-primary-text)',
+    cursor: 'default',
+  },
+  spinIcon: {
+    animation: 'spin 0.8s linear infinite',
   },
   updateNotice: {
     padding: '10px 12px',
@@ -1085,6 +1546,14 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.4,
     whiteSpace: 'nowrap',
   },
+  contentTagHint: {
+    marginTop: -2,
+    marginBottom: 8,
+    fontSize: 12,
+    color: '#94A3B8',
+    lineHeight: 1.4,
+    textAlign: 'right' as const,
+  },
   tagSelector: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -1113,6 +1582,21 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 600,
     lineHeight: '22px',
+  },
+  selectedTagInvalid: {
+    background: '#F1F5F9',
+    border: '1px solid #CBD5E1',
+    color: '#64748B',
+  },
+  invalidTagBadge: {
+    marginLeft: 2,
+    padding: '0 5px',
+    borderRadius: 999,
+    background: '#E2E8F0',
+    color: '#64748B',
+    fontSize: 11,
+    lineHeight: '18px',
+    fontWeight: 700,
   },
   contentTagBox: {
     display: 'flex',
@@ -1290,7 +1774,98 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'var(--agent-gradient)',
     color: '#FFFFFF',
   },
+  confirmPopover: {
+    position: 'absolute' as const,
+    right: 0,
+    bottom: 'calc(100% + 12px)',
+    width: 360,
+    maxWidth: 'min(360px, calc(100vw - 48px))',
+    borderRadius: 12,
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    boxShadow: '0 18px 48px rgba(15, 23, 42, 0.18)',
+    padding: 20,
+    zIndex: 20,
+  },
+  confirmPopoverArrow: {
+    position: 'absolute' as const,
+    left: '50%',
+    bottom: -7,
+    width: 14,
+    height: 14,
+    background: '#FFFFFF',
+    borderRight: '1px solid #E2E8F0',
+    borderBottom: '1px solid #E2E8F0',
+    transform: 'translateX(-50%) rotate(45deg)',
+  },
+  confirmTitle: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: '#1E293B',
+    marginBottom: 8,
+  },
+  confirmText: {
+    fontSize: 14,
+    lineHeight: 1.6,
+    color: '#475569',
+    marginBottom: 18,
+  },
+  confirmActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  confirmBtn: {
+    height: 36,
+    padding: '0 16px',
+    borderRadius: 8,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  confirmCancelBtn: {
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    color: '#64748B',
+  },
+  confirmPrimaryBtn: {
+    border: 'none',
+    background: '#EF4444',
+    color: '#FFFFFF',
+  },
 };
+
+function RetagConfirmPopover({
+  onCancel,
+  onConfirm,
+}: {
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div style={styles.confirmPopover}>
+      <div style={styles.confirmTitle}>重新打标</div>
+      <div style={styles.confirmText}>重新打标会覆盖当前已选标签，确定继续吗？</div>
+      <div style={styles.confirmActions}>
+        <button
+          type="button"
+          style={{ ...styles.confirmBtn, ...styles.confirmCancelBtn }}
+          onClick={onCancel}
+        >
+          取消
+        </button>
+        <button
+          type="button"
+          style={{ ...styles.confirmBtn, ...styles.confirmPrimaryBtn }}
+          onClick={onConfirm}
+        >
+          重新打标
+        </button>
+      </div>
+      <span style={styles.confirmPopoverArrow} />
+    </div>
+  );
+}
 
 function TreeNode({
   node,

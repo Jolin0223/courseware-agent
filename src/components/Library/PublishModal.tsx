@@ -210,7 +210,7 @@ export default function PublishModal({
 
   const handlePublish = () => {
     if (!title.trim()) {
-      toast('请输入课件名称');
+      toast('请输入AI互动课件名称');
       return;
     }
     if (mode === 'update' && updateTargets.length > 1 && !selectedUpdateTargetId) {
@@ -409,9 +409,9 @@ export default function PublishModal({
             </div>
           )}
 
-          {/* 课件名称 */}
+          {/* AI互动课件名称 */}
           <div style={styles.field}>
-            <label style={styles.label}><span style={styles.required}>*</span> 课件名称</label>
+            <label style={styles.label}><span style={styles.required}>*</span> AI互动课件名称</label>
             <div style={styles.inputWrap}>
               <input
                 type="text"

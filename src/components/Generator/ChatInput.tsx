@@ -84,6 +84,191 @@ const formatDraftFlow = (flow: string) => flow
   .filter(Boolean)
   .join(' → ');
 
+const renderInlineMarkdown = (value: string) => {
+  const parts = value.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={index} style={styles.markdownInlineCode}>{part.slice(1, -1)}</code>;
+    }
+    return <React.Fragment key={index}>{part}</React.Fragment>;
+  });
+};
+
+const renderInlineLines = (value: string) => value.split('\n').map((line, index, lines) => (
+  <React.Fragment key={`${line}-${index}`}>
+    {renderInlineMarkdown(line)}
+    {index < lines.length - 1 && <br />}
+  </React.Fragment>
+));
+
+const isTableSeparator = (line: string) => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+
+const parseTableCells = (line: string) => line
+  .replace(/^\s*\|/, '')
+  .replace(/\|\s*$/, '')
+  .split('|')
+  .map(cell => cell.trim());
+
+const isMarkdownBlockStart = (line: string, nextLine = '') => {
+  const trimmed = line.trim();
+  return (
+    trimmed === ''
+    || trimmed.startsWith('```')
+    || /^#{1,4}\s+/.test(trimmed)
+    || /^>\s?/.test(trimmed)
+    || /^[-*]\s+/.test(trimmed)
+    || /^\d+\.\s+/.test(trimmed)
+    || /^-{3,}$/.test(trimmed)
+    || (trimmed.includes('|') && isTableSeparator(nextLine))
+  );
+};
+
+const renderMarkdownHeading = (level: number, content: string, key: string) => {
+  if (level === 1) return <h1 key={key} style={styles.markdownH1}>{renderInlineMarkdown(content)}</h1>;
+  if (level === 2) return <h2 key={key} style={styles.markdownH2}>{renderInlineMarkdown(content)}</h2>;
+  if (level === 3) return <h3 key={key} style={styles.markdownH3}>{renderInlineMarkdown(content)}</h3>;
+  return <h4 key={key} style={styles.markdownH4}>{renderInlineMarkdown(content)}</h4>;
+};
+
+const MarkdownPromptPreview = ({ text }: { text: string }) => {
+  const lines = text.split('\n');
+  const blocks: React.ReactNode[] = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      index += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith('```')) {
+      const codeLines: string[] = [];
+      index += 1;
+      while (index < lines.length && !lines[index].trim().startsWith('```')) {
+        codeLines.push(lines[index]);
+        index += 1;
+      }
+      if (index < lines.length) index += 1;
+      blocks.push(
+        <pre key={`code-${index}`} style={styles.markdownCodeBlock}>
+          <code>{codeLines.join('\n')}</code>
+        </pre>,
+      );
+      continue;
+    }
+
+    if (/^#{1,4}\s+/.test(trimmed)) {
+      const level = Math.min(trimmed.match(/^#+/)?.[0].length || 2, 4);
+      const content = trimmed.replace(/^#{1,4}\s+/, '');
+      blocks.push(renderMarkdownHeading(level, content, `heading-${index}`));
+      index += 1;
+      continue;
+    }
+
+    if (/^-{3,}$/.test(trimmed)) {
+      blocks.push(<hr key={`hr-${index}`} style={styles.markdownHr} />);
+      index += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith('>')) {
+      const quoteLines: string[] = [];
+      while (index < lines.length && lines[index].trim().startsWith('>')) {
+        quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
+        index += 1;
+      }
+      blocks.push(
+        <blockquote key={`quote-${index}`} style={styles.markdownQuote}>
+          {renderInlineLines(quoteLines.join('\n'))}
+        </blockquote>,
+      );
+      continue;
+    }
+
+    if (trimmed.includes('|') && isTableSeparator(lines[index + 1] || '')) {
+      const headerCells = parseTableCells(line);
+      index += 2;
+      const rows: string[][] = [];
+      while (index < lines.length && lines[index].includes('|') && lines[index].trim()) {
+        rows.push(parseTableCells(lines[index]));
+        index += 1;
+      }
+      blocks.push(
+        <div key={`table-${index}`} style={styles.markdownTableWrap}>
+          <table style={styles.markdownTable}>
+            <thead>
+              <tr>
+                {headerCells.map((cell, cellIndex) => (
+                  <th key={`${cell}-${cellIndex}`} style={styles.markdownTh}>{renderInlineMarkdown(cell)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr key={`row-${rowIndex}`}>
+                  {row.map((cell, cellIndex) => (
+                    <td key={`${cell}-${cellIndex}`} style={styles.markdownTd}>{renderInlineMarkdown(cell)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
+      );
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed)) {
+      const ordered = /^\d+\.\s+/.test(trimmed);
+      const listItems: string[] = [];
+      const itemPattern = ordered ? /^\s*\d+\.\s+/ : /^\s*[-*]\s+/;
+      while (index < lines.length && itemPattern.test(lines[index])) {
+        listItems.push(lines[index].replace(itemPattern, '').trim());
+        index += 1;
+      }
+      blocks.push(
+        ordered ? (
+          <ol key={`list-${index}`} style={styles.markdownList}>
+            {listItems.map((item, itemIndex) => (
+              <li key={`${item}-${itemIndex}`} style={styles.markdownListItem}>{renderInlineMarkdown(item)}</li>
+            ))}
+          </ol>
+        ) : (
+          <ul key={`list-${index}`} style={styles.markdownList}>
+            {listItems.map((item, itemIndex) => (
+              <li key={`${item}-${itemIndex}`} style={styles.markdownListItem}>{renderInlineMarkdown(item)}</li>
+            ))}
+          </ul>
+        ),
+      );
+      continue;
+    }
+
+    const paragraphLines: string[] = [];
+    while (index < lines.length && !isMarkdownBlockStart(lines[index], lines[index + 1] || '')) {
+      paragraphLines.push(lines[index]);
+      index += 1;
+    }
+    if (paragraphLines.length === 0) {
+      paragraphLines.push(line);
+      index += 1;
+    }
+    blocks.push(
+      <p key={`paragraph-${index}`} style={styles.markdownParagraph}>
+        {renderInlineLines(paragraphLines.join('\n'))}
+      </p>,
+    );
+  }
+
+  return <div style={styles.markdownPreviewText}>{blocks}</div>;
+};
+
 const getSmartCompletion = (value: string) => {
   const text = value.trim();
   if (text.length < 4) return null;
@@ -656,7 +841,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   {isDraftPromptOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
                 {isDraftPromptOpen && (
-                  <pre style={styles.promptPreviewText}>{draftPromptPreview}</pre>
+                  <MarkdownPromptPreview text={draftPromptPreview} />
                 )}
               </div>
             </div>
@@ -1184,17 +1369,123 @@ const styles: Record<string, React.CSSProperties> = {
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap' as const,
   },
-  promptPreviewText: {
-    margin: 0,
+  markdownPreviewText: {
     maxHeight: 150,
     overflowY: 'auto' as const,
     padding: '10px 12px 12px',
     borderTop: '1px solid #E2E8F0',
-    color: '#64748B',
+    color: '#334155',
     fontSize: 12,
     lineHeight: 1.55,
-    whiteSpace: 'pre-wrap' as const,
     fontFamily: 'inherit',
+  },
+  markdownH1: {
+    margin: '0 0 8px',
+    color: '#0F172A',
+    fontSize: 16,
+    lineHeight: 1.3,
+    fontWeight: 950,
+  },
+  markdownH2: {
+    margin: '10px 0 6px',
+    color: '#0F172A',
+    fontSize: 14,
+    lineHeight: 1.35,
+    fontWeight: 950,
+  },
+  markdownH3: {
+    margin: '9px 0 5px',
+    color: '#0F172A',
+    fontSize: 13,
+    lineHeight: 1.35,
+    fontWeight: 900,
+  },
+  markdownH4: {
+    margin: '8px 0 4px',
+    color: '#0F172A',
+    fontSize: 12,
+    lineHeight: 1.35,
+    fontWeight: 900,
+  },
+  markdownParagraph: {
+    margin: '0 0 8px',
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 1.62,
+  },
+  markdownQuote: {
+    margin: '0 0 8px',
+    padding: '8px 10px',
+    borderRadius: 9,
+    borderLeft: '3px solid var(--agent-primary)',
+    background: 'rgba(14, 165, 156, 0.08)',
+    color: '#334155',
+    fontSize: 12,
+    lineHeight: 1.6,
+    fontStyle: 'normal',
+  },
+  markdownList: {
+    margin: '0 0 8px',
+    paddingLeft: 18,
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 1.58,
+  },
+  markdownListItem: {
+    margin: '2px 0',
+  },
+  markdownCodeBlock: {
+    margin: '0 0 8px',
+    padding: '9px 10px',
+    borderRadius: 9,
+    background: '#0F172A',
+    color: '#E2E8F0',
+    overflowX: 'auto' as const,
+    whiteSpace: 'pre-wrap' as const,
+    fontSize: 11,
+    lineHeight: 1.55,
+    fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  },
+  markdownInlineCode: {
+    padding: '1px 4px',
+    borderRadius: 5,
+    background: '#F1F5F9',
+    color: '#0F766E',
+    fontSize: 11,
+    fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  },
+  markdownHr: {
+    margin: '10px 0',
+    border: 'none',
+    borderTop: '1px solid #E2E8F0',
+  },
+  markdownTableWrap: {
+    margin: '0 0 8px',
+    overflowX: 'auto' as const,
+    border: '1px solid #E2E8F0',
+    borderRadius: 9,
+    background: '#FFFFFF',
+  },
+  markdownTable: {
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    fontSize: 11,
+    lineHeight: 1.45,
+  },
+  markdownTh: {
+    padding: '7px 8px',
+    background: '#F8FAFC',
+    color: '#0F172A',
+    fontWeight: 900,
+    textAlign: 'left' as const,
+    borderBottom: '1px solid #E2E8F0',
+    whiteSpace: 'nowrap' as const,
+  },
+  markdownTd: {
+    padding: '7px 8px',
+    color: '#475569',
+    borderTop: '1px solid #EEF2F7',
+    verticalAlign: 'top' as const,
   },
   toolbar: {
     display: 'flex',

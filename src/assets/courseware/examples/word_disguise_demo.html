@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>单词伪装者</title>
   <style>
+    :root {
+      --asset-bg-opacity: 1;
+      --asset-toy-room-bg: url("https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/jiTR9pdn-2600008999-AigcImage-81fc81cdad964a8aa8491bcab492c886_0.png");
+      --asset-letters-cat: url("https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/EDDZZs8l-2600008999-AigcImage-23e0120144e848d581ae71a010485a28_0.png");
+      --asset-letters-dog: url("https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/cCWjRrtn-2600008999-AigcImage-3010d18dae46401fa4a6cf6ecd8f3a19_0.png");
+      --asset-letters-sun: url("https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/M3dXiw3z-2600008999-AigcImage-0ca0f3d2ef864678aa75af56f9012de4_0.png");
+      --asset-word-reward: url("https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/4Q0QAgR0-2600008999-AigcImage-e9001d7fc21048b0b28db67c183287d1_0.png");
+    }
     * { box-sizing: border-box; }
     html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f7eeff; color: #243047; }
     body { display: grid; place-items: center; }
@@ -39,6 +47,13 @@
     .gift::after { content: ""; position: absolute; left: -5%; right: -5%; top: 38%; height: 18%; background: #fff; border-radius: 999px; }
     .plush { width: clamp(82px, 9vw, 122px); aspect-ratio: 1; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 35% 38%,#fff 0 6%,transparent 6.6%), radial-gradient(circle at 64% 38%,#fff 0 6%,transparent 6.6%), linear-gradient(180deg,#f9a8d4,#ec4899); box-shadow: 0 14px 0 #be185d; }
     .letter { position: absolute; z-index: 8; border: 0; cursor: pointer; display: grid; place-items: center; width: clamp(58px, 7vw, 92px); height: clamp(58px, 7vw, 92px); border-radius: 24px; background: linear-gradient(180deg,#fff,#f0dcff); box-shadow: 0 11px 0 #c7a2ea, 0 18px 22px rgba(70,45,110,.15); color: #6d3d9a; font-size: clamp(25px, 4vw, 52px); font-weight: 1000; transform: rotate(var(--r)); transition: .18s ease; }
+    .assets-ready .letter { background-image: var(--asset-letter-set), linear-gradient(180deg,#fff,#f0dcff); background-size: 330% 100%, 100% 100%; background-position: var(--asset-letter-pos, center) center, center; background-repeat: no-repeat; color: rgba(109,61,154,.86); text-shadow: 0 2px 0 rgba(255,255,255,.72); }
+    .letter[data-word="CAT"] { --asset-letter-set: var(--asset-letters-cat); }
+    .letter[data-word="DOG"] { --asset-letter-set: var(--asset-letters-dog); }
+    .letter[data-word="SUN"] { --asset-letter-set: var(--asset-letters-sun); }
+    .letter[data-letter="C"], .letter[data-letter="D"], .letter[data-letter="S"] { --asset-letter-pos: left; }
+    .letter[data-letter="A"], .letter[data-letter="O"], .letter[data-letter="U"] { --asset-letter-pos: center; }
+    .letter[data-letter="T"], .letter[data-letter="G"], .letter[data-letter="N"] { --asset-letter-pos: right; }
     .letter:hover { transform: translateY(-5px) rotate(var(--r)) scale(1.04); }
     .letter.found { background: linear-gradient(180deg,#eefff2,#93ffb3); color: #176b3b; box-shadow: 0 11px 0 #4cc66f; }
     .letter.wrong { animation: shake .35s ease; }
@@ -48,17 +63,18 @@
     .tip { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.8); z-index: 15; padding: 10px 18px; border-radius: 999px; background: #fff; color: #16844a; font-size: clamp(20px, 3.2vw, 40px); font-weight: 1000; opacity: 0; box-shadow: 0 22px 48px rgba(65,50,90,.18); pointer-events: none; }
     .tip.show { animation: pop .8s ease both; }
     .summary { position: absolute; inset: 0; z-index: 20; display: none; place-items: center; background: rgba(246,238,255,.72); backdrop-filter: blur(6px); }
+    .summary::before { content: ""; position: absolute; inset: 7% 8% auto; height: 34%; background-image: var(--asset-word-reward); background-size: contain; background-repeat: no-repeat; background-position: center; pointer-events: none; opacity: .96; }
     .summary.show { display: grid; }
-    .panel { width: min(70%, 700px); padding: 30px; border-radius: 34px; background: rgba(255,255,255,.94); text-align: center; box-shadow: 0 34px 90px rgba(68,50,105,.22); border: 4px solid #fff; }
+    .panel { position: relative; width: min(70%, 700px); padding: 30px; border-radius: 34px; background: rgba(255,255,255,.94); text-align: center; box-shadow: 0 34px 90px rgba(68,50,105,.22); border: 4px solid #fff; }
     .panel h2 { margin: 0 0 12px; font-size: clamp(30px, 5vw, 58px); color: #56318b; }
     .panel button { border: 0; border-radius: 999px; padding: 12px 20px; background: #8b5cf6; color: #fff; font-weight: 1000; cursor: pointer; }
-    .asset-note { position: absolute; left: 2.4%; bottom: 2.2%; z-index: 12; padding: 7px 10px; border-radius: 999px; background: rgba(255,255,255,.68); color: #5d4287; font-size: 11px; font-weight: 900; }
+    .asset-note { display: none; }
     @keyframes shake { 20%{ transform: translateX(-8px) rotate(var(--r)); } 40%{ transform: translateX(8px) rotate(var(--r)); } 60%{ transform: translateX(-5px) rotate(var(--r)); } 80%{ transform: translateX(5px) rotate(var(--r)); } }
     @keyframes pop { 0%{opacity:0; transform:translate(-50%,-50%) scale(.7)} 28%{opacity:1; transform:translate(-50%,-50%) scale(1.08)} 100%{opacity:0; transform:translate(-50%,-72%) scale(1)} }
   </style>
 </head>
 <body>
-  <main class="stage" data-source-md="003_单词伪装者_英语捉迷藏_蛋仔风_6-10岁.md">
+  <main class="stage assets-ready" data-source-md="003_单词伪装者_英语捉迷藏_蛋仔风_6-10岁.md">
     <div class="hud"><div class="title"><span>ABC</span>单词伪装者</div><div class="status">时间 <b id="time">60</b>s · 找到 <b id="count">0</b>/3</div></div>
     <section class="room">
       <div class="wall"></div><div class="floor"></div><div class="shelf"></div><div class="castle"></div>

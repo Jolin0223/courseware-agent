@@ -15,9 +15,9 @@
 
 | 学科 | 玩法 | 创意虾来源 md | 示例 HTML | 当前状态 |
 | --- | --- | --- | --- | --- |
-| 语文 | 智慧跳跃-拼音启蒙 | `templates-ready/action/01-jump-obstacle/egg-party/001_障碍跳跳跳_拼音启蒙_蛋仔风_6-10岁_v4.md` | `src/assets/courseware/examples/wisdom_jump_pinyin_demo.html` | 糖果童话跳跃场景 CSS 占位，待替换背景/主角/平台 |
-| 数学 | 口算赛车 | `templates-ready/action/02-race-speed/egg-party/001_糖果赛车_口算加速_蛋仔风_6-10岁.md` | `src/assets/courseware/examples/math_racing_demo.html` | 糖果王国透视赛道 CSS 占位，待替换赛道/赛车 |
-| 英语 | 单词伪装者 | `templates-ready/action/03-hide-seek/egg-party/003_单词伪装者_英语捉迷藏_蛋仔风_6-10岁.md` | `src/assets/courseware/examples/word_disguise_demo.html` | 玩具王国找物场景 CSS 占位，待替换房间/字母素材 |
+| 语文 | 智慧跳跃-拼音启蒙 | `templates-ready/action/01-jump-obstacle/egg-party/001_障碍跳跳跳_拼音启蒙_蛋仔风_6-10岁_v4.md` | `src/assets/courseware/examples/wisdom_jump_pinyin_demo.html` | 已接入糖果童话背景、蛋形主角、平台贴片和反馈贴纸 |
+| 数学 | 口算赛车 | `templates-ready/action/02-race-speed/egg-party/001_糖果赛车_口算加速_蛋仔风_6-10岁.md` | `src/assets/courseware/examples/math_racing_demo.html` | 已接入糖果赛道、玩家赛车、对手赛车、答案泡泡和终点礼花 |
+| 英语 | 单词伪装者 | `templates-ready/action/03-hide-seek/egg-party/003_单词伪装者_英语捉迷藏_蛋仔风_6-10岁.md` | `src/assets/courseware/examples/word_disguise_demo.html` | 已接入玩具房间背景、三组伪装字母和奖励贴纸 |
 
 ## 三、生图通用要求
 
@@ -35,6 +35,15 @@
 
 ### 4.1 智慧跳跃-拼音启蒙
 
+已接入图片地址：
+
+| 资产 ID | 图片地址 |
+| --- | --- |
+| `pinyin_bg_candy_kingdom` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/aD8oP1Fh-2600008999-AigcImage-0178edf1b88e47c7b4ce7b48f7926019_0.png |
+| `pinyin_egg_hero` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/onRfDnR6-2600008999-AigcImage-b30adeed602f47bba44e97b96632c034_0.png |
+| `pinyin_platforms` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/WNCL0BSW-2600008999-AigcImage-98b38982c85b4a3ebbf4b2f0d643e02f_0.png |
+| `pinyin_feedback_stars` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/yqTu9NMj-2600008999-AigcImage-fe1a319d1bb24bf58c9f8ed1aba67d78_0.png |
+
 | 资产 ID | 图片资源 | 替换位置 | 规格 | 生图提示词 |
 | --- | --- | --- | --- | --- |
 | `pinyin_bg_candy_kingdom` | 糖果童话跳跃场景背景 | `.stage::before` 的 `--asset-candy-kingdom-bg` | 16:9 背景图；建议 1920x1080；下方 35% 留给主角和平台 | 横版16:9儿童互动课件游戏场景，建议 1920x1080，梦幻糖果王国，柔和樱花粉天空渐变到柠檬黄，棉花糖云朵，彩虹桥，远处糖果星球，绿色3D粘土草地，棒棒糖树、甜甜圈拱门、旋转棒棒糖装饰，画面下方35%明确留出三个跳跃平台和主角操作区域，关键视觉不要压在顶部导航、底部操作区和右侧说明区，圆润糖果3D粘土质感，儿童教育游戏风，明亮低龄友好，无文字，无按钮，无真实品牌logo，无竞品角色，不要复杂成人化UI |
@@ -43,6 +52,16 @@
 | `pinyin_feedback_stars` | 答对星星粒子/奖励贴纸 | `.feedback` 或总结弹窗装饰 | 透明底 PNG；建议 1200x800 横图；元素分散、便于裁切 | 透明底PNG，建议1200x800横图，儿童教育游戏奖励贴纸，金色星星、彩带、糖果粒子，圆润3D粘土质感，适合答对反馈和通关庆祝，元素分散便于裁切和叠加到弹窗/反馈区，四周保留8%-12%安全留白，明亮低龄友好，无文字，无按钮，无真实品牌logo，无竞品角色，不要复杂成人化UI |
 
 ### 4.2 口算赛车
+
+已接入图片地址：
+
+| 资产 ID | 图片地址 |
+| --- | --- |
+| `math_bg_candy_race` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/OZ6ouclQ-2600008999-AigcImage-eb68794905b34e32a65367fe7b2a8f69_0.png |
+| `math_player_car` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/VS2Fx904-2600008999-AigcImage-512cea3c61f64132bf3a7ce197fc7b6a_0.png |
+| `math_rival_cars` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/UO0LQsdJ-2600008999-AigcImage-96fd8cce35824044995455cfe8b57180_0.png |
+| `math_number_bubbles` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/6gGEi6sT-2600008999-AigcImage-16898da47a2749b4bab335ecf7c780b3_0.png |
+| `math_finish_effect` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/4hGeBzUH-2600008999-AigcImage-e9ded1fb9a0a4502b885b043a7cc2aef_0.png |
 
 | 资产 ID | 图片资源 | 替换位置 | 规格 | 生图提示词 |
 | --- | --- | --- | --- | --- |
@@ -53,6 +72,16 @@
 | `math_finish_effect` | 终点彩旗/礼花 | 总结弹窗和终点装饰 | 透明底 PNG；建议 1600x900 横图；不要包含英文文字 | 透明底PNG，建议1600x900横图，儿童赛车游戏终点庆祝素材，终点彩旗、彩带、礼花、金色星星，糖果色，圆润3D粘土质感，元素分散便于叠加到总结弹窗和终点装饰，四周保留8%-12%安全留白，明亮低龄友好，无文字，无按钮，无真实品牌logo，无竞品角色，不要复杂成人化UI |
 
 ### 4.3 单词伪装者
+
+已接入图片地址：
+
+| 资产 ID | 图片地址 |
+| --- | --- |
+| `word_bg_toy_room` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/jiTR9pdn-2600008999-AigcImage-81fc81cdad964a8aa8491bcab492c886_0.png |
+| `word_hidden_letters_cat` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/EDDZZs8l-2600008999-AigcImage-23e0120144e848d581ae71a010485a28_0.png |
+| `word_hidden_letters_dog` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/cCWjRrtn-2600008999-AigcImage-3010d18dae46401fa4a6cf6ecd8f3a19_0.png |
+| `word_hidden_letters_sun` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/M3dXiw3z-2600008999-AigcImage-0ca0f3d2ef864678aa75af56f9012de4_0.png |
+| `word_reward_sticker` | https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/4Q0QAgR0-2600008999-AigcImage-e9001d7fc21048b0b28db67c183287d1_0.png |
 
 | 资产 ID | 图片资源 | 替换位置 | 规格 | 生图提示词 |
 | --- | --- | --- | --- | --- |

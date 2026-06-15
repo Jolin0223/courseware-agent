@@ -1,7 +1,8 @@
 import type { Conversation, RequirementFramework, GenerationProgress, CoursewareResult } from '../types';
 import { demoVersionResults } from './demoCoursewareVersions';
 import { isFruitCoursewarePrompt } from './fruitCoursewarePrompt';
-import { createLearningDataRecoverySummary, defaultRecoveryItems } from '../utils/learningDataRecovery';
+import { createLearningDataRecoverySummary, getRecoveryItemsForCourseware } from '../utils/learningDataRecovery';
+import { mockCoursewares } from './mockCoursewares';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
@@ -34,7 +35,17 @@ const coursewareResult: CoursewareResult = {
   title: '水果单词互动乐园',
   version: 'v1.0',
   htmlContent: demoVersionResults[0].htmlContent,
-  learningDataRecovery: createLearningDataRecoverySummary(defaultRecoveryItems),
+  learningDataRecovery: createLearningDataRecoverySummary(getRecoveryItemsForCourseware('水果单词互动乐园')),
+};
+
+const getCaseResult = (title: string, version: string): CoursewareResult => {
+  const courseware = mockCoursewares.find(item => item.title === title);
+  return {
+    title,
+    version,
+    htmlContent: courseware?.htmlContent,
+    learningDataRecovery: createLearningDataRecoverySummary(getRecoveryItemsForCourseware(title)),
+  };
 };
 
 export const mockConversations: Conversation[] = [
@@ -141,15 +152,22 @@ export const mockConversations: Conversation[] = [
   },
   {
     id: 'conv_2',
-    title: '一年级·加减法气球爆炸游戏',
+    title: '近义词大挑战',
     createdAt: '2026-04-05 10:15',
     messages: [
       {
         id: generateId(),
         role: 'user',
-        content: '帮我生成一个一年级数学加减法练习游戏',
+        content: '生成一个近义词辨析互动游戏',
         type: 'text',
         timestamp: new Date('2026-04-05T10:15:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: getCaseResult('近义词大挑战', 'v1.0'),
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-05T10:18:00'),
       },
     ],
     isPinned: false,
@@ -158,20 +176,51 @@ export const mockConversations: Conversation[] = [
   },
   {
     id: 'conv_3',
-    title: '三年级·古诗填空练习',
+    title: '单词神枪手',
     createdAt: '2026-04-04 16:45',
     messages: [
       {
         id: generateId(),
         role: 'user',
-        content: '生成一个三年级古诗填空游戏，古诗是望庐山瀑布',
+        content: '生成一个英语单词图词匹配射击游戏',
         type: 'text',
         timestamp: new Date('2026-04-04T16:45:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: getCaseResult('单词神枪手', 'v1.0'),
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-04T16:49:00'),
       },
     ],
     isPinned: false,
     isGenerating: false,
     coursewareId: 3,
+  },
+  {
+    id: 'conv_4',
+    title: '比绳子长短',
+    createdAt: '2026-04-03 15:20',
+    messages: [
+      {
+        id: generateId(),
+        role: 'user',
+        content: '生成一个比较绳子长短的脑力游戏',
+        type: 'text',
+        timestamp: new Date('2026-04-03T15:20:00'),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: getCaseResult('比绳子长短', 'v1.0'),
+        type: 'courseware-result',
+        timestamp: new Date('2026-04-03T15:24:00'),
+      },
+    ],
+    isPinned: false,
+    isGenerating: false,
+    coursewareId: 7,
   },
 ];
 

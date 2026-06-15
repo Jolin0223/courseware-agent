@@ -3,40 +3,40 @@ import fruitGardenHTML from '../assets/courseware/fruit_garden_adventure.html?ra
 import animalsAdventureHTML from '../assets/courseware/animals_adventure.html?raw';
 import fruitGardenReadAloudOnlyHTML from '../assets/courseware/fruit_garden_read_aloud_only.html?raw';
 import animalsPlayOnlyHTML from '../assets/courseware/animals_play_only.html?raw';
-import { createLearningDataRecoverySummary, defaultRecoveryItems } from '../utils/learningDataRecovery';
+import { createLearningDataRecoverySummary, getRecoveryItemsForCourseware } from '../utils/learningDataRecovery';
 
-const defaultLearningDataRecovery = createLearningDataRecoverySummary(defaultRecoveryItems);
+const recoveryFor = (title: string) => createLearningDataRecoverySummary(getRecoveryItemsForCourseware(title));
 
 export const demoVersionResults: CoursewareResult[] = [
   {
     title: '水果单词互动乐园',
     version: 'v1.0',
     htmlContent: fruitGardenHTML,
-    learningDataRecovery: defaultLearningDataRecovery,
+    learningDataRecovery: recoveryFor('水果单词互动乐园'),
   },
   {
     title: '动物单词互动乐园',
     version: 'v2.0',
     htmlContent: animalsAdventureHTML,
-    learningDataRecovery: defaultLearningDataRecovery,
+    learningDataRecovery: recoveryFor('动物单词互动乐园'),
   },
   {
     title: '水果单词读一读',
     version: 'v3.0',
     htmlContent: fruitGardenReadAloudOnlyHTML,
-    learningDataRecovery: defaultLearningDataRecovery,
+    learningDataRecovery: recoveryFor('水果单词读一读'),
   },
   {
     title: '颜色单词认一认',
     version: 'v4.0',
     htmlContent: fruitGardenReadAloudOnlyHTML,
-    learningDataRecovery: defaultLearningDataRecovery,
+    learningDataRecovery: recoveryFor('颜色单词认一认'),
   },
   {
     title: '动物单词玩一玩',
     version: 'v5.0',
     htmlContent: animalsPlayOnlyHTML,
-    learningDataRecovery: defaultLearningDataRecovery,
+    learningDataRecovery: recoveryFor('动物单词玩一玩'),
   },
 ];
 

@@ -7,16 +7,14 @@ import {
   Check,
   Clock3,
   Eye,
-  FileText,
   Layers3,
-  Mic2,
   RefreshCw,
   Tag,
   Target,
   X,
 } from 'lucide-react';
 import type { LearningDataRecoveryItem } from '../../types';
-import { defaultRecoveryItems } from '../../utils/learningDataRecovery';
+import { getRecoveryItemsForCourseware } from '../../utils/learningDataRecovery';
 
 interface LearningDataRecoveryModalProps {
   isOpen?: boolean;
@@ -29,35 +27,15 @@ interface LearningDataRecoveryModalProps {
   onConfirm?: (items: LearningDataRecoveryItem[]) => void;
 }
 
-type ReportCaseKey = 'animal' | 'bowen' | 'bilingual' | 'brain';
-
-interface AnswerReviewItem {
-  question: string;
-  result: string;
-  isCorrect: boolean;
-}
-
-interface TableModule {
-  title: string;
-  headers: string[];
-  rows: string[][];
-  accent?: 'orange' | 'green';
-}
+type ReportCaseKey = 'fruit' | 'bowen' | 'bilingual' | 'brain';
+type MetricIconKey = 'score' | 'accuracy' | 'time' | 'reward' | 'correct' | 'complete' | 'level';
 
 interface ReportProfile {
   key: ReportCaseKey;
   title: string;
-  student: string;
-  overview: string;
-  tags: string[];
+  tags: Array<{ label: string; value: number }>;
   suggestion: string;
-  metricRows: Array<{ label: string; value: string; icon: 'score' | 'accuracy' | 'time' | 'reward' | 'wrong' | 'correct' | 'complete' | 'level' }>;
-  answerReview?: AnswerReviewItem[];
-  words?: string[];
-  levels?: Array<{ level: string; desc: string; value: string }>;
-  reward?: string;
-  oral?: Array<{ label: string; value: string }>;
-  tables?: TableModule[];
+  metricRows: Array<{ id: string; label: string; value: string; icon: MetricIconKey }>;
 }
 
 const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfile => {
@@ -65,16 +43,18 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
     return {
       key: 'bowen',
       title: '近义词大挑战',
-      student: '',
-      overview: '',
-      tags: ['近义词辨析', '语境理解', '准确用词'],
+      tags: [
+        { label: '近义词辨析', value: 92 },
+        { label: '语境理解', value: 86 },
+        { label: '准确用词', value: 78 },
+      ],
       suggestion: '本次能根据句子语境选择合适的近义词，整体掌握较好；“屹立、矗立、耸立”这类易混词还可以继续通过例句巩固。',
       metricRows: [
-        { label: '总得分', value: '40分', icon: 'score' },
-        { label: '正确率', value: '80%', icon: 'accuracy' },
-        { label: '总用时', value: '2分16秒', icon: 'time' },
-        { label: '答对题数', value: '4/5', icon: 'correct' },
-        { label: '完成次数', value: '1次', icon: 'complete' },
+        { id: 'final-score', label: '总得分', value: '40分', icon: 'score' },
+        { id: 'accuracy', label: '正确率', value: '80%', icon: 'accuracy' },
+        { id: 'total-time', label: '总用时', value: '2分16秒', icon: 'time' },
+        { id: 'correct-count', label: '答对题数', value: '4/5', icon: 'correct' },
+        { id: 'completion-count', label: '完成次数', value: '1次', icon: 'complete' },
       ],
     };
   }
@@ -83,17 +63,19 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
     return {
       key: 'bilingual',
       title: '单词神枪手',
-      student: '',
-      overview: '',
-      tags: ['图词匹配', '单词辨认', '快速反应'],
+      tags: [
+        { label: '图词匹配', value: 90 },
+        { label: '单词辨认', value: 84 },
+        { label: '快速反应', value: 80 },
+      ],
       suggestion: '本次能较快完成图片与英文单词的匹配，身体部位类单词掌握稳定；个别形近词、音近词还可以继续巩固。',
       metricRows: [
-        { label: '总得分', value: '110分', icon: 'score' },
-        { label: '正确率', value: '85%', icon: 'accuracy' },
-        { label: '总用时', value: '1分42秒', icon: 'time' },
-        { label: '答对题数', value: '11/13', icon: 'correct' },
-        { label: '完成次数', value: '1次', icon: 'complete' },
-        { label: '奖励数量', value: '5个', icon: 'reward' },
+        { id: 'final-score', label: '总得分', value: '110分', icon: 'score' },
+        { id: 'accuracy', label: '正确率', value: '85%', icon: 'accuracy' },
+        { id: 'total-time', label: '总用时', value: '1分42秒', icon: 'time' },
+        { id: 'correct-count', label: '答对题数', value: '11/13', icon: 'correct' },
+        { id: 'completion-count', label: '完成次数', value: '1次', icon: 'complete' },
+        { id: 'reward-count', label: '奖励数量', value: '5个', icon: 'reward' },
       ],
     };
   }
@@ -102,50 +84,42 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
     return {
       key: 'brain',
       title: '比绳子长短',
-      student: '',
-      overview: '',
-      tags: ['长短比较', '空间观察', '路径判断'],
+      tags: [
+        { label: '长短比较', value: 90 },
+        { label: '空间观察', value: 86 },
+        { label: '路径判断', value: 82 },
+      ],
       suggestion: '本次能通过观察和拉直比较绳子长短，基础比较能力较好；遇到路径更复杂的关卡时，可以继续练习按格数判断长短。',
       metricRows: [
-        { label: '总得分', value: '90分', icon: 'score' },
-        { label: '正确率', value: '90%', icon: 'accuracy' },
-        { label: '总用时', value: '3分42秒', icon: 'time' },
-        { label: '答对题数', value: '9/10', icon: 'correct' },
-        { label: '完成次数', value: '1次', icon: 'complete' },
-        { label: '通关关卡数', value: '10关', icon: 'level' },
+        { id: 'final-score', label: '总得分', value: '90分', icon: 'score' },
+        { id: 'accuracy', label: '正确率', value: '90%', icon: 'accuracy' },
+        { id: 'total-time', label: '总用时', value: '3分42秒', icon: 'time' },
+        { id: 'correct-count', label: '答对题数', value: '9/10', icon: 'correct' },
+        { id: 'completion-count', label: '完成次数', value: '1次', icon: 'complete' },
+        { id: 'passed-levels', label: '通关关卡数', value: '10关', icon: 'level' },
       ],
     };
   }
 
-  const title = gameName || '动物单词玩一玩';
+  const title = gameName || '水果单词互动乐园';
   return {
-    key: 'animal',
+    key: 'fruit',
     title,
-    student: '学生：王小雨 · 本次练习',
-    overview: `汇总孩子在「${title}」互动游戏中的表现，覆盖 3 个关卡、12 道动物单词选择题。`,
-    tags: ['动物识别', '听音辨词', '图词匹配'],
-    suggestion: '孩子已掌握基础动物识别，在听音辨词环节仍有少量混淆。建议优先复习 rabbit、dog、cat，并再次完成听音匹配练习。',
+    tags: [
+      { label: '水果词汇识别', value: 88 },
+      { label: '听音辨词', value: 84 },
+      { label: '图词匹配', value: 82 },
+      { label: '跟读表达', value: 78 },
+    ],
+    suggestion: '本次能完成水果单词认读、跟读和游戏巩固，基础词汇识别较稳定；可继续复习 watermelon、strawberry 等较长单词。',
     metricRows: [
-      { label: '总得分', value: '92分', icon: 'score' },
-      { label: '正确率', value: '86%', icon: 'accuracy' },
-      { label: '答题耗时', value: '3分18秒', icon: 'time' },
-      { label: '奖励记录', value: '5个', icon: 'reward' },
-    ],
-    answerReview: [
-      { question: '第 3 题 · 听音选动物', result: 'rabbit 选成 dog', isCorrect: false },
-      { question: '第 7 题 · 图片识词', result: 'cat 回答正确', isCorrect: true },
-      { question: '第 10 题 · 图词匹配', result: 'dog 回答正确', isCorrect: true },
-    ],
-    words: ['cat', 'dog', 'rabbit'],
-    levels: [
-      { level: '关卡 1', desc: '基础动物识别', value: '100%' },
-      { level: '关卡 2', desc: '听音辨词', value: '80%' },
-      { level: '关卡 3', desc: '综合匹配', value: '75%' },
-    ],
-    reward: '本次收集 5 个装备，连续完成 3 个关卡。',
-    oral: [
-      { label: '发音准确度', value: '88%' },
-      { label: '流利度', value: '良好' },
+      { id: 'final-score', label: '总得分', value: '86分', icon: 'score' },
+      { id: 'accuracy', label: '正确率', value: '84%', icon: 'accuracy' },
+      { id: 'total-time', label: '总用时', value: '4分12秒', icon: 'time' },
+      { id: 'correct-count', label: '答对题数', value: '21/25', icon: 'correct' },
+      { id: 'completion-count', label: '完成次数', value: '1次', icon: 'complete' },
+      { id: 'reward-count', label: '奖励数量', value: '8颗星', icon: 'reward' },
+      { id: 'passed-levels', label: '通关关卡数', value: '3关', icon: 'level' },
     ],
   };
 };
@@ -155,10 +129,16 @@ const iconMap = {
   accuracy: BookOpenCheck,
   time: Clock3,
   reward: Award,
-  wrong: FileText,
   correct: Check,
   complete: RefreshCw,
   level: Layers3,
+};
+
+const getCaseFromTitle = (title?: string): ReportCaseKey => {
+  if (title?.includes('近义词大挑战')) return 'bowen';
+  if (title?.includes('单词神枪手')) return 'bilingual';
+  if (title?.includes('比绳子长短')) return 'brain';
+  return 'fruit';
 };
 
 export default function LearningDataRecoveryModal({
@@ -171,9 +151,9 @@ export default function LearningDataRecoveryModal({
   onConfirm,
 }: LearningDataRecoveryModalProps) {
   const [activeTab, setActiveTab] = useState<'config' | 'preview'>('config');
-  const [items, setItems] = useState<LearningDataRecoveryItem[]>(initialItems?.length ? initialItems : defaultRecoveryItems);
+  const [items, setItems] = useState<LearningDataRecoveryItem[]>(() => getRecoveryItemsForCourseware(coursewareTitle, initialItems));
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [reportCase, setReportCase] = useState<ReportCaseKey>('animal');
+  const [reportCase, setReportCase] = useState<ReportCaseKey>(() => getCaseFromTitle(coursewareTitle));
   const [showCaseSwitch, setShowCaseSwitch] = useState(false);
   const selectedItems = useMemo(() => items.filter(item => item.checked), [items]);
   const selectedCount = selectedItems.length;
@@ -220,6 +200,7 @@ export default function LearningDataRecoveryModal({
           onDoubleClick={() => {
             setShowCaseSwitch(prev => {
               if (!prev) setReportCase('bowen');
+              if (prev) setReportCase(getCaseFromTitle(coursewareTitle));
               return !prev;
             });
           }}
@@ -315,6 +296,9 @@ export default function LearningDataRecoveryModal({
           </div>
         ) : (
           <div style={styles.previewContent}>
+            <div style={styles.notice}>
+              这里仅示意学生端/家长端收到的个性化学情报告样式，当前展示为模拟数据，正式报告会使用学生真实作答结果生成。
+            </div>
             <StudentReportPreview
               coursewareTitle={coursewareTitle}
               selectedItems={selectedItems}
@@ -341,16 +325,10 @@ function StudentReportPreview({
 }) {
   const [showPublishedRadar, setShowPublishedRadar] = useState(false);
   const [showKnowledgeTags, setShowKnowledgeTags] = useState(false);
-  const profile = getReportProfile(coursewareTitle || '动物单词玩一玩', isSimpleDemo ? reportCase : 'animal');
-  const names = selectedItems.map(item => item.label);
-  const has = (label: string) => names.includes(label);
-  const hasAny = (...labels: string[]) => labels.some(label => has(label));
-  const showMetrics = hasAny('总得分', '最终得分', '正确率', '答对题数', '答题耗时', '总用时', '奖励记录', '收集到的装备数量');
-  const showAnswerReview = hasAny('答题详情', '题目复盘');
-  const showWrongWords = has('错词记录');
-  const showLevel = has('关卡表现');
-  const showReward = hasAny('奖励记录', '收集到的装备数量');
-  const showOral = has('口语表现');
+  const profile = getReportProfile(coursewareTitle || '水果单词互动乐园', isSimpleDemo ? reportCase : getCaseFromTitle(coursewareTitle));
+  const selectedIds = new Set(selectedItems.map(item => item.id));
+  const visibleMetrics = profile.metricRows.filter(metric => selectedIds.has(metric.id));
+  const showPublishedData = showPublishedRadar || showKnowledgeTags;
 
   return (
     <div style={styles.reportCanvas}>
@@ -360,30 +338,22 @@ function StudentReportPreview({
           <div>
             <div style={styles.reportKicker}>学生个性化学情报告</div>
             <div style={styles.reportTitle}>{profile.title}</div>
-            {profile.student && <div style={styles.reportMeta}>{profile.student}</div>}
           </div>
           <div style={styles.reportBadge}>已完成</div>
         </div>
       </div>
 
       <div style={styles.reportBody}>
-        {!isSimpleDemo && (
-          <section style={styles.reportSection}>
-            <div style={styles.sectionTitle}>学习概览</div>
-            <div style={styles.overviewCard}>{profile.overview}</div>
-          </section>
-        )}
-
         <section style={styles.reportSection}>
           <div style={styles.sectionTitle}>学习表现</div>
           <div style={styles.moduleStack}>
-            {(isSimpleDemo || showMetrics) && (
-              <DynamicModule icon={<Target size={15} />} title="本次表现">
+            <DynamicModule icon={<Target size={15} />} title="本次表现">
+              {visibleMetrics.length ? (
                 <div style={styles.metricList}>
-                  {profile.metricRows.map(metric => {
+                  {visibleMetrics.map(metric => {
                     const Icon = iconMap[metric.icon];
                     return (
-                      <div key={metric.label} style={styles.metricTile}>
+                      <div key={metric.id} style={styles.metricTile}>
                         <span style={styles.metricIcon}><Icon size={15} /></span>
                         <span style={styles.metricValue}>{metric.value}</span>
                         <span style={styles.metricLabel}>{metric.label}</span>
@@ -391,97 +361,27 @@ function StudentReportPreview({
                     );
                   })}
                 </div>
-              </DynamicModule>
-            )}
-
-            {!isSimpleDemo && profile.tables?.map(table => (
-              <DynamicModule key={table.title} icon={<FileText size={15} />} title={table.title}>
-                <div style={styles.tableWrap}>
-                  <div style={{ ...styles.tableHeader, ...(table.accent === 'orange' ? styles.tableHeaderOrange : {}) }}>
-                    {table.headers.map(header => <span key={header}>{header}</span>)}
-                  </div>
-                  {table.rows.map((row, rowIndex) => (
-                    <div key={`${table.title}-${rowIndex}`} style={styles.tableRow}>
-                      {row.map((cell, cellIndex) => <span key={`${cell}-${cellIndex}`}>{cell}</span>)}
-                    </div>
-                  ))}
-                </div>
-              </DynamicModule>
-            ))}
-
-            {!isSimpleDemo && showAnswerReview && profile.answerReview && (
-              <DynamicModule icon={<FileText size={15} />} title="答题详情">
-                <div style={styles.answerRows}>
-                  {profile.answerReview.map(item => (
-                    <div key={item.question} style={styles.answerRow}>
-                      <span style={styles.answerName}>{item.question}</span>
-                      <span style={item.isCorrect ? styles.answerCorrect : styles.answerMistake}>{item.result}</span>
-                    </div>
-                  ))}
-                </div>
-              </DynamicModule>
-            )}
-
-            {!isSimpleDemo && showWrongWords && profile.words?.length ? (
-              <DynamicModule icon={<BookOpenCheck size={15} />} title="错词记录">
-                <div style={styles.wordList}>
-                  {profile.words.map(word => <span key={word} style={styles.wordPill}>{word}</span>)}
-                </div>
-                <div style={styles.moduleDesc}>建议课后优先复习图片识词和听音辨词。</div>
-              </DynamicModule>
-            ) : null}
-
-            {!isSimpleDemo && showLevel && profile.levels && (
-              <DynamicModule icon={<Layers3 size={15} />} title="关卡表现">
-                <div style={styles.levelList}>
-                  {profile.levels.map(item => (
-                    <div key={item.level} style={styles.levelRow}>
-                      <div style={styles.levelText}>
-                        <span style={styles.levelName}>{item.level}</span>
-                        <span style={styles.levelDesc}>{item.desc}</span>
-                      </div>
-                      <span style={styles.levelValue}>{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </DynamicModule>
-            )}
-
-            {!isSimpleDemo && showReward && profile.reward && (
-              <DynamicModule icon={<Award size={15} />} title="奖励成就">
-                <div style={styles.achievement}>{profile.reward}</div>
-              </DynamicModule>
-            )}
-
-            {!isSimpleDemo && showOral && profile.oral && (
-              <DynamicModule icon={<Mic2 size={15} />} title="口语表现">
-                <div style={styles.oralGrid}>
-                  {profile.oral.map(item => <span key={item.label}>{item.label}：{item.value}</span>)}
-                </div>
-              </DynamicModule>
-            )}
+              ) : (
+                <div style={styles.emptyMetricHint}>当前未选择可展示的学习表现指标</div>
+              )}
+            </DynamicModule>
           </div>
         </section>
 
         <section style={styles.reportSection}>
           <div style={styles.sectionTitle}>知识点雷达图</div>
           <div
-            style={isSimpleDemo || showPublishedRadar ? styles.radarReady : styles.radarPending}
+            style={showPublishedData ? styles.radarReady : styles.radarPending}
             onDoubleClick={() => setShowPublishedRadar(prev => !prev)}
           >
-            {isSimpleDemo || showPublishedRadar ? (
+            {showPublishedData ? (
               <>
-                <div style={styles.radarChart}>
-                  <div style={{ ...styles.radarAxis, transform: 'rotate(0deg)' }} />
-                  <div style={{ ...styles.radarAxis, transform: 'rotate(72deg)' }} />
-                  <div style={{ ...styles.radarAxis, transform: 'rotate(144deg)' }} />
-                  <div style={styles.radarShape} />
-                </div>
+                <RadarChart tags={profile.tags} />
                 <div style={styles.radarLegend}>
-                  {profile.tags.map((tag, index) => (
-                    <div key={tag} style={styles.radarLegendRow}>
-                      <span>{tag}</span>
-                      <strong>{[92, 86, 78][index] || 80}%</strong>
+                  {profile.tags.map(tag => (
+                    <div key={tag.label} style={styles.radarLegendRow}>
+                      <span>{tag.label}</span>
+                      <strong>{tag.value}%</strong>
                     </div>
                   ))}
                 </div>
@@ -503,9 +403,9 @@ function StudentReportPreview({
         <section style={{ ...styles.reportSection, ...styles.overallSection }}>
           <div style={styles.sectionTitle}>整体表现</div>
           <div style={styles.tagToggleArea} onDoubleClick={() => setShowKnowledgeTags(prev => !prev)}>
-            {isSimpleDemo || showKnowledgeTags ? (
+            {showPublishedData ? (
               <div style={styles.tagList}>
-                {profile.tags.map(tag => <span key={tag} style={styles.tag}>{tag}</span>)}
+                {profile.tags.map(tag => <span key={tag.label} style={styles.tag}>{tag.label}</span>)}
               </div>
             ) : (
               <div style={styles.tagPending}>发布并完成知识点标签后展示本次涉及的知识点标签</div>
@@ -515,6 +415,47 @@ function StudentReportPreview({
         </section>
       </div>
     </div>
+  );
+}
+
+function RadarChart({ tags }: { tags: ReportProfile['tags'] }) {
+  const size = 116;
+  const center = size / 2;
+  const maxRadius = 47;
+  const points = tags.map((tag, index) => {
+    const angle = -Math.PI / 2 + (index * Math.PI * 2) / tags.length;
+    const radius = maxRadius * (tag.value / 100);
+    return {
+      x: center + Math.cos(angle) * radius,
+      y: center + Math.sin(angle) * radius,
+    };
+  });
+  const polygon = points.map(point => `${point.x},${point.y}`).join(' ');
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={styles.radarSvg} aria-label="知识点雷达图">
+      {[1, 0.66, 0.33].map(ring => (
+        <circle
+          key={ring}
+          cx={center}
+          cy={center}
+          r={maxRadius * ring}
+          fill={ring === 1 ? '#F0FDF4' : 'none'}
+          stroke="#BBF7D0"
+          strokeWidth="1"
+        />
+      ))}
+      {tags.map((tag, index) => {
+        const angle = -Math.PI / 2 + (index * Math.PI * 2) / tags.length;
+        const x = center + Math.cos(angle) * maxRadius;
+        const y = center + Math.sin(angle) * maxRadius;
+        return <line key={tag.label} x1={center} y1={center} x2={x} y2={y} stroke="#86EFAC" strokeWidth="1" />;
+      })}
+      <polygon points={polygon} fill="rgba(34, 197, 94, 0.34)" stroke="#16A34A" strokeWidth="2" />
+      {points.map((point, index) => (
+        <circle key={tags[index].label} cx={point.x} cy={point.y} r="3" fill="#16A34A" />
+      ))}
+    </svg>
   );
 }
 
@@ -918,6 +859,15 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#64748B',
     fontWeight: 700,
   },
+  emptyMetricHint: {
+    padding: 12,
+    borderRadius: 10,
+    background: '#F8FAFC',
+    border: '1px dashed #CBD5E1',
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.5,
+  },
   tableWrap: {
     borderRadius: 10,
     overflow: 'hidden',
@@ -1095,33 +1045,10 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#FFFFFF',
     border: '1px solid #BBF7D0',
   },
-  radarChart: {
+  radarSvg: {
     width: 116,
     height: 116,
-    borderRadius: '50%',
-    border: '1px solid #BBF7D0',
-    background: 'radial-gradient(circle, #FFFFFF 0 28%, #F7FEE7 29% 56%, #DCFCE7 57% 100%)',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  radarAxis: {
-    position: 'absolute',
-    left: '50%',
-    top: 0,
-    width: 1,
-    height: '100%',
-    background: '#86EFAC',
-    transformOrigin: 'center',
-  },
-  radarShape: {
-    position: 'absolute',
-    left: 27,
-    top: 19,
-    width: 64,
-    height: 74,
-    background: 'rgba(34, 197, 94, 0.34)',
-    border: '2px solid #16A34A',
-    clipPath: 'polygon(50% 0%, 90% 36%, 74% 100%, 22% 82%, 8% 28%)',
+    display: 'block',
   },
   radarLegend: {
     display: 'flex',

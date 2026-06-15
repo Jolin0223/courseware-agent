@@ -1268,8 +1268,9 @@ function AssistantMessage({
   if (message.type === 'courseware-result') {
     const result = message.content as CoursewareResult;
     const demoCourseware = mockCoursewares[0];
+    const matchedMockCourseware = mockCoursewares.find(c => c.title === result.title);
     const courseware = (
-      result.htmlContent
+      result.htmlContent && !matchedMockCourseware
         ? {
             id: Date.now(),
             title: result.title,
@@ -1285,7 +1286,12 @@ function AssistantMessage({
             isOwn: true,
             learningDataRecovery: result.learningDataRecovery,
           }
-        : mockCoursewares.find(c => c.title === result.title)
+        : matchedMockCourseware
+          ? {
+              ...matchedMockCourseware,
+              learningDataRecovery: result.learningDataRecovery || matchedMockCourseware.learningDataRecovery,
+            }
+          : undefined
     ) || {
       id: Date.now(),
       title: demoCourseware.title,

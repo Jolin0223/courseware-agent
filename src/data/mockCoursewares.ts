@@ -1,5 +1,6 @@
 import type { Courseware } from '../types';
 import fruitGardenHTML from '../assets/courseware/fruit_garden_adventure.html?raw';
+import { createLearningDataRecoverySummary, getRecoveryItemsForCourseware } from '../utils/learningDataRecovery';
 
 // 示例课件的HTML内容
 const mathBalloonHTML = `<!DOCTYPE html>
@@ -89,97 +90,6 @@ const mathBalloonHTML = `<!DOCTYPE html>
         <div class="score-value">3</div>
         <div class="score-label">连对</div>
       </div>
-    </div>
-  </div>
-</body>
-</html>`;
-
-const poemFillHTML = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>望庐山瀑布古诗填空</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .game-container {
-      background: white;
-      border-radius: 24px;
-      padding: 40px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-      text-align: center;
-      max-width: 600px;
-      width: 90%;
-    }
-    .poem-card {
-      background: linear-gradient(135deg, #fef3c7, #fde68a);
-      border-radius: 16px;
-      padding: 30px;
-      margin: 20px 0;
-    }
-    .poem-title { font-size: 20px; color: #92400E; margin-bottom: 16px; }
-    .poem-author { font-size: 14px; color: #B45309; margin-bottom: 20px; }
-    .poem-line {
-      font-size: 28px;
-      color: #1E293B;
-      margin: 12px 0;
-      line-height: 1.8;
-    }
-    .blank {
-      display: inline-block;
-      width: 60px;
-      height: 36px;
-      border-bottom: 3px solid #0EA5E9;
-      margin: 0 4px;
-      vertical-align: middle;
-    }
-    .options {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 24px;
-    }
-    .option-btn {
-      padding: 12px 24px;
-      border: 2px solid #E2E8F0;
-      border-radius: 12px;
-      font-size: 18px;
-      background: white;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .option-btn:hover {
-      border-color: #0EA5E9;
-      background: #E0F2FE;
-    }
-  </style>
-</head>
-<body>
-  <div class="game-container">
-    <h1 style="color: #1E293B; margin-bottom: 8px;">📖 古诗填空</h1>
-    <p style="color: #94A3B8;">填写正确的诗句</p>
-    <div class="poem-card">
-      <div class="poem-title">望庐山瀑布</div>
-      <div class="poem-author">唐 · 李白</div>
-      <div class="poem-line">日照香炉生紫烟，</div>
-      <div class="poem-line">遥看瀑布挂前川。</div>
-      <div class="poem-line">飞流直下三千尺，</div>
-      <div class="poem-line">疑是银河<span class="blank"></span>九天。</div>
-    </div>
-    <div class="options">
-      <button class="option-btn">落</button>
-      <button class="option-btn">下</button>
-      <button class="option-btn">挂</button>
-      <button class="option-btn">流</button>
     </div>
   </div>
 </body>
@@ -347,6 +257,12 @@ const listeningHTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
+const synonymChallengeHTML = '<iframe src="/case-games/synonym/index.html" style="width:100vw;height:100vh;border:0;display:block;background:#fff;" title="近义词大挑战"></iframe>';
+const wordShooterHTML = '<iframe src="/case-games/word-shooter/index.html" style="width:100vw;height:100vh;border:0;display:block;background:#fff;" title="单词神枪手"></iframe>';
+const ropeLengthHTML = '<iframe src="/case-games/rope-length/index.html" style="width:100vw;height:100vh;border:0;display:block;background:#fff;" title="比绳子长短"></iframe>';
+
+const learningDataFor = (title: string) => createLearningDataRecoverySummary(getRecoveryItemsForCourseware(title));
+
 export const mockCoursewares: Courseware[] = [
   {
     id: 1,
@@ -363,38 +279,58 @@ export const mockCoursewares: Courseware[] = [
     isOwn: true,
     isPublished: true,
     showConversation: true,
+    learningDataRecovery: learningDataFor('水果单词互动乐园'),
   },
   {
     id: 2,
-    title: '加减法气球爆炸',
-    subject: '数学',
-    grade: '一年级',
-    type: '数学闯关',
-    author: '李老师',
+    title: '近义词大挑战',
+    subject: '语文',
+    grade: '三年级',
+    type: '近义词辨析',
+    author: '王老师',
     publishTime: '2026-04-05',
     views: 890,
     favorites: 67,
     likes: 123,
-    htmlContent: mathBalloonHTML,
+    htmlContent: synonymChallengeHTML,
     isOwn: false,
     isPublished: true,
     showConversation: true,
+    learningDataRecovery: learningDataFor('近义词大挑战'),
   },
   {
     id: 3,
-    title: '望庐山瀑布古诗填空',
-    subject: '语文',
+    title: '单词神枪手',
+    subject: '英语',
     grade: '三年级',
-    type: '古诗填空',
-    author: '王老师',
+    type: '图词匹配',
+    author: '张老师',
     publishTime: '2026-04-04',
     views: 2100,
     favorites: 156,
     likes: 234,
-    htmlContent: poemFillHTML,
+    htmlContent: wordShooterHTML,
     isOwn: false,
     isPublished: true,
     showConversation: true,
+    learningDataRecovery: learningDataFor('单词神枪手'),
+  },
+  {
+    id: 7,
+    title: '比绳子长短',
+    subject: '数学',
+    grade: '一年级',
+    type: '长短比较',
+    author: '李老师',
+    publishTime: '2026-04-03',
+    views: 960,
+    favorites: 72,
+    likes: 141,
+    htmlContent: ropeLengthHTML,
+    isOwn: false,
+    isPublished: true,
+    showConversation: true,
+    learningDataRecovery: learningDataFor('比绳子长短'),
   },
   {
     id: 4,

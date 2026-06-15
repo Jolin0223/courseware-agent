@@ -1,0 +1,38 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>比绳子长短</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 左侧情境动画区 -->
+        <div id="story-area">
+            <img id="animal-pit" src="images/animal_pit.png" alt="小动物掉进坑里">
+            <img id="animal-saved" src="images/animal_saved.png" alt="小动物获救" style="display: none;">
+        </div>
+
+        <!-- 中央Canvas绘图区 -->
+        <div id="canvas-container">
+            <canvas id="game-canvas" width="1200" height="900"></canvas>
+        </div>
+
+        <!-- 右上角关卡进度显示区 -->
+        <div id="progress-area">
+            <span id="progress-text" style="font-size: 32px;">关卡: 1 / 10</span>
+        </div>
+
+        <!-- 右下角语音重播按钮 -->
+        <div id="replay-btn">
+            <img src="images/btn_replay.png" alt="重播语音">
+        </div>
+    </div>
+
+    <!-- 附加任务要求的外部JS脚本 -->
+    <script src="https://iteachcdn.xdf.cn/aijiajiao/app/ppt/icwsync.min.js"></script>
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/egret/egretinitmessage.js"></script>
+    
+    <!-- 主逻辑脚本 -->
+    <script src="js/main.js"></script>
+
+</body></html>

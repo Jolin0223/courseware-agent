@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>单词神枪手</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 游戏开始界面 -->
+        <div id="start-screen" class="screen">
+            <div class="start-content">
+                <h1>单词神枪手</h1>
+                <p class="rules">规则说明：<br>观察中央的图片，点击下方正确的单词靶子。<br>答对得分并获得装备，答错扣除生命值！</p>
+                <button id="start-btn">开始游戏</button>
+            </div>
+        </div>
+
+        <!-- 游戏主界面 -->
+        <div id="game-screen" class="screen" style="display: none;">
+            <!-- 顶部信息栏 -->
+            <div id="top-bar">
+                <div class="info-item" id="question-info">第 <span id="current-question">1</span> 题 / 共 <span id="total-question">10</span> 题</div>
+                <div class="info-item" id="timer-info">剩余时间: <span id="time-left">10</span>秒</div>
+                <div class="info-item" id="score-info">得分: <span id="score">0</span></div>
+                <div class="info-item" id="lives-info">
+                    <img src="images/heart.png" class="heart-icon" alt="heart">
+                    <img src="images/heart.png" class="heart-icon" alt="heart">
+                    <img src="images/heart.png" class="heart-icon" alt="heart">
+                </div>
+            </div>
+
+            <!-- 中央图片展示区 -->
+            <div id="image-display-area">
+                <img id="current-image" src="" alt="word image" style="display: none;">
+            </div>
+
+            <!-- 中下部靶子移动区 -->
+            <div id="target-area">
+                <!-- 靶子将由 JS 动态生成 -->
+            </div>
+
+            <!-- 底部装备展示栏 -->
+            <div id="equipment-bar-container">
+                <div class="equipment-title">我的装备</div>
+                <div id="equipment-bar">
+                    <!-- 装备将由 JS 动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 屏幕边缘红光闪烁层 (用于答错提示) -->
+            <div id="damage-overlay"></div>
+        </div>
+
+        <!-- 结算弹窗 -->
+        <div id="result-screen" class="screen" style="display: none;">
+            <div class="result-content">
+                <h2>游戏结束</h2>
+                <p class="final-score-text">最终得分: <span id="final-score">0</span></p>
+                
+                <div class="result-details">
+                    <div id="wrong-words-container">
+                        <h3>错题本</h3>
+                        <ul id="wrong-words-list"></ul>
+                    </div>
+                    <div id="collected-equipments-container">
+                        <h3>收集到的装备</h3>
+                        <div id="collected-equipments"></div>
+                    </div>
+                </div>
+                
+                <button id="restart-btn">重新开始</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入附加任务要求的外部JS脚本 -->
+    <script src="https://iteachcdn.xdf.cn/aijiajiao/app/ppt/icwsync.min.js"></script>
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/egret/egretinitmessage.js"></script>
+    
+    <!-- 引入主逻辑脚本 -->
+    <script src="js/main.js"></script>
+</body>
+</html>

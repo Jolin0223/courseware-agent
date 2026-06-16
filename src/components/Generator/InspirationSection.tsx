@@ -329,23 +329,27 @@ export default function InspirationSection({
         </div>
 
         <div className="inspiration-filter-row" style={styles.filterRow}>
-          <label style={styles.secondarySelectWrap}>
-            <span style={styles.secondarySelectLabel}>细分玩法</span>
-            <span style={styles.selectShell}>
-              <select
-                className="inspiration-secondary-select"
-                value={activeSecondary}
-                onChange={event => handleSecondaryChange(event.target.value)}
-                style={styles.secondarySelect}
-              >
-                <option value="all">全部细分玩法</option>
-                {secondaryOptions.map(option => (
-                  <option key={option.id} value={option.id}>{option.name}（{option.count}）</option>
-                ))}
-              </select>
-              <ChevronDown size={15} style={styles.selectIcon} />
-            </span>
-          </label>
+          {activeTab === 'featured' ? (
+            <div style={styles.featuredHint}>优先展示更适合课堂直接套用的玩法</div>
+          ) : (
+            <label style={styles.secondarySelectWrap}>
+              <span style={styles.secondarySelectLabel}>细分玩法</span>
+              <span style={styles.selectShell}>
+                <select
+                  className="inspiration-secondary-select"
+                  value={activeSecondary}
+                  onChange={event => handleSecondaryChange(event.target.value)}
+                  style={styles.secondarySelect}
+                >
+                  <option value="all">全部细分玩法</option>
+                  {secondaryOptions.map(option => (
+                    <option key={option.id} value={option.id}>{option.name}（{option.count}）</option>
+                  ))}
+                </select>
+                <ChevronDown size={15} style={styles.selectIcon} />
+              </span>
+            </label>
+          )}
           <div style={styles.resultMeta}>
             共 {visiblePlayways.length} 个玩法
             {totalPages > 1 ? ` · 第 ${Math.min(pageIndex + 1, totalPages)} / ${totalPages} 页` : ''}
@@ -585,6 +589,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 850,
     whiteSpace: 'nowrap',
+  },
+  featuredHint: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 800,
+    lineHeight: 1.4,
   },
   selectShell: {
     position: 'relative',

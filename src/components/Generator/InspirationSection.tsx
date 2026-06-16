@@ -99,16 +99,12 @@ const featuredIds = new Set(
 
 const hasAgeOverlap = (playwayAgeText: string, bandId: InspirationAgeBandId) => {
   if (bandId === 'all') return true;
-  const match = playwayAgeText.match(/(\d+)-(\d+)/);
-  if (!match) return true;
-  const min = Number(match[1]);
-  const max = Number(match[2]);
-  const ranges: Record<Exclude<InspirationAgeBandId, 'all'>, [number, number]> = {
-    age_6_10: [6, 10],
-    age_10_14: [10, 14],
+  const ageTexts: Record<Exclude<InspirationAgeBandId, 'all'>, string> = {
+    age_4_6: '4-6岁',
+    age_6_10: '6-10岁',
+    age_10_14: '10-14岁',
   };
-  const [bandMin, bandMax] = ranges[bandId];
-  return min <= bandMax && max >= bandMin;
+  return playwayAgeText === ageTexts[bandId];
 };
 
 const toGameplayInspiration = (playway: InspirationPlayway): GameplayInspiration => ({

@@ -2,7 +2,7 @@
 // 用户侧不得展示 sourceRefs。
 
 export type InspirationTabId = 'featured' | 'jump_obstacle' | 'race_speed' | 'hide_seek' | 'team_coop' | 'survival_arena' | 'battle_reasoning' | 'puzzle_rush' | 'elimination';
-export type InspirationAgeBandId = 'all' | 'age_6_10' | 'age_10_14';
+export type InspirationAgeBandId = 'all' | 'age_4_6' | 'age_6_10' | 'age_10_14';
 
 export interface InspirationTabConfig {
   id: InspirationTabId;
@@ -97,6 +97,11 @@ export const inspirationSeedData = {
       }
     ],
     "ageBands": [
+      {
+        "id": "age_4_6",
+        "name": "4-6岁",
+        "ageText": "4-6岁"
+      },
       {
         "id": "age_6_10",
         "name": "6-10岁",

@@ -1298,6 +1298,23 @@ function AssistantMessage({
             isStreaming={phase === 'framework' && !frameworkDone}
             streamDuration={streamDuration}
             onStreamComplete={onFrameworkStreamComplete}
+            onFrameworkChange={(nextFramework) => {
+              if (!activeConversationId) return;
+              useConversationStore.setState(state => ({
+                conversations: state.conversations.map(conversation => (
+                  conversation.id === activeConversationId
+                    ? {
+                        ...conversation,
+                        messages: conversation.messages.map(item => (
+                          item.id === message.id
+                            ? { ...item, content: nextFramework }
+                            : item
+                        )),
+                      }
+                    : conversation
+                )),
+              }));
+            }}
           />
         </div>
       </div>

@@ -1,14 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import type { RequirementFramework } from '../../types';
 import toast from '../../utils/toast';
 import { demoMs } from '../../constants/demoTiming';
-import { visualStylePresets, type VisualStylePreset } from '../../data/visualStylePresets';
+import {
+  baseVisualStylePresets,
+  enhancementVisualStylePresets,
+  getVisualStylePreviewStyle,
+  getVisualStyleSelection,
+  mergeVisualStylePrompt,
+  visualStylePreviewImages,
+} from '../../data/visualStylePresets';
 
 interface RequirementCardProps {
   framework: RequirementFramework;
   isStreaming?: boolean;
   streamDuration?: number;
   onStreamComplete?: () => void;
+  onFrameworkChange?: (framework: RequirementFramework) => void;
 }
 
 const getSections = (framework: RequirementFramework) => [
@@ -21,8 +30,6 @@ const getSections = (framework: RequirementFramework) => [
 ];
 
 const TOTAL_DURATION_MS = demoMs(15000);
-
-const visualStyleOptions = visualStylePresets;
 
 const sectionTitleStyle: React.CSSProperties = {
   fontSize: 15,
@@ -53,12 +60,13 @@ const textareaBaseStyle: React.CSSProperties = {
   overflow: 'hidden',
 };
 
-const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreaming = false, streamDuration, onStreamComplete }) => {
+const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreaming = false, streamDuration, onStreamComplete, onFrameworkChange }) => {
   const [streamedTexts, setStreamedTexts] = useState<Record<string, string>>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [streamComplete, setStreamComplete] = useState(false);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
-  const [selectedVisualStyle, setSelectedVisualStyle] = useState<string | null>(null);
+  const [selectedBaseStyleId, setSelectedBaseStyleId] = useState<string | null>(null);
+  const [selectedEnhancementIds, setSelectedEnhancementIds] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const charIndexRef = useRef(0);
@@ -124,19 +132,42 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
   }, [framework, isStreaming, onStreamComplete, streamDuration]);
 
   const handleTextChange = (key: string, value: string) => {
-    setEditValues(prev => ({ ...prev, [key]: value }));
+    setEditValues(prev => {
+      const nextValues = { ...prev, [key]: value };
+      onFrameworkChange?.({ ...framework, ...nextValues });
+      return nextValues;
+    });
   };
 
-  const applyVisualStyle = (option: VisualStylePreset) => {
-    setSelectedVisualStyle(option.id);
+  const applyVisualStyleSelection = (baseStyleId: string | null, enhancementIds = selectedEnhancementIds) => {
+    const selection = getVisualStyleSelection(baseStyleId, enhancementIds);
+    setSelectedBaseStyleId(baseStyleId);
+    setSelectedEnhancementIds(enhancementIds);
     setEditValues(prev => {
       const current = prev.designStyle || framework.designStyle || '';
-      const next = /请只调整画面(感觉|风格)：/.test(current)
-        ? current.replace(/请只调整画面(感觉|风格)：[\s\S]*?(?=\n\n|$)/, option.prompt)
-        : `${current.trim()}\n\n${option.prompt}`.trim();
+      const next = mergeVisualStylePrompt(current, selection);
+      onFrameworkChange?.({
+        ...framework,
+        ...prev,
+        designStyle: next,
+        visualStyleSelection: {
+          baseStyleId: selection.baseStyleId,
+          enhancementStyleIds: selection.enhancementStyleIds,
+          styleName: selection.styleName,
+          stylePrompt: selection.stylePrompt,
+          previewImageUrl: selection.previewImageUrl,
+        },
+      });
       return { ...prev, designStyle: next };
     });
-    toast(`已加入「${option.name}」画面风格`);
+    toast(selection.styleName ? `已选择「${selection.styleName}」画面风格` : '已恢复 AI 默认匹配画面风格');
+  };
+
+  const toggleEnhancement = (styleId: string) => {
+    const nextIds = selectedEnhancementIds.includes(styleId)
+      ? selectedEnhancementIds.filter(id => id !== styleId)
+      : [...selectedEnhancementIds, styleId];
+    applyVisualStyleSelection(selectedBaseStyleId, nextIds);
   };
 
   const autoResize = (el: HTMLTextAreaElement) => {
@@ -201,22 +232,65 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
               {section.key === 'designStyle' && isSectionDone && (
                 <div style={visualStyleStyles.panel}>
                   <div style={visualStyleStyles.header}>
-                    <span style={visualStyleStyles.title}>调整画面风格</span>
+                    <span style={visualStyleStyles.title}>画面风格</span>
+                    <span style={visualStyleStyles.desc}>
+                      {selectedBaseStyleId ? getVisualStyleSelection(selectedBaseStyleId, selectedEnhancementIds).styleName : 'AI 默认匹配'}
+                    </span>
                   </div>
-                  <div className="requirement-style-scroll" style={visualStyleStyles.optionRow}>
-                    {visualStyleOptions.map(option => {
-                      const selected = selectedVisualStyle === option.id;
+                  <div style={visualStyleStyles.groupTitle}>基础风格</div>
+                  <div className="requirement-style-scroll" style={visualStyleStyles.baseGrid}>
+                    <button
+                      type="button"
+                      onClick={() => applyVisualStyleSelection(null, [])}
+                      style={{
+                        ...visualStyleStyles.baseOption,
+                        ...(selectedBaseStyleId === null ? visualStyleStyles.baseOptionSelected : {}),
+                      }}
+                    >
+                      <div style={visualStyleStyles.defaultPreview}>
+                        <span>AI</span>
+                      </div>
+                      <span style={visualStyleStyles.baseName}>AI 默认匹配</span>
+                    </button>
+                    {baseVisualStylePresets.map(option => {
+                      const selected = selectedBaseStyleId === option.id;
+                      const previewImage = visualStylePreviewImages[option.id];
                       return (
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => applyVisualStyle(option)}
+                          onClick={() => applyVisualStyleSelection(option.id)}
                           style={{
-                            ...visualStyleStyles.optionBtn,
-                            ...(selected ? visualStyleStyles.optionBtnSelected : {}),
+                            ...visualStyleStyles.baseOption,
+                            ...(selected ? visualStyleStyles.baseOptionSelected : {}),
                           }}
                         >
-                          {option.name}
+                          <div style={{ ...visualStyleStyles.preview, ...getVisualStylePreviewStyle(option.id) }}>
+                            {previewImage && <img src={previewImage} alt={`${option.name}参考图`} style={visualStyleStyles.previewImage} />}
+                            {selected && <span style={visualStyleStyles.check}><CheckCircle2 size={13} /></span>}
+                          </div>
+                          <span style={visualStyleStyles.baseName}>{option.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={visualStyleStyles.groupTitle}>增强质感</div>
+                  <div style={visualStyleStyles.enhancementGrid}>
+                    {enhancementVisualStylePresets.map(option => {
+                      const selected = selectedEnhancementIds.includes(option.id);
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => toggleEnhancement(option.id)}
+                          disabled={!selectedBaseStyleId}
+                          style={{
+                            ...visualStyleStyles.enhancementOption,
+                            ...(selected ? visualStyleStyles.enhancementOptionSelected : {}),
+                            ...(!selectedBaseStyleId ? visualStyleStyles.enhancementDisabled : {}),
+                          }}
+                        >
+                          <span>{option.name}</span>
                         </button>
                       );
                     })}
@@ -266,7 +340,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
 const visualStyleStyles: Record<string, React.CSSProperties> = {
   panel: {
     margin: '-2px 0 10px',
-    padding: '10px 12px',
+    padding: '12px',
     borderRadius: 10,
     border: '1px solid rgba(0,201,167,0.18)',
     background: 'linear-gradient(135deg, rgba(240,253,250,0.84), rgba(255,255,255,0.96))',
@@ -284,20 +358,97 @@ const visualStyleStyles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
   },
   desc: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 12,
     whiteSpace: 'nowrap',
   },
-  optionRow: {
+  groupTitle: {
+    margin: '9px 0 7px',
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 800,
+  },
+  baseGrid: {
     display: 'flex',
     flexWrap: 'nowrap',
-    gap: 8,
+    gap: 9,
     overflowX: 'auto',
-    paddingBottom: 2,
+    paddingBottom: 3,
   },
-  optionBtn: {
-    height: 28,
-    padding: '0 11px',
+  baseOption: {
+    width: 116,
+    flexShrink: 0,
+    padding: 7,
+    borderRadius: 10,
+    border: '1px solid #D8F3EF',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: 'pointer',
+    textAlign: 'left',
+  },
+  baseOptionSelected: {
+    borderColor: 'var(--agent-primary)',
+    background: 'var(--agent-soft-strong)',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 6px 16px rgba(0, 201, 167, 0.14)',
+  },
+  preview: {
+    position: 'relative',
+    width: '100%',
+    aspectRatio: '16 / 9',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  defaultPreview: {
+    width: '100%',
+    aspectRatio: '16 / 9',
+    borderRadius: 8,
+    marginBottom: 6,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, #F8FAFC, #CCFBF1)',
+    color: '#0F766E',
+    fontSize: 18,
+    fontWeight: 900,
+  },
+  previewImage: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  check: {
+    position: 'absolute',
+    right: 6,
+    top: 6,
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    background: 'var(--agent-primary)',
+    color: '#FFFFFF',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  baseName: {
+    display: 'block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  enhancementGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 7,
+  },
+  enhancementOption: {
+    minHeight: 28,
+    padding: '0 10px',
     borderRadius: 999,
     border: '1px solid #D8F3EF',
     background: '#FFFFFF',
@@ -305,14 +456,15 @@ const visualStyleStyles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 750,
     cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    flexShrink: 0,
   },
-  optionBtnSelected: {
+  enhancementOptionSelected: {
     borderColor: 'var(--agent-primary)',
     background: 'var(--agent-soft-strong)',
     color: 'var(--agent-primary-text)',
-    boxShadow: '0 6px 16px rgba(0, 201, 167, 0.14)',
+  },
+  enhancementDisabled: {
+    opacity: 0.46,
+    cursor: 'not-allowed',
   },
 };
 

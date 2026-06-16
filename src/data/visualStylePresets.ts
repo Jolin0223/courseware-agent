@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 export type VisualStyleType = 'base' | 'enhancement';
 
 export interface VisualStylePreset {
@@ -8,6 +10,16 @@ export interface VisualStylePreset {
   prompt: string;
   sourceFile: 'visual-styles.md' | 'visual-params.md';
   sourceKey: string;
+}
+
+export interface VisualStyleSelectionResult {
+  baseStyleId: string | null;
+  enhancementStyleIds: string[];
+  styleName: string;
+  stylePrompt: string;
+  previewImageUrl?: string;
+  selectedBaseStyle?: VisualStylePreset;
+  selectedEnhancements: VisualStylePreset[];
 }
 
 export const baseVisualStylePresets: VisualStylePreset[] = [
@@ -236,3 +248,124 @@ export const visualStylePresets: VisualStylePreset[] = [
   ...baseVisualStylePresets,
   ...enhancementVisualStylePresets,
 ];
+
+export const visualStylePreviewImages: Record<string, string> = {
+  kidslogic: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/TIwPz6tA-2600008999-AigcImage-55262a92631349d9a116e5fd173c1227_0.png',
+  'underwater-world': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/VU2j99nu-2600008999-AigcImage-d31229ec68b442538400062c05d4c416_0.png',
+  'autumn-orange-tree': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/JH94Zmu1-2600008999-AigcImage-5862a38e18ec49aebb75b01f452c3575_0.png',
+  'doubao-forest': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/2UfOSmOL-2600008999-AigcImage-d180619dd2c04256a8984cdffd8fad65_0.png',
+  'doubao-candy': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/YEoJizVJ-2600008999-AigcImage-dc5f6d6124e24680804c6521cfcfa65f_0.png',
+  'doubao-sea': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/XrPvnt2d-2600008999-AigcImage-6b1278c6971d47b7ba6d0af04ff13129_0.png',
+  'doubao-space': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/ouL8fAhd-2600008999-AigcImage-4d42f137b62340c582a8cbccfa789552_0.png',
+  'doubao-blocks': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/U2ZzXEyM-2600008999-AigcImage-377dea029b4a4832acbe4c647fd964e9_0.png',
+  'starfall-education': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/Ggdonrah-2600008999-AigcImage-f2c6a25dc8a443b586e081ab9daf1d8c_0.png',
+  'babybus-hanzi-courseware': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/xxIA5VVU-2600008999-AigcImage-62cfc336f96b4ec1881b34da854f6086_0.png',
+  'eggy-cute': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/URCTOVnW-2600008999-AigcImage-8fa195012eb14dd9a3bfcd698c990e78_0.png',
+  'ym-competition': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/F5oyxnq3-2600008999-AigcImage-c963261877394a17b7ffb7cb756e3aaf_0.png',
+  'milk-fog-fairy': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/JcLFBjRR-2600008999-AigcImage-4c909de3b83f4dbfa4915147ddb3c2b3_0.png',
+  'lowpoly-childlike': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/E2UMJSNB-2600008999-AigcImage-8a8dab76940b4dbf96373f3268c1ae08_0.png',
+  'minimal-flat-childlike': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/C0bhtRn9-2600008999-AigcImage-a2e8f7af9eb94b29aa4eaea1bb5bdaef_0.png',
+};
+
+export const getVisualStylePreviewStyle = (styleId: string): CSSProperties => {
+  const previews: Record<string, CSSProperties> = {
+    kidslogic: {
+      background:
+        'linear-gradient(90deg, rgba(255,255,255,0.9) 0 34%, transparent 35%), repeating-linear-gradient(0deg, rgba(15,23,42,0.08) 0 1px, transparent 1px 18px), repeating-linear-gradient(90deg, rgba(15,23,42,0.08) 0 1px, transparent 1px 18px), linear-gradient(135deg, #87CEEB, #FAF0E6 62%, #FFD700)',
+    },
+    'underwater-world': {
+      background:
+        'radial-gradient(circle at 18% 22%, rgba(255,255,255,0.72) 0 5%, transparent 6%), radial-gradient(circle at 76% 24%, rgba(125,211,252,0.55) 0 7%, transparent 8%), radial-gradient(circle at 68% 76%, rgba(45,212,191,0.45) 0 13%, transparent 14%), linear-gradient(180deg, #0EA5E9 0%, #0369A1 52%, #083344 100%)',
+    },
+    'autumn-orange-tree': {
+      background:
+        'radial-gradient(circle at 76% 24%, #FDBA74 0 12%, transparent 13%), radial-gradient(circle at 18% 82%, #84CC16 0 16%, transparent 17%), linear-gradient(160deg, #FFF7ED, #FED7AA 55%, #65A30D)',
+    },
+    'doubao-forest': {
+      background:
+        'radial-gradient(circle at 25% 78%, #166534 0 15%, transparent 16%), radial-gradient(circle at 75% 72%, #22C55E 0 18%, transparent 19%), linear-gradient(160deg, #DCFCE7, #86EFAC 48%, #15803D)',
+    },
+    'doubao-candy': {
+      background:
+        'radial-gradient(circle at 22% 72%, #FDA4AF 0 16%, transparent 17%), radial-gradient(circle at 76% 30%, #FDE68A 0 15%, transparent 16%), linear-gradient(135deg, #FBCFE8, #FDE68A 45%, #A5B4FC)',
+    },
+    'doubao-sea': {
+      background:
+        'radial-gradient(circle at 26% 72%, #FDE68A 0 10%, transparent 11%), radial-gradient(circle at 76% 70%, #2DD4BF 0 16%, transparent 17%), linear-gradient(180deg, #BAE6FD, #38BDF8 52%, #0F766E)',
+    },
+    'doubao-space': {
+      background:
+        'radial-gradient(circle at 78% 22%, #FDE68A 0 7%, transparent 8%), radial-gradient(circle at 18% 34%, rgba(255,255,255,0.84) 0 2%, transparent 3%), linear-gradient(135deg, #111827, #4338CA 58%, #0EA5E9)',
+    },
+    'doubao-blocks': {
+      background:
+        'linear-gradient(135deg, #F8FAFC 0 26%, transparent 27%), linear-gradient(145deg, #FACC15 0 26%, #60A5FA 27% 54%, #34D399 55% 78%, #F87171 79%)',
+    },
+    'starfall-education': {
+      background:
+        'linear-gradient(180deg, #FFCC00 0 22%, transparent 23%), radial-gradient(circle at 18% 68%, #66CC33 0 13%, transparent 14%), linear-gradient(135deg, #FFFFFF, #4FC3F7 68%, #44C4B0)',
+    },
+    'babybus-hanzi-courseware': {
+      background:
+        'radial-gradient(circle at 22% 70%, #FFB800 0 15%, transparent 16%), radial-gradient(circle at 78% 24%, #4FC3F7 0 14%, transparent 15%), linear-gradient(135deg, #FFF7ED, #FFD93D 48%, #FF6B6B)',
+    },
+    'eggy-cute': {
+      background:
+        'radial-gradient(circle at 28% 72%, #FDE68A 0 16%, transparent 17%), radial-gradient(circle at 75% 34%, #FDA4AF 0 14%, transparent 15%), linear-gradient(135deg, #FEF3C7, #F9A8D4 48%, #93C5FD)',
+    },
+    'ym-competition': {
+      background:
+        'radial-gradient(circle at 80% 20%, #FACC15 0 7%, transparent 8%), linear-gradient(120deg, #1D4ED8, #7C3AED 50%, #22C55E)',
+    },
+    'milk-fog-fairy': {
+      background:
+        'radial-gradient(circle at 25% 75%, #FBCFE8 0 17%, transparent 18%), linear-gradient(135deg, #FFF7ED, #FDE2E4 54%, #C7D2FE)',
+    },
+    'lowpoly-childlike': {
+      background:
+        'linear-gradient(135deg, #BAE6FD 0 30%, #BBF7D0 31% 58%, #FEF3C7 59%), linear-gradient(45deg, transparent 0 49%, rgba(255,255,255,0.4) 50% 60%, transparent 61%)',
+    },
+    'minimal-flat-childlike': {
+      background:
+        'linear-gradient(135deg, #FEF3C7 0 25%, #BFDBFE 26% 50%, #FCA5A5 51% 75%, #86EFAC 76%)',
+    },
+  };
+
+  return previews[styleId] || { background: 'linear-gradient(135deg, #F8FAFC, #D1FAE5)' };
+};
+
+export const getVisualStyleSelection = (
+  baseStyleId: string | null,
+  enhancementStyleIds: string[] = [],
+): VisualStyleSelectionResult => {
+  const selectedBaseStyle = baseStyleId
+    ? baseVisualStylePresets.find(style => style.id === baseStyleId)
+    : undefined;
+  const selectedEnhancements = enhancementVisualStylePresets.filter(style => enhancementStyleIds.includes(style.id));
+  const styleName = [selectedBaseStyle?.name, ...selectedEnhancements.map(style => style.name)].filter(Boolean).join(' + ');
+  const stylePrompt = [selectedBaseStyle?.prompt, ...selectedEnhancements.map(style => style.prompt)].filter(Boolean).join('\n');
+
+  return {
+    baseStyleId,
+    enhancementStyleIds,
+    styleName,
+    stylePrompt,
+    previewImageUrl: selectedBaseStyle ? visualStylePreviewImages[selectedBaseStyle.id] : undefined,
+    selectedBaseStyle,
+    selectedEnhancements,
+  };
+};
+
+const visualStyleBlockPattern = /\n{0,2}画面风格：[\s\S]*?(?=\n\n|$)/;
+
+export const mergeVisualStylePrompt = (current: string, selection: VisualStyleSelectionResult) => {
+  const trimmed = current.trim();
+  if (!selection.stylePrompt) {
+    return trimmed.replace(visualStyleBlockPattern, '').trim();
+  }
+
+  const block = `画面风格：${selection.styleName}\n${selection.stylePrompt}`;
+  return visualStyleBlockPattern.test(trimmed)
+    ? trimmed.replace(visualStyleBlockPattern, `\n\n${block}`).trim()
+    : `${trimmed}\n\n${block}`.trim();
+};

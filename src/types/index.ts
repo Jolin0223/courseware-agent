@@ -37,6 +37,13 @@ export interface RequirementFramework {
   userRequirement: string;
   featureDesign: string;
   designStyle: string;
+  visualStyleSelection?: {
+    baseStyleId: string | null;
+    enhancementStyleIds: string[];
+    styleName: string;
+    stylePrompt: string;
+    previewImageUrl?: string;
+  };
 }
 
 export interface GenerationStage {
@@ -94,8 +101,11 @@ export interface VisualStyleRegenerationRequest {
   coursewareTitle: string;
   htmlContent?: string;
   version?: string;
+  baseStyleId?: string | null;
+  enhancementStyleIds?: string[];
   styleName: string;
   stylePrompt: string;
+  previewImageUrl?: string;
 }
 
 export type UploadedAttachmentType = 'image' | 'document' | 'html';

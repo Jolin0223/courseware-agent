@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Flag,
   PlayCircle,
-  RefreshCw,
   Search,
   Shield,
   Sparkles,
@@ -209,11 +208,6 @@ export default function InspirationSection({
     setExamplePlaywayId(null);
   };
 
-  const handleRefreshBatch = () => {
-    setBatchIndex(prev => prev + 1);
-    setExamplePlaywayId(null);
-  };
-
   const handleApply = (playway: InspirationPlayway, sourceElement?: HTMLElement | null) => {
     onApplyInspiration?.(toGameplayInspiration(playway), sourceElement);
   };
@@ -297,10 +291,6 @@ export default function InspirationSection({
               );
             })}
           </div>
-          <button style={styles.refreshBtn} onClick={handleRefreshBatch}>
-            <RefreshCw size={14} />
-            换一换
-          </button>
         </div>
       </div>
 
@@ -343,7 +333,7 @@ export default function InspirationSection({
                   onClick={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
                 >
                   <PlayCircle size={14} />
-                  看玩法示例
+                  试玩一下
                 </button>
                 <button
                   style={styles.primaryBtn}
@@ -535,23 +525,6 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
     minWidth: 0,
     overflowX: 'auto',
-  },
-  refreshBtn: {
-    flexShrink: 0,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    height: 30,
-    padding: '0 12px',
-    borderRadius: 9,
-    border: '1px solid var(--agent-border)',
-    background: '#FFFFFF',
-    color: 'var(--agent-primary-text)',
-    fontSize: 13,
-    fontWeight: 850,
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
   },
   templateGrid: {
     display: 'grid',

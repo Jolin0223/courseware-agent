@@ -4,7 +4,6 @@ import {
   BookOpenCheck,
   Brain,
   Calculator,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
@@ -253,10 +252,6 @@ export default function InspirationSection({
       <style>{`
         .inspiration-scroll { scrollbar-width: none; }
         .inspiration-scroll::-webkit-scrollbar { display: none; }
-        .inspiration-secondary-select:focus {
-          border-color: var(--agent-primary) !important;
-          box-shadow: 0 0 0 3px var(--agent-focus-ring) !important;
-        }
         @media (max-width: 980px) {
           .inspiration-header {
             flex-direction: column;
@@ -332,23 +327,33 @@ export default function InspirationSection({
           {activeTab === 'featured' ? (
             <div style={styles.featuredHint}>优先展示更适合课堂直接套用的玩法</div>
           ) : (
-            <label style={styles.secondarySelectWrap}>
-              <span style={styles.secondarySelectLabel}>细分玩法</span>
-              <span style={styles.selectShell}>
-                <select
-                  className="inspiration-secondary-select"
-                  value={activeSecondary}
-                  onChange={event => handleSecondaryChange(event.target.value)}
-                  style={styles.secondarySelect}
+            <div style={styles.secondaryRail}>
+              <span style={styles.secondaryRailLabel}>玩法类型</span>
+              <div className="inspiration-scroll" style={styles.secondaryPills}>
+                <button
+                  type="button"
+                  style={{ ...styles.secondaryPill, ...(activeSecondary === 'all' ? styles.secondaryPillActive : {}) }}
+                  onMouseDown={event => event.preventDefault()}
+                  onClick={() => handleSecondaryChange('all')}
                 >
-                  <option value="all">全部细分玩法</option>
-                  {secondaryOptions.map(option => (
-                    <option key={option.id} value={option.id}>{option.name}（{option.count}）</option>
-                  ))}
-                </select>
-                <ChevronDown size={15} style={styles.selectIcon} />
-              </span>
-            </label>
+                  全部
+                </button>
+                {secondaryOptions.map(option => {
+                  const active = activeSecondary === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      style={{ ...styles.secondaryPill, ...(active ? styles.secondaryPillActive : {}) }}
+                      onMouseDown={event => event.preventDefault()}
+                      onClick={() => handleSecondaryChange(option.id)}
+                    >
+                      {option.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
           <div style={styles.resultMeta}>
             共 {visiblePlayways.length} 个玩法
@@ -578,13 +583,14 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 12,
     minHeight: 36,
   },
-  secondarySelectWrap: {
-    display: 'inline-flex',
+  secondaryRail: {
+    display: 'flex',
     alignItems: 'center',
     gap: 8,
     minWidth: 0,
+    flex: 1,
   },
-  secondarySelectLabel: {
+  secondaryRailLabel: {
     color: '#64748B',
     fontSize: 12,
     fontWeight: 850,
@@ -596,31 +602,35 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     lineHeight: 1.4,
   },
-  selectShell: {
-    position: 'relative',
+  secondaryPills: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+    overflowX: 'auto',
+    paddingBottom: 1,
+  },
+  secondaryPill: {
     display: 'inline-flex',
     alignItems: 'center',
-    minWidth: 178,
-  },
-  secondarySelect: {
-    width: '100%',
-    height: 32,
-    padding: '0 32px 0 11px',
-    borderRadius: 8,
-    border: '1px solid var(--agent-border)',
-    background: '#FFFFFF',
-    color: '#334155',
+    justifyContent: 'center',
+    height: 28,
+    padding: '0 10px',
+    borderRadius: 999,
+    border: '1px solid transparent',
+    background: 'rgba(255,255,255,0.68)',
+    color: '#64748B',
     fontSize: 13,
     fontWeight: 850,
     outline: 'none',
-    appearance: 'none',
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
   },
-  selectIcon: {
-    position: 'absolute',
-    right: 10,
-    color: '#64748B',
-    pointerEvents: 'none',
+  secondaryPillActive: {
+    background: '#FFFFFF',
+    borderColor: 'var(--agent-primary)',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 5px 14px rgba(34, 197, 190, 0.12)',
   },
   resultMeta: {
     color: '#64748B',

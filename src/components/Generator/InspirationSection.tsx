@@ -23,7 +23,6 @@ import wisdomJumpPinyinDemoHTML from '../../assets/courseware/examples/wisdom_ju
 import wordDisguiseDemoHTML from '../../assets/courseware/examples/word_disguise_demo.html?raw';
 import {
   inspirationSeedData,
-  type InspirationAgeBandId,
   type InspirationPlayway,
   type InspirationTabId,
 } from '../../data/inspirationSeedData';
@@ -81,11 +80,6 @@ const exampleFallbackLabel: Record<string, string> = {
   word_disguise_demo: '单词找物玩法示例',
 };
 
-const ageBandTabs: Array<{ id: InspirationAgeBandId; name: string; ageText: string }> = [
-  { id: 'all', name: '全部年龄', ageText: '6-14岁' },
-  ...inspirationSeedData.categories.ageBands,
-];
-
 const cardsPerPage = 8;
 
 const featuredIds = new Set(
@@ -96,15 +90,9 @@ const featuredIds = new Set(
     .map(item => item.id),
 );
 
-const hasAgeOverlap = (playwayAgeText: string, bandId: InspirationAgeBandId) => {
-  if (bandId === 'all') return true;
-  const ageTexts: Record<Exclude<InspirationAgeBandId, 'all'>, string> = {
-    age_4_6: '4-6岁',
-    age_6_10: '6-10岁',
-    age_10_14: '10-14岁',
-  };
-  return playwayAgeText === ageTexts[bandId];
-};
+const getDisplayAge = (ageText: string) => (
+  ageText === '未标注' ? '多年龄可用' : ageText
+);
 
 const toGameplayInspiration = (playway: InspirationPlayway): GameplayInspiration => ({
   id: playway.id,
@@ -164,7 +152,7 @@ export default function InspirationSection({
   onApplyInspiration,
 }: InspirationSectionProps) {
   const [activeTab, setActiveTab] = useState<InspirationTabId>('featured');
-  const [activeAgeBand, setActiveAgeBand] = useState<InspirationAgeBandId>('all');
+  const [activeSecondary, setActiveSecondary] = useState('all');
   const [pageIndex, setPageIndex] = useState(0);
   const [examplePlaywayId, setExamplePlaywayId] = useState<string | null>(null);
   const lastActionKeyRef = useRef('');
@@ -173,14 +161,27 @@ export default function InspirationSection({
     const byTab = inspirationSeedData.playways.filter(item => (
       activeTab === 'featured' ? featuredIds.has(item.id) : item.category === activeTab
     ));
-    return byTab
-      .filter(item => hasAgeOverlap(item.ageText, activeAgeBand))
-      .sort((a, b) => b.priority - a.priority);
-  }, [activeAgeBand, activeTab]);
+    return byTab.sort((a, b) => b.priority - a.priority);
+  }, [activeTab]);
+
+  const secondaryOptions = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    primaryFilteredPlayways.forEach(item => {
+      if (!map.has(item.secondaryCategory)) {
+        map.set(item.secondaryCategory, {
+          id: item.secondaryCategory,
+          name: item.secondaryLabel,
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [primaryFilteredPlayways]);
 
   const visiblePlayways = useMemo(() => (
-    primaryFilteredPlayways
-  ), [primaryFilteredPlayways]);
+    activeSecondary === 'all'
+      ? primaryFilteredPlayways
+      : primaryFilteredPlayways.filter(item => item.secondaryCategory === activeSecondary)
+  ), [activeSecondary, primaryFilteredPlayways]);
 
   const totalPages = Math.max(1, Math.ceil(visiblePlayways.length / cardsPerPage));
   const pagedPlayways = useMemo(() => {
@@ -200,12 +201,13 @@ export default function InspirationSection({
 
   const handleTabChange = (tab: InspirationTabId) => {
     setActiveTab(tab);
+    setActiveSecondary('all');
     setPageIndex(0);
     setExamplePlaywayId(null);
   };
 
-  const handleAgeBandChange = (ageBand: InspirationAgeBandId) => {
-    setActiveAgeBand(ageBand);
+  const handleSecondaryChange = (secondary: string) => {
+    setActiveSecondary(secondary);
     setPageIndex(0);
     setExamplePlaywayId(null);
   };
@@ -277,24 +279,35 @@ export default function InspirationSection({
           })}
         </div>
 
-        <div style={styles.ageAndRefresh}>
-          <div className="inspiration-scroll" style={styles.ageTabs}>
-            {ageBandTabs.map(ageBand => {
-              const active = activeAgeBand === ageBand.id;
-              return (
-                <button
-                  key={ageBand.id}
-                  style={{ ...styles.tab, ...(active ? styles.tabActive : {}) }}
-                  onMouseDown={event => event.preventDefault()}
-                  onClick={() => handleAgeBandChange(ageBand.id)}
-                >
-                  {ageBand.name}
-                </button>
-              );
-            })}
+        {activeTab !== 'featured' && secondaryOptions.length > 0 && (
+          <div style={styles.subNavWrap}>
+            <div style={styles.subNavPointer} />
+            <div className="inspiration-scroll" style={styles.subNav}>
+              <button
+                type="button"
+                style={{ ...styles.subNavPill, ...(activeSecondary === 'all' ? styles.subNavPillActive : {}) }}
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => handleSecondaryChange('all')}
+              >
+                全部
+              </button>
+              {secondaryOptions.map(option => {
+                const active = activeSecondary === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    style={{ ...styles.subNavPill, ...(active ? styles.subNavPillActive : {}) }}
+                    onMouseDown={event => event.preventDefault()}
+                    onClick={() => handleSecondaryChange(option.id)}
+                  >
+                    {option.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-
+        )}
       </div>
 
       <div className="inspiration-card-grid" style={styles.templateGrid}>
@@ -305,7 +318,7 @@ export default function InspirationSection({
             <article key={playway.id} style={{ ...styles.card, ...(selected ? styles.cardSelected : {}) }}>
               <div style={styles.cardHeader}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={styles.cardKicker}>{playway.ageText} · {playway.typeLabel}</div>
+                  <div style={styles.cardKicker}>{getDisplayAge(playway.ageText)} · {playway.secondaryLabel}</div>
                   <h3 style={styles.cardTitle}>{playway.title}</h3>
                 </div>
                 {selected && (
@@ -323,7 +336,10 @@ export default function InspirationSection({
               </div>
 
               <div style={styles.compactTags}>
-                {playway.cardTags.slice(0, 3).map(item => <span key={item} style={styles.tag}>{item}</span>)}
+                <span style={styles.secondaryTag}>{playway.secondaryLabel}</span>
+                {playway.cardTags.filter(item => item !== playway.secondaryLabel).slice(0, 2).map(item => (
+                  <span key={item} style={styles.tag}>{item}</span>
+                ))}
               </div>
 
               <div style={styles.cardActions}>
@@ -520,8 +536,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   filterPanel: {
     display: 'grid',
-    gap: 9,
-    marginBottom: 11,
+    gap: 8,
+    marginBottom: 14,
   },
   tabs: {
     display: 'flex',
@@ -551,18 +567,58 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'var(--agent-soft-strong)',
     color: 'var(--agent-primary-text)',
   },
-  ageAndRefresh: {
+  subNavWrap: {
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
+    minWidth: 0,
+    padding: '8px 10px',
+    borderRadius: 12,
+    background: 'rgba(255, 255, 255, 0.58)',
+    border: '1px solid rgba(125, 211, 197, 0.45)',
+    overflow: 'visible',
   },
-  ageTabs: {
+  subNavPointer: {
+    position: 'absolute',
+    top: -6,
+    left: 78,
+    width: 12,
+    height: 12,
+    transform: 'rotate(45deg)',
+    background: 'rgba(255, 255, 255, 0.8)',
+    borderLeft: '1px solid rgba(125, 211, 197, 0.45)',
+    borderTop: '1px solid rgba(125, 211, 197, 0.45)',
+  },
+  subNav: {
     display: 'flex',
     alignItems: 'center',
     gap: 6,
     minWidth: 0,
     overflowX: 'auto',
+    position: 'relative',
+    zIndex: 1,
+  },
+  subNavPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 28,
+    padding: '0 10px',
+    borderRadius: 999,
+    border: '1px solid transparent',
+    background: 'transparent',
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 850,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    outline: 'none',
+  },
+  subNavPillActive: {
+    background: '#FFFFFF',
+    borderColor: 'var(--agent-primary)',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 6px 14px rgba(34, 197, 190, 0.12)',
   },
   templateGrid: {
     display: 'grid',
@@ -832,6 +888,16 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--agent-primary-text)',
     fontSize: 11,
     fontWeight: 850,
+    lineHeight: '23px',
+  },
+  secondaryTag: {
+    height: 23,
+    padding: '0 7px',
+    borderRadius: 999,
+    background: '#ECFDF5',
+    color: '#047857',
+    fontSize: 11,
+    fontWeight: 900,
     lineHeight: '23px',
   },
   pagination: {

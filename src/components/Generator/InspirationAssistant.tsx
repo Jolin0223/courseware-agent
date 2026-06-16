@@ -1,7 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   Bot,
   BrainCircuit,
+  CheckCircle2,
+  Copy,
+  Eye,
   Lightbulb,
   MessageCircle,
   SendHorizontal,
@@ -9,6 +12,7 @@ import {
   Wand2,
   X,
 } from 'lucide-react';
+import toast from '../../utils/toast';
 
 interface InspirationAssistantProps {
   onApplyPrompt: (prompt: string) => void;
@@ -74,11 +78,14 @@ const buildReply = (question: string): AssistantReply => {
 export default function InspirationAssistant({ onApplyPrompt }: InspirationAssistantProps) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [advancedMode, setAdvancedMode] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const logoDoubleClickRef = useRef(0);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       role: 'assistant',
-      text: '你可以把一个很粗的想法丢给我，比如“颜色单词”“口算复习”“古诗背诵”。我会帮你找适合课堂的互动方式，并整理成可直接生成课件的提示词。',
+      text: '你可以把一个很粗的想法发给我，比如“颜色单词”“口算复习”“古诗背诵”。我会帮你找适合课堂的互动方式，并整理成可以复制到输入框里的生成提示词。',
     },
   ]);
 
@@ -104,6 +111,64 @@ export default function InspirationAssistant({ onApplyPrompt }: InspirationAssis
   const applyPrompt = (prompt: string) => {
     onApplyPrompt(prompt);
     setOpen(false);
+  };
+
+  const copyText = async (text: string) => {
+    if (window.navigator.clipboard?.writeText && window.isSecureContext) {
+      try {
+        await window.navigator.clipboard.writeText(text);
+        return;
+      } catch {
+        // Embedded browsers may block Clipboard API; keep a fallback below.
+      }
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '0';
+    textarea.setAttribute('readonly', '');
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    const copied = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    if (!copied) throw new Error('copy failed');
+  };
+
+  const getCopyContent = (message: ChatMessage) => {
+    if (!message.reply) return message.text;
+    return `${message.text}\n\n${message.reply.title}\n${message.reply.finalPrompt}`;
+  };
+
+  const handleCopyMessage = async (message: ChatMessage) => {
+    try {
+      await copyText(getCopyContent(message));
+      setCopiedMessageId(message.id);
+      toast('已复制，可粘贴到输入框继续生成');
+      window.setTimeout(() => setCopiedMessageId(null), 1500);
+    } catch {
+      toast('复制失败，请稍后重试');
+    }
+  };
+
+  const handleLogoDoubleClick = () => {
+    logoDoubleClickRef.current += 1;
+    if (logoDoubleClickRef.current >= 2) {
+      logoDoubleClickRef.current = 0;
+      setAdvancedMode(mode => !mode);
+      toast(!advancedMode ? '已切换到带回输入框版本' : '已切换到复制方案版本');
+      return;
+    }
+
+    const clickCount = logoDoubleClickRef.current;
+    window.setTimeout(() => {
+      if (logoDoubleClickRef.current === clickCount) {
+        logoDoubleClickRef.current = 0;
+      }
+    }, 900);
   };
 
   return (
@@ -137,10 +202,19 @@ export default function InspirationAssistant({ onApplyPrompt }: InspirationAssis
           <div style={styles.panel}>
             <div style={styles.header}>
               <div style={styles.headerLeft}>
-                <span style={styles.logo}><BrainCircuit size={18} /></span>
+                <button
+                  type="button"
+                  style={styles.logo}
+                  onDoubleClick={handleLogoDoubleClick}
+                  aria-label="切换灵感助手版本"
+                >
+                  <BrainCircuit size={18} />
+                </button>
                 <div>
                   <div style={styles.title}>灵感助手</div>
-                  <div style={styles.subtitle}>聊出玩法，再带回输入框生成课件</div>
+                  <div style={styles.subtitle}>
+                    {advancedMode ? '聊出玩法，再带回输入框生成课件' : '帮你一起想玩法、补提示词，也可以整理成可复制的生成方案'}
+                  </div>
                 </div>
               </div>
               <div style={styles.statusPill}>
@@ -155,7 +229,11 @@ export default function InspirationAssistant({ onApplyPrompt }: InspirationAssis
             <div style={styles.agentStrip}>
               <span style={styles.agentChip}><Lightbulb size={12} />找玩法</span>
               <span style={styles.agentChip}><Sparkles size={12} />补提示词</span>
-              <span style={styles.agentChip}><Wand2 size={12} />带回输入框</span>
+              <span style={styles.agentChip}><Eye size={12} />看示例</span>
+              <span style={styles.agentChip}>
+                {advancedMode ? <Wand2 size={12} /> : <Copy size={12} />}
+                {advancedMode ? '带回输入框' : '复制方案'}
+              </span>
             </div>
 
             <div className="assistant-scroll" style={styles.quickRow}>
@@ -178,29 +256,49 @@ export default function InspirationAssistant({ onApplyPrompt }: InspirationAssis
                   {message.role === 'assistant' && (
                     <span style={styles.avatar}><Bot size={15} /></span>
                   )}
-                  <div style={message.role === 'user' ? styles.userBubble : styles.assistantBubble}>
-                    <div style={{ whiteSpace: 'pre-wrap' }}>{message.text}</div>
-                    {message.reply && (
-                      <div style={styles.replyCard}>
-                        <div style={styles.replyTitle}>{message.reply.title}</div>
-                        <div style={styles.ideaRow}>
-                          {message.reply.ideas.map(idea => (
-                            <span key={idea} style={styles.ideaChip}>{idea}</span>
-                          ))}
-                        </div>
-                        <div className="assistant-slim-scroll" style={styles.promptPreview}>{message.reply.finalPrompt}</div>
-                        <button type="button" style={styles.applyBtn} onClick={() => applyPrompt(message.reply!.finalPrompt)}>
-                          <Wand2 size={14} />
-                          带回输入框
+                  {message.role === 'user' ? (
+                    <div style={styles.userBubble}>
+                      <div style={{ whiteSpace: 'pre-wrap' }}>{message.text}</div>
+                    </div>
+                  ) : (
+                    <div style={styles.assistantMessageStack}>
+                      <div style={styles.assistantBubble}>
+                        <div style={{ whiteSpace: 'pre-wrap' }}>{message.text}</div>
+                        {message.reply && (
+                          <div style={styles.replyCard}>
+                            <div style={styles.replyTitle}>{message.reply.title}</div>
+                            <div style={styles.ideaRow}>
+                              {message.reply.ideas.map(idea => (
+                                <span key={idea} style={styles.ideaChip}>{idea}</span>
+                              ))}
+                            </div>
+                            <div className="assistant-slim-scroll" style={styles.promptPreview}>{message.reply.finalPrompt}</div>
+                            {advancedMode && (
+                              <button type="button" style={styles.applyBtn} onClick={() => applyPrompt(message.reply!.finalPrompt)}>
+                                <Wand2 size={14} />
+                                带回输入框
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div style={styles.assistantMessageActions}>
+                        <button
+                          type="button"
+                          style={styles.copyMessageBtn}
+                          onClick={() => handleCopyMessage(message)}
+                        >
+                          {copiedMessageId === message.id ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                          {copiedMessageId === message.id ? '已复制' : '复制'}
                         </button>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
 
-            {latestReply && (
+            {latestReply && advancedMode && (
               <div style={styles.footerHint}>
                 已整理出一版可生成提示词，可以继续追问，也可以直接带回输入框。
               </div>
@@ -295,10 +393,12 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: 10,
+    minWidth: 0,
   },
   logo: {
     width: 42,
     height: 42,
+    border: 'none',
     borderRadius: 14,
     display: 'inline-flex',
     alignItems: 'center',
@@ -306,6 +406,8 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--agent-primary-text)',
     background: 'linear-gradient(135deg, var(--agent-soft-strong), #FFFFFF)',
     boxShadow: '0 10px 24px var(--agent-focus-ring-strong)',
+    cursor: 'pointer',
+    flexShrink: 0,
   },
   title: {
     color: '#0F172A',
@@ -333,15 +435,18 @@ const styles: Record<string, React.CSSProperties> = {
     marginLeft: 'auto',
     display: 'inline-flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     height: 28,
-    padding: '0 10px',
+    padding: '0 12px',
     borderRadius: 999,
     background: 'rgba(255,255,255,0.72)',
     border: '1px solid var(--agent-border)',
     color: 'var(--agent-primary-text)',
     fontSize: 12,
     fontWeight: 850,
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
   },
   statusDot: {
     width: 7,
@@ -415,7 +520,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'linear-gradient(135deg, var(--agent-soft-strong), #FFFFFF)',
   },
   assistantBubble: {
-    maxWidth: '88%',
+    position: 'relative',
     padding: '13px 14px',
     borderRadius: '15px 15px 15px 5px',
     background: 'rgba(255,255,255,0.88)',
@@ -424,6 +529,31 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     lineHeight: 1.58,
     boxShadow: '0 10px 26px rgba(15, 23, 42, 0.05)',
+  },
+  assistantMessageStack: {
+    maxWidth: '88%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
+  assistantMessageActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    paddingTop: 6,
+  },
+  copyMessageBtn: {
+    height: 24,
+    padding: '0 7px',
+    borderRadius: 999,
+    border: '1px solid var(--agent-border)',
+    background: 'rgba(255,255,255,0.86)',
+    color: 'var(--agent-primary-text)',
+    fontSize: 11,
+    fontWeight: 850,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    cursor: 'pointer',
   },
   userBubble: {
     maxWidth: '82%',

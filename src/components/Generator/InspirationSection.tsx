@@ -1,17 +1,19 @@
 import { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  BookOpenText,
+  Brain,
   CheckCircle2,
   Flag,
-  Languages,
-  Layers3,
   PlayCircle,
-  Puzzle,
   RefreshCw,
-  Sigma,
+  Search,
+  Shield,
   Sparkles,
+  Timer,
+  Trophy,
+  Users,
   X,
+  Zap,
 } from 'lucide-react';
 import animalsAdventureHTML from '../../assets/courseware/animals_adventure.html?raw';
 import animalsPlayOnlyHTML from '../../assets/courseware/animals_play_only.html?raw';
@@ -52,12 +54,14 @@ interface InspirationSectionProps {
 
 const tabIcons: Record<InspirationTabId, React.ElementType> = {
   featured: Sparkles,
-  challenge: Flag,
-  english: Languages,
-  chinese: BookOpenText,
-  math: Sigma,
-  puzzle: Puzzle,
-  sort: Layers3,
+  jump_obstacle: Flag,
+  race_speed: Zap,
+  hide_seek: Search,
+  team_coop: Users,
+  survival_arena: Shield,
+  battle_reasoning: Brain,
+  puzzle_rush: Timer,
+  elimination: Trophy,
 };
 
 const exampleHtmlById: Record<string, string> = {
@@ -81,7 +85,7 @@ const exampleFallbackLabel: Record<string, string> = {
 };
 
 const ageBandTabs: Array<{ id: InspirationAgeBandId; name: string; ageText: string }> = [
-  { id: 'all', name: '全部年龄', ageText: '3-12岁' },
+  { id: 'all', name: '全部年龄', ageText: '6-14岁' },
   ...inspirationSeedData.categories.ageBands,
 ];
 
@@ -100,10 +104,8 @@ const hasAgeOverlap = (playwayAgeText: string, bandId: InspirationAgeBandId) => 
   const min = Number(match[1]);
   const max = Number(match[2]);
   const ranges: Record<Exclude<InspirationAgeBandId, 'all'>, [number, number]> = {
-    preschool: [3, 6],
-    grade1_2: [6, 8],
-    grade3_4: [8, 10],
-    grade5_6: [10, 12],
+    age_6_10: [6, 10],
+    age_10_14: [10, 14],
   };
   const [bandMin, bandMax] = ranges[bandId];
   return min <= bandMax && max >= bandMin;
@@ -419,8 +421,11 @@ export default function InspirationSection({
                   </div>
                 </div>
                 <div style={styles.exampleBlock}>
-                  <div style={styles.blockLabel}>你可以换成自己的内容</div>
-                  <div style={styles.exampleText}>{examplePlayway.replaceableContent.join('、')}</div>
+                  <div style={styles.blockLabel}>可以怎么改成你的课</div>
+                  <div style={styles.exampleText}>
+                    把{examplePlayway.suitableFor.slice(0, 3).join('、')}换成你的知识点，
+                    再替换{examplePlayway.replaceableContent.slice(0, 3).join('、')}，玩法节奏和反馈会一起带入。
+                  </div>
                 </div>
                 <button
                   style={styles.exampleApplyBtn}

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2, BarChart3, Palette, X, Wand2, ZoomIn } from 'lucide-react';
+import { Copy, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Courseware, LearningDataRecoveryRequest, VisualStyleRegenerationRequest } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
@@ -9,6 +9,7 @@ import ResourceEditModal from './ResourceEditModal';
 import LearningDataRecoveryModal from './LearningDataRecoveryModal';
 import {
   baseVisualStylePresets,
+  enhancementVisualStylePreviewImages,
   enhancementVisualStylePresets,
   getVisualStylePreviewStyle,
   getVisualStyleSelection,
@@ -72,6 +73,8 @@ export default function CoursewareCard({
     name: string;
     desc: string;
     image: string;
+    aspectRatio?: string;
+    kind: 'base' | 'enhancement';
   } | null>(null);
   const navigate = useNavigate();
   const { appMode, insertCourseware, closePreview } = useUIStore();
@@ -194,6 +197,14 @@ export default function CoursewareCard({
   const selectedBaseStyle = visualStyleSelection.selectedBaseStyle || baseVisualStylePresets[0];
   const selectedStyleName = visualStyleSelection.styleName;
   const selectedStylePrompt = visualStyleSelection.stylePrompt;
+  const previewStyleList = previewingStyle
+    ? (previewingStyle.kind === 'base' ? baseVisualStylePresets : enhancementVisualStylePresets)
+      .filter(style => Boolean((previewingStyle.kind === 'base' ? visualStylePreviewImages : enhancementVisualStylePreviewImages)[style.id]))
+    : [];
+  const previewStyleIndex = previewingStyle
+    ? Math.max(0, previewStyleList.findIndex(style => style.id === previewingStyle.id))
+    : 0;
+  const hasPreviewSwitcher = previewStyleList.length > 1;
 
   const toggleEnhancement = (styleId: string) => {
     setSelectedEnhancementIds(prev =>
@@ -202,6 +213,64 @@ export default function CoursewareCard({
         : [...prev, styleId]
     );
   };
+
+  const getPreviewStyle = (kind: 'base' | 'enhancement', styleId: string) => {
+    const styleList = kind === 'base' ? baseVisualStylePresets : enhancementVisualStylePresets;
+    const imageMap = kind === 'base' ? visualStylePreviewImages : enhancementVisualStylePreviewImages;
+    const style = styleList.find(item => item.id === styleId);
+    const image = imageMap[styleId];
+    if (!style || !image) return null;
+
+    return {
+      id: style.id,
+      name: style.name,
+      desc: style.desc,
+      image,
+      aspectRatio: kind === 'base' ? '16 / 9' : '1 / 1',
+      kind,
+    };
+  };
+
+  const openStylePreview = (kind: 'base' | 'enhancement', styleId: string) => {
+    const nextPreview = getPreviewStyle(kind, styleId);
+    if (nextPreview) {
+      setPreviewingStyle(nextPreview);
+    }
+  };
+
+  const switchPreviewStyle = (direction: -1 | 1) => {
+    if (!previewingStyle) return;
+    const styleList = previewingStyle.kind === 'base' ? baseVisualStylePresets : enhancementVisualStylePresets;
+    const imageMap = previewingStyle.kind === 'base' ? visualStylePreviewImages : enhancementVisualStylePreviewImages;
+    const availableStyles = styleList.filter(style => Boolean(imageMap[style.id]));
+    if (availableStyles.length <= 1) return;
+
+    const currentIndex = availableStyles.findIndex(style => style.id === previewingStyle.id);
+    const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+    const nextIndex = (safeIndex + direction + availableStyles.length) % availableStyles.length;
+    openStylePreview(previewingStyle.kind, availableStyles[nextIndex].id);
+  };
+
+  useEffect(() => {
+    if (!previewingStyle) return;
+
+    const handlePreviewKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        switchPreviewStyle(-1);
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        switchPreviewStyle(1);
+      }
+      if (event.key === 'Escape') {
+        setPreviewingStyle(null);
+      }
+    };
+
+    window.addEventListener('keydown', handlePreviewKeyDown);
+    return () => window.removeEventListener('keydown', handlePreviewKeyDown);
+  }, [previewingStyle]);
 
   const handleVisualStyleRegenerate = () => {
     if (!selectedBaseStyle) return;
@@ -606,12 +675,7 @@ export default function CoursewareCard({
                                 loading="eager"
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  setPreviewingStyle({
-                                    id: style.id,
-                                    name: style.name,
-                                    desc: style.desc,
-                                    image: previewImage,
-                                  });
+                                  openStylePreview('base', style.id);
                                 }}
                                 style={{
                                   position: 'absolute',
@@ -628,12 +692,7 @@ export default function CoursewareCard({
                                 title="查看大图"
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  setPreviewingStyle({
-                                    id: style.id,
-                                    name: style.name,
-                                    desc: style.desc,
-                                    image: previewImage,
-                                  });
+                                  openStylePreview('base', style.id);
                                 }}
                                 style={{
                                   position: 'absolute',
@@ -718,47 +777,122 @@ export default function CoursewareCard({
                 maxHeight: 'calc(90vh - 170px)',
               }}>
                 <div style={{ fontSize: 14, fontWeight: 850, color: '#0F172A' }}>2. 叠加增强质感</div>
-                <div style={{ marginTop: 3, marginBottom: 12, fontSize: 12, lineHeight: 1.5, color: '#64748B' }}>
-                  可不选，也可以叠加多个，用来微调材质、笔触和立体感。
+                <div style={{ marginTop: 3, marginBottom: 14, fontSize: 12, lineHeight: 1.5, color: '#64748B' }}>
+                  可不选，选中后只改变材质和笔触，不改变基础画面风格。
                 </div>
-                <div style={{ display: 'grid', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                   {enhancementVisualStylePresets.map(style => {
                     const selected = selectedEnhancementIds.includes(style.id);
+                    const previewImage = enhancementVisualStylePreviewImages[style.id];
                     return (
                       <button
                         key={style.id}
                         type="button"
                         onClick={() => toggleEnhancement(style.id)}
                         style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
+                          position: 'relative',
+                          display: 'grid',
+                          gridTemplateColumns: '76px minmax(0, 1fr)',
+                          alignItems: 'center',
                           gap: 10,
                           width: '100%',
-                          padding: '10px 11px',
-                          borderRadius: 12,
-                          border: selected ? '1.5px solid var(--agent-primary)' : '1px solid #E2E8F0',
-                          background: selected ? '#FFFFFF' : 'rgba(255,255,255,0.74)',
+                          minHeight: 92,
+                          padding: 8,
+                          borderRadius: 14,
+                          border: selected ? '1.5px solid rgba(15, 118, 110, 0.78)' : '1px solid #E2E8F0',
+                          background: selected ? '#FFFFFF' : 'rgba(255,255,255,0.82)',
                           cursor: 'pointer',
                           textAlign: 'left',
+                          boxShadow: selected ? '0 8px 18px rgba(15, 118, 110, 0.10)' : 'none',
                         }}
                       >
+                        {previewImage && (
+                          <span style={{
+                            position: 'relative',
+                            display: 'block',
+                            width: 76,
+                            height: 76,
+                            aspectRatio: '1 / 1',
+                            overflow: 'hidden',
+                            borderRadius: 12,
+                            border: selected ? '1px solid rgba(15, 118, 110, 0.24)' : '1px solid rgba(203, 213, 225, 0.9)',
+                            background: 'linear-gradient(45deg, #F8FAFC 25%, #EEF2F7 25%, #EEF2F7 50%, #F8FAFC 50%, #F8FAFC 75%, #EEF2F7 75%, #EEF2F7 100%)',
+                            backgroundSize: '18px 18px',
+                          }}>
+                            <img
+                              src={previewImage}
+                              alt={`${style.name}示例`}
+                              loading="eager"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openStylePreview('enhancement', style.id);
+                              }}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                display: 'block',
+                                cursor: 'zoom-in',
+                                padding: 4,
+                              }}
+                            />
+                            <span
+                              title="查看大图"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openStylePreview('enhancement', style.id);
+                              }}
+                              style={{
+                                position: 'absolute',
+                                right: 6,
+                                bottom: 6,
+                                width: 24,
+                                height: 24,
+                                borderRadius: 8,
+                                border: '1px solid rgba(255,255,255,0.78)',
+                                background: 'rgba(15, 23, 42, 0.38)',
+                                color: '#FFFFFF',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'zoom-in',
+                                backdropFilter: 'blur(8px)',
+                              }}
+                            >
+                              <ZoomIn size={14} />
+                            </span>
+                          </span>
+                        )}
                         <span style={{
-                          width: 18,
-                          height: 18,
-                          marginTop: 1,
-                          borderRadius: 6,
-                          flexShrink: 0,
+                          position: 'absolute',
+                          top: 10,
+                          left: 10,
+                          width: 20,
+                          height: 20,
+                          borderRadius: 7,
                           border: selected ? 'none' : '1px solid #CBD5E1',
-                          background: selected ? 'var(--agent-gradient)' : '#fff',
+                          background: selected ? 'var(--agent-gradient)' : 'rgba(255,255,255,0.86)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          boxShadow: '0 4px 10px rgba(15, 23, 42, 0.12)',
                         }}>
                           {selected && <CheckCircle2 size={13} color="#fff" />}
                         </span>
-                        <span>
+                        <span style={{ display: 'block', minWidth: 0 }}>
                           <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: selected ? '#0F766E' : '#1E293B' }}>{style.name}</span>
-                          <span style={{ display: 'block', marginTop: 3, fontSize: 12, lineHeight: 1.42, color: '#64748B' }}>{style.desc}</span>
+                          <span style={{
+                            display: '-webkit-box',
+                            marginTop: 4,
+                            fontSize: 12,
+                            lineHeight: 1.42,
+                            color: '#64748B',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}>
+                            {style.desc}
+                          </span>
                         </span>
                       </button>
                     );
@@ -836,7 +970,7 @@ export default function CoursewareCard({
           <div
             onClick={(event) => event.stopPropagation()}
             style={{
-              width: 'min(960px, 94vw)',
+              width: previewingStyle.kind === 'enhancement' ? 'min(520px, 92vw)' : 'min(960px, 94vw)',
               borderRadius: 18,
               overflow: 'hidden',
               background: '#FFFFFF',
@@ -845,8 +979,14 @@ export default function CoursewareCard({
           >
             <div style={{
               position: 'relative',
-              aspectRatio: '16 / 9',
-              background: '#0F172A',
+              aspectRatio: previewingStyle.aspectRatio || '16 / 9',
+              maxHeight: previewingStyle.kind === 'enhancement' ? 'min(560px, 68vh)' : '74vh',
+              background: previewingStyle.kind === 'enhancement'
+                ? 'linear-gradient(45deg, #F8FAFC 25%, #EEF2F7 25%, #EEF2F7 50%, #F8FAFC 50%, #F8FAFC 75%, #EEF2F7 75%, #EEF2F7 100%)'
+                : '#0F172A',
+              backgroundSize: previewingStyle.kind === 'enhancement' ? '24px 24px' : undefined,
+              padding: previewingStyle.kind === 'enhancement' ? 24 : 0,
+              boxSizing: 'border-box',
             }}>
               <img
                 src={previewingStyle.image}
@@ -858,6 +998,86 @@ export default function CoursewareCard({
                   display: 'block',
                 }}
               />
+              {hasPreviewSwitcher && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="查看上一张风格参考图"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      switchPreviewStyle(-1);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      left: 10,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: 40,
+                      height: 40,
+                      borderRadius: 14,
+                      border: '1px solid rgba(255,255,255,0.7)',
+                      background: 'rgba(15, 23, 42, 0.42)',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 10px 24px rgba(15, 23, 42, 0.18)',
+                    }}
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="查看下一张风格参考图"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      switchPreviewStyle(1);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      right: 10,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: 40,
+                      height: 40,
+                      borderRadius: 14,
+                      border: '1px solid rgba(255,255,255,0.7)',
+                      background: 'rgba(15, 23, 42, 0.42)',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 10px 24px rgba(15, 23, 42, 0.18)',
+                    }}
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                  <div style={{
+                    position: 'absolute',
+                    left: '50%',
+                    bottom: 14,
+                    transform: 'translateX(-50%)',
+                    minWidth: 58,
+                    height: 28,
+                    padding: '0 11px',
+                    borderRadius: 999,
+                    background: 'rgba(15, 23, 42, 0.46)',
+                    color: '#FFFFFF',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backdropFilter: 'blur(10px)',
+                  }}>
+                    {previewStyleIndex + 1} / {previewStyleList.length}
+                  </div>
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => setPreviewingStyle(null)}
@@ -893,27 +1113,51 @@ export default function CoursewareCard({
                 <div style={{ color: '#0F172A', fontSize: 16, fontWeight: 900 }}>{previewingStyle.name}</div>
                 <div style={{ marginTop: 4, color: '#64748B', fontSize: 13, lineHeight: 1.45 }}>{previewingStyle.desc}</div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedBaseStyleId(previewingStyle.id);
-                  setPreviewingStyle(null);
-                }}
-                style={{
-                  minHeight: 38,
-                  padding: '0 16px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background: 'var(--agent-gradient)',
-                  color: '#FFFFFF',
-                  fontSize: 14,
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                选择此风格
-              </button>
+              {previewingStyle.kind === 'base' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedBaseStyleId(previewingStyle.id);
+                    setPreviewingStyle(null);
+                  }}
+                  style={{
+                    minHeight: 38,
+                    padding: '0 16px',
+                    borderRadius: 10,
+                    border: 'none',
+                    background: 'var(--agent-gradient)',
+                    color: '#FFFFFF',
+                    fontSize: 14,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  选择此风格
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleEnhancement(previewingStyle.id);
+                    setPreviewingStyle(null);
+                  }}
+                  style={{
+                    minHeight: 38,
+                    padding: '0 16px',
+                    borderRadius: 10,
+                    border: 'none',
+                    background: selectedEnhancementIds.includes(previewingStyle.id) ? '#E2E8F0' : 'var(--agent-gradient)',
+                    color: selectedEnhancementIds.includes(previewingStyle.id) ? '#475569' : '#FFFFFF',
+                    fontSize: 14,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {selectedEnhancementIds.includes(previewingStyle.id) ? '取消叠加' : '叠加此质感'}
+                </button>
+              )}
             </div>
           </div>
         </div>

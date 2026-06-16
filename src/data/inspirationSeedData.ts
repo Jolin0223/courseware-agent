@@ -1,7 +1,7 @@
-// 由 docs/灵感推荐区_研发可直接入库种子数据_v1.json 机械转换生成。
+// 由 creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready 全量可展示模板生成。
 // 用户侧不得展示 sourceRefs。
 
-export type InspirationTabId = 'featured' | 'jump_obstacle' | 'race_speed' | 'hide_seek' | 'team_coop' | 'survival_arena' | 'battle_reasoning' | 'puzzle_rush' | 'elimination';
+export type InspirationTabId = 'featured' | 'action' | 'english' | 'junior_math' | 'logic' | 'spatial' | 'puzzle';
 export type InspirationAgeBandId = 'all' | 'age_4_6' | 'age_6_10' | 'age_10_14';
 
 export interface InspirationTabConfig {
@@ -29,6 +29,8 @@ export interface InspirationPlayway {
   id: string;
   title: string;
   category: Exclude<InspirationTabId, 'featured'>;
+  secondaryCategory: string;
+  secondaryLabel: string;
   subjectTags: string[];
   ageText: string;
   typeLabel: string;
@@ -53,47 +55,37 @@ export const inspirationSeedData = {
       {
         "id": "featured",
         "name": "精选",
-        "description": "优先展示已接入真实示例、课堂解释成本低的玩法"
+        "description": "跨分类推荐课堂里最容易套用的玩法"
       },
       {
-        "id": "jump_obstacle",
-        "name": "跳跃障碍类",
-        "description": "跳跃障碍 + 落地答题"
+        "id": "action",
+        "name": "动作闯关",
+        "description": "跳跃、竞速、找物、协作、对战等互动玩法"
       },
       {
-        "id": "race_speed",
-        "name": "竞速赛跑类",
-        "description": "答对加速 + 答错减速"
+        "id": "english",
+        "name": "英语启蒙",
+        "description": "单词、字母、听力、拼读、句子、对话类活动"
       },
       {
-        "id": "hide_seek",
-        "name": "捉迷藏伪装类",
-        "description": "寻找伪装的知识元素"
+        "id": "junior_math",
+        "name": "低龄数学",
+        "description": "数感、分解、凑十、口算和数轴练习"
       },
       {
-        "id": "team_coop",
-        "name": "团队协作类",
-        "description": "多人协作答题"
+        "id": "logic",
+        "name": "逻辑推理",
+        "description": "规律、迷宫、数独和约束推理"
       },
       {
-        "id": "survival_arena",
-        "name": "生存竞技类",
-        "description": "答对生存 + 答错复习"
+        "id": "spatial",
+        "name": "图形空间",
+        "description": "图形拼搭、空间想象和路径移动"
       },
       {
-        "id": "battle_reasoning",
-        "name": "对战推理类",
-        "description": "答题对战 + 逻辑推理"
-      },
-      {
-        "id": "puzzle_rush",
-        "name": "限时解谜类",
-        "description": "限时完成知识拼装"
-      },
-      {
-        "id": "elimination",
-        "name": "淘汰晋级类",
-        "description": "多轮晋级，末位淘汰"
+        "id": "puzzle",
+        "name": "益智谜题",
+        "description": "推箱子、连线、水箱、战舰等挑战"
       }
     ],
     "ageBands": [
@@ -223,7 +215,9 @@ export const inspirationSeedData = {
     {
       "id": "wisdom-jump-pinyin",
       "title": "智慧跳跃-拼音启蒙",
-      "category": "jump_obstacle",
+      "category": "action",
+      "secondaryCategory": "jump_obstacle",
+      "secondaryLabel": "跳跃障碍",
       "subjectTags": [
         "chinese"
       ],
@@ -269,9 +263,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "action-04-make-a-word-egg-party-001-单词拼写-软萌q弹版-starfall-蛋仔风-4-8岁-v1",
+      "title": "单词拼写·软萌Q弹版·Starfall+蛋仔风·4·8岁",
+      "category": "english",
+      "secondaryCategory": "make_word",
+      "secondaryLabel": "拼词闯关",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "4-8岁",
+      "typeLabel": "拼词闯关",
+      "shortDesc": "低龄英语拼词与自然拼读。适合把教学内容放进「单词拼写·软萌Q弹版·Starfall+蛋仔风·4·8岁」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "拼词闯关",
+        "英语",
+        "4-8岁"
+      ],
+      "suitableFor": [
+        "拼词闯关",
+        "低龄英语拼词与自然拼读",
+        "英语"
+      ],
+      "classFlow": [
+        "观察图片",
+        "拖拽字母",
+        "拼出单词",
+        "听音校验",
+        "获得鼓励"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「单词拼写·软萌Q弹版·Starfall+蛋仔风·4·8岁」模板：低龄英语拼词与自然拼读。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "# 🍬 Starfall Make-a-Word - 软萌Q弹糖果版\n> **风格混搭**: Starfall英语内容 × 蛋仔萌趣视觉 × 糖果色Q弹动效  \n> **适用年龄**: 4-8岁  \n> **游戏类型**: 单词拼写（拖拽字母到槽位）  \n> **视觉特点**: 暖橙糖果色 + 软萌圆润 + 果冻Q弹物理\n\n---\n\n## 步骤一：视觉框架（软萌Q弹糖果风）\n\n### 一、整体氛围\n请为《Make-a-Word》构建一个**软萌糖果英语乐园**的横屏游戏场景：\n\n**背景氛围**\n- 天空是**奶油黄渐变到蜜桃粉**，像**香草冰淇淋融化在草莓酱**里，温暖甜美\n- 漂浮着**软绵绵的糖果云朵**和**彩虹糖桥**，像真的棉花糖一样可以咬一口\n- 地面是**圆润起伏的果冻草地**，像**抹茶布丁**一样有弹性，Q弹可爱\n\n**场景层次**\n- **远景**：缓慢漂移的糖果热气球和星星饼干，像在甜梦里漂\n- **中景**：圆润的糖果小屋和棒棒糖树，像姜饼人的家\n- **近景**：Q弹的果冻平台和彩色糖霜花朵\n\n### 二、游戏角色（软萌Q弹版Zac！）\n\n**主角：Q弹Zac老鼠**\n- 身体是**圆润的蛋形**，像**不倒翁**一样饱满，不再是瘦瘦的老鼠\n- 有一双**水灵灵的星星眼**，占脸部的1/3，像**黑葡萄**一样闪亮\n- 耳朵是**粉嘟嘟的圆形**，像**棉花糖**一样软软地晃\n- 主色调是**奶油黄 #FFE66D**（Starfall经典）+ **樱花粉 #FFB7C5**耳朵，温暖又可爱\n\n**表情系统（软萌Q弹！）**\n```\n😊 开心时：眼睛弯成月牙，露出甜甜笑容，身体像果冻一样轻轻弹跳\n😢 委屈时：眼眶含泪，嘴巴嘟成O型，像要哭出来一样软萌\n😲 惊讶时：眼睛瞪大，耳朵竖起来，像被吓到的小兔子\n😍 拼对单词：眼睛变成星星，流口水，像吃到最好吃的糖果\n🎉 胜利庆祝：像弹簧一样上下弹跳，转圈圈，超级开心\n```\n\n### 三、游戏元素（糖果Q弹化）\n\n**单词槽位（圆润果冻感）**\n- 是**半透明的果冻方块**，像**彩色软糖**一样Q弹\n- 边框是**圆润的圆角**，像**被咬过的糖果**一样可爱\n- 底部有**淡淡的阴影**，像果冻放在盘子上\n- 空槽位时**轻轻晃动**，像在邀请字母来安家\n\n**字母卡片（软萌泡泡感）**\n- 是**圆润的泡泡形状**，像**彩色糖球**一样饱满\n- 背景是**渐变的糖果色**：元音A/E/I/O/U用**蜜桃粉**，辅音用**薄荷绿/柠檬黄/天空蓝**\n- 字母是**Cooper Black字体**（Starfall经典），粗粗的像**巧克力酱**写的\n- 悬停时**像泡泡一样放大**，像被吹气膨胀\n\n**目标图片（软萌插画风）**\n- 是**圆润的3D粘土风格**，像**橡皮泥捏的**小动物/水果\n- 有**可爱的高光**，像**糖果纸**一样闪闪发光\n- 比如\"CAT\"就显示一只**粉嘟嘟的圆润小猫**，像**糯米团子**一样\n\n### 四、界面UI（软萌Q弹）\n\n**顶部信息栏**\n- 是**圆润的果冻条**，像**长条软糖**一样半透明\n- 显示\"Level X/5\"和星星进度，数字像**糖霜**一样甜美\n- 左上角有**Q弹Zac的小头像**，像**徽章**一样可爱\n\n**底部按钮（超大Q弹！）**\n- **【🔊 发音】按钮**：像**柠檬黄糖果**一样圆润，点击时像被捏一下弹回来\n- **【→ 下一关】按钮**：像**薄荷绿糖果**一样清新，拼对单词后发光弹跳\n- 按钮占底部**15%**，是**胶囊形状**，圆角超大像**药丸糖**\n\n**布局声明（中央聚焦式 + 软萌卡片）**\n```\n┌─────────────────────────────────────┐\n│  🍬  Level 1/5  ⭐⭐⭐              │  ← 顶部果冻条（10%）\n├─────────────────────────────────────┤\n│                                     │\n│         ╭─────────────────╮         │\n│         │   🐱 [目标图片]   │         │  ← 目标区（30%）\n│         │   粉嘟嘟小猫      │         │     圆润软萌\n│         ╰─────────────────╯         │\n│                                     │\n│              _ _ _                  │  ← 单词槽位（15%）\n│         ┌───┬───┬───┐         │     果冻方块\n│         │   │   │   │         │     轻轻晃动\n│         └───┴───┴───┘         │\n│                                     │\n│    ╭─────╮  ╭─────╮  ╭─────╮       │  ← 字母池（30%）\n│    │  A  │  │  T  │  │  C  │       │     泡泡字母\n│    ╰─────╯  ╰─────╯  ╰─────╯       │     Q弹可爱\n│                                     │\n│                                     │\n│  ╭─────────╮      ╭─────────╮     │  ← 底部按钮（15%）\n│  │ 🔊 发音  │      │ → 下一关  │     │     糖果胶囊\n│  ╰─────────╯      ╰─────────╯     │     超大Q弹\n└─────────────────────────────────────┘\n```\n\n⚠️ **注意**：虽然是中央聚焦式，但用**果冻方块**代替白色卡片，更软萌Q弹！\n\n---\n\n## 步骤二：核心玩法与Q弹交互\n\n### 一、拖拽字母（Q弹手感！）\n\n**按住字母**\n- 手指按住字母时，字母**像泡泡被捏住一样轻微压扁**\n- 产生**淡淡的阴影**，像泡泡浮起来\n- 字母**轻微放大到1.1倍**，像在呼吸\n\n**拖拽过程**\n- 字母**像被线牵着的泡泡**一样跟随手指\n- 有**弹性拖拽感**，像果冻被拉长又弹回\n- 轨迹有**淡淡的彩虹尾迹**，像糖果拉丝\n\n**放入槽位**\n- 字母到达槽位时，**像磁铁吸住一样\"咔嗒\"一声**\n- 槽位**像果冻被投入小石子一样轻轻晃动**\n- 字母**弹回原形**，完美嵌入\n\n### 二、正确反馈（超级Q弹庆祝！）\n\n**拼对单词的瞬间**\n```\n1. 单词槽位【像果冻被填满一样发光】，变成蜜桃粉色\n2. 目标图片【像气球充气一样放大1.2倍】，然后弹回\n3. Zac角色【像弹簧一样上下弹跳3次】，露出星星眼\n4. 屏幕【像撒糖霜一样飘落金色小星星】\n5. 播放单词发音，声音【像糖果融化一样甜美】\n6. 【下一关】按钮【像跳跳糖一样发光弹跳】，提示可点击\n```\n\n**连击特效**\n- 连续拼对3个单词，Zac【像陀螺一样旋转】，超级开心\n- 屏幕边缘【像烟花一样绽放糖果彩带】\n\n### 三、错误反馈（温和鼓励）\n\n**拼错时的反应**\n```\n1. 错误字母【像碰到果冻墙一样轻轻弹回】字母池\n2. 槽位【像果冻抖动一样轻微晃动】，表示\"不对哦\"\n3. Zac【像不倒翁一样左右摇晃】，露出委屈表情\n4. 播放【温和的\"叮咚\"提示音】，像在鼓励\"再试一次\"\n5. 字母池【像呼吸灯一样轻轻闪烁】，提示再尝试\n```\n\n**无惩罚机制**\n- 可以【无限次尝试】，建立自信心\n- 错误3次后，【目标图片会轻轻跳动】，给出提示\n\n### 四、动效规范（Q弹手册）\n\n| 动作 | 自然语言描述 | 参考时长 |\n|:---:|:---|:---:|\n| **按住字母** | 像泡泡被捏住，轻微压扁 | 150ms |\n| **拖拽** | 像果冻被拉长，有弹性感 | 实时跟随 |\n| **放入槽位** | 像磁铁吸住，咔嗒一声就位 | 200ms |\n| **槽位发光** | 像果冻被填满，蜜桃粉发光 | 300ms |\n| **正确弹跳** | Zac像弹簧一样上下弹跳 | 400ms × 3次 |\n| **错误弹回** | 字母像碰到果冻墙弹回 | 300ms |\n| **按钮弹跳** | 像跳跳糖发光弹跳 | 300ms |\n| **星星飘落** | 像撒糖霜一样飘落 | 800ms |\n\n---\n\n## 步骤三：题面数据（Make-a-Word）\n\n### 一、关卡设计（5关渐进）\n\n**Level 1: C-A-T（入门）**\n- 目标：🐱 粉嘟嘟小猫\n- 字母：C（柠檬黄）、A（蜜桃粉）、T（薄荷绿）\n- 槽位：3个果冻方块\n- 提示：图片是\"喵\"叫的小动物\n\n**Level 2: D-O-G（入门）**\n- 目标：🐶 圆滚滚小狗\n- 字母：D（天空蓝）、O（蜜桃粉）、G（柠檬黄）\n- 槽位：3个果冻方块\n- 提示：图片是会\"汪汪\"叫的好朋友\n\n**Level 3: P-I-G（进阶）**\n- 目标：🐷 粉嘟嘟小猪\n- 字母：P（薄荷绿）、I（蜜桃粉）、G（柠檬黄）\n- 槽位：3个果冻方块\n- 提示：图片爱在泥坑里打滚的动物\n\n**Level 4: B-U-S（进阶）**\n- 目标：🚌 圆润校车\n- 字母：B（天空蓝）、U（蜜桃粉）、S（薄荷绿）\n- 槽位：3个果冻方块\n- 提示：图片是黄色的交通工具\n\n**Level 5: F-I-S-H（挑战）**\n- 目标：🐟 圆鼓鼓小鱼\n- 字母：F（柠檬黄）、I（蜜桃粉）、S（天空蓝）、H（薄荷绿）\n- 槽位：4个果冻方块\n- 提示：图片爱在水里游的动物\n\n### 二、字母配色（糖果系）\n\n| 字母 | 颜色 | 糖果联想 |\n|:---:|:---|:---|\n| A, E, I, O, U | 蜜桃粉 #FFB7C5 | 像蜜桃软糖 |\n| B, D, P, Q | 天空蓝 #87CEEB | 像蓝莓硬糖 |\n| C, G, J, K | 柠檬黄 #FFF44F | 像柠檬糖 |\n| F, L, N, S | 薄荷绿 #98FF98 | 像薄荷糖 |\n| H, M, R, T | 奶油橙 #FFDAB9 | 像橘子奶油糖 |\n| W, X, Y, Z | 香芋紫 #E0B0FF | 像香芋冰淇淋 |\n\n### 三、胜利界面（Q弹庆祝！）\n\n```\n🎉 太棒了！\n\nZac正在开心转圈！\n\n⭐⭐⭐⭐⭐\n你完成了5个单词！\n\n[🔄 再玩一次] [→ 下一个游戏]\n```\n\n**动效**\n- Zac【像陀螺一样旋转5圈】\n- 5颗星星【像泡泡一样依次弹出来】\n- 背景【像撒满糖果彩带】\n\n---\n\n## 🎨 软萌Q弹词汇表\n\n### 视觉描述（糖果化）\n| 原Starfall | 软萌Q弹版 |\n|:---:|:---|\n| 暖橙背景 | 奶油黄渐变蜜桃粉，像冰淇淋融化 |\n| Zac老鼠 | 圆润蛋形Zac，粉嘟嘟耳朵，星星眼 |\n| 白色卡片 | 半透明果冻方块，像软糖Q弹 |\n| Cooper Black字体 | 粗粗像巧克力酱，圆润饱满 |\n| 方形按钮 | 胶囊糖果形，像药丸糖Q弹 |\n\n### 物理描述（Q弹感）\n| 动作 | 自然语言 |\n|:---:|:---|\n| 点击 | 像捏泡泡，轻微压扁 |\n| 拖拽 | 像拉果冻，有弹性感 |\n| 放入 | 像磁铁吸住，咔嗒一声 |\n| 正确 | 像弹簧弹跳，上下晃动 |\n| 错误 | 像不倒翁摇晃，温和弹回 |\n| 发光 | 像果冻被填满，蜜桃粉光 |\n\n---\n\n## ✅ 风格混搭检查清单\n\n**Starfall核心保留**\n- [ ] Cooper Black字体？✅\n- [ ] 元音A/E/I/O/U特殊配色？✅\n- [ ] 拖拽字母到槽位机制？✅\n- [ ] 图片-单词-发音三位一体？✅\n- [ ] 中央聚焦式布局？✅\n\n**软萌Q弹新增**\n- [ ] 圆润蛋形Zac，粉嘟嘟耳朵？✅\n- [ ] 糖果色渐变背景？✅\n- [ ] 果冻方块槽位，Q弹晃动？✅\n- [ ] 泡泡字母，弹性拖拽？✅\n- [ ] 弹簧弹跳庆祝动画？✅\n- [ ] 温和鼓励无惩罚？✅\n\n---\n\n**三步提示词 v1.0 - Starfall+蛋仔软萌Q弹版** 🍬✅\n\n*Starfall英语内容 × 蛋仔萌趣视觉 × 糖果Q弹动效 | 4-8岁 | Make-a-Word*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/action/04-make-a-word/egg-party/001_单词拼写_软萌Q弹版_Starfall+蛋仔风_4-8岁_v1.md"
+      ],
+      "priority": 2000,
+      "status": "active"
+    },
+    {
       "id": "math-racing",
       "title": "口算赛车",
-      "category": "race_speed",
+      "category": "action",
+      "secondaryCategory": "race_speed",
+      "secondaryLabel": "竞速赛跑",
       "subjectTags": [
         "math"
       ],
@@ -317,9 +360,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "aquarium-game",
+      "title": "game",
+      "category": "puzzle",
+      "secondaryCategory": "aquarium",
+      "secondaryLabel": "水箱谜题",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "水箱谜题",
+      "shortDesc": "根据行列水量填充水箱。适合把教学内容放进「game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "水箱谜题",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "水箱谜题",
+        "根据行列水量填充水箱",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game」模板：根据行列水量填充水箱。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"水箱谜题-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_aquarium.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"aquarium\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 水箱谜题（Aquarium）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成水箱谜题的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 区域: 用粗线分隔不同区域\n- 水面: 浅蓝色填充 #E3F2FD\n- 水: 深蓝色填充 #1976D2\n- 空: 白色背景\n- 侧边数字: 行列水位提示\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题+规则\n- 右区70%（游戏区）：水箱谜题棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 水箱谜题\"\n\n规则说明：\n\"填满水箱满足水位约束！\n\n规则：\n① 水箱区域：棋盘被分成几个区域，每个区域叫一个水箱\n② 水位提示：棋盘外面的数字=该行/列灌水的单元格数量\n③ 等高规则：同一个水箱内的水位是等高的\n   （同一水箱内的同一行，要么都有水，要么都没水）\n④ 红叉禁止：标记红叉的格子不能灌水\n⑤ 全满足：所有行列水位提示必须满足\"\n\n【右侧游戏区（70%）】\n\n一、水箱棋盘区\n- 用粗线分隔A/B/C/D/E五个水箱区域\n- 格子状态：\n  - 蓝色格（已灌水）：深蓝色填充 #1976D2\n  - 系统红叉格（禁止）：红色X #DC143C，不可更改\n  - 玩家标记❌（确定不灌水）：红色X #DC143C，与红叉样式一致\n  - 空格（留空）：白色背景\n\n二、交互功能\n\n1. 单击空格 - 灌水\n   - 单击白色空格：灌水（深蓝色填充 #1976D2）\n\n2. 单击蓝色格 - 留空\n   - 单击蓝色灌水格：变为留空（白色背景）\n\n3. 长按空格（>500ms）- 标记❌\n   - 长按白色空格：标记❌（红色X #DC143C，与系统红叉样式一致）\n\n4. 单击❌格 - 移除❌\n   - 单击带❌标记的格子：移除❌，恢复留空（白色背景）\n\n5. 系统红叉格\n   - 系统红叉：单击无反应（固定禁止）\n   - 玩家❌：单击→移除，变留空（通过单击行为区分）\n\n6. 水位实时计算\n   - 每行/列显示当前水格数（只计算蓝色水格，❌标记不计入）\n   - 等于提示时：数字变绿 #19c348 ✓\n\n7. 等高规则检测\n   - 实时检测同一水箱内的同一行是否等高\n   - 违反时：标红违反格，提示\"同一水箱水位必须等高\"\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一个应填水的位置\n   - 限制：全局最多3次\n   - ⚠️ 重置游戏不恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有水，恢复初始\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查水位是否正确\n   - 成功：游戏区绿色闪烁动画+星星飘落成烟花效果+中央弹窗动画显示\"🎉 挑战成功！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 格式：区域划分+行列水位提示\n2. 示例：\n\n   区域划分（每个格子属于区域A/B/C）：\n   A A B B\n   A A B B\n   C C C C\n   C C C C\n   \n   行水位（从上到下）：[3, 2, 4, 1]\n   列水位（从左到右）：[2, 3, 2, 3]\n\n放置完成后，整个水箱谜题游戏完成。\n```\n\n---\n\n*水箱谜题 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/aquarium/game.md"
+      ],
+      "priority": 1999,
+      "status": "active"
+    },
+    {
       "id": "word-hide-seek",
       "title": "单词伪装者",
-      "category": "hide_seek",
+      "category": "action",
+      "secondaryCategory": "hide_seek",
+      "secondaryLabel": "找物伪装",
       "subjectTags": [
         "english"
       ],
@@ -365,9 +457,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "aquarium-practice",
+      "title": "practice",
+      "category": "puzzle",
+      "secondaryCategory": "aquarium",
+      "secondaryLabel": "水箱谜题",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "水箱谜题",
+      "shortDesc": "根据行列水量填充水箱。适合把教学内容放进「practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "水箱谜题",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "水箱谜题",
+        "根据行列水量填充水箱",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「practice」模板：根据行列水量填充水箱。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"水箱谜题-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_aquarium.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"aquarium\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 水箱谜题（Aquarium）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成水箱谜题的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 区域: 用粗线分隔不同区域\n- 水面: 浅蓝色填充 #E3F2FD\n- 水: 深蓝色填充 #1976D2\n- 空: 白色背景\n- 侧边数字: 行列水位提示\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题+规则\n- 右区70%（游戏区）：水箱谜题棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 水箱谜题\"\n\n规则说明：\n\"填满水箱满足水位约束！\n\n规则：\n① 水箱区域：棋盘被分成几个区域，每个区域叫一个水箱\n② 水位提示：棋盘外面的数字=该行/列灌水的单元格数量\n③ 等高规则：同一个水箱内的水位是等高的\n   （同一水箱内的同一行，要么都有水，要么都没水）\n④ 红叉禁止：标记红叉的格子不能灌水\n⑤ 全满足：所有行列水位提示必须满足\"\n\n【右侧游戏区（70%）】\n\n一、水箱棋盘区\n- 用粗线分隔A/B/C/D/E五个水箱区域\n- 格子状态：\n  - 蓝色格（已灌水）：深蓝色填充 #1976D2\n  - 系统红叉格（禁止）：红色X #DC143C，不可更改\n  - 玩家标记❌（确定不灌水）：红色X #DC143C，与红叉样式一致\n  - 空格（留空）：白色背景\n\n二、交互功能\n\n1. 单击空格 - 灌水\n   - 单击白色空格：灌水（深蓝色填充 #1976D2）\n\n2. 单击蓝色格 - 留空\n   - 单击蓝色灌水格：变为留空（白色背景）\n\n3. 长按空格（>500ms）- 标记❌\n   - 长按白色空格：标记❌（红色X #DC143C，与系统红叉样式一致）\n\n4. 单击❌格 - 移除❌\n   - 单击带❌标记的格子：移除❌，恢复留空（白色背景）\n\n5. 系统红叉格\n   - 系统红叉：单击无反应（固定禁止）\n   - 玩家❌：单击→移除，变留空（通过单击行为区分）\n\n6. 水位实时计算\n   - 每行/列显示当前水格数（只计算蓝色水格，❌标记不计入）\n   - 等于提示时：数字变绿 #19c348 ✓\n\n7. 等高规则检测\n   - 实时检测同一水箱内的同一行是否等高\n   - 违反时：标红违反格，提示\"同一水箱水位必须等高\"\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一个应填水的位置\n   - 限制：全局最多3次\n   - ⚠️ 重置游戏不恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有水，恢复初始\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查水位是否正确\n   - 成功：游戏区绿色闪烁动画+星星飘落成烟花效果+中央弹窗动画显示\"🎉 挑战成功！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 格式：区域划分+行列水位提示\n2. 示例：\n\n   区域划分（每个格子属于区域A/B/C）：\n   A A B B\n   A A B B\n   C C C C\n   C C C C\n   \n   行水位（从上到下）：[3, 2, 4, 1]\n   列水位（从左到右）：[2, 3, 2, 3]\n\n放置完成后，整个水箱谜题游戏完成。\n```\n\n---\n\n*水箱谜题 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/aquarium/practice.md"
+      ],
+      "priority": 1998,
+      "status": "active"
+    },
+    {
       "id": "pair-coop-quiz",
       "title": "双人协作答题",
-      "category": "team_coop",
+      "category": "action",
+      "secondaryCategory": "team_coop",
+      "secondaryLabel": "团队协作",
       "subjectTags": [
         "general"
       ],
@@ -413,9 +554,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "battleships-game",
+      "title": "game",
+      "category": "puzzle",
+      "secondaryCategory": "battleships",
+      "secondaryLabel": "战舰",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "战舰",
+      "shortDesc": "根据行列数量寻找船只布局。适合把教学内容放进「game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "战舰",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "战舰",
+        "根据行列数量寻找船只布局",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game」模板：根据行列数量寻找船只布局。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"战舰-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_battleships.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"battleships\"\nmode: \"game\"\ncategory: \"放置类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 战舰（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成战舰游戏的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: N×M方格（通常10×10），黑色细边框\n- 战舰: 深灰色填充 #444444，占多格\n- 水域标记: 蓝色波浪 #64B5F6\n- 已击沉: 红色X #DC143C\n- 侧边数字: 行列战舰数量提示\n- 选中高亮: 淡蓝色 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题+规则+战舰清单\n- 右区70%（游戏区）：N×M棋盘+行列提示+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 战舰\"\n\n规则说明：\n\"根据行列提示，找出所有隐藏的战舰！\n\n规则：\n① 战舰形状：占连续多格（1×N或N×1）\n② 战舰类型：\n   - 母舰(4格) × 1艘\n   - 战舰(3格) × 2艘\n   - 驱逐舰(2格) × 3艘\n   - 潜艇(1格) × 4艘\n③ 行列提示：侧边数字=该行/列的战舰格数\n④ 不相邻：战舰之间不能相邻（包括对角）\n⑤ 水域标记：确定为水的格子标记蓝色\"\n\n【右侧游戏区（70%）】\n\n一、战舰棋盘区\n- N×M网格（通常10×10）\n- 左侧：行战舰格数提示\n- 上方：列战舰格数提示\n\n二、交互功能\n\n1. 标记战舰格\n   - 单击格子：标记为战舰（深灰色）\n   - 再次单击：取消标记\n\n2. 标记水域\n   - 长按格子：标记为水域（蓝色波浪）\n   - 再次长按：取消标记\n\n3. 战舰清单追踪\n   - 实时显示已找到/剩余战舰\n   - 找到完整战舰时自动勾选\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一个确定为战舰的格子\n   - 限制：全局最多3次\n   - 提示次数显示：按钮显示\"获取提示(3)\"\n   - 用尽后：按钮变灰禁用\n   - ⚠️ 重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有标记，恢复初始\n   - ⚠️ 不重置：获取提示的使用次数\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查战舰是否正确\n   \n   【状态检查】\n   - 未标记：提示\"请先标记战舰位置\"\n   - 战舰数量不符：提示\"战舰数量不正确\"\n   \n   【正确性检查】\n   - 行列不符：标红该行/列\n   - 战舰相邻：标红相邻区域\n   - 战舰形状错误：标红错误形状\n   - 成功：绿色闪烁+\"🎉 恭喜通关！所有战舰已找出！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体战舰题面\n2. 格式要求：\n   - 棋盘大小：NxM（通常10×10）\n   - 行提示：[每行的战舰格数]\n   - 列提示：[每列的战舰格数]\n   - 战舰位置：可选（用于答案校验）\n3. 示例（6×6简化版）：\n\n   棋盘大小：6×6\n   \n   行提示（从上到下）：[2, 1, 3, 0, 2, 2]\n   列提示（从左到右）：[2, 2, 1, 2, 1, 2]\n   \n   战舰配置：\n   - 3格战舰 × 1\n   - 2格驱逐舰 × 2\n   - 1格潜艇 × 2\n\n【显示要求】\n- 侧边清晰显示行列提示\n- 战舰标记为深灰色\n- 水域标记为蓝色波浪\n\n放置完成后，整个战舰游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 网格（通常10×10） |\n| **元素** | 战舰 + 水域 + 行列提示 |\n| **难度** | ⭐⭐⭐⭐ 中等偏难 |\n| **交互** | 单击标记战舰 + 长按标记水域 |\n| **核心规则** | 行列提示+战舰不相邻 |\n| **推荐时间** | 10-20分钟 |\n\n---\n\n*战舰 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/battleships/game.md"
+      ],
+      "priority": 1997,
+      "status": "active"
+    },
+    {
       "id": "knowledge-survival-island",
       "title": "知识生存岛-综合",
-      "category": "survival_arena",
+      "category": "action",
+      "secondaryCategory": "survival_arena",
+      "secondaryLabel": "生存竞技",
       "subjectTags": [
         "general"
       ],
@@ -459,9 +649,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "battleships-practice",
+      "title": "practice",
+      "category": "puzzle",
+      "secondaryCategory": "battleships",
+      "secondaryLabel": "战舰",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "战舰",
+      "shortDesc": "根据行列数量寻找船只布局。适合把教学内容放进「practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "战舰",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "战舰",
+        "根据行列数量寻找船只布局",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「practice」模板：根据行列数量寻找船只布局。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"战舰-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_battleships.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"battleships\"\nmode: \"game\"\ncategory: \"放置类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 战舰（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成战舰游戏的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: N×M方格（通常10×10），黑色细边框\n- 战舰: 深灰色填充 #444444，占多格\n- 水域标记: 蓝色波浪 #64B5F6\n- 已击沉: 红色X #DC143C\n- 侧边数字: 行列战舰数量提示\n- 选中高亮: 淡蓝色 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题+规则+战舰清单\n- 右区70%（游戏区）：N×M棋盘+行列提示+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 战舰\"\n\n规则说明：\n\"根据行列提示，找出所有隐藏的战舰！\n\n规则：\n① 战舰形状：占连续多格（1×N或N×1）\n② 战舰类型：\n   - 母舰(4格) × 1艘\n   - 战舰(3格) × 2艘\n   - 驱逐舰(2格) × 3艘\n   - 潜艇(1格) × 4艘\n③ 行列提示：侧边数字=该行/列的战舰格数\n④ 不相邻：战舰之间不能相邻（包括对角）\n⑤ 水域标记：确定为水的格子标记蓝色\"\n\n【右侧游戏区（70%）】\n\n一、战舰棋盘区\n- N×M网格（通常10×10）\n- 左侧：行战舰格数提示\n- 上方：列战舰格数提示\n\n二、交互功能\n\n1. 标记战舰格\n   - 单击格子：标记为战舰（深灰色）\n   - 再次单击：取消标记\n\n2. 标记水域\n   - 长按格子：标记为水域（蓝色波浪）\n   - 再次长按：取消标记\n\n3. 战舰清单追踪\n   - 实时显示已找到/剩余战舰\n   - 找到完整战舰时自动勾选\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一个确定为战舰的格子\n   - 限制：全局最多3次\n   - 提示次数显示：按钮显示\"获取提示(3)\"\n   - 用尽后：按钮变灰禁用\n   - ⚠️ 重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有标记，恢复初始\n   - ⚠️ 不重置：获取提示的使用次数\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查战舰是否正确\n   \n   【状态检查】\n   - 未标记：提示\"请先标记战舰位置\"\n   - 战舰数量不符：提示\"战舰数量不正确\"\n   \n   【正确性检查】\n   - 行列不符：标红该行/列\n   - 战舰相邻：标红相邻区域\n   - 战舰形状错误：标红错误形状\n   - 成功：绿色闪烁+\"🎉 恭喜通关！所有战舰已找出！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体战舰题面\n2. 格式要求：\n   - 棋盘大小：NxM（通常10×10）\n   - 行提示：[每行的战舰格数]\n   - 列提示：[每列的战舰格数]\n   - 战舰位置：可选（用于答案校验）\n3. 示例（6×6简化版）：\n\n   棋盘大小：6×6\n   \n   行提示（从上到下）：[2, 1, 3, 0, 2, 2]\n   列提示（从左到右）：[2, 2, 1, 2, 1, 2]\n   \n   战舰配置：\n   - 3格战舰 × 1\n   - 2格驱逐舰 × 2\n   - 1格潜艇 × 2\n\n【显示要求】\n- 侧边清晰显示行列提示\n- 战舰标记为深灰色\n- 水域标记为蓝色波浪\n\n放置完成后，整个战舰游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 网格（通常10×10） |\n| **元素** | 战舰 + 水域 + 行列提示 |\n| **难度** | ⭐⭐⭐⭐ 中等偏难 |\n| **交互** | 单击标记战舰 + 长按标记水域 |\n| **核心规则** | 行列提示+战舰不相邻 |\n| **推荐时间** | 10-20分钟 |\n\n---\n\n*战舰 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/battleships/practice.md"
+      ],
+      "priority": 1996,
+      "status": "active"
+    },
+    {
       "id": "math-detective",
       "title": "数学小侦探-推理",
-      "category": "battle_reasoning",
+      "category": "action",
+      "secondaryCategory": "battle_reasoning",
+      "secondaryLabel": "对战推理",
       "subjectTags": [
         "math"
       ],
@@ -505,9 +744,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-dialog-connect",
+      "title": "对话连连看",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「对话连连看」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「对话连连看」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"对话连连看\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-dialog-match\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"2-3\"\n---\n\n# ☎️ 对话连连看\n\n> **难度**：⭐ 简单  \n> **适用**：小学2-3年级  \n> **风格**：儿童逻辑风·电话接线员风格\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成对话配对游戏视觉框架：\n\n【视觉规格】（儿童逻辑风·电话接线员风格）\n- 背景: 复古电话交换机，电线缠绕\n- UI: 黏土电话机，彩色电话线\n- 标题: \"☎️ 对话连连看\"，复古电话字体\n- 角色: 接线员小兔，耳机\n- 问句: 左侧场景图片+问句\n- 答句: 右侧答句选项\n- 连线: 黏土电话线连接\n- 完成: 电话接通动画\n- 字体: \"Comic Sans MS\"英文，\"方正卡通\"中文\n- 音频: 强制静音\n\n【布局】\n- 左侧：3个场景图片+问句\n- 右侧：3个答句选项\n- 中央：连线区域\n\n【颜色】\n- 电话黑: #2F4F4F\n- 电线红: #DC143C\n- 电线蓝: #1E90FF\n- 电线黄: #FFD700\n- 接线绿: #32CD32\n\n【电话设计】\n- 3D黏土复古电话\n- 彩色电话线\n- 旋转拨号盘\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则】\n\"化身电话接线员\n把问句和答句正确连线！\"\n\n【核心机制】\n\n一、问句区（左侧）\n- 场景图片（学校、家庭、商店）\n- 英文问句：\n  1. What's your name?\n  2. How are you?\n  3. How old are you?\n\n二、答句区（右侧）\n- 答句选项：\n  A. My name is Tom.\n  B. I'm fine, thank you.\n  C. I'm seven years old.\n  D. It's red.\n\n三、连线交互\n\n1. 拖拽连线\n   - 从问句拖拽到答句\n   - 黏土电话线跟随\n   - 正确：电话接通绿色\n   - 错误：电话线变红\n\n2. 连线路径\n   - Q1 → A（名字）\n   - Q2 → B（问候）\n   - Q3 → C（年龄）\n\n3. 提交验证\n   - 全部连线后提交\n   - 正确连线+12分/对\n   - 40秒内完成：额外+10分\n\n\n四、对话示例\n   - Q: What's your name? → A: My name is Tom.\n   - Q: How are you? → A: I'm fine thank you.\n   - Q: How old are you? → A: I'm seven years old.\n   - Q: What color is it? → A: It's red.\n   - Q: Do you like apples? → A: Yes, I do.\n\n五、计时\n   - 40秒倒计时\n   - 电话铃声提示\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【对话配对题库】\n\n第1组：\n问句1: \"What's your name?\"\n问句2: \"How are you?\"\n问句3: \"How old are you?\"\n\n答句A: \"My name is Tom.\"\n答句B: \"I'm fine, thank you.\"\n答句C: \"I'm seven years old.\"\n答句D: \"It's red.\" (干扰)\n\n正确配对：\n- Q1 → A\n- Q2 → B\n- Q3 → C\n\n第2组：\n问句1: \"What color is it?\"\n问句2: \"Do you like apples?\"\n问句3: \"What's this?\"\n\n答句A: \"It's red.\"\n答句B: \"Yes, I do.\"\n答句C: \"It's a book.\"\n\n正确配对：\n- Q1 → A\n- Q2 → B\n- Q3 → C\n\n【配置】\n- 总组数：2组\n- 每组3对问答\n- 限时：40秒\n- 电话接线员主题\n```\n\n---\n\n*对话连连看 | 儿童逻辑风·电话接线员风格 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/dialog-connect.md"
+      ],
+      "priority": 1995,
+      "status": "active"
+    },
+    {
       "id": "character-puzzle-rush",
       "title": "汉字拼图Rush-汉字结构",
-      "category": "puzzle_rush",
+      "category": "action",
+      "secondaryCategory": "puzzle_rush",
+      "secondaryLabel": "限时解谜",
       "subjectTags": [
         "chinese"
       ],
@@ -553,9 +841,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-flashcard-challenge",
+      "title": "单词闪卡挑战",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「单词闪卡挑战」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「单词闪卡挑战」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"单词闪卡挑战\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-flashcard\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"3\"\n---\n\n# ⚡ 单词闪卡挑战\n\n> **难度**：⭐⭐ 中等  \n> **适用**：小学3年级  \n> **风格**：豆包太空风·极速挑战风格\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成单词闪卡游戏视觉框架：\n\n【视觉规格】（豆包太空风·极速挑战风格）\n- 背景: 黏土竞技场，观众席\n- UI: 极速闪卡，倒计时\n- 标题: \"⚡ 单词闪卡挑战\"，极速风格字体\n- 角色: 挑战者小狮，倒计时\n- 闪卡: 3D黏土卡片快速切换\n- 输入: 即时拼写输入框\n- 反馈: 快速正确/错误反馈\n- 字体: \"Comic Sans MS\"英文，\"方正卡通\"中文\n- 音频: 强制静音\n\n【布局】\n- 顶部：倒计时 + 进度（1/8）\n- 中央：闪卡（图片/中文）\n- 底部：拼写输入区\n\n【颜色】\n- 竞技红: #DC143C\n- 极速黄: #FFD700\n- 闪电蓝: #00BFFF\n- 黏土橙: #FF8C00\n- 胜利绿: #32CD32\n\n【闪卡设计】\n- 3D黏土质感\n- 快速切换动画\n- 倒计时环\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则】\n\"极速单词挑战\n15秒内快速拼写单词！\"\n\n【核心机制】\n\n一、闪卡模式\n- 共8张单词闪卡\n- 每张限时15秒\n- 显示图片或中文提示\n- 输入英文单词\n\n二、快速交互\n\n1. 闪卡显示\n   - 图片/中文出现\n   - 15秒倒计时环\n   - 输入框自动激活\n\n2. 即时拼写\n   - 输入即检查（无需确认键）\n   - 拼写正确：+10分，自动下一题\n   - 拼写错误：+0分，显示正确拼写\n\n3. 速度奖励\n   - 5秒内完成：额外+5分\n   - 连续正确：连击加分\n\n三、快节奏设计\n- 无复杂动画\n- 快速切换\n- 即时反馈\n\n四、词汇范围\n- 动物：cat, dog, bird\n- 颜色：red, blue, green\n- 水果：apple, banana\n- 学习用品：book, pen, bag\n\n五、结束画面\n- 总分显示\n- 正确率统计\n- 速度排名\n- 【再挑战一次】\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【闪卡题库】\n\n1. 图片：猫 → 答案：cat\n2. 图片：狗 → 答案：dog\n3. 图片：鸟 → 答案：bird\n4. 颜色：红色 → 答案：red\n5. 颜色：蓝色 → 答案：blue\n6. 水果：苹果 → 答案：apple\n7. 水果：香蕉 → 答案：banana\n8. 学习用品：书 → 答案：book\n\n干扰项：\n- 图片干扰：fish, pig\n- 颜色干扰：yellow, black\n- 水果干扰：orange\n\n【配置】\n- 总题数：8题\n- 限时：15秒/题\n- 极速闪卡风格\n```\n\n---\n\n*单词闪卡挑战 | 豆包太空风·极速挑战风格 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/flashcard-challenge.md"
+      ],
+      "priority": 1994,
+      "status": "active"
+    },
+    {
       "id": "pinyin-elimination",
       "title": "拼音淘汰赛-拼音综合",
-      "category": "elimination",
+      "category": "action",
+      "secondaryCategory": "elimination",
+      "secondaryLabel": "淘汰晋级",
       "subjectTags": [
         "chinese"
       ],
@@ -601,9 +938,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-letter-hunt",
+      "title": "字母找找乐",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「字母找找乐」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「字母找找乐」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"字母找找乐\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-letter-hunt\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"1\"\n---\n\n# 🔤 字母找找乐\n\n> **难度**：⭐ 简单  \n> **适用**：小学1年级  \n> **风格**：豆包森林风·宝藏探险风格\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成字母寻找游戏视觉框架：\n\n【视觉规格】（豆包森林风·宝藏探险风格）\n- 背景: 3D黏土宝藏地图，岛屿、丛林\n- UI: 宝藏符号风格字母，金色边框\n- 标题: \"🔤 字母找找乐\"，汉仪糯米团金色字体\n- 角色: 探险家小狐狸，望远镜\n- 地图: 3D宝藏地图，隐藏小写字母\n- 字母: 大写提示，小写藏宝\n- 反馈: 找到宝藏发光+金币\n- 字体: \"Comic Sans MS\"英文，\"汉仪糯米团\"中文\n- 音频: 强制静音\n\n【布局】\n- 顶部：大写字母提示 + 进度\n- 中央：3D宝藏地图\n- 底部：找到的小写字母栏\n\n【颜色】\n- 地图棕: #8B4513\n- 宝藏金: #FFD700\n- 丛林绿: #228B22\n- 海洋蓝: #1E90FF\n- 岛屿黄: #F4D03F\n\n【宝藏符号】\n- 字母设计成宝藏符号样式\n- 金色发光效果\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则】\n\"化身字母探险家\n在宝藏地图中找到对应的小写字母！\"\n\n【核心机制】\n\n阶段1：大小写配对（5题）\n\n1. 大写字母提示\n   - 显示大写字母\"A\"\n   - 提示\"请找出对应的小写字母\"\n\n2. 宝藏地图\n   - 3D黏土地图\n   - 隐藏多个小写字母\n   - 其中1个是正确答案\n\n3. 寻找交互\n   - 点击地图上的字母\n   - 正确：宝藏发光+金币+8分\n   - 错误：提示\"再找找\"\n\n4. 计时\n   - 20秒/题\n   - 25秒内完成：额外+10分\n\n阶段2：字母迷宫（1题）\n\n1. 字母迷宫\n   - A→B→C→...→Z路径\n   - 按顺序找出路径\n\n2. 路径交互\n   - 点击相邻字母\n   - 高亮已走路径\n   - 完成迷宫+20分\n\n3. 计时\n   - 30秒完成\n   - 成功：探险家庆祝\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【字母探险题库】\n\n阶段1：大小写配对\n1. 大写\"A\" → 找\"a\"\n2. 大写\"B\" → 找\"b\"\n3. 大写\"C\" → 找\"c\"\n4. 大写\"D\" → 找\"d\"\n5. 大写\"E\" → 找\"e\"\n\n干扰字母：x, y, z, m, n\n\n阶段2：字母迷宫\n路径：A → B → C → D → E → F → G → H → I → J → K → L → M → N → O → P → Q → R → S → T → U → V → W → X → Y → Z\n\n【配置】\n- 阶段1：5题，20秒/题\n- 阶段2：1题，30秒\n- 宝藏探险主题\n```\n\n---\n\n*字母找找乐 | 豆包森林风·宝藏探险风格 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/letter-hunt.md"
+      ],
+      "priority": 1993,
+      "status": "active"
+    },
+    {
       "id": "word-racing",
       "title": "彩虹跑道-单词赛跑",
-      "category": "race_speed",
+      "category": "action",
+      "secondaryCategory": "race_speed",
+      "secondaryLabel": "竞速赛跑",
       "subjectTags": [
         "english"
       ],
@@ -649,9 +1035,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-letter-match",
+      "title": "字母消消乐",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「字母消消乐」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「字母消消乐」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"字母消消乐\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-match\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"1-2\"\n---\n\n# 🔤 字母消消乐\n\n> **难度**：⭐ 简单  \n> **适用**：小学1-2年级  \n> **风格**：豆包太空风·字母小达人风格\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成字母消消乐游戏视觉框架：\n\n【视觉规格】（豆包太空风·字母小达人风格）\n- 背景: 英语教室场景，ABC装饰\n- UI: 3D黏土字母方块，圆润可爱\n- 标题: \"🔤 字母消消乐\"，彩色字母字体\n- 角色: 小熊老师（底部）\n- 方块: 彩色字母方块（大写+小写）\n- 连线: 选中时发光连线\n- 消除: 字母消失+星星特效\n- 字体: \"Comic Sans MS\"\n- 音频: 强制静音\n\n【布局】（全屏游戏布局）\n- 顶部20%：游戏信息栏\n  - 关卡进度（1/8对）\n  - 倒计时（60秒）\n  - 当前分数\n- 中部60%：游戏棋盘区\n  - 4×4字母方格矩阵\n  - 大写+小写字母混合\n- 底部20%：控制区\n  - 小熊老师角色\n  - 【提示】【重置】按钮\n  - 规则说明按钮（?）\n\n【颜色】\n- 教室蓝: #87CEEB\n- 大写字母方块:\n  - A: 红色 #DC143C\n  - B: 蓝色 #1E90FF\n  - C: 绿色 #32CD32\n  - D: 黄色 #FFD700\n- 小写字母方块:\n  - a: 浅红 #FFB6C1\n  - b: 浅蓝 #87CEFA\n  - c: 浅绿 #90EE90\n  - d: 浅黄 #FFFACD\n- 选中发光: #FFFFFF\n- 连线发光: #FF69B4\n- 按钮提示蓝: #238be0\n- 按钮重置黄: #f7b40d\n\n【方块设计】\n- 3D黏土质感\n- 圆角设计（圆角半径12px）\n- 立体阴影效果\n- 字母居中凸起\n- 大写字母: 粗体\n- 小写字母: 常规\n- 尺寸：80×80px\n- 间距：10px\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则弹窗】\n标题：「🔤 字母消消乐规则」\n\n规则说明：\n1. 棋盘上有大写和小写字母\n2. 点击相同字母配对（A-a, B-b）\n3. 可以连线消除（连线不超过3弯）\n4. 消除所有8对=胜利！\n\n技巧提示：\n- A对应a（红色）\n- B对应b（蓝色）\n- 注意大小写配对\n\n【关闭弹窗】按钮\n\n【游戏区域交互】\n\n一、顶部信息栏（只显示）\n- 关卡进度、倒计时、分数\n\n二、中央棋盘区（4×4字母方块）\n\n字母分布：\n- 大写：A×2, B×2, C×2, D×2\n- 小写：a×2, b×2, c×2, d×2\n\n交互1：点击选择\n- 第一次点击：选第一个字母（高亮）\n- 第二次点击：选第二个字母\n- 配对判定：相同字母大小写？\n\n交互2：配对判定\n- A + a = ✓ 可消除（同色）\n- B + b = ✓ 可消除（同色）\n- A + B = ✗ 不匹配\n- a + a = ✗ 不匹配\n\n判定规则：\n- 相同字母的大小写配对\n- 可消除：发光连线，方块消除\n- 不可消除：抖动，取消选择\n\n交互3：消除动画\n- 连线闪烁（0.3秒）\n- 方块消失+星星特效\n- 显示配对成功（如\"A-a ✓\"）\n- 进度+1，分数+10\n\n三、底部控制区\n\n按钮1：【获取提示】#238be0\n- 高亮一对可配对的字母\n- 限制3次\n\n按钮2：【重置游戏】#f7b40d\n- 重新打乱字母位置\n\n按钮3：【规则说明】（?图标）\n\n四、胜利/失败判定\n- 胜利：消除8对（A-a×2, B-b×2, C-c×2, D-d×2）\n- 失败：超时60秒\n\n五、计分\n- 基础消除：+10分/对\n- 连击加成：连续消除额外+5分\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【字母消消乐棋盘】\n\n4×4方格初始布局：\n┌─────┬─────┬─────┬─────┐\n│  A  │  b  │  a  │  C  │\n├─────┼─────┼─────┼─────┤\n│  c  │  B  │  d  │  D  │\n├─────┼─────┼─────┼─────┤\n│  a  │  C  │  A  │  b  │\n├─────┼─────┼─────┼─────┤\n│  D  │  c  │  B  │  d  │\n└─────┴─────┴─────┴─────┘\n\n配对说明：\n- A×2 + a×2 → 组成 A-a 配对×2\n- B×2 + b×2 → 组成 B-b 配对×2\n- C×2 + c×2 → 组成 C-c 配对×2\n- D×2 + d×2 → 组成 D-d 配对×2\n\n正确配对（8对）：\n- A-a（红色配对）×2\n- B-b（蓝色配对）×2\n- C-c（绿色配对）×2\n- D-d（黄色配对）×2\n\n【配置】\n- 棋盘：4×4\n- 字母种类：4种（A/B/C/D + a/b/c/d）\n- 每种数量：大写2个+小写2个\n- 可配对：8对\n- 限时：60秒\n```\n\n---\n\n*字母消消乐 | 豆包太空风·字母小达人风格 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/letter-match.md"
+      ],
+      "priority": 1992,
+      "status": "active"
+    },
+    {
       "id": "phonics-hide-seek",
       "title": "字母捉迷藏-拼音伪装者",
-      "category": "hide_seek",
+      "category": "action",
+      "secondaryCategory": "hide_seek",
+      "secondaryLabel": "找物伪装",
       "subjectTags": [
         "chinese"
       ],
@@ -697,9 +1132,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-listen-select",
+      "title": "听力选图",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「听力选图」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「听力选图」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"听力选图\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-listen\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"1-3\"\n---\n\n# 🎧 听力选图\n\n> **难度**：⭐ 简单  \n> **适用**：小学1-3年级  \n> **风格**：豆包海底风·听力小达人风格\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成听力选图游戏视觉框架：\n\n【视觉规格】（豆包海底风·听力小达人风格）\n- 背景: 英语课堂场景，书架、黑板\n- UI: 3D黏土图片卡片\n- 标题: \"🎧 听力选图\"，活泼字体\n- 角色: 小狐狸学生（底部）\n- 播放: 音符播放按钮\n- 图片: 4个选项，黏土质感\n- 反馈: 选对欢呼，选错摇头\n- 字体: \"Comic Sans MS\"英文，\"方正卡通\"中文\n- 音频: 强制静音（视觉字幕）\n\n【布局】（全屏游戏布局）\n- 顶部25%：标题区\n  - 游戏标题\"🎧 听力选图\"\n  - 题目进度（1/5）\n  - 当前分数\n- 中部35%：播放区\n  - 大型音符播放按钮\n  - 播放后显示英文单词\n- 下部40%：选择区\n  - 4张图片卡片（2×2排列）\n  - 小狐狸角色（底部中央）\n\n【颜色】\n- 课堂黄: #F4D03F\n- 正确绿: #2ECC71\n- 错误红: #E74C3C\n- 背景蓝: #87CEEB\n\n【图片设计】\n- 3D黏土风格\n- 可爱动物/物品\n- 圆角边框\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则弹窗】（游戏前自动弹出一次）\n标题：「🎧 听力选图规则」\n\n规则说明：\n1. 点击播放\"听\"英文单词\n2. 从4张图片中选择对应的\n3. 选对进入下一题\n\n【关闭弹窗】按钮\n\n【游戏区域交互】\n\n一、顶部信息栏（只显示，不交互）\n- 游戏标题：\"🎧 听力选图\"\n- 题目进度：1/5\n- 当前分数\n\n二、中部播放区\n\n交互1：播放单词\n- 点击音符按钮\n- 显示英文单词字幕\n- 小狐狸侧耳倾听\n\n三、下部选择区\n\n交互2：选择图片\n- 4张图片（2×2排列）\n- 点击图片\n- 选中放大\n\n交互3：正确反馈\n- 绿色高亮\n- 小狐狸欢呼\n- \"✓ Great!\"\n- +10分\n\n交互4：错误反馈\n- 红色抖动\n- 显示正确答案\n\n四、底部控制区\n\n计分：\n- 正确+10分\n- 连对额外加分\n\n胜利判定：\n- 完成5题\n- \"🎉 听力小达人！\"\n- 显示总分\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【听力选图题库】\n\n1. 单词 \"Cat\"\n选项：猫、狗、鸟、鱼\n答案：猫\n\n2. 单词 \"Dog\"\n选项：猫、狗、鸟、鱼\n答案：狗\n\n3. 单词 \"Apple\"\n选项：苹果、香蕉、橙子、葡萄\n答案：苹果\n\n4. 单词 \"Red\"\n选项：红色、蓝色、绿色、黄色\n答案：红色\n\n5. 单词 \"Book\"\n选项：书、笔、书包、橡皮\n答案：书\n\n【配置】\n- 总题数：5题\n- 每题4选项\n- 3D黏土风格\n```\n\n---\n\n*听力选图 | 豆包海底风·听力小达人风格 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/listen-select.md"
+      ],
+      "priority": 1991,
+      "status": "active"
+    },
+    {
       "id": "knowledge-relay",
       "title": "一线牵知识接力",
-      "category": "team_coop",
+      "category": "action",
+      "secondaryCategory": "team_coop",
+      "secondaryLabel": "团队协作",
       "subjectTags": [
         "general"
       ],
@@ -745,9 +1229,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-sentence-blocks",
+      "title": "句子叠叠乐",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「句子叠叠乐」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「句子叠叠乐」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"句子叠叠乐\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-sentence-build\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"2-3\"\n---\n\n# 🧱 句子叠叠乐\n\n> **难度**：⭐⭐ 中等  \n> **适用**：小学2-3年级  \n> **风格**：3D黏土积木风·句子建筑师\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成句子搭建游戏视觉框架：\n\n【视觉规格】（3D黏土积木风·句子建筑师）\n- 背景: 建筑工地，积木堆，吊车\n- UI: 彩色积木块，圆润3D质感\n- 标题: \"🧱 句子叠叠乐\"，积木风格字体\n- 角色: 建筑师小熊，安全帽\n- 积木: 单词块设计成彩色积木\n- 搭建: 积木堆叠成完整句子塔\n- 完成: 句子塔建成，小熊欢呼\n- 字体: \"Comic Sans MS\"英文，\"方正卡通\"中文\n- 音频: 强制静音\n\n【布局】\n- 顶部：场景图片 + 进度\n- 中央：句子搭建台（槽位）\n- 底部：积木单词池\n\n【颜色】\n- 工地橙: #FF8C00\n- 积木红: #DC143C\n- 积木黄: #FFD700\n- 积木蓝: #1E90FF\n- 积木绿: #32CD32\n\n【积木设计】\n- 3D黏土质感\n- 圆角设计\n- 可拖拽堆叠\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则】\n\"化身句子建筑师\n用积木块搭建完整句子！\"\n\n【核心机制】\n\n一、场景展示\n- 显示场景图片（男孩吃苹果）\n- 句子槽位：_____ _____ _____\n\n二、积木单词池\n- 散落彩色积木单词块\n- is / eating / an / He / apple / .\n\n三、交互方式\n\n1. 拖拽搭建\n   - 拖拽积木到句子槽位\n   - 按正确语序排列\n   - 例：He + is + eating + an + apple + .\n\n2. 自动缩放\n   - 长句子自动缩放\n   - 确保一行展示完整\n\n3. 搭建完成\n   - 句子塔建成发光\n   - 小熊建筑师欢呼\n   - 彩带飘落\n\n四、关卡设计\n- 3词句（简单）：+8分\n- 4词句（中等）：+10分\n- 5词句（困难）：+12分\n- 20秒内完成：额外+5分\n\n五、计时\n- 30秒/题\n- 时间条显示\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【句子搭建题库】\n\n第1题（3词句-简单）\n图片：男孩吃苹果\n单词块：He / is / eating / an / apple / .\n正确句子：He is eating .\n答案：He is eating .\n\n第2题（4词句-中等）\n图片：猫在树下睡觉\n单词块：The / cat / is / sleeping / under / the / tree / .\n正确句子：The cat is sleeping under the tree .\n\n第3题（5词句-困难）\n图片：女孩在公园放风筝\n单词块：The / girl / is / flying / a / kite / in / the / park / .\n正确句子：The girl is flying a kite in the park .\n\n【配置】\n- 总题数：3个句子\n- 难度递增：3+4+5词\n- 限时：30秒/题\n```\n\n---\n\n*句子叠叠乐 | 3D黏土积木风·句子建筑师 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/sentence-blocks.md"
+      ],
+      "priority": 1990,
+      "status": "active"
+    },
+    {
       "id": "wrong-question-survival",
       "title": "错题大逃杀-复习",
-      "category": "survival_arena",
+      "category": "action",
+      "secondaryCategory": "survival_arena",
+      "secondaryLabel": "生存竞技",
       "subjectTags": [
         "math"
       ],
@@ -791,9 +1324,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-story-chain",
+      "title": "故事接接龙",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「故事接接龙」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「故事接接龙」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"故事接接龙\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-story-sequence\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"2-3\"\n---\n\n# 📖 故事接接龙\n\n> **难度**：⭐⭐ 中等  \n> **适用**：小学2-3年级  \n> **风格**：童话绘本风·故事接龙家\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成故事排序游戏视觉框架：\n\n【视觉规格】（童话绘本风·故事接龙家）\n- 背景: 童话绘本风格，柔和色彩\n- UI: 绘本翻页效果，插画风格\n- 标题: \"📖 故事接接龙\"，童话风格字体\n- 角色: 故事接龙家（戴帽子的讲故事者）\n- 图片: 4张故事插画（打乱）\n- 排序: 拖拽卡片排列\n- 完成: 绘本翻页动画\n- 字体: \"Comic Sans MS\"英文，\"方正卡通\"中文\n- 音频: 强制静音\n\n【布局】\n- 顶部：故事标题 + 进度\n- 中央：4张打乱的故事卡片\n- 底部：排序槽位（1-2-3-4）\n\n【颜色】\n- 绘本粉: #FFB6C1\n- 童话紫: #DDA0DD\n- 柔和黄: #F0E68C\n- 天蓝色: #87CEEB\n- 草地绿: #90EE90\n\n【卡片设计】\n- 绘本插画风格\n- 圆角边框\n- 数字标记位置\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则】\n\"化身故事接龙家\n把打乱的图片排成完整故事！\"\n\n【核心机制】\n\n阶段1：图片排序（3题）\n\n1. 故事卡片\n   - 4张打乱顺序的图片\n   - 每张配简单英文描述\n   - 例：The cat is hungry.\n\n2. 拖拽排序\n   - 拖拽卡片到1-2-3-4槽位\n   - 正确顺序：\n     1. 开头（The cat is hungry）\n     2. 发展（It sees a fish）\n     3. 高潮（It jumps into water）\n     4. 结尾（It eats the fish）\n\n3. 计时\n   - 30秒/题\n   - 20秒内完成：额外+5分\n\n4. 计分\n   - 完整排序：+15分\n   - 部分正确：+5分/对位\n\n阶段2：句子选择（4题）\n\n1. 故事框架\n   - Beginning → Middle → End\n   - 选择每部分正确句子\n\n2. 选择交互\n   - 点击选择正确句子\n   - 正确：高亮+分数\n   - 计时：20秒/题\n\n3. 计分\n   - 正确：+10分/题\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【故事排序题库】\n\n故事1：小猫钓鱼\n图片1：\"The cat is hungry.\" (开头)\n图片2：\"It sees a fish.\" (发展)\n图片3：\"It jumps into the water.\" (高潮)\n图片4：\"It gets the fish and eats it.\" (结尾)\n\n故事2：小鸟学飞\n图片1：\"The bird is in the nest.\" (开头)\n图片2：\"It wants to fly.\" (发展)\n图片3：\"It jumps and flaps wings.\" (高潮)\n图片4：\"It flies high in the sky.\" (结尾)\n\n故事3：苹果成熟\n图片1：\"The apple is small and green.\" (开头)\n图片2：\"It grows bigger every day.\" (发展)\n图片3：\"It turns red and sweet.\" (高潮)\n图片4：\"We pick and eat it.\" (结尾)\n\n阶段2句子选择：\nQ: What happens at the beginning?\n选项：A. The end  B. The start  C. The middle\n答案：B\n\n【配置】\n- 阶段1：3个故事，30秒/题\n- 阶段2：4题，20秒/题\n- 童话绘本风格\n```\n\n---\n\n*故事接接龙 | 童话绘本风·故事接龙家 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/story-chain.md"
+      ],
+      "priority": 1989,
+      "status": "active"
+    },
+    {
       "id": "idiom-battle",
       "title": "成语大作战-对战",
-      "category": "battle_reasoning",
+      "category": "action",
+      "secondaryCategory": "battle_reasoning",
+      "secondaryLabel": "对战推理",
       "subjectTags": [
         "chinese"
       ],
@@ -837,9 +1419,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-word-classify",
+      "title": "单词分类魔法师",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「单词分类魔法师」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「单词分类魔法师」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"单词分类魔法师\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-classify\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"1-3\"\n---\n\n# 🔮 单词分类魔法师\n\n> **难度**：⭐ 简单  \n> **适用**：小学1-3年级  \n> **风格**：魔法世界·符文分类\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成单词分类游戏视觉框架：\n\n【视觉规格】（魔法世界·符文分类）\n- 背景: 魔法图书馆，书架飘浮，星光点点\n- UI: 魔法符文卡片，流光溢彩\n- 标题: \"🔮 单词分类魔法师\"，魔法字体\n- 角色: 小魔法师，手持魔杖\n- 卡片: 魔法符文样式，金色边框\n- 篮子: 四个魔法阵分类区\n- 拖拽: 卡片飞入魔法阵\n- 成功: 魔法阵发光+符文旋转\n- 字体: \"Comic Sans MS\"英文，\"方正卡通\"中文\n- 音频: 强制静音\n\n【布局】\n- 顶部：单词卡片区（12张符文）\n- 底部：四个魔法阵分类区\n- 中央：小魔法师+魔杖\n\n【颜色】\n- 魔法紫: #9400D3\n- 星光金: #FFD700\n- 符文蓝: #4169E1\n- 魔法阵红: #DC143C\n- 背景黑: #1a1a2e\n\n【分类区】\n- Animals（动物）：蓝色魔法阵\n- Food（食物）：红色魔法阵\n- Colors（颜色）：黄色魔法阵\n- Actions（动作）：绿色魔法阵\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则】\n\"化身分类魔法师\n把单词符文放入正确的魔法阵！\"\n\n【核心机制】\n\n一、阶段1：Concrete（40秒）\n- 12张带图片的单词卡片\n- 拖拽到对应分类区\n- 分类：Animals/Food/Colors/Actions\n\n二、单词卡片（符文样式）\n- Animals: cat, dog, fish, bird\n- Food: apple, cake, milk, egg\n- Colors: red, blue, green, yellow\n- Actions: run, jump, swim, eat\n\n三、交互细节\n\n1. 拖拽分类\n   - 按住单词符文\n   - 拖到魔法阵上方\n   - 正确：符文飞入，魔法阵发光\n   - 错误：符文弹回，轻微抖动\n\n2. 魔法阵反馈\n   - 正确分类：魔法阵旋转发光\n   - 收集进度：显示已分类数量\n   - 全部正确：四个魔法阵联动发光\n\n3. 计分\n   - 正确分类：+10分/个\n   - 40秒内完成：额外+10分\n   - 全部正确：+50分\n\n4. 计时器\n   - 魔法沙漏倒计时\n   - 最后10秒变红闪烁\n   - 超时停止计分\n\n5. 小魔法师\n   - 正确时挥魔杖庆祝\n   - 错误时摇头提示\n   - 完成时施法庆祝\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【单词分类表】\n\nAnimals（动物）- 蓝色魔法阵\ncat, dog, fish, bird\n\nFood（食物）- 红色魔法阵\napple, cake, milk, egg\n\nColors（颜色）- 黄色魔法阵\nred, blue, green, yellow\n\nActions（动作）- 绿色魔法阵\nrun, jump, swim, eat\n\n【题目配置】\n- 总单词：12个\n- 分类：4类，每类3个\n- 限时：40秒\n- CPA模式：仅保留Concrete阶段\n```\n\n---\n\n*单词分类 | 魔法世界·符文分类 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/word-classify.md"
+      ],
+      "priority": 1988,
+      "status": "active"
+    },
+    {
       "id": "word-assembly-rush",
       "title": "单词拼装赛",
-      "category": "puzzle_rush",
+      "category": "action",
+      "secondaryCategory": "puzzle_rush",
+      "secondaryLabel": "限时解谜",
       "subjectTags": [
         "english"
       ],
@@ -885,9 +1516,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-word-gate",
+      "title": "单词拼写石门探险",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「单词拼写石门探险」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「单词拼写石门探险」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"单词拼写-石门探险\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-spell-gate\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"3-4\"\n---\n\n# 🗿 单词拼写-石门探险\n\n> **难度**：⭐⭐ 中等  \n> **适用**：小学3-4年级  \n> **风格**：豆包森林风·原始丛林探险\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成单词拼写游戏视觉框架：\n\n【视觉规格】（豆包森林风·原始丛林探险）\n- 背景: 原始丛林，藤蔓缠绕，神秘石门\n- UI: 黏土质感探险装备，木质边框\n- 标题: \"🗿 单词拼写-石门探险\"，探险风格字体\n- 角色: 探险家小猴，手持火把\n- 石门: 中央巨型石门，刻有单词凹槽\n- 输入: 黏土字母输入板\n- 反馈: 石门发光开启/纹丝不动\n- 字体: \"Comic Sans MS\"英文，\"方正卡通\"中文\n- 音频: 强制静音\n\n【布局】\n- 顶部：探险进度 + 神秘宝箱计数\n- 中央：巨型石门 + 句子提示\n- 底部：字母输入板 + 提示按钮\n\n【颜色】\n- 丛林绿: #228B22\n- 石门灰: #708090\n- 黏土褐: #8B4513\n- 火把橙: #FF4500\n- 宝藏金: #FFD700\n\n【反馈动画】\n- 拼写正确：石门发光开启，获得宝箱\n- 拼写错误：石门纹丝不动，提示首字母\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则】\n\"化身原始丛林探险家\n破解单词石门，获得神秘宝箱！\"\n\n【核心机制】\n\n一、句子提示\n- 显示带挖空的英文句子\n- 例：\"The monkey is climbing the _____.\"\n- 听句子功能（视觉字幕）\n\n二、单词拼写\n- 黏土字母键盘\n- 输入完整单词\n- 提交验证\n\n三、石门反馈\n\n1. 拼写正确\n   - 石门发出轰鸣\n   - 发光开启动画\n   - \"石门开启了！获得神秘宝箱\"\n   - 显示奖励单词\n\n2. 拼写错误\n   - 石门纹丝不动\n   - 给出首字母提示\n   - 或中文提示\n   - 鼓励重试\n\n四、探险进度\n- 3道石门关卡\n- 每关获得神秘宝箱\n- 收集进度显示\n\n五、计分\n- 首次拼对：+15分\n- 提示后拼对：+10分\n- 获得宝箱：额外+5分\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【石门探险题库】\n\n第1道石门：\n句子：\"The monkey is climbing the _____.\"\n答案：tree\n提示：首字母 t，中文\"树\"\n\n第2道石门：\n句子：\"The bird is flying in the _____.\"\n答案：sky\n提示：首字母 s，中文\"天空\"\n\n第3道石门：\n句子：\"The fish is swimming in the _____.\"\n答案：water\n提示：首字母 w，中文\"水\"\n\n奖励单词：\n- treasure, jungle, explorer\n\n【配置】\n- 关卡数：3道石门\n- 每关1个单词\n- 黏土丛林风格\n```\n\n---\n\n*单词拼写 | 豆包森林风·原始丛林探险 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/word-gate.md"
+      ],
+      "priority": 1987,
+      "status": "active"
+    },
+    {
       "id": "word-elimination",
       "title": "单词晋级赛-单词综合",
-      "category": "elimination",
+      "category": "action",
+      "secondaryCategory": "elimination",
+      "secondaryLabel": "淘汰晋级",
       "subjectTags": [
         "english"
       ],
@@ -933,9 +1613,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-word-match",
+      "title": "单词消消乐",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「单词消消乐」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「单词消消乐」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"单词消消乐\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-word-match\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"2-3\"\n---\n\n# 📝 单词消消乐\n\n> **难度**：⭐⭐ 中等  \n> **适用**：小学2-3年级  \n> **风格**：豆包糖果风·单词小能手风格\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成单词消消乐游戏视觉框架：\n\n【视觉规格】（豆包糖果风·单词小能手风格）\n- 背景: 单词城堡场景，书本塔楼\n- UI: 3D黏土单词卡片，圆润可爱\n- 标题: \"📝 单词消消乐\"，书本风格字体\n- 角色: 小骑士狐狸（底部）\n- 卡片: 单词卡片（图片+英文）\n- 连线: 选中时发光连线\n- 消除: 单词消失+书本翻开特效\n- 字体: \"Comic Sans MS\"\n- 音频: 强制静音\n\n【布局】（全屏游戏布局）\n- 顶部20%：游戏信息栏\n  - 关卡进度（1/8对）\n  - 倒计时（90秒）\n  - 当前分数\n- 中部60%：游戏棋盘区\n  - 4×4单词卡片矩阵\n  - 图片卡+英文单词卡混合\n- 底部20%：控制区\n  - 小骑士狐狸角色\n  - 【提示】【重置】按钮\n  - 规则说明按钮（?）\n\n【颜色】\n- 城堡棕: #8B4513\n- 图片卡（物品图案）:\n  - 猫: 粉色 #FFB6C1\n  - 狗: 棕色 #D2691E\n  - 苹果: 红色 #DC143C\n  - 书: 蓝色 #1E90FF\n- 单词卡（白色背景）:\n  - cat, dog, apple, book\n- 选中发光: #FFFFFF\n- 连线发光: #FFD700\n- 按钮提示蓝: #238be0\n- 按钮重置黄: #f7b40d\n\n【卡片设计】\n- 3D黏土质感\n- 圆角设计（圆角半径12px）\n- 图片卡: 大图+小英文提示\n- 单词卡: 大英文单词\n- 尺寸：80×80px\n- 间距：10px\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则弹窗】\n标题：「📝 单词消消乐规则」\n\n规则说明：\n1. 棋盘上有图片卡和单词卡\n2. 点击图片+对应的英文单词\n3. 可以连线消除（连线不超过3弯）\n4. 消除所有8对=胜利！\n\n技巧提示：\n- 看图片找对应的英文单词\n- 猫→cat，狗→dog\n\n【关闭弹窗】按钮\n\n【游戏区域交互】\n\n一、顶部信息栏（只显示）\n- 关卡进度、倒计时、分数\n\n二、中央棋盘区（4×4混合卡片）\n\n卡片类型：\n- 图片卡：猫图×2, 狗图×2, 苹果图×2, 书图×2\n- 单词卡：cat×2, dog×2, apple×2, book×2\n\n交互1：点击选择\n- 第一次点击：选图片卡（高亮）\n- 第二次点击：选单词卡\n- 配对判定：图片对应单词？\n\n交互2：配对判定\n- 猫图 + cat = ✓ 可消除\n- 狗图 + dog = ✓ 可消除\n- 猫图 + dog = ✗ 不匹配\n- cat + dog = ✗ 不匹配\n\n判定规则：\n- 图片必须与对应单词配对\n- 可消除：发光连线，卡片消除\n- 不可消除：抖动，取消选择\n\n交互3：消除动画\n- 连线闪烁（0.3秒）\n- 显示单词拼写（如\"C-A-T\"）\n- 卡片消失+书本翻开特效\n- 进度+1，分数+10\n\n三、底部控制区\n\n按钮1：【获取提示】#238be0\n- 高亮一对可配对的卡片\n- 限制3次\n\n按钮2：【重置游戏】#f7b40d\n- 重新打乱卡片\n\n按钮3：【规则说明】（?图标）\n\n四、胜利/失败判定\n- 胜利：消除8对\n- 失败：超时90秒\n\n五、计分\n- 基础消除：+10分/对\n- 连击加成：连续消除额外+5分\n- 快速消除：5秒内消除额外+5分\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【单词消消乐棋盘】\n\n4×4混合卡片布局：\n┌─────────┬─────────┬─────────┬─────────┐\n│   🐱   │   dog   │   cat   │   🍎   │\n├─────────┼─────────┼─────────┼─────────┤\n│  apple  │   🐕   │  book   │   📖   │\n├─────────┼─────────┼─────────┼─────────┤\n│   🐱   │  apple  │   🐕   │   cat   │\n├─────────┼─────────┼─────────┼─────────┤\n│  book   │   📖   │   dog   │   🍎   │\n└─────────┴─────────┴─────────┴─────────┘\n\n配对说明：\n- 🐱猫图×2 + cat×2 → 猫图-cat配对×2\n- 🐕狗图×2 + dog×2 → 狗图-dog配对×2\n- 🍎苹果图×2 + apple×2 → 苹果图-apple配对×2\n- 📖书图×2 + book×2 → 书图-book配对×2\n\n正确配对（8对）：\n- 猫图-cat ×2\n- 狗图-dog ×2\n- 苹果图-apple ×2\n- 书图-book ×2\n\n【配置】\n- 棋盘：4×4\n- 卡片类型：4种物品（猫/狗/苹果/书）\n- 每种数量：图片2张+单词2个\n- 可配对：8对\n- 限时：90秒\n```\n\n---\n\n*单词消消乐 | 豆包糖果风·单词小能手风格 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/word-match.md"
+      ],
+      "priority": 1986,
+      "status": "active"
+    },
+    {
       "id": "extreme-jump-spelling",
       "title": "极限跳跃-单词拼写",
-      "category": "jump_obstacle",
+      "category": "action",
+      "secondaryCategory": "jump_obstacle",
+      "secondaryLabel": "跳跃障碍",
       "subjectTags": [
         "english"
       ],
@@ -981,9 +1710,246 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "english-word-spell",
+      "title": "单词拼拼乐",
+      "category": "english",
+      "secondaryCategory": "english_activity",
+      "secondaryLabel": "英语专项",
+      "subjectTags": [
+        "英语"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "英语专项",
+      "shortDesc": "听、认、配、拼、分类、句子和对话练习。适合把教学内容放进「单词拼拼乐」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "英语专项",
+        "英语",
+        "未标注"
+      ],
+      "suitableFor": [
+        "英语专项",
+        "听、认、配、拼、分类、句子和对话练习",
+        "英语"
+      ],
+      "classFlow": [
+        "呈现任务",
+        "听音或看图",
+        "完成选择/匹配/拼写",
+        "即时反馈",
+        "复习总结"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「单词拼拼乐」模板：听、认、配、拼、分类、句子和对话练习。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"单词拼拼乐\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"english-spell\"\ndifficulty: \"easy\"\ncategory: \"英语\"\ngrade: \"1-3\"\n---\n\n# 🧩 单词拼拼乐\n\n> **难度**：⭐ 简单  \n> **适用**：小学1-3年级  \n> **风格**：3D黏土积木风·工地建造\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成单词拼写游戏视觉框架：\n\n【整体布局】\n- 白色卡片16:9比例，占背景85%\n- 背景：黏土工地场景，积木堆、吊车\n- 暖黄色圆角外框 #FFD700\n\n【分区】\n一、左区30%（规则区）：\n   - 标题「🧩 单词拼拼乐」金色大字\n   - 规则说明：看图片 → 拼单词 → 搭建积木塔\n   - 玩法说明：拖拽字母积木到正确位置\n\n二、右区70%（游戏区）：\n   - 上方：目标图片+建筑工地\n   - 中央：单词槽位（_ _ _ _）\n   - 下方：字母积木池\n\n【UI组件】\n- 卡片底座：白色圆角，暖黄边框\n- 字母积木：3D黏土质感，彩色\n- 槽位：木质搭建台\n- 完成：单词塔建成发光\n\n【颜色】\n- 背景工地橙: #FF8C00\n- 边框: #FFD700\n- 积木红: #DC143C\n- 积木黄: #FFD700\n- 积木蓝: #1E90FF\n- 积木绿: #32CD32\n\n【字体】\n- 英文：Comic Sans MS\n- 中文：方正卡通\n\n【按钮】\n- 【提示】#238be0（积木蓝）\n- 【重置】#f7b40d（积木黄）\n- 【提交】#19c348（积木绿）\n\n【音频】强制静音\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【左侧规则区30%】\n标题：「🧩 单词拼拼乐」\n\n规则说明：\n1. 观察上方的图片\n2. 从下方选择正确的字母积木\n3. 拖拽到搭建台的槽位中\n4. 拼出正确的单词\n\n玩法提示：\n- 建筑工人小熊会帮助你\n- 拼对后积木塔会发光\n\n【右侧游戏区70%】\n\n上方-目标区：\n- 显示物品图片（如：苹果）\n- 建筑工人小熊旁站\n- 播放单词（视觉字幕）\n\n中央-搭建台：\n- 单词槽位：_ _ _ _（显示字母数）\n- 每放一个字母，塔升高\n- 全部放完：单词塔建成\n\n下方-积木池：\n- 散落彩色字母积木\n- 目标单词字母+干扰字母\n- 3D黏土质感\n\n交互逻辑：\n\n1. 拖拽搭建\n   - 拖拽字母到槽位\n   - 正确位置：积木发光固定\n   - 错误位置：掉落弹回\n\n2. 点击搭建\n   - 点击字母自动飞向槽位\n   - 按顺序填充\n\n3. 积木堆叠\n   - 每放一个字母，塔升高\n   - 显示已拼字母\n\n4. 完成动画\n   - 单词塔发光旋转\n   - 小熊工人欢呼\n   - 彩纸飘落\n   - \"Great Job!\"\n\n5. 【提示】系统\n   - 显示正确字母位置\n   - 限制3次\n\n6. 计分\n   - 正确拼写：+10分\n   - 一次成功：额外+5分\n   - 连对3个：+10分\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【单词拼写题库】\n\n简单（3字母）\n1. 图片：猫 → 单词：CAT → 字母：C,A,T\n2. 图片：狗 → 单词：DOG → 字母：D,O,G\n3. 图片：太阳 → 单词：SUN → 字母：S,U,N\n\n中等（4-5字母）\n4. 图片：苹果 → 单词：APPLE → 字母：A,P,P,L,E\n5. 图片：香蕉 → 单词：BANANA → 字母：B,A,N,A,N,A\n6. 图片：小鸟 → 单词：BIRD → 字母：B,I,R,D\n\n困难（6字母+）\n7. 图片：大象 → 单词：ELEPHANT → 字母：E,L,E,P,H,A,N,T\n8. 图片：蝴蝶 → 单词：BUTTERFLY → 字母：B,U,T,T,E,R,F,L,Y\n\n干扰字母池：\nX, Z, Q, V, J, K, M, W\n\n【配置】\n- 总题数：8题\n- 难度递增：3+3+2\n- 图片+英文，无中文提示\n```\n\n---\n\n*单词拼拼乐 | 3D黏土积木风·工地建造 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "fruit_garden_full",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/english/word-spell.md"
+      ],
+      "priority": 1985,
+      "status": "active"
+    },
+    {
+      "id": "futoshiki-game",
+      "title": "game",
+      "category": "logic",
+      "secondaryCategory": "futoshiki",
+      "secondaryLabel": "不等式数独",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "不等式数独",
+      "shortDesc": "大小关系约束下的数字推理。适合把教学内容放进「game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "不等式数独",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "不等式数独",
+        "大小关系约束下的数字推理",
+        "数学"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game」模板：大小关系约束下的数字推理。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"不等式数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_futoshiki.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"futoshiki\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 不等式数独（Futoshiki）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成不等式数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: N×N方格\n- 数字: 填入1-N\n- 不等号: > 或 < 显示在格子间\n- 选中高亮: 淡蓝色 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题+规则+数字键盘\n- 右区70%（游戏区）：不等式数独棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 不等式数独\"\n\n规则说明：\n\"填入数字满足数独+不等式双重约束！\n\n规则：\n① 填入1-N：每格填入1到N的数字\n② 行列不重复：每行每列数字不重复\n③ 不等式约束：> 和 < 表示大小关系\n④ 全填满：所有格子必须填满\"\n\n【右侧游戏区（70%）】\n\n一、不等式数独棋盘区\n- N×N网格\n- 格子间显示 > 或 <\n\n二、交互功能\n\n1. 数字填入\n   - 单击格子：选中\n   - 点击数字键盘：填入数字\n\n2. 冲突检测\n   - 实时检测重复数字\n   - 违反不等式时标红\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 限制：全局最多3次\n   - ⚠️ 重置游戏不恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有数字\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 格式：网格大小+不等式位置+预设数字\n2. 示例（5×5）：\n\n   不等式位置：\n   (1,1)>(1,2), (2,3)<(2,4)...\n   \n   预设数字：\n   (1,3)=4, (3,1)=2...\n\n放置完成后，整个不等式数独游戏完成。\n```\n\n---\n\n*不等式数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/futoshiki/game.md"
+      ],
+      "priority": 1984,
+      "status": "active"
+    },
+    {
+      "id": "futoshiki-practice",
+      "title": "practice",
+      "category": "logic",
+      "secondaryCategory": "futoshiki",
+      "secondaryLabel": "不等式数独",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "不等式数独",
+      "shortDesc": "大小关系约束下的数字推理。适合把教学内容放进「practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "不等式数独",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "不等式数独",
+        "大小关系约束下的数字推理",
+        "数学"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「practice」模板：大小关系约束下的数字推理。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"不等式数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_futoshiki.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"futoshiki\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 不等式数独（Futoshiki）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成不等式数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: N×N方格\n- 数字: 填入1-N\n- 不等号: > 或 < 显示在格子间\n- 选中高亮: 淡蓝色 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题+规则+数字键盘\n- 右区70%（游戏区）：不等式数独棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 不等式数独\"\n\n规则说明：\n\"填入数字满足数独+不等式双重约束！\n\n规则：\n① 填入1-N：每格填入1到N的数字\n② 行列不重复：每行每列数字不重复\n③ 不等式约束：> 和 < 表示大小关系\n④ 全填满：所有格子必须填满\"\n\n【右侧游戏区（70%）】\n\n一、不等式数独棋盘区\n- N×N网格\n- 格子间显示 > 或 <\n\n二、交互功能\n\n1. 数字填入\n   - 单击格子：选中\n   - 点击数字键盘：填入数字\n\n2. 冲突检测\n   - 实时检测重复数字\n   - 违反不等式时标红\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 限制：全局最多3次\n   - ⚠️ 重置游戏不恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有数字\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 格式：网格大小+不等式位置+预设数字\n2. 示例（5×5）：\n\n   不等式位置：\n   (1,1)>(1,2), (2,3)<(2,4)...\n   \n   预设数字：\n   (1,3)=4, (3,1)=2...\n\n放置完成后，整个不等式数独游戏完成。\n```\n\n---\n\n*不等式数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/futoshiki/practice.md"
+      ],
+      "priority": 1983,
+      "status": "active"
+    },
+    {
+      "id": "futoshiki-strict",
+      "title": "strict",
+      "category": "logic",
+      "secondaryCategory": "futoshiki",
+      "secondaryLabel": "不等式数独",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "不等式数独",
+      "shortDesc": "大小关系约束下的数字推理。适合把教学内容放进「strict」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "不等式数独",
+        "数学",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "不等式数独",
+        "大小关系约束下的数字推理",
+        "数学"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「strict」模板：大小关系约束下的数字推理。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"不等式数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_futoshiki.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"futoshiki\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 不等式数独（Futoshiki）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成不等式数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: N×N方格\n- 数字: 填入1-N\n- 不等号: > 或 < 显示在格子间\n- 选中高亮: 淡蓝色 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题+规则+数字键盘\n- 右区70%（游戏区）：不等式数独棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348） - 严格模式：仅成功/失败\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 不等式数独\"\n\n规则说明：\n\"填入数字满足数独+不等式双重约束！\n\n规则：\n① 填入1-N：每格填入1到N的数字\n② 行列不重复：每行每列数字不重复\n③ 不等式约束：> 和 < 表示大小关系\n④ 全填满：所有格子必须填满\"\n\n【右侧游戏区（70%）】\n\n一、不等式数独棋盘区\n- N×N网格\n- 格子间显示 > 或 <\n\n二、交互功能\n\n1. 数字填入\n   - 单击格子：选中\n   - 点击数字键盘：填入数字\n\n2. 冲突检测\n   - 实时检测重复数字\n   - 违反不等式时标红\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 限制：全局最多3次\n   - ⚠️ 重置游戏不恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有数字\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 格式：网格大小+不等式位置+预设数字\n2. 示例（5×5）：\n\n   不等式位置：\n   (1,1)>(1,2), (2,3)<(2,4)...\n   \n   预设数字：\n   (1,3)=4, (3,1)=2...\n\n放置完成后，整个不等式数独游戏完成。\n```\n\n---\n\n*不等式数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/futoshiki/strict.md"
+      ],
+      "priority": 1982,
+      "status": "active"
+    },
+    {
+      "id": "galaxies-game",
+      "title": "game",
+      "category": "puzzle",
+      "secondaryCategory": "galaxies",
+      "secondaryLabel": "星系谜题",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "星系谜题",
+      "shortDesc": "中心对称区域划分。适合把教学内容放进「game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "星系谜题",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "星系谜题",
+        "中心对称区域划分",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game」模板：中心对称区域划分。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"星系-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_galaxies.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"galaxies\"\nmode: \"game\"\ncategory: \"连线类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 星系（Galaxies）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成星系的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: 点阵网格\n- 中心点: 白色圆点（星系中心）\n- 区域: 暖橙色线 #FF8C00\n- 区域填充: 淡彩色\n- 选中高亮: 淡蓝色 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题+规则\n- 右区70%（游戏区）：星系棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 星系\"\n\n规则说明：\n\"围绕中心点划分对称区域！\n\n规则：\n① 划分区域：用线划分网格\n② 中心对称：每个区域围绕一个点中心对称\n③ 全覆盖：所有格子必须被划分\n④ 一中心一区域：每个点对应一个区域\n⑤ 旋转对称：区域必须点对称\"\n\n【右侧游戏区（70%）】\n\n一、星系棋盘区\n- 点阵网格，显示中心点\n\n二、交互功能\n\n1. 画线划分\n   - 点击点之间画线\n   - 区域自动填充淡彩色\n\n2. 对称检测\n   - 实时检测区域是否中心对称\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 限制：全局最多3次\n   - ⚠️ 重置游戏不恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有线\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 格式：网格大小+中心点位置\n2. 示例：\n\n   网格：5×5\n   中心点：(2,2), (4,4)\n\n放置完成后，整个星系游戏完成。\n```\n\n---\n\n*星系 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/galaxies/game.md"
+      ],
+      "priority": 1981,
+      "status": "active"
+    },
+    {
       "id": "word-rocket-reading",
       "title": "单词小火箭-单词认读",
-      "category": "race_speed",
+      "category": "action",
+      "secondaryCategory": "race_speed",
+      "secondaryLabel": "竞速赛跑",
       "subjectTags": [
         "english"
       ],
@@ -1028,9 +1994,58 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "galaxies-practice",
+      "title": "practice",
+      "category": "puzzle",
+      "secondaryCategory": "galaxies",
+      "secondaryLabel": "星系谜题",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "星系谜题",
+      "shortDesc": "中心对称区域划分。适合把教学内容放进「practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "星系谜题",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "星系谜题",
+        "中心对称区域划分",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「practice」模板：中心对称区域划分。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"星系-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_galaxies.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"galaxies\"\nmode: \"game\"\ncategory: \"连线类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 星系（Galaxies）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成星系的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: 点阵网格\n- 中心点: 白色圆点（星系中心）\n- 区域: 暖橙色线 #FF8C00\n- 区域填充: 淡彩色\n- 选中高亮: 淡蓝色 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题+规则\n- 右区70%（游戏区）：星系棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 星系\"\n\n规则说明：\n\"围绕中心点划分对称区域！\n\n规则：\n① 划分区域：用线划分网格\n② 中心对称：每个区域围绕一个点中心对称\n③ 全覆盖：所有格子必须被划分\n④ 一中心一区域：每个点对应一个区域\n⑤ 旋转对称：区域必须点对称\"\n\n【右侧游戏区（70%）】\n\n一、星系棋盘区\n- 点阵网格，显示中心点\n\n二、交互功能\n\n1. 画线划分\n   - 点击点之间画线\n   - 区域自动填充淡彩色\n\n2. 对称检测\n   - 实时检测区域是否中心对称\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 限制：全局最多3次\n   - ⚠️ 重置游戏不恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有线\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 格式：网格大小+中心点位置\n2. 示例：\n\n   网格：5×5\n   中心点：(2,2), (4,4)\n\n放置完成后，整个星系游戏完成。\n```\n\n---\n\n*星系 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/galaxies/practice.md"
+      ],
+      "priority": 1980,
+      "status": "active"
+    },
+    {
       "id": "number-hide-seek-odd-even",
       "title": "数字躲猫猫-单双数版",
-      "category": "hide_seek",
+      "category": "action",
+      "secondaryCategory": "hide_seek",
+      "secondaryLabel": "找物伪装",
       "subjectTags": [
         "math"
       ],
@@ -1075,9 +2090,3301 @@ export const inspirationSeedData = {
       "status": "active"
     },
     {
+      "id": "junior-logic-color-detective",
+      "title": "颜色规律侦探",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「颜色规律侦探」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「颜色规律侦探」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"颜色规律侦探\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"logic-pattern\"\ndifficulty: \"easy\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 🎨 颜色规律侦探\n\n> **难度**：⭐ 简单  \n> **适用**：一年级  \n> **核心能力**：颜色辨识、循环规律\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成颜色规律侦探游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 调色板主题背景（彩虹渐变色块）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"颜色规律侦探 🎨\"，方正粗圆，金色\n- 色块: 圆形彩色色块（80×80像素），鲜艳饱满\n- 选项: 4个彩色圆形选项按钮\n- 反馈: 调色盘混合动画区域\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题：颜色规律侦探 🎨\n  - 规则说明\n  - 操作指引\n- 右区70%（游戏区）：\n  - 上方：颜色序列展示区（带\"?\"占位）\n  - 中间：4个彩色选项按钮（A/B/C/D）\n  - 下方：反馈动画区\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【下一题】（含羞草黄 #f7b40d）- 答对后显示\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎨 颜色规律侦探\"\n\n规则说明：\n\"小画家，快来找出颜色序列的规律！\n\n规则：\n1. 观察颜色是怎么排列的\n2. \"?\"位置应该是什么颜色？\n3. 从A/B/C/D中选择正确答案\n4. 规律可能是：彩虹顺序、交替、循环等\n\n小贴士：\n- 看看颜色是怎么重复的\n- 想想彩虹的颜色顺序\n- 对比一下前后的变化\"\n\n【右侧游戏区（70%）】\n\n一、颜色序列展示区\n- 大号圆形彩色色块（80×80像素）\n- \"?\"位置用问号图标占位\n- 色块之间用箭头连接\n- 颜色鲜艳饱满（红、黄、蓝、绿、橙、紫）\n\n二、选项区\n- 4个彩色圆形选项按钮（A/B/C/D）\n- 鼠标悬停：按钮放大1.1倍\n- 选中：按钮边框高亮\n\n三、交互功能\n\n1. 单击选项 - 选择答案\n   - 选中选项高亮显示\n   - 再次点击可重新选择\n\n2. 【获取提示】（鼠尾草蓝 #238be0）\n   - 高亮显示规律部分\n   - 限制：全局最多3次\n   - 用尽后按钮变灰\n\n3. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 答对：\n     - 调色盘混合出正确颜色动画\n     - 游戏区绿色闪烁+星星飘落成烟花效果\n     - 中央弹窗动画显示\"🎉 发现规律！\"\n     - 显示【下一题】按钮\n   - 答错：\n     - 选中颜色变淡\n     - 提示\"再仔细观察一下颜色规律哦~\"\n     - 可重新选择\n\n4. 【下一题】（含羞草黄 #f7b40d）\n   - 答对后显示\n   - 点击进入下一道题目\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【题目数据】\n\n题目1（三色循环）：\n序列：🔴 🔵 🟢 🔴 🔵 🟢 🔴 ? 🟢\n选项：A. 🔴  B. 🔵  C. 🟢  D. 🟡\n正确答案：B（🔵）\n解析：红→蓝→绿循环\n\n题目2（双色交替）：\n序列：🔴 🟡 🔴 🟡 🔴 ?\n选项：A. 🔴  B. 🟡  C. 🔵  D. 🟢\n正确答案：B（🟡）\n解析：红→黄交替重复\n\n题目3（彩虹顺序）：\n序列：🔴 🟠 🟡 🟢 🔵 🟣 🔴 ?\n选项：A. 🔴  B. 🟠  C. 🟡  D. 🟢\n正确答案：B（🟠）\n解析：彩虹顺序循环（红橙黄绿蓝紫）\n\n题目4（对称规律）：\n序列：🔴 🟢 🟢 🔴 🔴 ?\n选项：A. 🔴  B. 🟢  C. 🔵  D. 🟡\n正确答案：B（🟢）\n解析：左右对称，中心对称\n\n题目5（颜色+数量）：\n序列：🔴 🟢🟢 🔴🔴🔴 ?\n选项：A. 🔴  B. 🟢🟢  C. 🟢🟢🟢🟢  D. 🔴🔴🔴🔴\n正确答案：C（🟢🟢🟢🟢）\n解析：红1个、绿2个、红3个、绿4个（颜色交替，数量递增）\n\n【显示要求】\n- 5道题依次展示\n- 当前题目序号显示（第X题/共5题）\n- 答对自动进入下一题\n- 全部完成显示总评\n\n放置完成后，整个颜色规律侦探游戏完成。\n```\n\n---\n\n*颜色规律侦探 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/color-detective.md"
+      ],
+      "priority": 1979,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-dual-dimension",
+      "title": "双维度规律大师",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「双维度规律大师」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「双维度规律大师」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"双维度规律大师\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"logic-pattern\"\ndifficulty: \"medium\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 🔀 双维度规律大师\n\n> **难度**：⭐⭐ 中等  \n> **适用**：一年级  \n> **核心能力**：多维度观察、综合推理、属性分析\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成双维度规律大师游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 双螺旋交织图案背景（淡紫色渐变）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"双维度规律大师 🔀\"，方正粗圆，金色\n- 卡片: 彩色图形卡片（颜色+形状组合）\n- 分析工具: 维度切换按钮（只看颜色/只看形状）\n- 选项: 4个候选卡片\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题：双维度规律大师 🔀\n  - 规则说明\n  - 分析工具按钮\n- 右区70%（游戏区）：\n  - 上方：图形卡片序列展示\n  - 中间：4个候选卡片选项\n  - 下方：反馈动画区\n\n【按钮位置规划】\n- 【只看颜色】（鼠尾草蓝 #238be0）\n- 【只看形状】（含羞草黄 #f7b40d）\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🔀 双维度规律大师\"\n\n规则说明：\n\"小侦探，这次要同时观察两个规律！\n\n规则：\n1. 每个图形都有颜色和形状两个属性\n2. 两个属性各自按规律变化\n3. 需要同时考虑两个维度才能找出答案\n\n小贴士：\n- 可以先只看颜色，找出颜色规律\n- 再只看形状，找出形状规律\n- 最后把两个规律合起来\"\n\n分析工具按钮：\n- 【只看颜色】（鼠尾草蓝 #238be0）：隐藏形状，只显示颜色块\n- 【只看形状】（含羞草黄 #f7b40d）：隐藏颜色，只显示形状轮廓\n\n【右侧游戏区（70%）】\n\n一、图形卡片序列展示区\n- 彩色图形卡片（如🔴△、🟢□）\n- \"?\"位置用空白卡片占位\n- 下方显示两个维度的规律提示条\n\n二、候选选项区\n- 4个候选卡片（颜色和形状的组合）\n- 鼠标悬停：卡片放大1.1倍\n- 选中：卡片边框高亮\n\n三、交互功能\n\n1. 【只看颜色】（鼠尾草蓝 #238be0）\n   - 隐藏形状，只显示纯色块\n   - 帮助发现颜色规律\n   - 再次点击恢复完整显示\n\n2. 【只看形状】（含羞草黄 #f7b40d）\n   - 隐藏颜色，只显示形状轮廓\n   - 帮助发现形状规律\n   - 再次点击恢复完整显示\n\n3. 【获取提示】（鼠尾草蓝 #238be0）\n   - 分别提示颜色和形状规律\n   - 限制：全局最多3次\n   - 用尽后按钮变灰\n\n4. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 答对：\n     - 双螺旋旋转动画\n     - 游戏区绿色闪烁+星星飘落成烟花效果\n     - 中央弹窗动画显示\"🎉 双维度破解成功！\"\n     - 显示规律解析（颜色+形状）\n   - 答错：\n     - 提示\"再看看颜色和形状各自怎么变的~\"\n     - 可重新选择\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【题目数据】\n\n题目1（颜色循环+形状循环）：\n序列：🔴△ 🟢□ 🔴△ 🟢□ 🔴△ ?\n选项：A. 🔴△  B. 🟢□  C. 🔴□  D. 🟢△\n正确答案：B（🟢□）\n颜色规律：红→绿循环\n形状规律：三角→方块循环\n\n题目2（颜色递增+形状固定）：\n序列：🔴○ 🟠○ 🟡○ 🟢○ ?\n选项：A. 🔴○  B. 🟠○  C. 🔵○  D. 🟣○\n正确答案：C（🔵○）\n颜色规律：红→橙→黄→绿→蓝（彩虹顺序）\n形状规律：始终圆形\n\n题目3（颜色固定+形状变化）：\n序列：🟢○ 🟢△ 🟢□ 🟢☆ ?\n选项：A. 🟢○  B. 🟢△  C. 🟢□  D. 🟢⬡\n正确答案：A（🟢○）\n颜色规律：始终绿色\n形状规律：圆→三角→方→星→圆（循环）\n\n题目4（颜色交替+形状递增）：\n序列：🔴○ 🔵○○ 🔴○○○ 🔵○○○○ ?\n选项：A. 🔴○○○○○  B. 🔵○○○○○  C. 🔴○  D. 🔵○○\n正确答案：A（🔴○○○○○）\n颜色规律：红→蓝交替\n形状规律：数量递增（1个→2个→3个→4个→5个）\n\n题目5（三色三形综合）：\n序列：🔴○ 🟢△ 🔵□ 🔴○ 🟢△ ?\n选项：A. 🔴○  B. 🟢△  C. 🔵□  D. 🟡☆\n正确答案：C（🔵□）\n颜色规律：红→绿→蓝循环\n形状规律：圆→三角→方块循环\n\n【显示要求】\n- 5道题依次展示\n- 当前题目序号显示\n- 答对显示两个维度的规律解析\n- 全部完成显示总评\n\n放置完成后，整个双维度规律大师游戏完成。\n```\n\n---\n\n*双维度规律大师 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/dual-dimension.md"
+      ],
+      "priority": 1978,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-maze-basic",
+      "title": "基础迷宫探险",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「基础迷宫探险」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「基础迷宫探险」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"基础迷宫探险\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"maze\"\ndifficulty: \"easy\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 🗺️ 基础迷宫探险\n\n> **难度**：⭐ 简单  \n> **适用**：一年级  \n> **核心能力**：路径规划、空间导航\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成基础迷宫探险游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 探险地图主题背景（草地、道路纹理）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"基础迷宫探险 🗺️\"，方正粗圆，金色\n- 网格: 5×5或6×6迷宫地图\n- 起点S: 绿色旗帜图标\n- 终点E: 红色旗帜图标\n- 墙壁🧱: 砖块或岩石图案\n- 可走: 草地或道路纹理\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题、规则、操作指引\n- 右区70%（游戏区）：迷宫地图、方向按钮、反馈\n\n【按钮】\n- 【⬆️】【⬇️】【⬅️】【➡️】方向按钮（含羞草黄 #f7b40d）\n- 【重置路径】（鼠尾草蓝 #238be0）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🗺️ 基础迷宫探险\"\n\n规则说明：\n\"小探险家，找到从起点到终点的路！\n\n规则：\n1. 从绿色旗帜S出发\n2. 只能上下左右移动，不能斜走\n3. 不能穿过墙壁🧱\n4. 到达红色旗帜E就成功！\n\n小贴士：\n- 多试几条路\n- 遇到墙就绕开\n- 可以用方向按钮一步步走\"\n\n【右侧游戏区（70%）】\n\n一、迷宫展示区\n- 5×5或6×6网格地图\n- 起点S：绿色旗帜\n- 终点E：红色旗帜\n- 墙壁🧱：不可通过\n- 可走格子：草地纹理\n\n二、路径绘制\n- 点击格子绘制路径（虚线或脚印）\n- 显示当前位置\n\n三、交互功能\n\n1. 方向按钮【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n   - 点击移动一步\n   - 撞墙时提示\"前面是墙，换条路~\"\n\n2. 【重置路径】（鼠尾草蓝 #238be0）\n   - 清除所有路径\n   - 回到起点位置\n\n3. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 到达终点：绿色闪烁+\"🎉 探险成功！\"+显示步数\n   - 未到达：提示\"还没到终点哦，继续探索~\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【迷宫数据 - 5×5】\n\n迷宫1（简单）：\nS . . . .\n. 🧱 🧱 . .\n. . . . .\n. 🧱 . 🧱 .\n. . . . E\n答案：右→右→下→下→下→右→右（8步）\n\n迷宫2（简单）：\nS . 🧱 . .\n. . . . .\n🧱 . 🧱 . .\n. . . . .\n. 🧱 . . E\n答案：下→右→右→下→下→右→右（7步）\n\n迷宫3（中等）：\nS . . . .\n🧱 🧱 . 🧱 .\n. . . . .\n. 🧱 🧱 . .\n. . . . E\n答案：右→右→下→左→下→右→右→下→左→左（10步）\n\n【显示要求】\n- 显示当前步数\n- 显示最佳步数参考\n- 迷宫可切换\n\n放置完成后，游戏完成。\n```\n\n---\n\n*基础迷宫探险 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/maze-basic.md"
+      ],
+      "priority": 1977,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-maze-condition",
+      "title": "条件逻辑迷宫",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「条件逻辑迷宫」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「条件逻辑迷宫」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"条件逻辑迷宫\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"maze\"\ndifficulty: \"hard\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 🧩 条件逻辑迷宫\n\n> **难度**：⭐⭐⭐⭐ 困难  \n> **适用**：一年级（进阶）  \n> **核心能力**：条件判断、多约束规划\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成条件逻辑迷宫游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 谜题主题背景（淡紫色+几何图案）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"条件逻辑迷宫 🧩\"，方正粗圆，金色\n- 网格: 5×5或6×6迷宫地图\n- 条件区: 顶部显示任务条件\n- 格子类型: 🌲草地、🌉桥梁、🌊河流等不同图标\n- 起点: 家图标\n- 终点: 学校图标\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题、规则、条件提示\n- 右区70%（游戏区）：条件说明、迷宫地图\n\n【按钮】\n- 【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n- 【重置路径】（鼠尾草蓝 #238be0）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🧩 条件逻辑迷宫\"\n\n规则说明：\n\"小侦探，根据条件找到正确的路！\n\n规则：\n1. 路径上有不同类型的格子\n2. 给定条件限制哪些格子可以走\n3. 在满足所有条件的前提下到达终点\n4. 走错格子会提示违反条件\n\n小贴士：\n- 先看清楚条件\n- 规划满足条件的路径\n- 可以重置重新尝试\"\n\n【右侧游戏区（70%）】\n\n一、条件说明区\n- 清晰显示任务条件\n- 使用图标+文字\n- 示例：\"✅ 可以走 🌲 草地\"\n- 示例：\"❌ 不能走 🌉 桥梁\"\n\n二、迷宫展示区\n- 5×5或6×6网格地图\n- 不同类型格子用不同图标\n- 起点：家图标\n- 终点：学校图标\n- 鼠标悬停显示格子类型\n\n三、交互功能\n\n1. 方向按钮【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n   - 点击移动一步\n   - 走到禁止格子时提示\"违反条件！\"\n\n2. 【重置路径】（鼠尾草蓝 #238be0）\n   - 清除路径\n   - 回到起点\n\n3. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 到达终点且满足条件：绿色闪烁+\"🎉 挑战成功！\"\n   - 未到达：提示\"还没到学校~\"\n   - 违反条件：提示\"违反了条件，重新规划~\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【迷宫数据 - 5×5】\n\n迷宫1（只走草地）：\n家 🌲 . 🌉 .\n🌉 . 🌲 . 🌲\n. 🌲 🌉 . .\n🌲 . . 🌲 .\n. 🌉 . . 校\n条件：只走有树的路🌲，不走过桥的路🌉\n路线：右→下→右→右→下→左→下→右→右→下→右（11步）\n\n迷宫2（只走桥梁）：\n家 . 🌉 . 🌲\n🌲 🌉 . 🌉 .\n. . 🌲 . 🌉\n🌉 . . 🌉 🌲\n. 🌲 . . 校\n条件：只走过桥的路🌉，不走草地🌲\n路线：右→右（🌉）→下→左（🌉）→下→右→右（🌉）→下→左（🌉）→下→右→右（10步）\n\n【显示要求】\n- 条件区始终显示当前任务\n- 违反条件时标红提示\n- 显示当前步数\n\n放置完成后，游戏完成。\n```\n\n---\n\n*条件逻辑迷宫 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/maze-condition.md"
+      ],
+      "priority": 1976,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-maze-key-door",
+      "title": "钥匙与门迷宫",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「钥匙与门迷宫」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「钥匙与门迷宫」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"钥匙与门迷宫\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"maze\"\ndifficulty: \"hard\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 🔑 钥匙与门迷宫\n\n> **难度**：⭐⭐⭐ 困难  \n> **适用**：一年级  \n> **核心能力**：任务序列规划、条件逻辑\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成钥匙与门迷宫游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 古堡探险主题背景（石墙纹理）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"钥匙与门迷宫 🔑\"，方正粗圆，金色\n- 网格: 5×5或6×6迷宫地图\n- 起点S: 探险家角色\n- 钥匙🔑: 金色钥匙图标\n- 门🚪: 木门带锁图标\n- 终点E: 宝箱图标\n- 墙壁🧱: 石墙图案\n- 物品栏: 显示已收集的钥匙\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题、规则、物品栏\n- 右区70%（游戏区）：迷宫地图、方向按钮\n\n【按钮】\n- 【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n- 【重置路径】（鼠尾草蓝 #238be0）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🔑 钥匙与门迷宫\"\n\n规则说明：\n\"小探险家，先拿钥匙再开门！\n\n规则：\n1. 迷宫中有锁着的门🚪\n2. 必须先找到钥匙🔑才能开门\n3. 顺序：拿钥匙→开门→到终点\n4. 没钥匙时不能通过门\n\n小贴士：\n- 规划好先后顺序\n- 先找到钥匙的位置\n- 再规划去门和终点的路\"\n\n物品栏：\n- 显示已收集的钥匙图标\n- 收集后钥匙亮起\n\n【右侧游戏区（70%）】\n\n一、迷宫展示区\n- 5×5或6×6网格地图\n- 起点S：探险家\n- 钥匙🔑：金色钥匙\n- 门🚪：带锁木门\n- 终点E：宝箱\n- 墙壁🧱：石墙\n\n二、锁机制\n- 无钥匙时，门显示锁定（红色边框）\n- 撞门时提示\"需要钥匙才能开门~\"\n- 有钥匙时，门解锁可通过\n\n三、交互功能\n\n1. 方向按钮【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n   - 点击移动一步\n   - 经过钥匙时自动收集\n   - 撞锁门时提示需要钥匙\n\n2. 【重置路径】（鼠尾草蓝 #238be0）\n   - 清除路径和钥匙状态\n   - 回到起点\n\n3. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 到达E：绿色闪烁+\"🎉 寻宝成功！\"+显示步数\n   - 未到达：提示\"还没到宝箱~\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【迷宫数据 - 5×5】\n\n迷宫1（1钥匙1门）：\nS . 🚪 . .\n. 🧱 🧱 . .\n🔑 . . . .\n. 🧱 🧱 🧱 .\n. . . . E\n路线：下→下→左（🔑）→上→上→右→右→右（开🚪）→下→下→右→右→到达E（12步）\n\n迷宫2（2钥匙2门）：\nS . 🚪 . .\n🔑 🧱 🧱 . .\n. . . 🚪 .\n. 🧱 🔑 🧱 .\n. . . . E\n路线：下（🔑1）→下→右→右（开🚪2）→下→左（🔑2）→上→上→左（开🚪1）→下→下→右→右→到达E（14步）\n\n【显示要求】\n- 物品栏实时显示钥匙收集状态\n- 门根据钥匙状态显示锁定/解锁\n- 显示当前步数\n\n放置完成后，游戏完成。\n```\n\n---\n\n*钥匙与门迷宫 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/maze-key-door.md"
+      ],
+      "priority": 1975,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-maze-portal",
+      "title": "传送门迷宫",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「传送门迷宫」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「传送门迷宫」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"传送门迷宫\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"maze\"\ndifficulty: \"hard\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 🌀 传送门迷宫\n\n> **难度**：⭐⭐⭐ 困难  \n> **适用**：一年级  \n> **核心能力**：空间跳跃思维、创新路径规划\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成传送门迷宫游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 科幻传送门主题背景（紫色漩涡图案）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"传送门迷宫 🌀\"，方正粗圆，金色\n- 网格: 6×6或7×7迷宫地图\n- 起点S: 宇航员图标\n- 终点E: 空间站图标\n- 传送门: 成对出现（A↔B），漩涡光环样式\n- 星星⭐: 金色星星\n- 墙壁🧱: 陨石图案\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题、规则、传送门说明\n- 右区70%（游戏区）：迷宫地图、方向按钮\n\n【按钮】\n- 【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n- 【重置路径】（鼠尾草蓝 #238be0）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🌀 传送门迷宫\"\n\n规则说明：\n\"小宇航员，利用传送门穿越迷宫！\n\n规则：\n1. 迷宫中有成对的传送门（A↔B）\n2. 进入A会从B出来，反之亦然\n3. 利用传送门可以跨越墙壁\n4. 收集星星后到达终点E\n\n小贴士：\n- 传送门是成对的，颜色相同\n- 走进传送门会自动传送\n- 有时需要绕路才能到传送门\"\n\n【右侧游戏区（70%）】\n\n一、迷宫展示区\n- 6×6或7×7网格地图\n- 起点S：宇航员图标\n- 终点E：空间站图标\n- 传送门A/B：漩涡光环，成对出现\n- 星星⭐：金色发光\n- 墙壁🧱：陨石图案\n\n二、传送机制\n- 角色走到传送门格子触发传送\n- 播放传送动画（漩涡旋转1秒）\n- 角色从另一端传送门出现\n\n三、交互功能\n\n1. 方向按钮【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n   - 点击移动一步\n   - 进入传送门时播放传送动画\n\n2. 【重置路径】（鼠尾草蓝 #238be0）\n   - 清除路径和收集状态\n   - 回到起点\n\n3. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 收集⭐并到达E：绿色闪烁+\"🎉 传送成功！\"+显示步数\n   - 未收集全：提示\"还有星星没收集~\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【迷宫数据 - 6×6】\n\n迷宫1（1个传送门对）：\nS . . . . .\n🧱 🧱 🧱 . 🧱 🧱\nA . . . . B\n🧱 . 🧱 🧱 . 🧱\n. . . . . .\n🧱 🧱 ⭐ . 🧱 E\n传送门：A(2,0) ↔ B(2,5)\n最优路线：下→下（进A）→从B出→下→下→左（⭐）→右→右→上→上→到达E（10步）\n\n迷宫2（2个传送门对）：\nS . A . . .\n🧱 🧱 . 🧱 🧱 .\n. . . . . B\n. 🧱 C 🧱 . .\n. . . . . D\n⭐ . 🧱 . . E\n传送门：A(0,2)↔B(2,5), C(3,2)↔D(4,5)\n最优路线：右→右（进A）→从B出→下→左→左→下（进C）→从D出→下→左（⭐）→右→右→下→右→到达E（14步）\n\n【显示要求】\n- 传送门成对标记（A↔B, C↔D）\n- 传送时播放漩涡动画\n- 显示当前步数\n\n放置完成后，游戏完成。\n```\n\n---\n\n*传送门迷宫 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/maze-portal.md"
+      ],
+      "priority": 1974,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-maze-stars",
+      "title": "星星收集迷宫",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「星星收集迷宫」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「星星收集迷宫」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"星星收集迷宫\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"maze\"\ndifficulty: \"medium\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# ⭐ 星星收集迷宫\n\n> **难度**：⭐⭐ 中等  \n> **适用**：一年级  \n> **核心能力**：路径优化、任务规划\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成星星收集迷宫游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 星空主题背景（深蓝色渐变+星星点缀）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"星星收集迷宫 ⭐\"，方正粗圆，金色\n- 网格: 5×5或6×6迷宫地图\n- 起点S: 宇航员/小动物图标\n- 终点E: 月球/家图标\n- 星星⭐: 金色星星，带发光动画\n- 墙壁🧱: 陨石/云朵图案\n- 进度: 顶部显示\"⭐ 0/3\"\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题、规则、收集进度\n- 右区70%（游戏区）：迷宫地图、方向按钮\n\n【按钮】\n- 【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n- 【重置路径】（鼠尾草蓝 #238be0）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"⭐ 星星收集迷宫\"\n\n规则说明：\n\"小宇航员，收集所有星星回家！\n\n规则：\n1. 从起点S出发\n2. 必须收集所有⭐才能到达终点E\n3. 规划最优路线，用最少的步数完成\n4. 只能上下左右移动\n\n小贴士：\n- 先规划好路线\n- 尽量不走回头路\n- 收集进度会实时显示\"\n\n【右侧游戏区（70%）】\n\n一、迷宫展示区\n- 5×5或6×6网格地图\n- 起点S：宇航员图标\n- 终点E：月球/家图标\n- 星星⭐：金色发光\n- 墙壁🧱：陨石图案\n- 收集进度：顶部\"⭐ 0/3\"\n\n二、收集机制\n- 角色经过星星格子自动收集\n- 星星变色或消失\n- 进度实时更新\n\n三、交互功能\n\n1. 方向按钮【⬆️】【⬇️】【⬅️】【➡️】（含羞草黄 #f7b40d）\n   - 点击移动一步\n   - 经过星星时播放收集动画\n\n2. 【重置路径】（鼠尾草蓝 #238be0）\n   - 清除路径和收集状态\n   - 回到起点\n\n3. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 收集所有⭐并到达E：绿色闪烁+\"🎉 任务完成！\"+显示步数\n   - 未收集全：提示\"还有星星没收集哦~\"\n   - 到达E但未收集全：提示\"先收集所有星星再回家~\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【迷宫数据 - 5×5】\n\n迷宫1（2颗星星）：\nS . ⭐ . .\n. 🧱 . 🧱 .\n. . . . .\n🧱 . ⭐ . 🧱\n. . . . E\n最优路线：右→右（⭐1）→下→左→下→下→右→右（⭐2）→右→下→右（10步）\n\n迷宫2（3颗星星）：\nS . . . ⭐\n🧱 🧱 . 🧱 .\n. ⭐ . . .\n. 🧱 🧱 . ⭐\n. . . . E\n最优路线：下→右→右（⭐2）→上→右（⭐1）→下→下→左→下→右→右（⭐3）→下→右（12步）\n\n【显示要求】\n- 实时显示收集进度\"⭐ X/3\"\n- 显示当前步数和最佳步数\n- 星星被收集后变色或消失\n\n放置完成后，游戏完成。\n```\n\n---\n\n*星星收集迷宫 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/maze-stars.md"
+      ],
+      "priority": 1973,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-number-increase",
+      "title": "数字图形递增",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「数字图形递增」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "数学"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「数字图形递增」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"数字图形递增\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"logic-pattern\"\ndifficulty: \"medium\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 📈 数字图形递增\n\n> **难度**：⭐⭐ 中等  \n> **适用**：一年级  \n> **核心能力**：数量对应、递增规律、数形结合\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成数字图形递增游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 上升阶梯主题背景（淡蓝色渐变）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"数字图形递增 📈\"，方正粗圆，金色\n- 图形: 黄色星星（或红色爱心、蓝色圆点），排列整齐\n- 行号: 每行左侧显示\"第X行\"\n- 输入: 数字输入框或图形拖拽区\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题：数字图形递增 📈\n  - 规则说明\n  - 操作指引\n- 右区70%（游戏区）：\n  - 上方：阶梯式图形展示（第1行、第2行...）\n  - 中间：答题区（输入框或图形区）\n  - 下方：验证动画区\n\n【按钮位置规划】\n- 【+】/【-】（含羞草黄 #f7b40d）- 增减图形数量\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"📈 数字图形递增\"\n\n规则说明：\n\"小数学家，快来发现数字的规律！\n\n规则：\n1. 观察每一行的图形数量\n2. 图形数量按什么规律变化？\n3. 下一行应该有多少个图形？\n4. 规律可能是：每次+1、+2、×2等\n\n小贴士：\n- 数一数每行有几个图形\n- 看看数量是怎么增加的\n- 用数字写出规律\"\n\n【右侧游戏区（70%）】\n\n一、阶梯式展示区\n- 每行左侧显示\"第X行\"\n- 图形整齐排列（黄色星星）\n- 最后一行显示\"？\"待填写\n\n二、答题区\n- 数字输入框（输入数量）\n- 或【+】【-】按钮增减图形\n\n三、交互功能\n\n1. 【+】/【-】按钮（含羞草黄 #f7b40d）\n   - 点击【+】：增加一个图形\n   - 点击【-】：减少一个图形\n   - 实时显示当前数量\n\n2. 【获取提示】（鼠尾草蓝 #238be0）\n   - 显示规律提示（如\"每次多1个\"）\n   - 限制：全局最多3次\n   - 用尽后按钮变灰\n\n3. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 答对：\n     - 阶梯上升动画\n     - 游戏区绿色闪烁+星星飘落成烟花效果\n     - 中央弹窗动画显示\"🎉 挑战成功！\"\n     - 显示下一题按钮\n   - 答错：\n     - 提示\"再仔细数数看~\"\n     - 可重新调整答案\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【题目数据】\n\n题目1（简单递增）：\n第1行：⭐\n第2行：⭐⭐\n第3行：⭐⭐⭐\n第4行：？\n答案：4个星星\n解析：每次+1（第n行有n个图形）\n\n题目2（+2递增）：\n第1行：❤️\n第2行：❤️❤️❤️\n第3行：❤️❤️❤️❤️❤️\n第4行：？\n答案：7个爱心\n解析：每次+2（1, 3, 5, 7）\n\n题目3（×2递增）：\n第1行：🔵\n第2行：🔵🔵\n第3行：🔵🔵🔵🔵\n第4行：？\n答案：8个圆点\n解析：每次×2（1, 2, 4, 8）\n\n题目4（三角形数）：\n第1行：🟢\n第2行：🟢🟢🟢\n第3行：🟢🟢🟢🟢🟢🟢\n第4行：？\n答案：10个图形\n解析：每次+2,+3,+4（1, 3, 6, 10）\n\n题目5（自定义规律）：\n第1行：🌙\n第2行：🌙🌙\n第3行：🌙🌙🌙\n第4行：🌙🌙🌙🌙\n第5行：🌙🌙🌙🌙🌙\n第6行：？\n答案：6个月亮\n解析：每次+1（第n行有n个图形）\n\n【显示要求】\n- 5道题依次展示\n- 当前题目序号显示\n- 答对自动进入下一题\n- 全部完成显示总评\n\n放置完成后，整个数字图形递增游戏完成。\n```\n\n---\n\n*数字图形递增 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/number-increase.md"
+      ],
+      "priority": 1972,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-rotation-puzzle",
+      "title": "方向旋转谜题",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「方向旋转谜题」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「方向旋转谜题」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"方向旋转谜题\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"logic-pattern\"\ndifficulty: \"medium\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 🔄 方向旋转谜题\n\n> **难度**：⭐⭐⭐ 中等  \n> **适用**：一年级  \n> **核心能力**：空间方向、旋转概念\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成方向旋转谜题游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 指南针或旋转齿轮主题背景\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"方向旋转谜题 🔄\"，方正粗圆，金色\n- 箭头: 大号箭头图标（→ ↓ ← ↑），80×80像素\n- 转盘: 圆形转盘演示区\n- 弧线: 虚线圆弧表示旋转方向\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题、规则、转盘\n- 右区70%（游戏区）：箭头序列、选项、反馈\n\n【按钮】\n- 【顺时针演示】（鼠尾草蓝 #238be0）\n- 【逆时针演示】（含羞草黄 #f7b40d）\n- 【获取提示】（鼠尾草蓝 #238be0）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🔄 方向旋转谜题\"\n\n规则说明：\n\"小导航员，看看箭头是怎么转的！\n\n规则：\n1. 观察箭头序列的变化规律\n2. 判断是顺时针还是逆时针旋转\n3. \"?\"位置的箭头应该朝哪个方向？\n4. 从A/B/C/D中选择正确答案\n\n小贴士：\n- 顺时针：右→下→左→上→右\n- 逆时针：右→上→左→下→右\n- 可以用转盘演示来验证\"\n\n【右侧游戏区（70%）】\n\n一、箭头序列展示区\n- 大号箭头图标（→ ↓ ← ↑）\n- 箭头之间用弧线连接\n- \"?\"位置用问号占位\n\n二、转盘演示区\n- 圆形转盘，带可旋转指针\n- 演示顺时针/逆时针旋转\n\n三、交互功能\n\n1. 【顺时针演示】（鼠尾草蓝 #238be0）\n   - 转盘指针顺时针旋转90度\n   - 显示旋转动画\n\n2. 【逆时针演示】（含羞草黄 #f7b40d）\n   - 转盘指针逆时针旋转90度\n   - 显示旋转动画\n\n3. 【获取提示】（鼠尾草蓝 #238be0）\n   - 高亮显示旋转方向\n   - 限制：全局最多3次\n\n4. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 答对：转盘旋转动画+绿色闪烁+\"🎉 挑战成功！\"\n   - 答错：提示\"再看看箭头是怎么转的~\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【题目数据】\n\n题目1（顺时针90度）：\n序列：→ ↓ ← ↑ → ?\n选项：A. →  B. ↓  C. ←  D. ↑\n正确答案：B（↓）\n解析：顺时针旋转90度\n\n题目2（逆时针90度）：\n序列：→ ↑ ← ↓ → ?\n选项：A. →  B. ↑  C. ←  D. ↓\n正确答案：B（↑）\n解析：逆时针旋转90度\n\n题目3（顺时针180度）：\n序列：→ ← → ← → ?\n选项：A. →  B. ←  C. ↑  D. ↓\n正确答案：B（←）\n解析：顺时针旋转180度（右→左）\n\n题目4（45度旋转）：\n序列：→ ↗ ↑ ↖ → ?\n选项：A. →  B. ↗  C. ↑  D. ↖\n正确答案：B（↗）\n解析：顺时针旋转45度\n\n题目5（复合旋转）：\n序列：→ ↓ ← ↑ → ↓ ← ?\n选项：A. →  B. ↓  C. ←  D. ↑\n正确答案：D（↑）\n解析：顺时针旋转循环\n\n放置完成后，游戏完成。\n```\n\n---\n\n*方向旋转谜题 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/rotation-puzzle.md"
+      ],
+      "priority": 1971,
+      "status": "active"
+    },
+    {
+      "id": "junior-logic-shape-detective",
+      "title": "形状规律侦探",
+      "category": "logic",
+      "secondaryCategory": "junior_logic",
+      "secondaryLabel": "低龄逻辑",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "低龄逻辑",
+      "shortDesc": "规律发现、迷宫、条件逻辑和方向旋转。适合把教学内容放进「形状规律侦探」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "低龄逻辑",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "低龄逻辑",
+        "规律发现、迷宫、条件逻辑和方向旋转",
+        "思维"
+      ],
+      "classFlow": [
+        "观察线索",
+        "判断规则",
+        "选择路径或答案",
+        "验证结果",
+        "挑战升级"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「形状规律侦探」模板：规律发现、迷宫、条件逻辑和方向旋转。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"形状规律侦探\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"logic-pattern\"\ndifficulty: \"easy\"\ncategory: \"逻辑推理\"\ngrade: \"1-2\"\n---\n\n# 🔍 形状规律侦探\n\n> **难度**：⭐ 简单  \n> **适用**：一年级  \n> **核心能力**：模式识别、序列推理\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成形状规律侦探游戏的视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 侦探主题背景（放大镜、线索纸纹理）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"形状规律侦探 🔍\"，方正粗圆，金色\n- 图形: 大号彩色图形（圆形、三角形、正方形等），带可爱表情\n- 选项: 4个选项按钮（A/B/C/D），带候选图形\n- 反馈: 侦探放大镜动画区域\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题：形状规律侦探 🔍\n  - 规则说明\n  - 操作指引\n- 右区70%（游戏区）：\n  - 上方：图形序列展示区（带\"?\"虚线框）\n  - 中间：4个选项按钮（A/B/C/D）\n  - 下方：反馈动画区\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【下一题】（含羞草黄 #f7b40d）- 答对后显示\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🔍 形状规律侦探\"\n\n规则说明：\n\"小侦探，快来找出图形序列的规律！\n\n规则：\n1. 观察图形序列的排列规律\n2. \"?\"位置应该是什么图形？\n3. 从A/B/C/D中选择正确答案\n4. 规律可能是：循环重复、递增、对称等\n\n小贴士：\n- 看看图形是怎么重复的\n- 数一数出现了几次\n- 对比一下前后的变化\"\n\n【右侧游戏区（70%）】\n\n一、图形序列展示区\n- 大号彩色图形序列（圆形、三角形、正方形等）\n- \"?\"位置用虚线框标出\n- 图形之间用箭头连接\n- 图形带可爱表情或高光效果\n\n二、选项区\n- 4个选项按钮（A/B/C/D）\n- 每个按钮配一个候选图形\n- 鼠标悬停：按钮放大1.1倍\n- 选中：按钮边框高亮\n\n三、交互功能\n\n1. 单击选项 - 选择答案\n   - 选中选项高亮显示\n   - 再次点击可重新选择\n\n2. 【获取提示】（鼠尾草蓝 #238be0）\n   - 高亮显示规律部分\n   - 限制：全局最多3次\n   - 用尽后按钮变灰\n\n3. 【提交答案】（碧绿 #19c348）\n   【验证】\n   - 答对：\n     - 侦探放大镜扫描动画\n     - 游戏区绿色闪烁+星星飘落成烟花效果\n     - 中央弹窗动画显示\"🎉 发现规律！\"\n     - 显示【下一题】按钮\n   - 答错：\n     - 选项按钮抖动\n     - 提示\"再仔细观察一下规律哦~\"\n     - 可重新选择\n\n4. 【下一题】（含羞草黄 #f7b40d）\n   - 答对后显示\n   - 点击进入下一道题目\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【题目数据】\n\n题目1（循环规律）：\n序列：○ △ □ ○ △ □ ○ △ ?\n选项：A. ○  B. △  C. □  D. ☆\n正确答案：C（□）\n解析：规律是\"圆形→三角形→正方形\"循环\n\n题目2（对称规律）：\n序列：○ △ □ ☆ □ △ ○ ?\n选项：A. ○  B. △  C. □  D. ☆\n正确答案：D（☆）\n解析：左右对称规律，中心是☆\n\n题目3（ABAB规律）：\n序列：○ ★ ○ ★ ○ ★ ?\n选项：A. ○  B. ★  C. △  D. □\n正确答案：A（○）\n解析：\"圆形→星星\"重复循环\n\n题目4（递增规律）：\n序列：○  ○○  ○○○  ○○○○  ?\n选项：A. ○  B. ○○  C. ○○○  D. ○○○○○\n正确答案：D（○○○○○）\n解析：圆形数量递增，每次多1个\n\n题目5（复合规律）：\n序列：○△  □○  △□  ○△  ?\n选项：A. ○△  B. □○  C. △□  D. ○□\n正确答案：B（□○）\n解析：\"圆形→三角形→正方形\"循环，每次显示两个图形\n\n【显示要求】\n- 5道题依次展示\n- 当前题目序号显示（第X题/共5题）\n- 答对自动进入下一题\n- 全部完成显示总评\n\n放置完成后，整个形状规律侦探游戏完成。\n```\n\n---\n\n*形状规律侦探 | 逻辑推理 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/logic/shape-detective.md"
+      ],
+      "priority": 1970,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-card-flip-race",
+      "title": "翻牌抢答赛",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「翻牌抢答赛」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「翻牌抢答赛」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"翻牌抢答赛\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-card\"\ndifficulty: \"medium\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🏃 翻牌抢答赛\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成翻牌抢答游戏视觉框架：\n\n【视觉规格】\n- 背景: 竞技场主题\n- 标题: \"🏃 翻牌抢答赛\"，方正粗圆，金色\n- 翻牌区: 4×3网格，背面统一图案\n- 计时器: 倒计时显示\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"限时翻牌，快速计算！\n翻到算式，立即回答\"\n\n【交互】\n1. 点击翻牌显示算式\n2. 输入答案或选择\n3. 正确：牌消失+得分\n4. 错误：牌翻回\n5. 计时结束显示总分\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【算式卡片】（示例）\n2+3=?, 5+4=?, 7+1=?, 3+6=?\n8-2=?, 9-5=?, 6-3=?, 4+5=?\n```\n\n---\n\n*翻牌抢答 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/card-flip-race.md"
+      ],
+      "priority": 1969,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-cpa-addition-within-10-v2",
+      "title": "10以内加法CPA入门",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「10以内加法CPA入门」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「10以内加法CPA入门」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"CPA加法游戏-10以内-专业版\"\nversion: \"2.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-addition-cpa\"\ndifficulty: \"adaptive\"\ncategory: \"数感训练\"\ngrade: \"1\"\ncpa_support: true\ncpa_stages:\n  - concrete\n  - pictorial\n  - abstract\ncpa_mode: \"adaptive\"\ndefault_cpa: true\nmath_topic: \"addition_within_10\"\nage_range: \"5-7\"\ncpa_features:\n  - \"积木拖拽合并（C）+ 动态脚手架\"\n  - \"数轴跳跃（P）+ 渐进提示\"\n  - \"算式填空（A）+ 间隔重复\"\n  - \"掌握度追踪（Mastery）\"\n---\n\n# 🧱 CPA加法游戏-10以内 (专业版 v2.0)\n\n> **难度**：自适应 ⭐  \n> **适用**：一年级（5-7岁）  \n> **核心能力**：10以内加法、CPA三阶段理解  \n> **设计理念**：MDA框架 + 动态脚手架 + 心流通道 + 无惩罚学习\n\n---\n\n## 📚 CPA教学设计 (融合教育游戏理论)\n\n### 🎯 理论基础\n\n| 理论 | 核心原则 | 游戏设计应用 |\n|:---:|:---|:---|\n| **MDA框架** | Mechanics → Dynamics → Aesthetics | 拖拽操作 → 自适应调整 → 心流体验 |\n| **心流理论** | 挑战与技能平衡 | 动态难度，目标70%成功率 |\n| **自我决定论** | 自主、胜任、联结 | 阶段自选、掌握度可见、帮助系统 |\n| **间隔重复** | 遗忘曲线对抗 | 错题自动加入复习队列 |\n| **动态脚手架** | 适时适度帮助 | 渐进式提示系统 |\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成CPA加法游戏的视觉框架：\n\n### 一、视觉规格\n\n【风格】儿童益智风 + 3D粘土增强 + 教育游戏专用\n- 背景：马卡龙渐变（柠檬黄#FFF5E6 → 薄荷绿#E6FFF5）\n- 主卡片：白色圆角卡片#FFFFFF，圆角24px，占屏幕85%\n- 边框：暖黄色#FFD700描边，3px\n\n【信息架构】\n┌─────────────────────────────────────────────────────────┐\n│  📊 掌握度: ████████░░ 78% │ 🎯 ⭐⭐ │ 🔥 连击: 3      │\n├─────────────────────────────────────────────────────────┤\n│  [🧱 积木] [📊 数轴] [🔢 算式] [🔄 复习]               │\n│       ↑ 当前高亮 │ 灰色可切换 │ 🔓 解锁进度          │\n├─────────────────────────────────────────────────────────┤\n│                    游戏区域                              │\n├─────────────────────────────────────────────────────────┤\n│  💡 提示(1/3): \"试试把积木拖到一起\"                    │\n└─────────────────────────────────────────────────────────┘\n\n【掌握度颜色系统】\n- 0-50%: 🔴 红色 #FF6B6B (需加强)\n- 50-80%: 🟡 黄色 #FFD93D (练习中)\n- 80%+: 🟢 绿色 #6BCB77 (掌握优秀)\n\n### 二、三阶段布局\n\n【Concrete阶段】\n┌─────────────────────────────────────┐\n│  📊 掌握度: ████████░░ 78%          │\n│           7 + 3 = ?                 │\n│                                     │\n│   🟥🟥🟥🟥🟥🟥🟥  （7个）        │\n│         ➕                          │\n│         🟦🟦🟦     （3个）        │\n│                                     │\n│   [拖拽蓝积木到红积木旁边]          │\n│                                     │\n│   💡 提示(1/3): \"把蓝色积木拖到红色  │\n│      积木旁边，看看会发生什么？\"    │\n└─────────────────────────────────────┘\n\n【Pictorial阶段】\n┌─────────────────────────────────────┐\n│  📊 掌握度: ████████░░ 78%          │\n│           7 + 3 = ?                 │\n│                                     │\n│   🐻                                │\n│   ↓                                 │\n│   0──1──2──3──4──5──6──7──8──9──10  │\n│            ↑           ↑            │\n│            起点        终点          │\n│                                     │\n│   💡 提示(2/3): \"从7开始，每跳一步    │\n│      数字会增加1\"                    │\n│                                     │\n│   [跳1步] [跳2步] [跳3步]           │\n└─────────────────────────────────────┘\n\n【Abstract阶段】\n┌─────────────────────────────────────┐\n│  📊 掌握度: ████████░░ 78%          │\n│          7 + 3 = __                 │\n│                                     │\n│   [ 8 ] [ 9 ] [ 10 ] [ 11 ]         │\n│                                     │\n│   🔄 间隔重复: 这是第2次遇到这道题    │\n│      上次答对: 3分钟前              │\n│                                     │\n│   [🧱 用积木思考] [📊 用数轴思考]   │\n│                                     │\n│   💡 提示(3/3): \"想想7往后数3个      │\n│      是几？\"                         │\n└─────────────────────────────────────┘\n\n要求：完成三种模式的视觉样式。确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能 (核心循环优化)\n\n```\n请在刚才的视觉框架基础上，添加CPA交互功能：\n\n【核心循环设计】(< 100ms 即时反馈)\n\n    输入 → 处理 → 反馈 → 奖励 → 重复\n     ↓      ↓      ↓      ↓      ↓\n   拖拽   检测   动画   XP+    下一题\n   点击   计算   音效   掌握度   或\n   选择          提示   更新    提示\n\n【顶部信息栏】\n- 📊 掌握度进度条 (实时更新)\n- 🎯 当前难度星级 (动态调整)\n- 🔥 连击数 (答对连续计数)\n- ⏱️ 本阶段用时 (仅统计，无惩罚)\n\n【Concrete阶段 - 积木合并模式】\n\n一、拖拽交互 (核心循环)\n1. 输入：点击选中积木，开始拖拽\n2. 处理：实时检测拖拽位置\n3. 反馈 (<100ms):\n   - 拖拽时：积木轻微放大(105%)\n   - 靠近目标区：目标区高亮闪烁\n   - 松手：立即触发合并或弹回\n4. 奖励：\n   - 正确：+10 XP，掌握度+5%，连击+1\n   - 错误：无惩罚，积木弹回，显示提示\n5. 重复：进入下一题或显示渐进提示\n\n二、渐进式提示系统 (动态脚手架)\n\n| 触发条件 | 提示内容 | 设计理念 |\n|:---:|:---|:---|\n| 5秒无操作 | \"试试拖拽蓝色积木\" | 自主探索优先 |\n| 第1次错误 | \"拖到红色积木旁边\" | 操作纠正 |\n| 第2次错误 | \"看，7和3合起来是多少？\" | 引导思考 |\n| 第3次错误 | 播放合并动画演示 | 示范学习 |\n\n三、掌握度追踪公式\n\n```\n掌握度更新:\n- 答对: +6% (基础) + 2% (3秒内) + 连击×0.5%\n- 答错: +0.5% (尝试也有收获)\n- 上限: 100%\n- 复习加成: 间隔重复答对额外+3%\n```\n\n【Pictorial阶段 - 数轴跳跃模式】\n\n一、跳跃交互\n1. 点击\"跳N步\"按钮\n2. 角色立即跳跃(<100ms)\n3. 数字高亮 + \"咚\"音效\n4. 到达终点: +10 XP，掌握度+5%\n5. 可继续跳跃或调整策略\n\n二、渐进提示\n- 跳过头: \"哦，跳太多了，试试少跳几步？\"\n- 跳不够: \"还没到呢，继续跳！\"\n- 犹豫10秒: \"从7开始，数3个数字：8, 9, 10\"\n\n【Abstract阶段 - 算式填空模式】\n\n一、选择交互\n1. 点击选项\n2. 立即反馈(<100ms):\n   - 正确: 按钮变绿，\"✓\"动画，Confetti粒子\n   - 错误: 按钮变红，\"再试试\"，无惩罚\n3. 错误后显示【🧱 用积木思考】【📊 用数轴思考】按钮\n4. 可选择帮助或继续尝试\n\n二、间隔重复系统 (对抗遗忘曲线)\n\n```\n错题复习间隔:\n- 第1次答错: 30秒后复习\n- 第2次答错: 1分钟后复习  \n- 第3次答错: 2分钟后复习\n- 之后每次: 间隔×2\n\n答对后间隔:\n- 第1次答对: 1分钟后复习\n- 第2次答对: 2分钟后复习\n- 之后每次: 间隔×2 (1→2→4→8→16分钟)\n```\n\n【CPA阶段转换规则】\n\n### 自适应模式 (推荐)\n\n```\n阶段解锁条件 (掌握度≥70%):\n- C阶段 ≥70% → 解锁P阶段\n- P阶段 ≥70% → 解锁A阶段\n- A阶段 ≥70% → 解锁复习模式\n\n提示消息:\n- \"🎉 解锁数轴模式！\"\n- \"🎉 解锁算式模式！\"\n- \"🎉 解锁间隔重复复习！\"\n```\n\n### 传统模式 (保留)\n- 标准模式: C→P→A固定流程\n- 快速模式: 跳过C，从P开始\n- 复习模式: 从A开始，错误回溯\n\n【难度自适应系统】\n\n```\n动态难度调整 (目标70%成功率):\n- 正确率 > 80% (3题): 难度+1，显示\"💪 挑战升级！\"\n- 正确率 50-80%: 保持当前难度 (心流区)\n- 正确率 < 50% (3题): 难度-1，显示\"💚 稍微简单一点！\"\n```\n\n【进度与激励】\n\n| 激励类型 | 触发条件 | 视觉效果 |\n|:---:|:---|:---|\n| 掌握度提升 | 每+10% | 进度条发光 |\n| 连击 | 连续正确 | 数字递增+火焰特效 |\n| 阶段徽章 | 阶段70% | 弹窗+徽章动画 |\n| 星级评价 | 关卡完成 | 1-3星展示 |\n| Confetti | 答对 | 彩色粒子庆祝 |\n| 成长曲线 | 随时查看 | 折线图显示进步 |\n\n要求：完成所有CPA交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据 (自适应题库)\n\n```\n请在刚才完成的游戏框架基础上，填入CPA三阶段题面数据：\n\n【自适应题库】\n\n难度分级:\n- ⭐ 简单: 和<7 (如 3+2, 5+1)\n- ⭐⭐ 中等: 和7-9 (如 7+3, 5+4)\n- ⭐⭐⭐ 困难: 和≥10 (如 8+5, 9+6)\n\n【关卡1：7 + 3 = 10】 (教学关卡 ⭐⭐)\n\nConcrete:\n- 左侧: 7个红积木\n- 右侧: 3个蓝积木\n- 掌握度目标: 70%\n- 提示: 渐进式3级\n\nPictorial:\n- 起点: 7\n- 步数: 3\n- 终点: 10\n- 掌握度目标: 70%\n\nAbstract:\n- 算式: 7 + 3 = __\n- 选项: [8, 9, 10, 11]\n- 答案: 10\n- 间隔重复: 1min → 2min → 4min\n\n【关卡2：4 + 5 = 9】 (⭐⭐)\nConcrete: 4黄 + 5绿\nPictorial: 起点4, 步数5\nAbstract: 选项[7,8,9,10]\n\n【关卡3：2 + 6 = 8】 (⭐)\nConcrete: 2粉 + 6紫\nPictorial: 起点2, 步数6\nAbstract: 选项[6,7,8,9]\n\n【关卡4：3 + 4 = 7】 (⭐)\nAbstract: 选项[6,7,8,9]\n间隔重复: 复习关卡1-3错题\n\n【关卡5：6 + 2 = 8】 (⭐)\nAbstract: 选项[7,8,9,10]\n间隔重复: 综合复习\n\n【显示要求】\n- 每关显示当前CPA阶段和掌握度\n- 阶段转换时播放解锁动画\n- 完成显示\"CPA大师\"徽章和成长曲线\n\n放置完成后，游戏完成。\n```\n\n---\n\n## 📊 学习报告 (专业版)\n\n```\n【关卡完成报告】\n\n🎉 恭喜完成\"10以内加法\"关卡！\n\n📈 MDA体验分析:\n┌────────────────────────────────────────────────────────┐\n│  Mechanics (机制操作)                                   │\n│  拖拽准确率: 95%  │  响应速度: 平均1.2秒              │\n├────────────────────────────────────────────────────────┤\n│  Dynamics (动态适应)                                    │\n│  难度调整: 2次升级  │  心流时长: 85%                  │\n├────────────────────────────────────────────────────────┤\n│  Aesthetics (情感体验)                                    │\n│  成就感: ⭐⭐⭐⭐⭐  │  掌控感: ⭐⭐⭐⭐⭐            │\n└────────────────────────────────────────────────────────┘\n\n📊 CPA阶段掌握度:\n┌───────────┬────────┬────────┬────────┐\n│   阶段    │  正确率 │  掌握度│  评级  │\n├───────────┼────────┼────────┼────────┤\n│ 🧱 Concrete│  100%  │  85%   │  ⭐⭐⭐ │\n│ 📊 Pictorial│ 100%  │  82%   │  ⭐⭐⭐ │\n│ 🔢 Abstract │  80%   │  70%   │  ⭐⭐  │\n└───────────┴────────┴────────┴────────┘\n\n🔄 间隔重复统计:\n- 错题复习: 3次\n- 间隔重复成功率: 100%\n- 长期记忆巩固: 优秀\n\n💡 自适应学习建议:\n- ✅ Concrete阶段: 掌握优秀，可进入挑战\n- ✅ Pictorial阶段: 掌握优秀，可进入挑战  \n- ⏳ Abstract阶段: 刚好达标，建议继续练习\n- 🎯 推荐下一步: \"20以内加法\"或\"减法概念\"\n\n🏆 获得徽章:\n- 🧱 积木大师 (Concrete 80%+)\n- 📊 数轴达人 (Pictorial 80%+)\n- 🔢 算式新星 (Abstract 70%+)\n\n📈 成长曲线:\n[折线图显示: 掌握度从0% → 78%]\n```\n\n---\n\n## 🎓 设计原则总结\n\n### ✅ 本模板遵循的教育游戏最佳实践\n\n| 原则 | 实现方式 |\n|:---:|:---|\n| **无惩罚失败** | 错误仅显示\"再试试\"，无Game Over |\n| **动态脚手架** | 渐进式提示，适时适度帮助 |\n| **间隔重复** | 错题自动加入复习队列，对抗遗忘 |\n| **掌握度追踪** | 实时显示，可视化进步 |\n| **心流通道** | 动态难度，目标70%成功率 |\n| **即时反馈** | <100ms响应，Confetti庆祝 |\n| **自主选择** | CPA阶段可自由切换 |\n| **胜任感** | XP+徽章+成长曲线 |\n\n---\n\n*CPA加法游戏-10以内 v2.0 | MDA框架 | 动态脚手架 | 间隔重复 | 2026-05-22*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/cpa-addition-within-10-v2.md"
+      ],
+      "priority": 1968,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-decompose-10-friends",
+      "title": "10的分解好朋友",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「10的分解好朋友」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「10的分解好朋友」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"10的分解-好朋友\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-decompose\"\ndifficulty: \"medium\"\ncategory: \"数感训练\"\ngrade: \"1\"\ncpa_support: true\ncpa_stages:\n  - concrete\n  - pictorial\n  - abstract\ncpa_mode: \"standard\"\ndefault_cpa: true\nmath_topic: \"decompose_10\"\nage_range: \"5-7\"\ncpa_features:\n  - \"数字卡片配对（C）\"\n  - \"数轴可视化（P）\"\n  - \"算式填空（A）\"\n---\n\n# 👫 10的分解-好朋友\n\n> **难度**：⭐⭐ 中等  \n> **适用**：一年级  \n> **核心能力**：凑十法基础、数对记忆\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成10的分解好朋友游戏视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 派对主题（彩带、气球）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"👫 10的分解-好朋友\"，方正粗圆，金色\n- 卡通数字10: 主持人角色，戴派对帽\n- 圆形舞台: 中央配对区\n- 数字卡片: 1-9拟人化数字角色\n- 牵手动画: 配对成功时跳舞\n- 口诀区: 记忆口诀显示\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题、规则、口诀\n- 右区70%（游戏区）：舞台、数字卡片、配对\n\n【好朋友配对表】\n1 🤝 9  一九一九好朋友\n2 🤝 8  二八二八手拉手\n3 🤝 7  三七三七真亲密\n4 🤝 6  四六四六一起走\n5 🤝 5  五五凑成一双手\n\n【按钮】\n- 【配对】（碧绿 #19c348）\n- 【口诀】（鼠尾草蓝 #238be0）\n- 【练习】（含羞草黄 #f7b40d）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"👫 10的分解-好朋友\"\n\n规则说明：\n\"小派对家，帮数字找到好朋友！\n\n规则：\n1. 点击一个数字，再点击另一个数字\n2. 如果两个数字相加=10，就是好朋友！\n3. 好朋友会牵手跳舞庆祝\n4. 找出所有5对好朋友\n\n好朋友口诀：\n🎵 一九一九好朋友\n   二八二八手拉手\n   三七三七真亲密\n   四六四六一起走\n   五五凑成一双手 🎵\n\n小贴士：\n1和9是好朋友，2和8是好朋友...\"\n\n【右侧游戏区（70%）】\n\n一、配对舞台\n- 圆形舞台（淡紫色）\n- 数字卡片1-9分布在舞台两侧\n- 每个数字有拟人化表情\n\n二、交互功能\n\n1. 配对模式\n   - 点击第一个数字：高亮选中\n   - 点击第二个数字：验证配对\n   - 配对成功：\n     - 两个数字牵手\n     - 跳圆圈舞动画\n     - \"🎉 一对好朋友！\"\n     - 添加到已完成列表\n   - 配对失败：\n     - 数字摇头\n     - 提示\"他们不是好朋友哦~\"\n\n2. 【口诀】（鼠尾草蓝 #238be0）\n   - 播放带节拍的口诀歌\n   - 歌词逐句高亮\n   - 数字角色随节拍跳舞\n\n3. 【练习】（含羞草黄 #f7b40d）\n   - 出题：8 + ? = 10\n   - 引导：\"8的好朋友是几？\"\n   - 选择正确答案\n\n4. 进度显示\n   - 显示已找到的好朋友对数\n   - 5对全部找到：\"🎉 全部配对成功！\"\n   - 烟花庆祝动画\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【好朋友配对数据】\n\n正确配对（5对）：\n1. 1 🤝 9 （一九一九好朋友）\n2. 2 🤝 8 （二八二八手拉手）\n3. 3 🤝 7 （三七三七真亲密）\n4. 4 🤝 6 （四六四六一起走）\n5. 5 🤝 5 （五五凑成一双手）\n\n【练习题】\n1. 8 + ? = 10  （答案：2）\n2. 7 + ? = 10  （答案：3）\n3. 4 + ? = 10  （答案：6）\n4. ? + 9 = 10  （答案：1）\n5. 5 + ? = 10  （答案：5）\n\n【显示要求】\n- 数字卡片拟人化（表情、小手）\n- 配对成功显示口诀文字\n- 已完成配对淡出或标记\n- 全部完成后庆祝动画\n\n放置完成后，游戏完成。\n```\n\n---\n\n*10的分解-好朋友 | 数感训练 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/decompose-10-friends.md"
+      ],
+      "priority": 1967,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-decompose-5",
+      "title": "5的分解",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「5的分解」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「5的分解」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"5的分解\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-decompose\"\ndifficulty: \"easy\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🖐️ 5的分解\n\n> **难度**：⭐ 简单  \n> **适用**：一年级  \n> **核心能力**：数的组成、有序思考\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成5的分解游戏视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 明亮活泼配色（黄、橙、绿渐变）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"🖐️ 5的分解\"，方正粗圆，金色\n- 卡通数字5角色: 带笑脸的拟人化数字\n- 左右篮子: 两个彩色篮子（左橙右蓝）\n- 物品: 5个可拖动的星星/苹果（黄色）\n- 算式区: \"□ + □ = 5\" 显示\n- 记录板: 已发现的分解方式卡片\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题、规则、记录板\n- 右区70%（游戏区）：数字5角色、篮子、物品、算式\n\n【按钮】\n- 【确认】（碧绿 #19c348）\n- 【重置】（含羞草黄 #f7b40d）\n- 【提示】（鼠尾草蓝 #238be0）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🖐️ 5的分解\"\n\n规则说明：\n\"小数学家，把5个星星分到两个篮子里！\n\n规则：\n1. 把星星拖到左边或右边的篮子\n2. 看看左边几个，右边几个\n3. 加起来是不是等于5\n4. 找出所有可能的分法\n\n分解方式：\n5 = 0 + 5\n5 = 1 + 4\n5 = 2 + 3\n5 = 3 + 2\n5 = 4 + 1\n5 = 5 + 0\n\n小贴士：按顺序从0到5，不会遗漏哦！\"\n\n【右侧游戏区（70%）】\n\n一、分解操作区\n- 5个可拖动的星星（黄色，带笑脸）\n- 左篮子（橙色）：显示当前数量\n- 右篮子（蓝色）：显示当前数量\n- 数字5角色在旁观看\n\n二、算式显示\n- 实时显示：\"左□ + 右□ = 5\"\n- 篮子数量变化时自动更新\n\n三、交互功能\n\n1. 拖拽功能\n   - 拖动星星到左篮或右篮\n   - 拖动时星星放大1.2倍\n   - 放入篮子时有\"掉落\"动画\n\n2. 【确认】（碧绿 #19c348）\n   【验证】\n   - 左 + 右 = 5：\n     - 星星闪烁金光\n     - 算式变彩色\n     - \"🎉 正确！发现一种分法！\"\n     - 添加到左侧记录板\n   - 左 + 右 ≠ 5：\n     - 篮子抖动\n     - 提示\"再数数看，是不是5个？\"\n\n3. 【重置】（含羞草黄 #f7b40d）\n   - 所有星星回到中间\n   - 篮子清空\n\n4. 【提示】（鼠尾草蓝 #238be0）\n   - 显示建议：\"试试左边放1个~\"\n   - 限制3次\n\n5. 记录板\n   - 显示已发现的分解方式\n   - 彩色卡片：\"1+4=5 ✓\"\n   - 全部6种发现后：\"🎉 全部找到！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【分解数据】\n\n所有正确分解方式：\n1. 左0 + 右5 = 5\n2. 左1 + 右4 = 5\n3. 左2 + 右3 = 5\n4. 左3 + 右2 = 5\n5. 左4 + 右1 = 5\n6. 左5 + 右0 = 5\n\n【题目配置】\n- 星星数量：5个\n- 星星图形：黄色五角星，带笑脸\n- 篮子颜色：左橙 #FF9800，右蓝 #2196F3\n- 目标：找出全部6种分解方式\n\n【验证规则】\n- 每次确认检查是否等于5\n- 新发现的分解方式添加到记录板\n- 重复的发现提示\"已经找过这种分法啦\"\n- 6种全部发现后显示庆祝动画\n\n放置完成后，游戏完成。\n```\n\n---\n\n*5的分解 | 数感训练 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/decompose-5.md"
+      ],
+      "priority": 1966,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-decompose-7",
+      "title": "7的分解",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「7的分解」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「7的分解」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"7的分解\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-decompose\"\ndifficulty: \"easy\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 7的分解\n\n> **难度**：⭐ 简单 | **适用**：一年级\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成7的分解游戏视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 彩虹渐变背景\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"7的分解\"，方正粗圆，金色\n- 卡通数字7: 拟人化角色\n- 左右篮子: 左紫 #9C27B0，右青 #00BCD4\n- 物品: 7个彩虹色小球\n- 算式区: \"左□ + 右□ = 7\"\n- 记录板: 已发现的分解方式\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 左区30%：规则区\n- 右区70%：游戏区（篮子、小球、算式）\n\n【按钮】\n- 【确认】（碧绿 #19c348）\n- 【重置】（含羞草黄 #f7b40d）\n- 【提示】（鼠尾草蓝 #238be0）\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【左侧规则区】\n标题：【方正粗圆】金色\"7的分解\"\n规则说明：\n\"把7个彩虹球分到两个篮子里！\n找出所有分法（0+7到7+0）\"\n\n【右侧游戏区】\n一、分解操作区\n- 7个可拖动的彩虹色小球\n- 左篮（紫色）：显示数量\n- 右篮（青色）：显示数量\n- 卡通数字7观看\n\n二、交互功能\n1. 拖拽小球到篮子\n2. 【确认】验证：\n   - 等于7：彩虹动画+\"🎉 正确！\"+添加到记录板\n   - 不等于7：篮子抖动+\"再数数~\"\n3. 【重置】清空篮子\n4. 【提示】显示建议（限3次）\n5. 记录板显示已发现的8种分法\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【分解数据】（8种）\n1. 0 + 7 = 7\n2. 1 + 6 = 7\n3. 2 + 5 = 7\n4. 3 + 4 = 7\n5. 4 + 3 = 7\n6. 5 + 2 = 7\n7. 6 + 1 = 7\n8. 7 + 0 = 7\n\n【配置】\n- 小球数量：7个彩虹色\n- 篮子：左紫右青\n- 目标：找出全部8种\n- 全部发现后：彩虹庆祝动画\n```\n\n---\n\n*7的分解 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/decompose-7.md"
+      ],
+      "priority": 1965,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-decompose-subtract",
+      "title": "减法分解",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「减法分解」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「减法分解」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"减法分解\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-decompose\"\ndifficulty: \"medium\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# ➖ 减法分解\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成减法分解游戏视觉框架：\n\n【视觉规格】\n- 背景: 果园主题\n- 标题: \"➖ 减法分解\"，方正粗圆，金色\n- 苹果树: 10个苹果\n- 篮子: 收集拿走的苹果\n- 算式: \"10 - □ = □\"\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"树上有10个苹果，拿走几个？\n学习减法分解！\"\n\n【交互】\n1. 点击苹果放到篮子（拿走）\n2. 自动显示减法算式\n3. 【确认】验证\n4. 【重置】苹果回树\n5. 记录不同减法算式\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【减法算式】\n10 - 0 = 10\n10 - 1 = 9\n10 - 2 = 8\n10 - 3 = 7\n10 - 4 = 6\n10 - 5 = 5\n10 - 6 = 4\n10 - 7 = 3\n10 - 8 = 2\n10 - 9 = 1\n10 - 10 = 0\n```\n\n---\n\n*减法分解 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/decompose-subtract.md"
+      ],
+      "priority": 1964,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-decompose-triple",
+      "title": "三数分解挑战",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「三数分解挑战」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「三数分解挑战」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"三数分解挑战\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-decompose\"\ndifficulty: \"medium\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🎯 三数分解挑战\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成三数分解游戏视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 星空主题\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"🎯 三数分解\"，方正粗圆，金色\n- 三个篮子: 左红 #F44336，中黄 #FFEB3B，右蓝 #2196F3\n- 物品: 10个星星\n- 算式: \"红□ + 黄□ + 蓝□ = 10\"\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则说明】\n\"把10个星星分到三个篮子里！\n找出所有三数相加等于10的组合\"\n\n【交互功能】\n1. 拖拽星星到三个篮子\n2. 【确认】验证是否等于10\n3. 【重置】清空\n4. 记录板显示已发现的组合\n5. 全部发现后庆祝\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【三数分解示例】\n- 1 + 2 + 7 = 10\n- 2 + 3 + 5 = 10\n- 1 + 4 + 5 = 10\n- 3 + 3 + 4 = 10\n- 2 + 4 + 4 = 10\n- 1 + 1 + 8 = 10\n- 2 + 2 + 6 = 10\n- 3 + 2 + 5 = 10\n（共多组答案）\n\n【配置】\n- 星星：10个金色星星\n- 三篮子：红黄蓝\n- 目标：找出尽可能多的组合\n```\n\n---\n\n*三数分解 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/decompose-triple.md"
+      ],
+      "priority": 1963,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-find-friend",
+      "title": "找朋友挑战",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「找朋友挑战」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「找朋友挑战」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"找朋友挑战\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-pair\"\ndifficulty: \"easy\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🤝 找朋友挑战\n\n> **难度**：⭐ 简单\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成找朋友游戏视觉框架：\n\n【视觉规格】\n- 背景: 派对场景\n- 标题: \"🤝 找朋友\"，方正粗圆，金色\n- 数字角色: 1-9拟人化，带表情\n- 配对区: 中央舞台\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"每个数字都有好朋友！\n加起来等于10就牵手\"\n\n【交互】\n1. 点击第一个数字\n2. 点击第二个数字\n3. 等于10：牵手跳舞+成功\n4. 不等于10：摇头+失败\n5. 找齐5对胜利\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【好朋友配对】\n1🤝9, 2🤝8, 3🤝7, 4🤝6, 5🤝5\n```\n\n---\n\n*找朋友 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/find-friend.md"
+      ],
+      "priority": 1962,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-jump-equation",
+      "title": "跳跃算式",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「跳跃算式」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「跳跃算式」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"跳跃算式\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-number-line\"\ndifficulty: \"medium\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# ✏️ 跳跃算式\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成跳跃算式游戏视觉框架：\n\n【视觉规格】\n- 背景: 数学乐园\n- 标题: \"✏️ 跳跃算式\"，方正粗圆，金色\n- 数轴: 带跳跃轨迹\n- 算式记录区: 右侧\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"观察跳跃过程，写出算式！\n理解加减法含义\"\n\n【交互】\n1. 观看角色跳跃动画\n2. 记录起点、方向、终点\n3. 填写算式 □+□=□ 或 □-□=□\n4. 【提交】验证\n5. 正确：下一题\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【题目示例】\n从3跳到7，向右跳4步\n算式：3+4=7\n\n从10跳到6，向左跳4步\n算式：10-4=6\n\n从5跳到12，向右跳7步\n算式：5+7=12\n```\n\n---\n\n*跳跃算式 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/jump-equation.md"
+      ],
+      "priority": 1961,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-jump-grid",
+      "title": "跳格子大冒险",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「跳格子大冒险」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「跳格子大冒险」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"跳格子大冒险\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-board\"\ndifficulty: \"hard\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🎮 跳格子大冒险\n\n> **难度**：⭐⭐⭐ 困难\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成跳格子大冒险游戏视觉框架：\n\n【视觉规格】\n- 背景: 冒险地图\n- 标题: \"🎮 跳格子大冒险\"，方正粗圆，金色\n- 格子地图: 0-20编号\n- 元素: 起点S,终点E,陷阱,弹簧\n- 骰子: 1-6点\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"掷骰子跳格子，避开陷阱！\n利用弹簧加速到终点\"\n\n【交互】\n1. 【掷骰子】显示点数\n2. 按点数前进\n3. 踩陷阱：后退3格\n4. 踩弹簧：前进5格\n5. 到达终点胜利\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【地图配置】\n格子0(S)-1-2-3(陷阱)-4-5(弹簧)-6-7-8-9(陷阱)-10-11-12-13-14(弹簧)-15-16-17(陷阱)-18-19-20(E)\n\n【规则】\n- 陷阱格：3,9,17 → 后退3格\n- 弹簧格：5,14 → 前进5格\n- 骰子：1-6随机\n```\n\n---\n\n*跳格子大冒险 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/jump-grid.md"
+      ],
+      "priority": 1960,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-make10-24",
+      "title": "凑十算24",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「凑十算24」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「凑十算24」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"凑十算24\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-card\"\ndifficulty: \"hard\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🔢 凑十算24\n\n> **难度**：⭐⭐⭐ 困难\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成凑十算24游戏视觉框架：\n\n【视觉规格】\n- 背景: 数学魔法主题\n- 标题: \"🔢 凑十算24\"，方正粗圆，金色\n- 四张牌: 中央展示\n- 算式输入区: 下方\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用四张牌，加减乘除\n算出24就胜利！\"\n\n【交互】\n1. 看四张牌思考\n2. 输入算式\n3. 验证结果\n4. 等于24：成功\n5. 不等于24：提示再试\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【示例题目】\n牌：3, 8, 3, 1\n答案：(3+1)×(8-3)=24 或 8×3×1=24\n\n牌：4, 4, 6, 6\n答案：4+4+6+6=20（不对）\n      6×4=24（用两张）\n```\n\n---\n\n*凑十算24 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/make10-24.md"
+      ],
+      "priority": 1959,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-make10-chain",
+      "title": "凑十接龙",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「凑十接龙」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「凑十接龙」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"凑十接龙\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-card\"\ndifficulty: \"hard\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🔗 凑十接龙\n\n> **难度**：⭐⭐⭐ 困难\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成凑十接龙游戏视觉框架：\n\n【视觉规格】\n- 背景: 链条主题\n- 标题: \"🔗 凑十接龙\"，方正粗圆，金色\n- 卡牌链: 横向排列的卡牌\n- 手牌区: 玩家手牌\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"连续出牌，凑成10！\n正好凑10就收走整条链\"\n\n【交互】\n1. 出牌加到链尾\n2. 实时显示当前和\n3. 和=10：收链得分\n4. 和>10：爆链惩罚\n5. 策略出牌抢先手\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【卡牌】\n数字1-10各多张\n\n【示例】\n链：2→和=2\n出3→链：2,3→和=5\n出5→链：2,3,5→和=10 ✓收链！\n```\n\n---\n\n*凑十接龙 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/make10-chain.md"
+      ],
+      "priority": 1958,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-make10-jump",
+      "title": "凑十跳跃挑战",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「凑十跳跃挑战」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「凑十跳跃挑战」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"凑十跳跃挑战\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-number-line\"\ndifficulty: \"medium\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🎯 凑十跳跃挑战\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成凑十跳跃游戏视觉框架：\n\n【视觉规格】\n- 背景: 跳远场地\n- 标题: \"🎯 凑十跳跃\"，方正粗圆，金色\n- 数轴: 0-20\n- 角色: 小青蛙\n- 步长选择: +1,+2,+5,+10\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用最少的跳跃凑到10的倍数！\n选择步长：1,2,5,10\"\n\n【交互】\n1. 选择跳跃步长\n2. 【跳跃】执行\n3. 到达10,20等：得分\n4. 最少步数挑战\n5. 规划最优路线\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【挑战题目】\n从0到10：最优2步（+5,+5或+10）\n从0到20：最优2步（+10,+10）\n从3到10：最优2步（+2,+5）\n从7到20：最优3步（+5,+5,+3）\n```\n\n---\n\n*凑十跳跃 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/make10-jump.md"
+      ],
+      "priority": 1957,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-number-line-guess",
+      "title": "数轴猜谜王",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「数轴猜谜王」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「数轴猜谜王」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"数轴猜谜王\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-number-line\"\ndifficulty: \"hard\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🎭 数轴猜谜王\n\n> **难度**：⭐⭐⭐ 困难\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成数轴猜谜游戏视觉框架：\n\n【视觉规格】\n- 背景: 猜谜舞台\n- 标题: \"🎭 数轴猜谜王\"，方正粗圆，金色\n- 隐藏数轴: 只显示部分刻度\n- 线索区: 谜语提示\n- 答案输入: 数字键盘\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"根据线索猜数字！\n在数轴上找到隐藏的数字\"\n\n【交互】\n1. 阅读谜语线索\n2. 推理数字位置\n3. 输入猜测\n4. 【提交】验证\n5. 正确：揭示位置+下一题\n6. 错误：提示再试\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【谜语题目】\n1. 我在5和7之间，我是谁？（答案：6）\n2. 我比10少3，我是谁？（答案：7）\n3. 我是2个5，我是谁？（答案：10）\n4. 我在数轴正中间，0和10之间（答案：5）\n5. 我加4等于9，我是谁？（答案：5）\n```\n\n---\n\n*数轴猜谜 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/number-line-guess.md"
+      ],
+      "priority": 1956,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-number-line-jump",
+      "title": "数轴基础跳跃",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「数轴基础跳跃」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「数轴基础跳跃」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"数轴基础跳跃\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-number-line\"\ndifficulty: \"easy\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🦘 数轴基础跳跃\n\n> **难度**：⭐ 简单  \n> **适用**：一年级  \n> **核心能力**：数轴认知、正向跳跃\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成数轴基础跳跃游戏视觉框架：\n\n【视觉规格】（儿童益智风）\n- 背景: 草原主题（绿色草地、蓝天）\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"🦘 数轴基础跳跃\"，方正粗圆，金色\n- 数轴: 水平数轴，0-10刻度\n- 小袋鼠: 站在数轴上的角色\n- 荷叶/石头: 数轴上的标记点\n- 跳跃动画: 抛物线跳跃轨迹\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题、规则、题目\n- 右区70%（游戏区）：数轴、小袋鼠、跳跃按钮\n\n【按钮】\n- 【+1】【+2】【+3】（含羞草黄 #f7b40d）\n- 【跳跃】（碧绿 #19c348）\n- 【重置】（鼠尾草蓝 #238be0）\n\n要求：完成视觉样式，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🦘 数轴基础跳跃\"\n\n规则说明：\n\"小袋鼠，在数轴上跳一跳！\n\n规则：\n1. 小袋鼠站在起点（比如0）\n2. 选择跳几步（+1、+2、+3）\n3. 点击【跳跃】，看跳到几\n4. 跳到目标数字就成功！\n\n数轴上的数字：\n0 1 2 3 4 5 6 7 8 9 10\n\n小贴士：\n- 往右跳是变大\n- +1就是跳1格\n- 观察跳到了哪个数字\"\n\n【右侧游戏区（70%）】\n\n一、数轴展示区\n- 水平数轴，0-10刻度\n- 每个刻度有荷叶标记\n- 小袋鼠站在当前位置\n\n二、跳跃交互\n\n1. 步数选择【+1】【+2】【+3】（含羞草黄 #f7b40d）\n   - 点击选择跳跃步数\n   - 选中按钮高亮\n   - 数轴上预显示落点（虚线）\n\n2. 【跳跃】（碧绿 #19c348）\n   - 小袋鼠跳跃动画（抛物线）\n   - 落到目标数字\n   - 显示算式：\"0 + 2 = 2\"\n   - 到达目标：\"🎉 到达目标！\"\n\n3. 【重置】（鼠尾草蓝 #238be0）\n   - 小袋鼠回到起点\n   - 清除所有记录\n\n4. 题目模式\n   - 显示题目：\"从3跳到7，需要+几？\"\n   - 选择正确答案\n   - 验证后小袋鼠执行跳跃\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请在刚才完成的游戏框架基础上，填入题面数据：\n\n【题目数据】\n\n基础跳跃题：\n1. 从0开始，+3跳到？（答案：3）\n2. 从2开始，+2跳到？（答案：4）\n3. 从5开始，+4跳到？（答案：9）\n4. 从3跳到7，需要+？（答案：4）\n5. 从1跳到6，需要+？（答案：5）\n\n【数轴配置】\n- 范围：0-10\n- 刻度：每个数字一个荷叶\n- 起点：可设置（默认0）\n- 目标：根据题目变化\n\n【显示要求】\n- 小袋鼠有跳跃动画（抛物线）\n- 落点显示算式\n- 到达目标时荷叶发光\n- 支持多次跳跃累积\n\n放置完成后，游戏完成。\n```\n\n---\n\n*数轴基础跳跃 | 数感训练 | 儿童益智风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/number-line-jump.md"
+      ],
+      "priority": 1955,
+      "status": "active"
+    },
+    {
+      "id": "junior-math-poker-friends",
+      "title": "认识好朋友扑克入门",
+      "category": "junior_math",
+      "secondaryCategory": "number_sense",
+      "secondaryLabel": "数感训练",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数感训练",
+      "shortDesc": "数的分解、凑十、数轴、加减法和口算训练。适合把教学内容放进「认识好朋友扑克入门」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数感训练",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数感训练",
+        "数的分解、凑十、数轴、加减法和口算训练",
+        "数学"
+      ],
+      "classFlow": [
+        "观察题目",
+        "操作数字或道具",
+        "完成计算",
+        "获得提示",
+        "进入下一题"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「认识好朋友扑克入门」模板：数的分解、凑十、数轴、加减法和口算训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"认识好朋友-扑克入门\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"math-card\"\ndifficulty: \"easy\"\ncategory: \"数感训练\"\ngrade: \"1\"\n---\n\n# 🎴 认识好朋友-扑克入门\n\n> **难度**：⭐ 简单\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成扑克入门游戏视觉框架：\n\n【视觉规格】\n- 背景: 魔术舞台\n- 标题: \"🎴 认识好朋友\"，方正粗圆，金色\n- 扑克牌: A-10卡通化\n- 配对区: 中间展示\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"扑克牌1-10找好朋友！\n加起来等于10就是好朋友\"\n\n【交互】\n1. 点击翻牌\n2. 选两张牌配对\n3. 等于10：配对成功，牌消失\n4. 不等于10：翻回去\n5. 全部配对完成胜利\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【扑克配对】\n- 牌组：1,2,3,4,5,6,7,8,9,10\n- 好朋友对：\n  1+9, 2+8, 3+7, 4+6, 5+5\n- 目标：找出所有5对\n```\n\n---\n\n*扑克入门 | 数感训练 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "math_racing_demo",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/math/poker-friends.md"
+      ],
+      "priority": 1954,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-magformers-cube",
+      "title": "磁力片正方体",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「磁力片正方体」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「磁力片正方体」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"磁力片-正方体\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-magnetic\"\ndifficulty: \"medium\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🎲 磁力片-正方体\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成磁力片正方体游戏视觉框架：\n\n【视觉规格】\n- 背景: 3D空间\n- 标题: \"🎲 磁力片-正方体\"，方正粗圆，金色\n- 磁力片: 6个正方形面\n- 3D组装效果\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用6片正方形磁力片拼出正方体！\"\n\n【交互】\n1. 拖拽磁力片\n2. 折叠成立体\n3. 磁力吸附边\n4. 【完成】验证正方体\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【正方体】\n- 6个正方形面\n- 折叠组装\n- 磁力吸附\n```\n\n---\n\n*磁力片正方体 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/magformers-cube.md"
+      ],
+      "priority": 1953,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-magformers-prism",
+      "title": "磁力片三棱柱",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「磁力片三棱柱」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「磁力片三棱柱」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"磁力片-三棱柱\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-magnetic\"\ndifficulty: \"medium\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 📦 磁力片-三棱柱\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成磁力片三棱柱游戏视觉框架：\n\n【视觉规格】\n- 背景: 3D空间\n- 标题: \"📦 磁力片-三棱柱\"，方正粗圆，金色\n- 磁力片: 2个三角形+3个长方形\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用5片磁力片拼出三棱柱！\"\n\n【交互】\n1. 选择磁力片\n2. 折叠组装\n3. 磁力吸附\n4. 【完成】验证\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【三棱柱】\n- 2个三角形底面\n- 3个长方形侧面\n- 共5片磁力片\n```\n\n---\n\n*磁力片三棱柱 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/magformers-prism.md"
+      ],
+      "priority": 1952,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-magformers-sphere",
+      "title": "磁力片球体",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「磁力片球体」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「磁力片球体」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"磁力片-球体\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-magnetic\"\ndifficulty: \"hard\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🔮 磁力片-球体\n\n> **难度**：⭐⭐⭐ 困难\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成磁力片球体游戏视觉框架：\n\n【视觉规格】\n- 背景: 3D空间\n- 标题: \"🔮 磁力片-球体\"，方正粗圆，金色\n- 磁力片: 多个五边形和六边形\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用多片磁力片拼出球体！\n类似足球的结构\"\n\n【交互】\n1. 选择五边形/六边形片\n2. 按规律组装\n3. 磁力吸附\n4. 【完成】验证球体\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【球体结构】\n- 12个五边形\n- 20个六边形\n- 类似足球/富勒烯结构\n```\n\n---\n\n*磁力片球体 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/magformers-sphere.md"
+      ],
+      "priority": 1951,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-magformers-square",
+      "title": "磁力片平面正方形",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「磁力片平面正方形」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「磁力片平面正方形」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"磁力片-平面正方形\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-magnetic\"\ndifficulty: \"easy\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# ⬜ 磁力片-平面正方形\n\n> **难度**：⭐ 简单\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成磁力片平面正方形游戏视觉框架：\n\n【视觉规格】\n- 背景: 金属板背景\n- 标题: \"⬜ 磁力片-平面正方形\"，方正粗圆，金色\n- 磁力片: 彩色正方形片（带磁铁标记）\n- 吸附效果: 靠近自动吸附\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用磁力片拼出大正方形！\n磁力会自动吸附\"\n\n【交互】\n1. 拖拽磁力片\n2. 靠近自动吸附对齐\n3. 【旋转】调整方向\n4. 【拆分】分开磁力片\n5. 【完成】验证\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【磁力片】\n- 正方形片×4\n- 拼成2×2大正方形\n```\n\n---\n\n*磁力片正方形 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/magformers-square.md"
+      ],
+      "priority": 1950,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-magformers-triangle",
+      "title": "磁力片平面三角形",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「磁力片平面三角形」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「磁力片平面三角形」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"磁力片-平面三角形\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-magnetic\"\ndifficulty: \"easy\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🔺 磁力片-平面三角形\n\n> **难度**：⭐ 简单\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成磁力片平面三角形游戏视觉框架：\n\n【视觉规格】\n- 背景: 金属板\n- 标题: \"🔺 磁力片-平面三角形\"，方正粗圆，金色\n- 磁力片: 彩色三角形片\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用三角形磁力片拼出大三角形！\"\n\n【交互】\n1. 拖拽磁力片\n2. 自动吸附\n3. 【完成】验证\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【磁力片】\n- 三角形片×4\n- 拼成大三角形\n```\n\n---\n\n*磁力片三角形 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/magformers-triangle.md"
+      ],
+      "priority": 1949,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-soma-cube",
+      "title": "索玛立方体拼正方体",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「索玛立方体拼正方体」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「索玛立方体拼正方体」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"索玛立方体-拼正方体\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-3d\"\ndifficulty: \"medium\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🎲 索玛立方体-拼正方体\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成索玛立方体拼正方体游戏视觉框架：\n\n【视觉规格】\n- 背景: 3D立体空间\n- 标题: \"🎲 拼正方体\"，方正粗圆，金色\n- 积木块: 7块索玛积木\n- 目标: 3×3×3透明立方体框\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用7块积木拼出3×3×3正方体！\"\n\n【交互】\n1. 拖拽积木到目标区\n2. 3D旋转调整角度\n3. 【提示】显示一层\n4. 【完成】验证\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【目标】3×3×3正方体（27个小立方体）\n【积木】7块共27个小立方体\n【验证】填满无空隙\n```\n\n---\n\n*索玛拼正方体 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/soma-cube.md"
+      ],
+      "priority": 1948,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-soma-dog",
+      "title": "索玛立方体小狗造型",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「索玛立方体小狗造型」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「索玛立方体小狗造型」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"索玛立方体-小狗造型\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-3d\"\ndifficulty: \"hard\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🐕 索玛立方体-小狗造型\n\n> **难度**：⭐⭐⭐ 困难\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成索玛小狗造型游戏视觉框架：\n\n【视觉规格】\n- 背景: 公园场景\n- 标题: \"🐕 小狗造型\"，方正粗圆，金色\n- 积木: 7块索玛积木\n- 目标: 小狗3D轮廓\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用索玛积木拼出小狗！\"\n\n【交互】\n1. 拖拽积木\n2. 3D旋转调整\n3. 【提示】显示部位\n4. 【完成】验证\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【小狗部位】\n- 头部\n- 身体\n- 4条腿\n- 尾巴\n- 7块积木组合\n```\n\n---\n\n*索玛小狗 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/soma-dog.md"
+      ],
+      "priority": 1947,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-soma-free",
+      "title": "索玛立方体自由创作",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「索玛立方体自由创作」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「索玛立方体自由创作」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"索玛立方体-自由创作\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-3d\"\ndifficulty: \"medium\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# ✨ 索玛立方体-自由创作\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成索玛自由创作游戏视觉框架：\n\n【视觉规格】\n- 背景: 创意工坊\n- 标题: \"✨ 自由创作\"，方正粗圆，金色\n- 积木: 7块索玛积木\n- 画布: 3D自由空间\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"自由发挥，创造你的作品！\n可以拍照保存\"\n\n【交互】\n1. 自由拖拽积木\n2. 3D旋转查看\n3. 【保存】截图\n4. 【清空】重新开始\n5. 【分享】展示作品\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【创作工具】\n- 7块索玛积木\n- 3D画布\n- 旋转视角\n- 保存分享功能\n```\n\n---\n\n*索玛自由创作 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/soma-free.md"
+      ],
+      "priority": 1946,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-soma-intro",
+      "title": "索玛立方体入门",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「索玛立方体入门」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「索玛立方体入门」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"索玛立方体-入门\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-3d\"\ndifficulty: \"easy\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🧊 索玛立方体-入门\n\n> **难度**：⭐ 简单\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成索玛立方体入门游戏视觉框架：\n\n【视觉规格】\n- 背景: 3D立体空间\n- 标题: \"🧊 索玛立方体-入门\"，方正粗圆，金色\n- 积木块: 7块不同形状（彩色）\n- 3D视角: 可旋转查看\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"认识7块索玛积木！\n了解每块的形状\"\n\n【交互】\n1. 点击积木块查看形状\n2. 3D旋转查看\n3. 了解每块的特点\n4. 入门引导完成\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【7块索玛积木】\n1. V型块\n2. L型块\n3. T型块\n4. 左扭块\n5. 右扭块\n6. 分支块\n7. 拐角块\n```\n\n---\n\n*索玛立方体入门 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/soma-intro.md"
+      ],
+      "priority": 1945,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-soma-sofa",
+      "title": "索玛立方体沙发造型",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「索玛立方体沙发造型」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「索玛立方体沙发造型」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"索玛立方体-沙发造型\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-3d\"\ndifficulty: \"medium\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🛋️ 索玛立方体-沙发造型\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成索玛沙发造型游戏视觉框架：\n\n【视觉规格】\n- 背景: 客厅场景\n- 标题: \"🛋️ 沙发造型\"，方正粗圆，金色\n- 积木: 7块索玛积木\n- 目标: 沙发轮廓\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用索玛积木拼出沙发！\"\n\n【交互】\n1. 拖拽积木\n2. 3D旋转\n3. 【提示】【重置】\n4. 【完成】验证\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【沙发造型】\n- 底座\n- 靠背\n- 扶手\n- 7块积木组合\n```\n\n---\n\n*索玛沙发 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/soma-sofa.md"
+      ],
+      "priority": 1944,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-tangram-bird",
+      "title": "七巧板小鸟",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「七巧板小鸟」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「七巧板小鸟」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"七巧板-小鸟\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-puzzle\"\ndifficulty: \"medium\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🐦 七巧板-小鸟\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成七巧板小鸟拼图视觉框架：\n\n【视觉规格】\n- 背景: 天空主题\n- 标题: \"🐦 七巧板-小鸟\"，方正粗圆，金色\n- 板块: 7块七巧板\n- 目标区: 小鸟轮廓（虚线）\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用7块七巧板拼出小鸟形状！\"\n\n【交互】\n1. 拖拽板块到小鸟轮廓\n2. 【旋转】【翻转】调整\n3. 【提示】显示一块位置\n4. 【完成】验证拼图\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【小鸟轮廓】\n- 头部: 圆形区域\n- 身体: 椭圆区域\n- 翅膀: 三角形区域\n- 尾巴: 三角形区域\n\n【七巧板】7块填满小鸟轮廓\n```\n\n---\n\n*七巧板-小鸟 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/tangram-bird.md"
+      ],
+      "priority": 1943,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-tangram-fish",
+      "title": "七巧板小鱼",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「七巧板小鱼」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「七巧板小鱼」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"七巧板-小鱼\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-puzzle\"\ndifficulty: \"easy\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🐟 七巧板-小鱼\n\n> **难度**：⭐ 简单\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成七巧板小鱼拼图视觉框架：\n\n【视觉规格】\n- 背景: 海洋主题\n- 标题: \"🐟 七巧板-小鱼\"，方正粗圆，金色\n- 板块: 7块七巧板\n- 目标区: 小鱼轮廓\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用7块七巧板拼出小鱼！\"\n\n【交互】\n1. 拖拽板块\n2. 【旋转】【翻转】\n3. 【提示】【重置】\n4. 【完成】验证\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【小鱼轮廓】\n- 鱼头、鱼身、鱼尾\n- 七巧板7块填满\n```\n\n---\n\n*七巧板-小鱼 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/tangram-fish.md"
+      ],
+      "priority": 1942,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-tangram-rectangle",
+      "title": "七巧板长方形",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「七巧板长方形」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「七巧板长方形」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"七巧板-长方形\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-puzzle\"\ndifficulty: \"medium\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 📐 七巧板-长方形\n\n> **难度**：⭐⭐ 中等\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成七巧板长方形拼图视觉框架：\n\n【视觉规格】\n- 背景: 中国风\n- 标题: \"📐 七巧板-长方形\"，方正粗圆，金色\n- 板块: 7块七巧板\n- 目标区: 虚线长方形轮廓\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用7块七巧板拼出长方形！\"\n\n【交互】\n1. 拖拽板块\n2. 【旋转】【翻转】\n3. 【提示】【重置】\n4. 【完成】验证\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【七巧板】7块\n【目标】长方形轮廓\n【验证】填满长方形\n```\n\n---\n\n*七巧板-长方形 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/tangram-rectangle.md"
+      ],
+      "priority": 1941,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-tangram-square",
+      "title": "七巧板正方形",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「七巧板正方形」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「七巧板正方形」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"七巧板-正方形\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-puzzle\"\ndifficulty: \"easy\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🟦 七巧板-正方形\n\n> **难度**：⭐ 简单 | **适用**：一年级\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成七巧板正方形拼图游戏视觉框架：\n\n【视觉规格】（中国风+儿童益智）\n- 背景: 中国传统几何图案背景\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 标题: \"🟦 七巧板-正方形\"，方正粗圆，金色\n- 七巧板块:\n  - 大三角形×2: 红色 #F44336\n  - 中三角形×1: 橙色 #FF9800\n  - 小三角形×2: 黄色 #FFEB3B\n  - 正方形×1: 绿色 #4CAF50\n  - 平行四边形×1: 蓝色 #2196F3\n- 目标区: 虚线正方形轮廓（7×7网格）\n- 拼板区: 右侧托盘摆放7块板\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 左区30%: 规则区\n- 右区70%: 拼图区（目标区+拼板托盘）\n\n【按钮】\n- 【旋转】（含羞草黄 #f7b40d）\n- 【翻转】（鼠尾草蓝 #238be0）\n- 【提示】（鼠尾草蓝 #238be0）\n- 【重置】（含羞草黄 #f7b40d）\n- 【完成】（碧绿 #19c348）\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【左侧规则区】\n标题：【方正粗圆】金色\"🟦 七巧板-正方形\"\n\n规则说明：\n\"用7块板拼出大正方形！\n\n七巧板组成：\n🔴 大三角形 × 2\n🟠 中三角形 × 1\n🟡 小三角形 × 2\n🟢 正方形 × 1\n🔵 平行四边形 × 1\n\n规则：\n1. 必须使用全部7块\n2. 板块不能重叠\n3. 可以旋转、翻转\n4. 拼成完整正方形\n\n小贴士：\n- 大三角形放对角\n- 小板块填缝隙\"\n\n【右侧拼图区】\n\n一、目标区\n- 7×7网格虚线正方形\n- 网格辅助对齐\n- 板块放入时吸附网格\n\n二、拼板托盘\n- 7块七巧板初始摆放\n- 每块板可拖拽到目标区\n\n三、交互功能\n\n1. 拖拽操作\n   - 从托盘拖拽板块到目标区\n   - 目标区内可移动位置\n   - 拖出目标区回到托盘\n\n2. 【旋转】（含羞草黄 #f7b40d）\n   - 选中板块旋转45度\n   - 可连续旋转\n\n3. 【翻转】（鼠尾草蓝 #238be0）\n   - 选中板块水平翻转\n   - 平行四边形、三角形可用\n\n4. 【提示】（鼠尾草蓝 #238be0）\n   - 显示一块正确位置\n   - 限制3次\n\n5. 【重置】（含羞草黄 #f7b40d）\n   - 所有板块回到托盘\n   - 清空目标区\n\n6. 【完成】（碧绿 #19c348）\n   【验证】\n   - 7块全部使用+拼成正方形：\n     - 正方形填充渐变金光\n     - \"🎉 拼图成功！\"\n     - 显示完整图案\n   - 未完成：\n     - 提示\"还有板块没放好~\"\n   - 有缝隙：\n     - 红色标记缝隙位置\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【七巧板数据】\n\n板块列表（7块）:\n1. 大三角形×2: 直角边4格，斜边5.66格\n2. 中三角形×1: 直角边2.83格，斜边4格\n3. 小三角形×2: 直角边2格，斜边2.83格\n4. 正方形×1: 边长2格\n5. 平行四边形×1: 边长2格，角度45度\n\n【目标正方形】\n- 尺寸: 7×7网格\n- 轮廓: 虚线显示\n- 总面积: 49单元\n\n【验证规则】\n- 检查7块板是否全部使用\n- 检查是否有重叠\n- 检查是否填满正方形无缝隙\n- 允许旋转和翻转\n```\n\n---\n\n*七巧板-正方形 | 图形拼搭 | 中国风 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/tangram-square.md"
+      ],
+      "priority": 1940,
+      "status": "active"
+    },
+    {
+      "id": "junior-shape-tangram-triangle",
+      "title": "七巧板大三角形",
+      "category": "spatial",
+      "secondaryCategory": "shape_building",
+      "secondaryLabel": "图形拼搭",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "图形拼搭",
+      "shortDesc": "七巧板、索玛立方体、磁力片和空间想象训练。适合把教学内容放进「七巧板大三角形」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "图形拼搭",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "图形拼搭",
+        "七巧板、索玛立方体、磁力片和空间想象训练",
+        "思维"
+      ],
+      "classFlow": [
+        "观察目标",
+        "选择部件",
+        "拖拽拼搭",
+        "对照检查",
+        "完成作品"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「七巧板大三角形」模板：七巧板、索玛立方体、磁力片和空间想象训练。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"七巧板-大三角形\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"shape-puzzle\"\ndifficulty: \"easy\"\ncategory: \"图形拼搭\"\ngrade: \"1\"\n---\n\n# 🔺 七巧板-大三角形\n\n> **难度**：⭐ 简单\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成七巧板大三角形拼图视觉框架：\n\n【视觉规格】\n- 背景: 中国风背景\n- 标题: \"🔺 七巧板-大三角形\"，方正粗圆，金色\n- 板块: 7块七巧板（红橙黄绿蓝）\n- 目标区: 虚线大三角形轮廓\n- 拼板区: 右侧托盘\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【规则】\n\"用7块七巧板拼出大三角形！\"\n\n【交互】\n1. 拖拽板块到目标区\n2. 【旋转】45度\n3. 【翻转】水平翻转\n4. 【提示】显示正确位置\n5. 【完成】验证拼图\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入数据：\n\n【七巧板】7块\n【目标】大三角形轮廓\n【验证】7块填满三角形\n```\n\n---\n\n*七巧板-大三角形 | 图形拼搭 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/junior/shape/tangram-triangle.md"
+      ],
+      "priority": 1939,
+      "status": "active"
+    },
+    {
+      "id": "kakuro-game",
+      "title": "game",
+      "category": "logic",
+      "secondaryCategory": "kakuro",
+      "secondaryLabel": "数和谜题",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数和谜题",
+      "shortDesc": "横纵数字和约束推理。适合把教学内容放进「game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数和谜题",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数和谜题",
+        "横纵数字和约束推理",
+        "数学"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game」模板：横纵数字和约束推理。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"数和-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_kakuro.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"kakuro\"\nmode: \"game\"\ncategory: \"计算类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 数和（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成数和的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: 带斜角的格子，部分为提示格，部分为填数格\n- 提示格: 黑色背景，显示行列和\n- 填数格: 白色背景，填入1-9\n- 选中高亮: 淡蓝色 #E3F2FD\n- 冲突数字: 标红 #D32F2F\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题+规则+数字键盘\n- 右区70%（游戏区）：数和棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 数和\"\n\n规则说明：\n\"填入数字让每行每列的和等于提示！\n\n规则：\n① 填入1-9：每个空格填入1-9的数字\n② 行和：行提示数字=该行连续填数格的和\n③ 列和：列提示数字=该列连续填数格的和\n④ 不重复：同一行/列的连续区域内数字不重复\n⑤ 黑格：黑色斜角格为提示格，显示和\"\n\n【右侧游戏区（70%）】\n\n一、数和棋盘区\n- 带斜角的网格，黑格+白格组合\n- 黑格显示行列和提示\n- 白格填入数字\n\n二、数字键盘区（左侧）\n- 数字1-9按钮\n- 【清除】按钮\n\n三、交互功能\n\n1. 选中填数\n   - 单击白格：选中该格\n   - 点击数字键盘：填入该数字\n   - 填入数字显示为深灰色\n\n2. 冲突检测\n   - 实时检测同行/列和是否超过提示\n   - 超过时：冲突数字标红闪烁\n\n3. 笔记模式（可选）\n   - 开启后：点击数字添加候选小数字\n   - 显示在格子角落\n\n四、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：揭示一个正确答案\n   - 限制：全局最多3次\n   - 提示次数显示：按钮显示\"获取提示(3)\"\n   - 用尽后：按钮变灰禁用\n   - ⚠️ 重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有填入数字，恢复初始\n   - ⚠️ 不重置：获取提示的使用次数\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查数和是否正确\n   \n   【状态检查】\n   - 完全未填：提示\"请先填入数字\"\n   - 部分完成：提示\"还有X格未完成\"\n   \n   【正确性检查】\n   - 行和不符：标红该行\n   - 列和不符：标红该列\n   - 数字重复：标红重复数字\n   - 成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体数和题面\n2. 格式要求：\n   - 棋盘大小：NxM\n   - 提示格：(行,列)=行和/列和\n   - 答案格：(行,列)=数字\n3. 示例：\n\n   棋盘大小：5×5\n   \n   提示格：\n   第1行: (1,1)=[/10], (1,3)=[4/], (1,5)=[/6]\n   第2行: (2,1)=[17/], (2,4)=[/7]\n   ...\n   \n   答案格式：\n   (1,2)=3, (1,4)=2\n   (2,2)=9, (2,3)=8, (2,5)=6\n   ...\n\n【显示要求】\n- 提示格显示行列和\n- 填数格初始为空\n- 填入数字后实时计算和\n\n放置完成后，整个数和游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 带斜角网格 |\n| **元素** | 提示格 + 填数格 |\n| **难度** | ⭐⭐⭐⭐ 中等偏难 |\n| **交互** | 单击填数 + 冲突检测 |\n| **核心规则** | 行和=列和=提示 |\n| **推荐时间** | 10-15分钟 |\n\n---\n\n*数和 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/kakuro/game.md"
+      ],
+      "priority": 1938,
+      "status": "active"
+    },
+    {
+      "id": "kakuro-practice",
+      "title": "practice",
+      "category": "logic",
+      "secondaryCategory": "kakuro",
+      "secondaryLabel": "数和谜题",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数和谜题",
+      "shortDesc": "横纵数字和约束推理。适合把教学内容放进「practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数和谜题",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数和谜题",
+        "横纵数字和约束推理",
+        "数学"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「practice」模板：横纵数字和约束推理。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"数和-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_kakuro.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"kakuro\"\nmode: \"game\"\ncategory: \"计算类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 数和（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成数和的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: 带斜角的格子，部分为提示格，部分为填数格\n- 提示格: 黑色背景，显示行列和\n- 填数格: 白色背景，填入1-9\n- 选中高亮: 淡蓝色 #E3F2FD\n- 冲突数字: 标红 #D32F2F\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：标题+规则+数字键盘\n- 右区70%（游戏区）：数和棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 数和\"\n\n规则说明：\n\"填入数字让每行每列的和等于提示！\n\n规则：\n① 填入1-9：每个空格填入1-9的数字\n② 行和：行提示数字=该行连续填数格的和\n③ 列和：列提示数字=该列连续填数格的和\n④ 不重复：同一行/列的连续区域内数字不重复\n⑤ 黑格：黑色斜角格为提示格，显示和\"\n\n【右侧游戏区（70%）】\n\n一、数和棋盘区\n- 带斜角的网格，黑格+白格组合\n- 黑格显示行列和提示\n- 白格填入数字\n\n二、数字键盘区（左侧）\n- 数字1-9按钮\n- 【清除】按钮\n\n三、交互功能\n\n1. 选中填数\n   - 单击白格：选中该格\n   - 点击数字键盘：填入该数字\n   - 填入数字显示为深灰色\n\n2. 冲突检测\n   - 实时检测同行/列和是否超过提示\n   - 超过时：冲突数字标红闪烁\n\n3. 笔记模式（可选）\n   - 开启后：点击数字添加候选小数字\n   - 显示在格子角落\n\n四、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：揭示一个正确答案\n   - 限制：全局最多3次\n   - 提示次数显示：按钮显示\"获取提示(3)\"\n   - 用尽后：按钮变灰禁用\n   - ⚠️ 重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有填入数字，恢复初始\n   - ⚠️ 不重置：获取提示的使用次数\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查数和是否正确\n   \n   【状态检查】\n   - 完全未填：提示\"请先填入数字\"\n   - 部分完成：提示\"还有X格未完成\"\n   \n   【正确性检查】\n   - 行和不符：标红该行\n   - 列和不符：标红该列\n   - 数字重复：标红重复数字\n   - 成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体数和题面\n2. 格式要求：\n   - 棋盘大小：NxM\n   - 提示格：(行,列)=行和/列和\n   - 答案格：(行,列)=数字\n3. 示例：\n\n   棋盘大小：5×5\n   \n   提示格：\n   第1行: (1,1)=[/10], (1,3)=[4/], (1,5)=[/6]\n   第2行: (2,1)=[17/], (2,4)=[/7]\n   ...\n   \n   答案格式：\n   (1,2)=3, (1,4)=2\n   (2,2)=9, (2,3)=8, (2,5)=6\n   ...\n\n【显示要求】\n- 提示格显示行列和\n- 填数格初始为空\n- 填入数字后实时计算和\n\n放置完成后，整个数和游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 带斜角网格 |\n| **元素** | 提示格 + 填数格 |\n| **难度** | ⭐⭐⭐⭐ 中等偏难 |\n| **交互** | 单击填数 + 冲突检测 |\n| **核心规则** | 行和=列和=提示 |\n| **推荐时间** | 10-15分钟 |\n\n---\n\n*数和 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/kakuro/practice.md"
+      ],
+      "priority": 1937,
+      "status": "active"
+    },
+    {
+      "id": "masyu-6x6-game",
+      "title": "6x6·game",
+      "category": "puzzle",
+      "secondaryCategory": "masyu",
+      "secondaryLabel": "珍珠",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "珍珠",
+      "shortDesc": "根据黑白珍珠规则连线成环。适合把教学内容放进「6x6·game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "珍珠",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "珍珠",
+        "根据黑白珍珠规则连线成环",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「6x6·game」模板：根据黑白珍珠规则连线成环。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"珍珠-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"021_珍珠_智能批量复刻.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"masyu\"\nmode: \"game\"\ncategory: \"连线类-环路类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 珍珠（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5) 已通过 verify-prompt.js 全量检查\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成珍珠游戏的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 棋盘: N×M网格，显示白珍珠○和黑珍珠●\n- 白珍珠: 白色圆圈 #FFFFFF + 黑边框\n- 黑珍珠: 黑色圆圈 #000000\n- 回路: 暖橙色线 #FF8C00，线宽3px\n- 选中高亮: 淡蓝色背景 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色，内容\"方正准圆\"深灰\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题「🎯 珍珠」金色大字\n  - 规则说明区\n- 右区70%（游戏区）：\n  - 上方：N×M珍珠棋盘\n  - 下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n- 【获取提示】位置（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 珍珠\"\n\n规则说明：\n\"画一条闭合的回路经过所有珍珠！\n\n规则：\n① 画回路：画一条闭合回路经过所有珍珠\n② 白珍珠○：回路必须直线穿过，且至少一端有转弯\n   （一边直线一边转弯）\n③ 黑珍珠●：回路必须转弯，且两端都是直线\n   （转弯点，前后直线）\n④ 不交叉：线不能交叉或重叠\n⑤ 闭合：回路必须形成闭合环\"\n\n【右侧游戏区（70%）】\n\n一、珍珠棋盘区\n- N×M网格，显示白珍珠○和黑珍珠●\n- 网格线清晰，珍珠居中显示\n\n二、交互功能\n\n1. 画线交互\n   - 在相邻格子间滑动画线\n   - 暖橙色线 #FF8C00，线宽3px\n   - 再次滑动同一位置：擦除该线段\n\n2. 珍珠点击\n   - 点击珍珠：显示该珍珠的约束说明（浮窗提示）\n   - 白珍珠点击：提示\"需直线穿过，至少一端转弯\"\n   - 黑珍珠点击：提示\"必须转弯，两端直线\"\n\n3. 回路检测\n   - 实时检测是否形成闭合回路\n   - 形成闭合后：整体回路高亮显示\n\n三、功能按钮区（右区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一条正确的线段位置\n   - 限制：全局最多3次（整个游戏过程中只能使用3次）\n   - 提示次数显示：按钮文字显示\"获取提示(3)\"，使用后变为\"获取提示(2)\"\n   - 用尽后：按钮变灰禁用，文字变为\"提示已用尽\"\n   - ⚠️ 注意：重置游戏不会恢复获取提示的使用次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有画线，恢复初始状态\n   - 保留：珍珠位置不变\n   - ⚠️ 不重置：获取提示的使用次数\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查回路是否正确\n   \n   【状态检查】\n   - 未开始画线：提示\"请先画线连接珍珠\"\n   - 未闭合：提示\"回路未闭合，请继续连接形成闭合环\"\n   \n   【正确性检查】\n   - 约束违反：\n     * 白珍珠未直线穿过：标红该珍珠，提示\"白珍珠需直线穿过\"\n     * 白珍珠两端都转弯：标红该珍珠，提示\"白珍珠需一端直线\"\n     * 黑珍珠未转弯：标红该珍珠，提示\"黑珍珠必须转弯\"\n     * 黑珍珠某端非直线：标红该珍珠，提示\"黑珍珠两端需直线\"\n   - 线交叉：标红交叉点，提示\"线不能交叉\"\n   - 未经过所有珍珠：提示\"还有X颗珍珠未经过\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！回路完美！\"\n\n【校验逻辑】\n- 实时检测：回路是否闭合\n- 实时检测：线是否交叉\n- 提交时：完整检查5条规则\n- 冲突时：标红违反约束的珍珠或线段\n\n要求：完成所有交互功能，测试画线和擦除。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体珍珠题面\n2. 格式要求：\n   - 棋盘大小：NxM（如8×8）\n   - 白珍珠：用○表示\n   - 黑珍珠：用●表示\n   - 空格：用\"空\"或\".\"表示\n3. 示例：\n   \n   棋盘大小：8×8\n   \n   第1行: [空, 空, ○, 空, 空, 空, 空, 空]\n   第2行: [空, 空, 空, 空, ●, 空, 空, 空]\n   第3行: [○, 空, 空, 空, 空, 空, ○, 空]\n   第4行: [空, 空, ●, 空, 空, 空, 空, 空]\n   第5行: [空, 空, 空, 空, ○, 空, 空, ●]\n   第6行: [空, ●, 空, 空, 空, 空, 空, 空]\n   第7行: [空, 空, 空, ○, 空, ●, 空, 空]\n   第8行: [空, 空, 空, 空, 空, 空, ○, 空]\n\n【显示要求】\n- 严格按照棋盘布局显示珍珠\n- 白珍珠：白色圆圈+黑边框\n- 黑珍珠：实心黑圆圈\n- 预留画线空间\n\n放置完成后，整个珍珠游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 网格 |\n| **珍珠** | 白珍珠○ + 黑珍珠● |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 画线/擦线 + 珍珠约束提示 |\n| **核心规则** | 5条（画线/白珍珠/黑珍珠/不交叉/闭合） |\n| **推荐时间** | 5-10分钟 |\n| **适合场景** | 掌握基础逻辑后进阶 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从021_珍珠_智能批量复刻.md优化归档\n  - 修复：添加标准按钮颜色代码\n  - 修复：补充详细提示规则（全局3次+重置不恢复）\n  - 修复：补充详细提交规则（状态检查+5条约束检查）\n  - 修复：添加步骤一/二/三结构\n\n---\n\n## 关联文档\n\n- [SOP-GENERATOR.md](../../20-LIBRARIES/SOP-GENERATOR-v1.md) - 生成指南\n- [type-index.json](../../20-LIBRARIES/type-index.json) - 游戏类型索引\n- [submit-rules.md](../../20-LIBRARIES/submit-rules.md) - 提交规则（连线类-环路类）\n- [verify-prompt.js](../../20-LIBRARIES/scripts/verify-prompt.js) - 验证脚本\n- [021_珍珠_智能批量复刻.md](../10-INVENTORY/puzzle/⭐⭐-标准/021_珍珠_智能批量复刻.md) - 原始文件\n\n---\n\n*珍珠 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/masyu/6x6-game.md"
+      ],
+      "priority": 1936,
+      "status": "active"
+    },
+    {
+      "id": "masyu-6x6-practice",
+      "title": "6x6·practice",
+      "category": "puzzle",
+      "secondaryCategory": "masyu",
+      "secondaryLabel": "珍珠",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "珍珠",
+      "shortDesc": "根据黑白珍珠规则连线成环。适合把教学内容放进「6x6·practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "珍珠",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "珍珠",
+        "根据黑白珍珠规则连线成环",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「6x6·practice」模板：根据黑白珍珠规则连线成环。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"珍珠-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"021_珍珠_智能批量复刻.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"masyu\"\nmode: \"game\"\ncategory: \"连线类-环路类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 珍珠（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5) 已通过 verify-prompt.js 全量检查\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成珍珠游戏的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 棋盘: N×M网格，显示白珍珠○和黑珍珠●\n- 白珍珠: 白色圆圈 #FFFFFF + 黑边框\n- 黑珍珠: 黑色圆圈 #000000\n- 回路: 暖橙色线 #FF8C00，线宽3px\n- 选中高亮: 淡蓝色背景 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色，内容\"方正准圆\"深灰\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题「🎯 珍珠」金色大字\n  - 规则说明区\n- 右区70%（游戏区）：\n  - 上方：N×M珍珠棋盘\n  - 下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n- 【获取提示】位置（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 珍珠\"\n\n规则说明：\n\"画一条闭合的回路经过所有珍珠！\n\n规则：\n① 画回路：画一条闭合回路经过所有珍珠\n② 白珍珠○：回路必须直线穿过，且至少一端有转弯\n   （一边直线一边转弯）\n③ 黑珍珠●：回路必须转弯，且两端都是直线\n   （转弯点，前后直线）\n④ 不交叉：线不能交叉或重叠\n⑤ 闭合：回路必须形成闭合环\"\n\n【右侧游戏区（70%）】\n\n一、珍珠棋盘区\n- N×M网格，显示白珍珠○和黑珍珠●\n- 网格线清晰，珍珠居中显示\n\n二、交互功能\n\n1. 画线交互\n   - 在相邻格子间滑动画线\n   - 暖橙色线 #FF8C00，线宽3px\n   - 再次滑动同一位置：擦除该线段\n\n2. 珍珠点击\n   - 点击珍珠：显示该珍珠的约束说明（浮窗提示）\n   - 白珍珠点击：提示\"需直线穿过，至少一端转弯\"\n   - 黑珍珠点击：提示\"必须转弯，两端直线\"\n\n3. 回路检测\n   - 实时检测是否形成闭合回路\n   - 形成闭合后：整体回路高亮显示\n\n三、功能按钮区（右区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一条正确的线段位置\n   - 限制：全局最多3次（整个游戏过程中只能使用3次）\n   - 提示次数显示：按钮文字显示\"获取提示(3)\"，使用后变为\"获取提示(2)\"\n   - 用尽后：按钮变灰禁用，文字变为\"提示已用尽\"\n\n   2. 【检查进度】按钮（天蓝色 #4FC3F7）\n      - 功能：查看当前进度（做对格数、正确率、星级）\n      - 触发：点击后显示进度弹窗\n      - 不结束游戏，可继续作答\n   - ⚠️ 注意：重置游戏不会恢复获取提示的使用次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有画线，恢复初始状态\n   - 保留：珍珠位置不变\n   - ⚠️ 不重置：获取提示的使用次数\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查回路是否正确\n   \n   【状态检查】\n   - 未开始画线：提示\"请先画线连接珍珠\"\n   - 未闭合：提示\"回路未闭合，请继续连接形成闭合环\"\n   \n   【正确性检查】\n   - 约束违反：\n     * 白珍珠未直线穿过：标红该珍珠，提示\"白珍珠需直线穿过\"\n     * 白珍珠两端都转弯：标红该珍珠，提示\"白珍珠需一端直线\"\n     * 黑珍珠未转弯：标红该珍珠，提示\"黑珍珠必须转弯\"\n     * 黑珍珠某端非直线：标红该珍珠，提示\"黑珍珠两端需直线\"\n   - 线交叉：标红交叉点，提示\"线不能交叉\"\n   - 未经过所有珍珠：提示\"还有X颗珍珠未经过\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！回路完美！\"\n\n【校验逻辑】\n- 实时检测：回路是否闭合\n- 实时检测：线是否交叉\n- 提交时：完整检查5条规则\n- 冲突时：标红违反约束的珍珠或线段\n\n要求：完成所有交互功能，测试画线和擦除。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体珍珠题面\n2. 格式要求：\n   - 棋盘大小：NxM（如8×8）\n   - 白珍珠：用○表示\n   - 黑珍珠：用●表示\n   - 空格：用\"空\"或\".\"表示\n3. 示例：\n   \n   棋盘大小：8×8\n   \n   第1行: [空, 空, ○, 空, 空, 空, 空, 空]\n   第2行: [空, 空, 空, 空, ●, 空, 空, 空]\n   第3行: [○, 空, 空, 空, 空, 空, ○, 空]\n   第4行: [空, 空, ●, 空, 空, 空, 空, 空]\n   第5行: [空, 空, 空, 空, ○, 空, 空, ●]\n   第6行: [空, ●, 空, 空, 空, 空, 空, 空]\n   第7行: [空, 空, 空, ○, 空, ●, 空, 空]\n   第8行: [空, 空, 空, 空, 空, 空, ○, 空]\n\n【显示要求】\n- 严格按照棋盘布局显示珍珠\n- 白珍珠：白色圆圈+黑边框\n- 黑珍珠：实心黑圆圈\n- 预留画线空间\n\n放置完成后，整个珍珠游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 网格 |\n| **珍珠** | 白珍珠○ + 黑珍珠● |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 画线/擦线 + 珍珠约束提示 |\n| **核心规则** | 5条（画线/白珍珠/黑珍珠/不交叉/闭合） |\n| **推荐时间** | 5-10分钟 |\n| **适合场景** | 掌握基础逻辑后进阶 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从021_珍珠_智能批量复刻.md优化归档\n  - 修复：添加标准按钮颜色代码\n  - 修复：补充详细提示规则（全局3次+重置不恢复）\n  - 修复：补充详细提交规则（状态检查+5条约束检查）\n  - 修复：添加步骤一/二/三结构\n\n---\n\n## 关联文档\n\n- [SOP-GENERATOR.md](../../20-LIBRARIES/SOP-GENERATOR-v1.md) - 生成指南\n- [type-index.json](../../20-LIBRARIES/type-index.json) - 游戏类型索引\n- [submit-rules.md](../../20-LIBRARIES/submit-rules.md) - 提交规则（连线类-环路类）\n- [verify-prompt.js](../../20-LIBRARIES/scripts/verify-prompt.js) - 验证脚本\n- [021_珍珠_智能批量复刻.md](../10-INVENTORY/puzzle/⭐⭐-标准/021_珍珠_智能批量复刻.md) - 原始文件\n\n---\n\n*珍珠 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/masyu/6x6-practice.md"
+      ],
+      "priority": 1935,
+      "status": "active"
+    },
+    {
+      "id": "masyu-6x6-strict",
+      "title": "6x6·strict",
+      "category": "puzzle",
+      "secondaryCategory": "masyu",
+      "secondaryLabel": "珍珠",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "珍珠",
+      "shortDesc": "根据黑白珍珠规则连线成环。适合把教学内容放进「6x6·strict」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "珍珠",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "珍珠",
+        "根据黑白珍珠规则连线成环",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「6x6·strict」模板：根据黑白珍珠规则连线成环。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"珍珠-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"021_珍珠_智能批量复刻.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"masyu\"\nmode: \"game\"\ncategory: \"连线类-环路类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 珍珠（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5) 已通过 verify-prompt.js 全量检查\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成珍珠游戏的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 棋盘: N×M网格，显示白珍珠○和黑珍珠●\n- 白珍珠: 白色圆圈 #FFFFFF + 黑边框\n- 黑珍珠: 黑色圆圈 #000000\n- 回路: 暖橙色线 #FF8C00，线宽3px\n- 选中高亮: 淡蓝色背景 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色，内容\"方正准圆\"深灰\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题「🎯 珍珠」金色大字\n  - 规则说明区\n- 右区70%（游戏区）：\n  - 上方：N×M珍珠棋盘\n  - 下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n- 【获取提示】位置（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348） - 严格模式：仅成功/失败\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 珍珠\"\n\n规则说明：\n\"画一条闭合的回路经过所有珍珠！\n\n规则：\n① 画回路：画一条闭合回路经过所有珍珠\n② 白珍珠○：回路必须直线穿过，且至少一端有转弯\n   （一边直线一边转弯）\n③ 黑珍珠●：回路必须转弯，且两端都是直线\n   （转弯点，前后直线）\n④ 不交叉：线不能交叉或重叠\n⑤ 闭合：回路必须形成闭合环\"\n\n【右侧游戏区（70%）】\n\n一、珍珠棋盘区\n- N×M网格，显示白珍珠○和黑珍珠●\n- 网格线清晰，珍珠居中显示\n\n二、交互功能\n\n1. 画线交互\n   - 在相邻格子间滑动画线\n   - 暖橙色线 #FF8C00，线宽3px\n   - 再次滑动同一位置：擦除该线段\n\n2. 珍珠点击\n   - 点击珍珠：显示该珍珠的约束说明（浮窗提示）\n   - 白珍珠点击：提示\"需直线穿过，至少一端转弯\"\n   - 黑珍珠点击：提示\"必须转弯，两端直线\"\n\n3. 回路检测\n   - 实时检测是否形成闭合回路\n   - 形成闭合后：整体回路高亮显示\n\n三、功能按钮区（右区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一条正确的线段位置\n   - 限制：全局最多3次（整个游戏过程中只能使用3次）\n   - 提示次数显示：按钮文字显示\"获取提示(3)\"，使用后变为\"获取提示(2)\"\n   - 用尽后：按钮变灰禁用，文字变为\"提示已用尽\"\n   - ⚠️ 注意：重置游戏不会恢复获取提示的使用次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有画线，恢复初始状态\n   - 保留：珍珠位置不变\n   - ⚠️ 不重置：获取提示的使用次数\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查回路是否正确\n   \n   【状态检查】\n   - 未开始画线：提示\"请先画线连接珍珠\"\n   - 未闭合：提示\"回路未闭合，请继续连接形成闭合环\"\n   \n   【正确性检查】\n   - 约束违反：\n     * 白珍珠未直线穿过：标红该珍珠，提示\"白珍珠需直线穿过\"\n     * 白珍珠两端都转弯：标红该珍珠，提示\"白珍珠需一端直线\"\n     * 黑珍珠未转弯：标红该珍珠，提示\"黑珍珠必须转弯\"\n     * 黑珍珠某端非直线：标红该珍珠，提示\"黑珍珠两端需直线\"\n   - 线交叉：标红交叉点，提示\"线不能交叉\"\n   - 未经过所有珍珠：提示\"还有X颗珍珠未经过\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！回路完美！\"\n\n【校验逻辑】\n- 实时检测：回路是否闭合\n- 实时检测：线是否交叉\n- 提交时：完整检查5条规则\n- 冲突时：标红违反约束的珍珠或线段\n\n要求：完成所有交互功能，测试画线和擦除。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体珍珠题面\n2. 格式要求：\n   - 棋盘大小：NxM（如8×8）\n   - 白珍珠：用○表示\n   - 黑珍珠：用●表示\n   - 空格：用\"空\"或\".\"表示\n3. 示例：\n   \n   棋盘大小：8×8\n   \n   第1行: [空, 空, ○, 空, 空, 空, 空, 空]\n   第2行: [空, 空, 空, 空, ●, 空, 空, 空]\n   第3行: [○, 空, 空, 空, 空, 空, ○, 空]\n   第4行: [空, 空, ●, 空, 空, 空, 空, 空]\n   第5行: [空, 空, 空, 空, ○, 空, 空, ●]\n   第6行: [空, ●, 空, 空, 空, 空, 空, 空]\n   第7行: [空, 空, 空, ○, 空, ●, 空, 空]\n   第8行: [空, 空, 空, 空, 空, 空, ○, 空]\n\n【显示要求】\n- 严格按照棋盘布局显示珍珠\n- 白珍珠：白色圆圈+黑边框\n- 黑珍珠：实心黑圆圈\n- 预留画线空间\n\n放置完成后，整个珍珠游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 网格 |\n| **珍珠** | 白珍珠○ + 黑珍珠● |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 画线/擦线 + 珍珠约束提示 |\n| **核心规则** | 5条（画线/白珍珠/黑珍珠/不交叉/闭合） |\n| **推荐时间** | 5-10分钟 |\n| **适合场景** | 掌握基础逻辑后进阶 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从021_珍珠_智能批量复刻.md优化归档\n  - 修复：添加标准按钮颜色代码\n  - 修复：补充详细提示规则（全局3次+重置不恢复）\n  - 修复：补充详细提交规则（状态检查+5条约束检查）\n  - 修复：添加步骤一/二/三结构\n\n---\n\n## 关联文档\n\n- [SOP-GENERATOR.md](../../20-LIBRARIES/SOP-GENERATOR-v1.md) - 生成指南\n- [type-index.json](../../20-LIBRARIES/type-index.json) - 游戏类型索引\n- [submit-rules.md](../../20-LIBRARIES/submit-rules.md) - 提交规则（连线类-环路类）\n- [verify-prompt.js](../../20-LIBRARIES/scripts/verify-prompt.js) - 验证脚本\n- [021_珍珠_智能批量复刻.md](../10-INVENTORY/puzzle/⭐⭐-标准/021_珍珠_智能批量复刻.md) - 原始文件\n\n---\n\n*珍珠 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/masyu/6x6-strict.md"
+      ],
+      "priority": 1934,
+      "status": "active"
+    },
+    {
+      "id": "masyu-6x6-teaching",
+      "title": "6x6·teaching",
+      "category": "puzzle",
+      "secondaryCategory": "masyu",
+      "secondaryLabel": "珍珠",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "珍珠",
+      "shortDesc": "根据黑白珍珠规则连线成环。适合把教学内容放进「6x6·teaching」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "珍珠",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "珍珠",
+        "根据黑白珍珠规则连线成环",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「6x6·teaching」模板：根据黑白珍珠规则连线成环。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"珍珠-教学模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_masyu.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"masyu\"\nmode: \"teaching\"\ncategory: \"连线类-环路类\"\ndifficulty: \"medium\"\n---\n\n# 📚 珍珠（教学模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成珍珠教学模式的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 棋盘: N×M网格，显示白珍珠○和黑珍珠●\n   2. 白珍珠: 白色圆圈 #FFFFFF + 黑边框\n   3. 黑珍珠: 黑色圆圈 #000000\n   4. 回路: 暖橙色线 #FF8C00，线宽3px\n   5. 选中高亮: 淡蓝色背景 #E3F2FD\n   \n三、其他\n   1. 按钮: 扁平简约，极简胶囊形状\n   2. 字体: 标题\"方正粗圆\"金色 #FFD700\n   3. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（指导区）：\n      标题「📚 珍珠-教学模式」金色大字\n      详细规则讲解 + 解题步骤引导\n   2. 右区70%（游戏区）：\n      上方：N×M珍珠棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【下一步提示】位置（鼠尾草蓝 #238be0）显示剩余次数(无限)\n   2. 【撤销】位置（含羞草黄 #f7b40d）\n   3. 【重置游戏】位置（含羞草黄 #f7b40d）\n   4. 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧指导区（30%）】\n标题：【方正粗圆】金色\"📚 珍珠-教学模式\"\n\n一、详细规则讲解\n   \"欢迎来到珍珠谜题世界！\n   \n   珍珠规则：\n   ① 画回路：画一条闭合回路经过所有珍珠\n   ② 白珍珠○：回路必须直线穿过，且至少一端有转弯\n      （一边直线通过，一边需要转弯）\n   ③ 黑珍珠●：回路必须转弯通过，且两端都是直线\n      （在珍珠处转弯，前后都是直线段）\n   ④ 不交叉：线不能交叉或重叠\n   ⑤ 闭合：回路必须形成闭合环\n   \n   解题技巧：\n   1. 从白珍珠开始：白珍珠需要转弯，找可以直穿的位置\n   2. 黑珍珠必须转弯：在●处必须改变方向\n   3. 避免交叉：画线时注意不与其他线交叉\n   4. 确保闭合：最后要形成完整闭环\"\n\n二、解题步骤引导（动态更新）\n   \"当前步骤：观察第X个珍珠\n   提示：这是一个白/黑珍珠，应该怎么走？\n   讲解：因为...所以应该这样画...\"\n\n【右侧游戏区（70%）】\n\n一、珍珠棋盘区\n   1. N×M网格，显示白珍珠○和黑珍珠●\n   2. 网格线清晰，珍珠居中显示\n\n二、交互功能\n\n   1. 画线\n      点击节点：作为起点\n      拖动到相邻节点：画线连接\n      已画线变橙色\n      \n   2. 撤销\n      点击【撤销】：撤销最后一步\n      \n   3. 重置\n      点击【重置】：清空所有线\n\n三、功能按钮区\n\n   1. 下一步提示按钮（鼠尾草蓝 #238be0）\n      功能：详细讲解下一步解题思路\n      显示：\"我们来看这个白珍珠...\n             白珍珠需要直穿，所以...\n             然后在这端需要转弯...\"\n      高亮：相关珍珠和路径\n      限制：教学模式，提示次数不限\n\n   2. 撤销按钮（含羞草黄 #f7b40d）\n      功能：撤销最后一步画线\n\n   3. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有画线，恢复初始\n\n   4. 提交答案按钮（碧绿 #19c348）\n      功能：检查回路是否正确\n      \n      状态检查：\n         未完成：提示\"回路还未完成，继续加油！\"\n      \n      正确性检查：\n         白珍珠违反：提示\"白珍珠需要直穿且一端转弯\"\n         黑珍珠违反：提示\"黑珍珠必须转弯且两端直线\"\n         未闭合：提示\"回路还未闭合\"\n         有交叉：提示\"线不能交叉\"\n         成功：绿色闪烁+\"🎉 太棒了！你解开了珍珠谜题！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的教学框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. 网格大小\n   2. 白珍珠位置\n   3. 黑珍珠位置\n\n二、示例\n   网格：5×5\n   \n   白珍珠位置：\n   (1,2), (2,4), (3,1), (4,3)\n   \n   黑珍珠位置：\n   (2,2), (3,4), (5,3)\n\n放置完成后，整个珍珠教学模式完成。\n```\n\n---\n\n*珍珠 | 教学模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/masyu/6x6-teaching.md"
+      ],
+      "priority": 1933,
+      "status": "active"
+    },
+    {
+      "id": "nonogram-10x10-game",
+      "title": "10x10·game",
+      "category": "puzzle",
+      "secondaryCategory": "nonogram",
+      "secondaryLabel": "数织",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数织",
+      "shortDesc": "根据行列线索还原图案。适合把教学内容放进「10x10·game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数织",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数织",
+        "根据行列线索还原图案",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「10x10·game」模板：根据行列线索还原图案。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"数织-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/nonogram_grid.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"nonogram\"\nmode: \"game\"\ncategory: \"标记类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 数织（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成数织的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: N×M方格，黑色粗边框 #000000\n- 黑格: 深灰色填充 #444444\n- 白格: 白色背景 #FFFFFF\n- X标记: 红色 #DC143C，表示确定不涂黑\n- 行提示: 黑色数字 #000000，显示在左侧\n- 列提示: 黑色数字 #000000，显示在上方\n- 完成标记: 提示数字变绿 #19c348 ✓\n- 选中高亮: 淡蓝色背景 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700，内容\"方正准圆\"深灰\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题「🎯 数织」金色大字\n  - 规则说明区\n- 右区70%（游戏区）：\n  - 上方：列提示数字\n  - 中间：N×M数织棋盘 + 左侧行提示\n  - 下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n- 【获取提示】位置（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 数织\"\n\n规则说明：\n\"根据数字提示涂黑格子，揭开隐藏图案！\n\n规则：\n① 行约束：左侧数字 = 该行连续黑格组的长度\n   - 多组数字用空格分隔，表示组之间有白格\n   - 如'2 3'表示：2个黑格+白格+3个连续黑格\n② 列约束：上方数字 = 该列连续黑格组的长度（同上）\n③ 全格确定：所有格子要么涂黑，要么标记为白格(X)\n④ 形成图案：正确涂黑后显示隐藏图案\"\n\n【右侧游戏区（70%）】\n\n一、数织棋盘区\n- N×M网格，左侧行提示，上方列提示\n- 网格线清晰，数字对齐\n\n二、交互功能\n\n1. 格子点击交互\n   - 单击格子：切换【白格→黑格→白格】循环\n   - 黑格：深灰色填充 #444444\n   - 白格：白色背景 #FFFFFF\n\n2. 长按标记X\n   - 长按格子：标记红色X #DC143C\n   - 表示\"确定不涂黑\"\n   - 再次长按：取消X标记\n\n3. 行/列高亮\n   - 点击行提示数字：高亮显示该行所有格子\n   - 点击列提示数字：高亮显示该列所有格子\n   - 再次点击：取消高亮\n\n4. 完成提示\n   - 某行约束满足：该行提示数字变绿✓\n   - 某列约束满足：该列提示数字变绿✓\n\n三、功能按钮区（右区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一个应涂黑的格子\n   - 限制：全局最多3次\n   - 提示次数显示：按钮显示\"获取提示(3)\"\n   - 用尽后：按钮变灰禁用，文字\"提示已用尽\"\n   - ⚠️ 重置游戏不会恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有涂黑和X标记，恢复初始\n   - 保留：行/列提示不变\n   - ⚠️ 重要：重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查数织是否正确\n   \n   【状态检查】\n   - 完全未涂：提示\"请先根据提示涂黑格子再提交\"\n   - 部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n   \n   【正确性检查】\n   - 行约束违反：标红该行，提示\"第X行不满足约束\"\n   - 列约束违反：标红该列，提示\"第Y列不满足约束\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！图案揭晓！\"\n   - 显示：完成的图案（如心形、动物等）\n\n【校验逻辑】\n- 实时检测：行/列约束是否满足\n- 满足时：提示数字变绿✓\n- 提交时：完整检查所有行列\n- 错误时：标红违反约束的行/列\n\n要求：完成所有交互功能，测试涂黑和X标记。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体数织题面\n2. 格式要求：\n   - 棋盘大小：NxM（如10×10）\n   - 行提示：每组数字用空格分隔\n   - 列提示：每组数字用空格分隔\n3. 示例（心形图案 10×10）：\n\n   棋盘大小：10×10\n   \n   行提示（从上到下）：\n   第1行: [2, 2]\n   第2行: [8]\n   第3行: [10]\n   第4行: [2, 4, 2]\n   第5行: [2, 2, 2]\n   第6行: [2, 2, 2]\n   第7行: [1, 2, 1]\n   第8行: [2, 2]\n   第9行: [4]\n   第10行: [2]\n   \n   列提示（从左到右）：\n   第1列: [3]\n   第2列: [6]\n   第3列: [8, 1]\n   第4列: [2, 4, 2]\n   第5列: [10]\n   第6列: [10]\n   第7列: [2, 4, 2]\n   第8列: [8, 1]\n   第9列: [6]\n   第10列: [3]\n\n【显示要求】\n- 严格按照网格显示行/列提示\n- 数字对齐，清晰可读\n- 预留涂黑空间\n\n放置完成后，整个数织游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 网格 |\n| **线索** | 行提示 + 列提示 |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 单击涂黑 + 长按X标记 + 行列高亮 |\n| **核心规则** | 2条（行约束+列约束） |\n| **推荐时间** | 5-15分钟 |\n| **适合场景** | 图案解谜爱好者 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从nonogram_grid.md优化归档\n\n---\n\n*数织 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/nonogram/10x10-game.md"
+      ],
+      "priority": 1932,
+      "status": "active"
+    },
+    {
+      "id": "nonogram-10x10-practice",
+      "title": "10x10·practice",
+      "category": "puzzle",
+      "secondaryCategory": "nonogram",
+      "secondaryLabel": "数织",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数织",
+      "shortDesc": "根据行列线索还原图案。适合把教学内容放进「10x10·practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数织",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数织",
+        "根据行列线索还原图案",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「10x10·practice」模板：根据行列线索还原图案。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"数织-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/nonogram_grid.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"nonogram\"\nmode: \"game\"\ncategory: \"标记类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 数织（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成数织的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: N×M方格，黑色粗边框 #000000\n- 黑格: 深灰色填充 #444444\n- 白格: 白色背景 #FFFFFF\n- X标记: 红色 #DC143C，表示确定不涂黑\n- 行提示: 黑色数字 #000000，显示在左侧\n- 列提示: 黑色数字 #000000，显示在上方\n- 完成标记: 提示数字变绿 #19c348 ✓\n- 选中高亮: 淡蓝色背景 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700，内容\"方正准圆\"深灰\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题「🎯 数织」金色大字\n  - 规则说明区\n- 右区70%（游戏区）：\n  - 上方：列提示数字\n  - 中间：N×M数织棋盘 + 左侧行提示\n  - 下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n- 【获取提示】位置（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 数织\"\n\n规则说明：\n\"根据数字提示涂黑格子，揭开隐藏图案！\n\n规则：\n① 行约束：左侧数字 = 该行连续黑格组的长度\n   - 多组数字用空格分隔，表示组之间有白格\n   - 如'2 3'表示：2个黑格+白格+3个连续黑格\n② 列约束：上方数字 = 该列连续黑格组的长度（同上）\n③ 全格确定：所有格子要么涂黑，要么标记为白格(X)\n④ 形成图案：正确涂黑后显示隐藏图案\"\n\n【右侧游戏区（70%）】\n\n一、数织棋盘区\n- N×M网格，左侧行提示，上方列提示\n- 网格线清晰，数字对齐\n\n二、交互功能\n\n1. 格子点击交互\n   - 单击格子：切换【白格→黑格→白格】循环\n   - 黑格：深灰色填充 #444444\n   - 白格：白色背景 #FFFFFF\n\n2. 长按标记X\n   - 长按格子：标记红色X #DC143C\n   - 表示\"确定不涂黑\"\n   - 再次长按：取消X标记\n\n3. 行/列高亮\n   - 点击行提示数字：高亮显示该行所有格子\n   - 点击列提示数字：高亮显示该列所有格子\n   - 再次点击：取消高亮\n\n4. 完成提示\n   - 某行约束满足：该行提示数字变绿✓\n   - 某列约束满足：该列提示数字变绿✓\n\n三、功能按钮区（右区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一个应涂黑的格子\n   - 限制：全局最多3次\n   - 提示次数显示：按钮显示\"获取提示(3)\"\n   - 用尽后：按钮变灰禁用，文字\"提示已用尽\"\n\n   2. 【检查进度】按钮（天蓝色 #4FC3F7）\n      - 功能：查看当前进度（做对格数、正确率、星级）\n      - 触发：点击后显示进度弹窗\n      - 不结束游戏，可继续作答\n   - ⚠️ 重置游戏不会恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有涂黑和X标记，恢复初始\n   - 保留：行/列提示不变\n   - ⚠️ 重要：重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查数织是否正确\n   \n   【状态检查】\n   - 完全未涂：提示\"请先根据提示涂黑格子再提交\"\n   - 部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n   \n   【正确性检查】\n   - 行约束违反：标红该行，提示\"第X行不满足约束\"\n   - 列约束违反：标红该列，提示\"第Y列不满足约束\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！图案揭晓！\"\n   - 显示：完成的图案（如心形、动物等）\n\n【校验逻辑】\n- 实时检测：行/列约束是否满足\n- 满足时：提示数字变绿✓\n- 提交时：完整检查所有行列\n- 错误时：标红违反约束的行/列\n\n要求：完成所有交互功能，测试涂黑和X标记。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体数织题面\n2. 格式要求：\n   - 棋盘大小：NxM（如10×10）\n   - 行提示：每组数字用空格分隔\n   - 列提示：每组数字用空格分隔\n3. 示例（心形图案 10×10）：\n\n   棋盘大小：10×10\n   \n   行提示（从上到下）：\n   第1行: [2, 2]\n   第2行: [8]\n   第3行: [10]\n   第4行: [2, 4, 2]\n   第5行: [2, 2, 2]\n   第6行: [2, 2, 2]\n   第7行: [1, 2, 1]\n   第8行: [2, 2]\n   第9行: [4]\n   第10行: [2]\n   \n   列提示（从左到右）：\n   第1列: [3]\n   第2列: [6]\n   第3列: [8, 1]\n   第4列: [2, 4, 2]\n   第5列: [10]\n   第6列: [10]\n   第7列: [2, 4, 2]\n   第8列: [8, 1]\n   第9列: [6]\n   第10列: [3]\n\n【显示要求】\n- 严格按照网格显示行/列提示\n- 数字对齐，清晰可读\n- 预留涂黑空间\n\n放置完成后，整个数织游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 网格 |\n| **线索** | 行提示 + 列提示 |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 单击涂黑 + 长按X标记 + 行列高亮 |\n| **核心规则** | 2条（行约束+列约束） |\n| **推荐时间** | 5-15分钟 |\n| **适合场景** | 图案解谜爱好者 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从nonogram_grid.md优化归档\n\n---\n\n*数织 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/nonogram/10x10-practice.md"
+      ],
+      "priority": 1931,
+      "status": "active"
+    },
+    {
+      "id": "nonogram-10x10-strict",
+      "title": "10x10·strict",
+      "category": "puzzle",
+      "secondaryCategory": "nonogram",
+      "secondaryLabel": "数织",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数织",
+      "shortDesc": "根据行列线索还原图案。适合把教学内容放进「10x10·strict」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数织",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数织",
+        "根据行列线索还原图案",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「10x10·strict」模板：根据行列线索还原图案。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"数织-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/nonogram_grid.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"nonogram\"\nmode: \"game\"\ncategory: \"标记类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 数织（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成数织的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: N×M方格，黑色粗边框 #000000\n- 黑格: 深灰色填充 #444444\n- 白格: 白色背景 #FFFFFF\n- X标记: 红色 #DC143C，表示确定不涂黑\n- 行提示: 黑色数字 #000000，显示在左侧\n- 列提示: 黑色数字 #000000，显示在上方\n- 完成标记: 提示数字变绿 #19c348 ✓\n- 选中高亮: 淡蓝色背景 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700，内容\"方正准圆\"深灰\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区）：\n  - 标题「🎯 数织」金色大字\n  - 规则说明区\n- 右区70%（游戏区）：\n  - 上方：列提示数字\n  - 中间：N×M数织棋盘 + 左侧行提示\n  - 下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n- 【获取提示】位置（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348） - 严格模式：仅成功/失败\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 数织\"\n\n规则说明：\n\"根据数字提示涂黑格子，揭开隐藏图案！\n\n规则：\n① 行约束：左侧数字 = 该行连续黑格组的长度\n   - 多组数字用空格分隔，表示组之间有白格\n   - 如'2 3'表示：2个黑格+白格+3个连续黑格\n② 列约束：上方数字 = 该列连续黑格组的长度（同上）\n③ 全格确定：所有格子要么涂黑，要么标记为白格(X)\n④ 形成图案：正确涂黑后显示隐藏图案\"\n\n【右侧游戏区（70%）】\n\n一、数织棋盘区\n- N×M网格，左侧行提示，上方列提示\n- 网格线清晰，数字对齐\n\n二、交互功能\n\n1. 格子点击交互\n   - 单击格子：切换【白格→黑格→白格】循环\n   - 黑格：深灰色填充 #444444\n   - 白格：白色背景 #FFFFFF\n\n2. 长按标记X\n   - 长按格子：标记红色X #DC143C\n   - 表示\"确定不涂黑\"\n   - 再次长按：取消X标记\n\n3. 行/列高亮\n   - 点击行提示数字：高亮显示该行所有格子\n   - 点击列提示数字：高亮显示该列所有格子\n   - 再次点击：取消高亮\n\n4. 完成提示\n   - 某行约束满足：该行提示数字变绿✓\n   - 某列约束满足：该列提示数字变绿✓\n\n三、功能按钮区（右区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：高亮一个应涂黑的格子\n   - 限制：全局最多3次\n   - 提示次数显示：按钮显示\"获取提示(3)\"\n   - 用尽后：按钮变灰禁用，文字\"提示已用尽\"\n   - ⚠️ 重置游戏不会恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有涂黑和X标记，恢复初始\n   - 保留：行/列提示不变\n   - ⚠️ 重要：重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查数织是否正确\n   \n   【状态检查】\n   - 完全未涂：提示\"请先根据提示涂黑格子再提交\"\n   - 部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n   \n   【正确性检查】\n   - 行约束违反：标红该行，提示\"第X行不满足约束\"\n   - 列约束违反：标红该列，提示\"第Y列不满足约束\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！图案揭晓！\"\n   - 显示：完成的图案（如心形、动物等）\n\n【校验逻辑】\n- 实时检测：行/列约束是否满足\n- 满足时：提示数字变绿✓\n- 提交时：完整检查所有行列\n- 错误时：标红违反约束的行/列\n\n要求：完成所有交互功能，测试涂黑和X标记。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体数织题面\n2. 格式要求：\n   - 棋盘大小：NxM（如10×10）\n   - 行提示：每组数字用空格分隔\n   - 列提示：每组数字用空格分隔\n3. 示例（心形图案 10×10）：\n\n   棋盘大小：10×10\n   \n   行提示（从上到下）：\n   第1行: [2, 2]\n   第2行: [8]\n   第3行: [10]\n   第4行: [2, 4, 2]\n   第5行: [2, 2, 2]\n   第6行: [2, 2, 2]\n   第7行: [1, 2, 1]\n   第8行: [2, 2]\n   第9行: [4]\n   第10行: [2]\n   \n   列提示（从左到右）：\n   第1列: [3]\n   第2列: [6]\n   第3列: [8, 1]\n   第4列: [2, 4, 2]\n   第5列: [10]\n   第6列: [10]\n   第7列: [2, 4, 2]\n   第8列: [8, 1]\n   第9列: [6]\n   第10列: [3]\n\n【显示要求】\n- 严格按照网格显示行/列提示\n- 数字对齐，清晰可读\n- 预留涂黑空间\n\n放置完成后，整个数织游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | N×M 网格 |\n| **线索** | 行提示 + 列提示 |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 单击涂黑 + 长按X标记 + 行列高亮 |\n| **核心规则** | 2条（行约束+列约束） |\n| **推荐时间** | 5-15分钟 |\n| **适合场景** | 图案解谜爱好者 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从nonogram_grid.md优化归档\n\n---\n\n*数织 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/nonogram/10x10-strict.md"
+      ],
+      "priority": 1930,
+      "status": "active"
+    },
+    {
+      "id": "nonogram-dominosa-game",
+      "title": "dominosa·game",
+      "category": "puzzle",
+      "secondaryCategory": "nonogram",
+      "secondaryLabel": "数织",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数织",
+      "shortDesc": "根据行列线索还原图案。适合把教学内容放进「dominosa·game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数织",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数织",
+        "根据行列线索还原图案",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「dominosa·game」模板：根据行列线索还原图案。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"多米诺-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_dominosa.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"dominosa\"\nmode: \"game\"\ncategory: \"标记类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 多米诺（Dominosa）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成多米诺的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: 点阵，显示数字\n- 数字: 深灰色 #333333\n- 划线: 暖橙色线 #FF8C00\n- 选中高亮: 淡蓝色 #E3F2FD\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"金色 #FFD700\n- 音频: 强制静音\n\n【布局】\n- 左区30%（规则区）：标题+规则\n- 右区70%（游戏区）：多米诺棋盘+按钮\n\n【按钮位置规划】\n- 【获取提示】（鼠尾草蓝 #238be0）- 显示剩余次数(3)\n- 【重置游戏】（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 多米诺\"\n\n规则说明：\n\"划分多米诺，每个数字对出现恰好一次！\n\n规则：\n① 画线划分：在点之间画线划分区域\n② 多米诺：每个区域恰好2个相邻格子\n③ 数字对：每个数字组合(0-0到6-6)出现恰好一次\n④ 不重复：相同数字对不能重复\n⑤ 全覆盖：所有格子必须被划分\"\n\n【右侧游戏区（70%）】\n\n一、多米诺棋盘区\n- 点阵网格，格内有数字(0-6)\n\n二、交互功能\n\n1. 画线划分\n   - 点击点之间：画线\n   - 再次点击：擦除线\n\n2. 多米诺检测\n   - 实时检测形成的区域\n   - 每个区域恰好2格\n\n三、功能按钮区\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 限制：全局最多3次\n   - ⚠️ 重置游戏不恢复提示次数\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有线\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 格式：网格大小+数字分布\n2. 示例：\n\n   网格：7×8\n   数字分布（每格一个0-6数字）：\n   [完整数字矩阵]\n\n放置完成后，整个多米诺游戏完成。\n```\n\n---\n\n*多米诺 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/nonogram/dominosa-game.md"
+      ],
+      "priority": 1929,
+      "status": "active"
+    },
+    {
+      "id": "numberlink-puzzle-numberlink-v5-沉浸式",
+      "title": "沉浸式",
+      "category": "puzzle",
+      "secondaryCategory": "numberlink",
+      "secondaryLabel": "连线谜题",
+      "subjectTags": [
+        "数学"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "连线谜题",
+      "shortDesc": "连接相同元素且路径不交叉。适合把教学内容放进「沉浸式」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "连线谜题",
+        "数学",
+        "未标注"
+      ],
+      "suitableFor": [
+        "连线谜题",
+        "连接相同元素且路径不交叉",
+        "数学"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「沉浸式」模板：连接相同元素且路径不交叉。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "# 疯狂对战·冰淇淋甜品店 - H5游戏提示词\n\n> 版本：v5 | 风格：3D粘土糖果甜品风 | 布局：全屏沉浸式\n\n---\n\n## 步骤一：视觉框架提示词\n\n请生成一个H5小游戏「疯狂对战·冰淇淋甜品店」，具体要求如下：\n\n### 一、整体布局（全屏沉浸式）\n1. 屏幕比例16:9横屏，适合平板/希沃白板\n2. 内容占95%，无白色卡片，四周各5%留白\n3. 场景直接铺满屏幕\n\n### 二、场景设计（3D粘土糖果甜品风）\n1. 整体氛围：温馨冰淇淋甜品店，童话糖果屋风格\n2. 地面：浅木色，木质地板纹理\n3. 背景：奶油粉渐变，营造甜蜜温暖氛围\n4. 装饰元素：马卡龙、糖果、冰淇淋甜筒、星星等可爱装饰\n5. 灯光效果：温馨暖光\n\n### 三、冰淇淋/甜品图标视觉（根据题面生成5种）\n\n1. 巧克力冰淇淋\n   - 外观描述：巧克力色的冰淇淋甜筒，顶部有圆形冰淇淋球，淋有巧克力酱，3D粘土质感，圆润可爱\n   - 颜色：深棕色\n\n2. 草莓冰淇淋\n   - 外观描述：粉红色的冰淇淋甜筒，顶部冰淇淋球上有草莓颗粒点缀，3D粘土质感\n   - 颜色：粉红色\n\n3. 香草冰淇淋\n   - 外观描述：奶白色的冰淇淋甜筒，顶部是圆形奶油球，表面有香草籽纹理，3D粘土质感\n   - 颜色：奶白色/淡黄色\n\n4. 黄油饼干\n   - 外观描述：金黄色的三角形饼干，边缘有波浪纹路，表面有黄油光泽，3D粘土质感\n   - 颜色：金黄色\n\n5. 抹茶冰淇淋\n   - 外观描述：淡绿色的冰淇淋甜筒，顶部冰淇淋球呈绿色，表面有抹茶粉质感，3D粘土风格\n   - 颜色：淡绿色\n\n### 四、游戏棋盘（4×4）\n1. 背景：奶油白色，大理石纹理台面效果\n2. 格子：4×4共16个，每个格子像可爱的小碟子/甜品托盘\n3. 格子边框：浅粉色，圆角设计\n4. 16个冰淇淋/饼干分布在16个格子中\n\n### 五、糖带连线效果\n1. 每种冰淇淋对应同色糖带\n2. 糖带效果：像拉出的糖丝，有光泽感\n3. 线宽约8px，边缘圆润\n4. 选中状态：虚线显示，带闪烁光效\n\n### 六、信息栏（顶部）\n1. 标题：「冰淇淋甜品店」\n2. 显示进度：「已装满 X/16 个碟子」\n\n### 七、控制区（底部）\n1. 角色：冰淇淋店小店员（3D粘土风格）\n2. 按钮：\n   - 「完成啦」：碧绿色\n   - 「重新来」：黄色\n   - 「给提示」：蓝色\n\n### 八、字体\n1. 标题：方正粗圆\n2. 按钮文字：方正粗圆，白色\n\n### 九、音频\n强制静音\n\n---\n\n## 步骤二：交互动作提示词\n\n### 一、游戏规则\n1. 用横线或竖线连接相同的冰淇淋图案\n2. 连线不能重叠（同一条路径不能画两次）\n3. 连线不能交叉（不同冰淇淋的连线不能相互交叉）\n4. 需要占满所有16个格子\n\n### 二、画线操作\n1. 点击一个冰淇淋开始画线，显示为虚线糖带\n2. 手指在格子上滑动，糖带跟随手指延伸\n3. 糖带只能沿水平或垂直方向延伸\n4. 点击另一个相同的冰淇淋确认连接，糖带变实线\n5. 点击其他位置或不同颜色的冰淇淋，取消当前画线\n\n### 三、连线限制\n1. 每次只能画一条线，画完才能画下一条\n2. 画线过程中经过的格子被占用，后续连线不能经过\n\n### 四、实时反馈\n1. 顶部实时显示「已装满 X/16 个碟子」\n2. 糖带经过的格子变为温暖的糖渍颜色\n\n### 五、擦除功能\n1. 点击已画的糖带选中\n2. 点击删除按钮，删除选中的糖带\n3. 删除后可以重新画线\n\n### 六、提交验证\n1. 点击「完成啦」验证结果\n2. 检测：\n   - 每对相同冰淇淋是否连通\n   - 连线是否有交叉或重叠\n   - 是否填满所有16个格子\n3. 正确：绿色光晕 + 糖果雨庆祝动画\n4. 错误：红色闪烁 + 提示具体问题\n\n### 七、重置\n1. 点击「重新来」清空所有糖带\n2. 冰淇淋恢复初始位置\n\n### 八、提示功能\n1. 点击「给提示」高亮显示一条正确的连线路径\n2. 显示剩余次数，限3次\n\n### 九、触屏优化\n1. 点击区域足够大（48px以上）\n2. 滑动响应流畅，速度<50ms\n3. 选中冰淇淋有弹跳+发光反馈\n\n---\n\n## 步骤三：题面填入\n\n请将以下题面数据填入上述游戏框架：\n\n### 网格\n4×4（共16格）\n\n### 冰淇淋/甜品分布\n```\n行\\列   1        2        3        4\n-------------------------------------\n 1     巧克力    空       空      巧克力\n 2      空     草莓       空      香草\n 3     草莓    黄油     香草     抹茶\n 4     黄油     空      抹茶      空\n```\n\n### 具体位置分布\n1. 巧克力冰淇淋：位置(1,1)和(1,4)\n2. 草莓冰淇淋：位置(2,2)和(3,1)\n3. 香草冰淇淋：位置(2,4)和(3,3)\n4. 黄油饼干：位置(3,2)和(4,1)\n5. 抹茶冰淇淋：位置(3,4)和(4,3)\n\n### 模式\n单关卡\n\n---\n\n*提示词版本：v5 | 生成日期：2026-04-23*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/numberlink/puzzle_numberlink_v5_沉浸式.md"
+      ],
+      "priority": 1928,
+      "status": "active"
+    },
+    {
+      "id": "rush-hour-game",
+      "title": "game",
+      "category": "spatial",
+      "secondaryCategory": "rush_hour",
+      "secondaryLabel": "华容道",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "华容道",
+      "shortDesc": "车辆移动、空间腾挪和路径规划。适合把教学内容放进「game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "华容道",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "华容道",
+        "车辆移动、空间腾挪和路径规划",
+        "思维"
+      ],
+      "classFlow": [
+        "观察堵点",
+        "移动阻挡物",
+        "规划出口",
+        "完成通关",
+        "复盘步数"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game」模板：车辆移动、空间腾挪和路径规划。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"堵车华容道\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"rush-hour\"\ndifficulty: \"easy\"\ncategory: \"益智谜题\"\ngrade: \"2-6\"\n---\n\n# 🚗 堵车华容道\n\n> **难度**：⭐⭐ 中等  \n> **适用**：小学2-6年级  \n> **风格**：3D黏土城市风·交通大作战\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成堵车华容道游戏视觉框架：\n\n【视觉规格】（3D黏土城市风·交通大作战）\n- 背景: 城市街道，高楼大厦\n- UI: 3D黏土小车，鲜艳可爱\n- 标题: \"🚗 堵车华容道\"，城市风格字体\n- 红车: 🚗 红色跑车（目标车）\n- 白车: 🚙 普通轿车\n- 卡车: 🚚 大卡车（3格长）\n- 逃脱口: ▓ 右侧出口\n- 字体: \"方正卡通\"\n- 音频: 强制静音\n\n【布局】（全屏游戏布局）\n- 顶部15%：信息栏\n  - 关卡信息（第1关）\n  - 步数计数（0步）\n  - 计时器\n- 中部65%：游戏棋盘区\n  - 6×6停车场\n  - 各种车辆停放\n- 底部20%：控制区\n  - 城市交通员角色\n  - 【撤回】【重置】【提示】按钮\n  - 规则说明按钮（?）\n\n【颜色】\n- 马路灰: #808080\n- 红车: #DC143C\n- 白车: #3498DB\n- 卡车: #F4D03F\n- 逃脱口: #2ECC71\n\n【车辆规格】\n- 红车：2格长，横向，必须逃脱\n- 白车：2格长，横向或纵向\n- 卡车：3格长，横向或纵向\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则弹窗】（游戏前自动弹出一次）\n标题：「🚗 堵车华容道规则」\n\n规则说明：\n1. 🚗 红色跑车是目标车\n2. 横向车只能**左右移动**\n3. 纵向车只能**上下移动**\n4. 让红车从右侧逃脱口移出 = 胜利！\n\n注意：\n- 车辆不能转弯\n- 不能斜向移动\n\n【关闭弹窗】按钮\n\n【游戏区域交互】\n\n一、顶部信息栏（只显示，不交互）\n- 关卡：第1关\n- 步数：0步\n- 计时器\n\n二、中部游戏棋盘区\n\n棋盘设计：\n- 6×6停车场网格\n- 显示各种车辆\n- 右侧有逃脱口\n\n交互1：拖拽车辆\n- 点击选中车辆\n- 横向车：左右拖拽\n- 纵向车：上下拖拽\n- 车辆滑动动画\n\n交互2：红车逃脱\n- 红车到达最右侧\n- 从逃脱口移出\n- 胜利动画\n\n三、底部控制区\n\n按钮1：【撤回】#f7b40d\n- 撤销上一步\n- 记录每一步移动\n\n按钮2：【重置】#f7b40d\n- 车辆复位\n- 重新开始\n\n按钮3：【提示】#238be0\n- 高亮建议移动的车辆\n- 显示移动方向\n- 限制3次\n\n按钮4：【规则说明】（?图标）\n- 点击弹出规则弹窗\n\n四、计分计时\n- 每次移动+1步\n- 与最优解对比\n\n五、胜利判定\n- 红车逃脱成功\n- \"🎉 交通畅通！\"\n- 显示所用步数\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【关卡1：入门】\n\n      1    2    3    4    5    6      逃脱口\n   ┌────┬────┬────┬────┬────┬────┬──▓──┐\nA  │ ☐  │ ☐  │ ☐  │ 🚙 │ ☐  │ ☐  │     │\n   ├────┼────┼────┼────┼────┼────┼─────┤\nB  │ ☐  │ 🚗 │ 🚗 │ 🚙 │ ☐  │ ☐  │  ▓  │  ← 红车B2-B3\n   ├────┼────┼────┼────┼────┼────┼─────┤\nC  │ ☐  │ ☐  │ ☐  │ ☐  │ ☐  │ ☐  │     │\n   ├────┼────┼────┼────┼────┼────┼─────┤\nD  │ ☐  │ ☐  │ ☐  │ ☐  │ ☐  │ ☐  │     │\n   └────┴────┴────┴────┴────┴────┴─────┘\n\n最优解（3步）：\n1. 纵向白车下移（A4-B4 → B4-C4）\n2. 纵向白车继续下移（B4-C4 → C4-D4）\n3. 红车右移逃脱 ✓\n\n【关卡2：进阶】增加卡车\n- 红车：B2-B3\n- 卡车（3格纵向）：C1-C2-C3\n- 白车：多辆\n- 最优解：15步\n\n【关卡3：困难】复杂布局\n- 多辆卡车阻挡\n- 需要多次腾挪\n- 最优解：30步+\n\n【配置】\n- 关卡数：10关\n- 难度递增：车辆增多，空间减少\n```\n\n---\n\n*堵车华容道 | 3D黏土城市风·交通大作战 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/rush-hour/game.md"
+      ],
+      "priority": 1927,
+      "status": "active"
+    },
+    {
+      "id": "sliding-puzzle-game",
+      "title": "game",
+      "category": "spatial",
+      "secondaryCategory": "sliding_puzzle",
+      "secondaryLabel": "数字滑块",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数字滑块",
+      "shortDesc": "滑块拼图、空间移动和步骤规划。适合把教学内容放进「game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数字滑块",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数字滑块",
+        "滑块拼图、空间移动和步骤规划",
+        "思维"
+      ],
+      "classFlow": [
+        "观察初始盘面",
+        "移动滑块",
+        "还原顺序",
+        "检查步数",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game」模板：滑块拼图、空间移动和步骤规划。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"滑块拼图\"\nversion: \"1.1\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"sliding-puzzle\"\ndifficulty: \"easy\"\ncategory: \"益智谜题\"\ngrade: \"1-4\"\nsupportedLevelModes: [\"single\", \"multi\"]\ndefaultLevelMode: \"single\"\n---\n\n# 🧩 滑块拼图\n\n> **难度**：⭐ 简单  \n> **适用**：小学1-4年级  \n> **风格**：3D黏土拼图风·数字图案复原\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成滑块拼图游戏视觉框架：\n\n【视觉规格】（3D黏土拼图风·数字图案复原）\n- 背景: 拼图板，木质纹理\n- UI: 3D黏土数字块，圆润质感\n- 标题: \"🧩 滑块拼图\"，拼图风格字体\n- 角色: 小拼图师松鼠（底部）\n- 方块: 1-8数字块，3D黏土质感\n- 空格: ☐ 空白位置\n- 目标: 数字按顺序排列\n- 字体: \"Comic Sans MS\"数字，\"方正卡通\"中文\n- 音频: 强制静音\n\n【布局】（全屏游戏布局）\n- 顶部15%：信息栏\n  - 标题\"🧩 滑块拼图\"\n  - 关卡进度\n  - 步数计时\n- 中部65%：游戏棋盘区\n  - 3×3拼图棋盘\n  - 数字方块+空格\n- 底部20%：控制区\n  - 小松鼠角色\n  - 【撤回】【重置】【提示】按钮\n  - 规则说明按钮（?）\n\n【颜色】\n- 拼图板: #DEB887\n- 方块1-3: #E74C3C（红色系）\n- 方块4-6: #3498DB（蓝色系）\n- 方块7-8: #2ECC71（绿色系）\n- 空格: #F5F5DC\n\n【方块设计】\n- 3D黏土质感\n- 圆角设计\n- 数字凸起效果\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【关卡模式选择】（必选其一，默认：单关卡模式）\n\n模式A：单关卡模式（single）⭐ 推荐\n- 顶部：步数/用时，不显示\"第X关\"\n- 底部：【撤回】【重置】【提示】\n- 完成：【再玩一次】，无【下一关】\n- 适用：独立谜题挑战、追求最优解\n\n模式B：多关卡模式（multi）\n- 顶部：\"第X关/Y关\" + 步数/用时\n- 底部：【撤回】【重置】【提示】+【下一关】\n- 完成：【下一关】（解锁）\n- 适用：闯关游戏\n\n请选择：A（单关卡）/ B（多关卡）\n默认：A（单关卡模式）\n\n【注入选定关卡模式参数】\n（根据选择注入level-mode-params.md对应内容）\n\n【游戏规则弹窗】（游戏前自动弹出一次）\n标题：「🧩 滑块拼图规则」\n\n规则说明：\n1. 棋盘上有8个数字块 + 1个空格\n2. 只能将**与空格相邻**的块滑入空格\n3. 将数字按1-2-3-4-5-6-7-8顺序排列 = 胜利！\n\n【关闭弹窗】按钮\n\n【游戏区域交互】\n\n一、顶部信息栏（根据关卡模式变化）\n单关卡模式：\n- 标题：\"🧩 滑块拼图\"\n- ❌ 不显示：\"第1关\"\n- ✅ 显示：步数：0步\n- ✅ 显示：用时：0秒\n\n多关卡模式：\n- 标题：\"🧩 滑块拼图\"\n- ✅ 显示：第1关 / Y关\n- ✅ 显示：步数：0步\n- ✅ 显示：用时：0秒\n\n二、中部游戏棋盘区\n\n棋盘设计：\n- 3×3网格\n- 8个数字块 + 1个空格\n\n交互1：滑动数字\n- 点击与空格相邻的数字\n- 数字滑入空格\n- 滑动动画效果\n- 步数+1\n\n交互2：【撤回】#f7b40d\n- 撤销上一步\n- 回到上一步状态\n\n交互3：【重置】#f7b40d\n- 重新开始\n- 打乱数字顺序\n\n交互4：【提示】#238be0\n- 高亮建议移动的数字\n- 显示下一步方向\n- 限制3次\n\n交互5：规则说明（?图标）\n- 点击弹出规则弹窗\n\n三、底部按钮区（根据关卡模式变化）\n\n【公共按钮】（两种模式都有）\n- 【撤回】#f7b40d - 撤销上一步\n- 【重置】#f7b40d - 重新开始\n- 【提示】#238be0 - 显示建议（3次）\n- 【规则说明】- 弹出规则\n\n【单关卡模式特有】\n❌ 无【下一关】按钮\n✅ 完成后显示：【再玩一次】#f7b40d\n\n【多关卡模式特有】\n✅ 完成后显示：【下一关】#19c348\n\n四、计分计时\n- 记录移动步数\n- 记录用时\n- 与最优解对比\n\n五、胜利判定（根据关卡模式变化）\n\n公共判定：\n- 数字1-8按顺序排列\n- 空格在右下角\n- \"🎉 拼图完成！\"\n- 显示步数和用时\n\n单关卡模式完成：\n✅ 显示：【再玩一次】按钮\n❌ 不显示：【下一关】\n❌ 不显示：关卡进度\n\n多关卡模式完成：\n✅ 显示：【下一关】按钮（解锁）\n✅ 显示：\"恭喜通关第X关！\"\n✅ 显示：关卡进度（X/Y）\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【单关卡模式题面】\n\n【题面1：入门】\n初始状态：\n┌────┬────┬────┐\n│ 1  │ 2  │ 3  │\n├────┼────┼────┤\n│ 4  │ 5  │ 6  │\n├────┼────┼────┤\n│ 7  │ ☐  │ 8  │  ← 空格在中间\n└────┴────┴────┘\n\n解法（1步）：\n8左移 → 完成 ✓\n\n【关卡2：简单】\n初始状态：\n┌────┬────┬────┐\n│ 1  │ 2  │ 3  │\n├────┼────┼────┤\n│ 4  │ ☐  │ 6  │\n├────┼────┼────┤\n│ 7  │ 5  │ 8  │\n└────┴────┴────┘\n\n解法（3步）：\n5上移 → 6左移 → 8上移\n\n【关卡3：中等】\n初始状态：\n┌────┬────┬────┐\n│ 1  │ ☐  │ 3  │\n├────┼────┼────┤\n│ 4  │ 2  │ 6  │\n├────┼────┼────┤\n│ 7  │ 5  │ 8  │\n└────┴────┴────┘\n\n解法（5步+）\n\n【配置】\n- 关卡数：8关\n- 难度递增：打乱程度增加\n```\n\n---\n\n*滑块拼图 | 3D黏土拼图风·数字图案复原 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sliding-puzzle/game.md"
+      ],
+      "priority": 1926,
+      "status": "active"
+    },
+    {
+      "id": "sokoban-game-puzzle-style-copy",
+      "title": "game·puzzle·style·copy",
+      "category": "puzzle",
+      "secondaryCategory": "sokoban",
+      "secondaryLabel": "推箱子",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "推箱子",
+      "shortDesc": "路径规划、箱子推动和关卡挑战。适合把教学内容放进「game·puzzle·style·copy」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "推箱子",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "推箱子",
+        "路径规划、箱子推动和关卡挑战",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game·puzzle·style·copy」模板：路径规划、箱子推动和关卡挑战。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "一、视觉框架\n\n请生成推箱子华容道游戏视觉框架。\n\n1. 核心设计理念\n   益智谜题标准布局 + 3D黏土视觉风格 = 结构化信息展示 + 童趣材质质感\n\n2. 整体布局（益智谜题标准布局）\n   白色圆角卡片底座（16比9，占屏幕85%）\n   左30%规则区，右70%游戏区\n\n3. 背景设计\n   (1) 外层：淡青蓝色渐变 #E0F7FA 到 #B2EBF2\n   (2) 卡片底座：纯白色 #FFFFFF，圆角24px\n   (3) 卡片边框：暖黄色细线 #FFE082，2px宽度\n\n4. 左区30%规则说明区\n   (1) 背景：米白色 #FAFAFA\n   (2) 内边距：24px\n   (3) 内容从上到下：游戏标题、规则说明、操作提示、胜利条件\n\n5. 右区70%游戏棋盘区\n   (1) 背景：浅木色纹理 #F5E6D3（3D黏土木工风）\n   (2) 仓库场景：地板有木板纹理\n   (3) 顶部：关卡信息（关卡挑战、步数计数器）\n   (4) 中部：推箱子棋盘（5乘5网格布局）\n   (5) 右侧：方向控制按钮（上下左右）\n   (6) 底部：功能按钮行\n\n6. 3D黏土视觉元素\n   (1) 工人角色：黄色安全帽小工人（3D黏土质感）\n   (2) 箱子：棕色木箱（3D黏土，带木纹）\n   (3) 目标点：绿色圆形标记（3D黏土凸起）\n   (4) 墙壁：灰色砖墙（3D黏土，圆角）\n   (5) 地板：浅木色（3D黏土质感）\n\n7. 颜色系统\n   (1) 工人：#FFD54F（黄色黏土）+ 橙色安全帽 #FF8F00\n   (2) 箱子：#8D6E63（棕色木箱黏土）+ 深棕边框 #5D4037\n   (3) 目标点：#66BB6A（绿色黏土凸起）+ 白色星标\n   (4) 墙壁：#BDBDBD（灰色砖墙黏土）+ 深灰纹理 #757575\n   (5) 地板：#F5E6D3（浅木色黏土）\n   (6) 按钮提示：#238be0（鼠尾草蓝）\n   (7) 按钮重置：#f7b40d（含羞草黄）\n   (8) 按钮提交：#19c348（碧绿）\n\n8. 字体规范\n   (1) 标题：方正粗圆，28px，深灰 #424242\n   (2) 规则文字：方正准圆，14px，深灰 #616161\n   (3) 按钮文字：方正准圆，16px，白色\n\n9. 网格规格\n   (1) 固定5乘5方格\n   (2) 格子大小：60乘60px\n   (3) 边框：2px深棕色 #5D4037\n   (4) 圆角：8px\n\n10. 按钮设计（3D黏土按钮）\n    (1) 形状：圆角胶囊形\n    (2) 质感：3D黏土凸起效果\n    (3) 阴影：底部投影增加立体感\n    (4) 悬停：轻微上浮动画\n\n11. 音频设置\n    强制静音\n\n---\n\n二、交互功能\n\n请添加交互功能。\n\n1. 游戏规则弹窗（左侧规则区展示）\n\n   标题区：推箱子华容道，3D黏土木工风仓库\n\n   规则说明：\n   (1) 游戏目标：工人要把所有棕色箱子推到绿色目标点\n   (2) 操作方式：点击方向按钮移动工人；工人可以推动箱子（不能拉动）；规划路线，避免箱子卡住\n   (3) 规则限制：箱子只能推，不能拉；不能穿过墙壁；两个箱子不能同时推动\n   (4) 胜利条件：所有箱子都在目标点上；步数越少越好\n   (5) 技巧提示：先观察目标点位置；预留退路，避免死角；善用【撤回】功能\n\n2. 游戏区域交互\n\n   (1) 顶部信息栏（右区上方）\n       关卡标题：关卡挑战\n       步数计数：已走0步\n       最佳记录：最少8步\n       （注：重置功能在底部按钮区）\n\n   (2) 中央棋盘区（推箱子网格）\n       地图元素符号：墙、工人、箱子、目标点\n       \n       交互一：方向控制\n       点击上下左右按钮移动工人；工人朝向对应方向移动；遇到箱子推动箱子（如果前方可移动）；遇到墙壁无法移动，抖动提示\n       \n       交互二：推动判定\n       工人前方是箱子尝试推动；箱子前方是空地或目标点推动成功；箱子前方是墙或箱子推动失败抖动提示；更新步数计数器\n       \n       交互三：箱子状态\n       箱子在目标点上显示绿色勾；箱子离开目标点恢复棕色\n\n   (3) 右侧方向控制区\n       上下左右四个方向按钮；3D黏土圆形按钮；点击反馈按钮按下动画；连续移动支持快速点击\n\n   (4) 底部功能按钮区\n       按钮一：【撤回】颜色#f7b40d，撤销上一步移动，可连续撤回多步\n       按钮二：【重置】颜色#f7b40d，重置到初始状态，步数归零，工人箱子回到初始位置\n       按钮三：【获取提示】颜色#238be0，显示下一步建议移动方向，限制3次\n       按钮四：【提交答案】颜色#19c348，检查所有箱子是否在目标点；胜利显示过关动画和统计步数；未完成提示剩余箱子数量\n\n   (5) 胜利判定\n       所有箱子都在目标点上等于胜利；显示恭喜过关；显示实际步数对比最佳步数；提供再玩一次按钮\n\n   (6) 失败卡死检测\n       箱子推到角落无法移动；检测死局提示重置\n\n---\n\n三、题面数据\n\n请填入题面数据。\n\n1. 关卡基本信息\n   推箱子华容道关卡挑战\n   棋盘大小：5乘5\n   工人初始位置：(2,3)\n   箱子数量：2个\n   目标点数量：2个\n\n2. 初始布局（坐标表示）\n   工人初始位置：(2,3)\n   箱子1位置：(3,2)\n   箱子2位置：(3,4)\n   目标1位置：(4,2)\n   目标2位置：(4,4)\n\n3. 棋盘网格图\n   第1行：墙、墙、墙、墙、墙\n   第2行：墙、空、工人、空、墙\n   第3行：墙、箱子、空、箱子、墙\n   第4行：墙、目标、空、目标、墙\n   第5行：墙、墙、墙、墙、墙\n\n4. 最优解法（8步）\n   第1步：左，推箱子1\n   第2步：下，绕到下方\n   第3步：左，推箱子1到目标1\n   第4步：右\n   第5步：上\n   第6步：右，推箱子2\n   第7步：下，推箱子2到目标2\n   第8步：完成\n\n5. 配置参数\n   难度：入门\n   最少步数：8步\n   时间限制：无\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sokoban/game-puzzle-style-copy.md"
+      ],
+      "priority": 1925,
+      "status": "active"
+    },
+    {
+      "id": "sokoban-game-puzzle-style",
+      "title": "game·puzzle·style",
+      "category": "puzzle",
+      "secondaryCategory": "sokoban",
+      "secondaryLabel": "推箱子",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "推箱子",
+      "shortDesc": "路径规划、箱子推动和关卡挑战。适合把教学内容放进「game·puzzle·style」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "推箱子",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "推箱子",
+        "路径规划、箱子推动和关卡挑战",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game·puzzle·style」模板：路径规划、箱子推动和关卡挑战。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"推箱子-益智谜题风格\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"sokoban-puzzle\"\ndifficulty: \"medium\"\ncategory: \"华容道\"\ngrade: \"3-6\"\n---\n\n# 📦 推箱子华容道\n\n> **难度**：⭐⭐⭐ 中等  \n> **适用**：小学3-6年级  \n> **风格**：益智谜题布局 + 3D黏土木工风\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成推箱子华容道游戏视觉框架：\n\n【核心设计理念】\n益智谜题标准布局 + 3D黏土视觉风格\n= 结构化信息展示 + 童趣材质质感\n\n【整体布局】（益智谜题标准布局）\n┌─────────────────────────────────────────┐\n│  白色圆角卡片底座（16:9，占屏幕85%）      │\n│  ┌────────────┬──────────────────────┐  │\n│  │            │                      │  │\n│  │   左30%    │       右70%          │  │\n│  │   规则区   │      游戏区          │  │\n│  │            │                      │  │\n│  └────────────┴──────────────────────┘  │\n└─────────────────────────────────────────┘\n\n【背景】\n- 外层：淡青蓝色渐变 #E0F7FA → #B2EBF2\n- 卡片底座：纯白色 #FFFFFF，圆角24px\n- 卡片边框：暖黄色细线 #FFE082，2px\n\n【左区30% - 规则说明区】\n- 背景：米白色 #FAFAFA，与卡片底色区分\n- 内边距：24px\n- 内容从上到下：\n  1. 游戏标题 + 图标\n  2. 规则说明（带图标列表）\n  3. 操作提示\n  4. 胜利条件\n\n【右区70% - 游戏棋盘区】\n- 背景：浅木色纹理 #F5E6D3（3D黏土木工风）\n- 仓库场景：地板有木板纹理\n- 顶部：关卡信息（关卡挑战、步数计数器）\n- 中部：推箱子棋盘（5×5网格布局）\n- 右侧：方向控制按钮（上下左右）\n- 底部：功能按钮行\n\n【3D黏土视觉元素】\n- 工人角色：黄色安全帽小工人（3D黏土质感）\n- 箱子：棕色木箱（3D黏土，带木纹）\n- 目标点：绿色圆形标记（3D黏土凸起）\n- 墙壁：灰色砖墙（3D黏土，圆角）\n- 地板：浅木色（3D黏土质感）\n\n【颜色系统】\n- 工人：#FFD54F（黄色黏土）+ 橙色安全帽 #FF8F00\n- 箱子：#8D6E63（棕色木箱黏土）+ 深棕边框 #5D4037\n- 目标点：#66BB6A（绿色黏土凸起）+ 白色星标\n- 墙壁：#BDBDBD（灰色砖墙黏土）+ 深灰纹理 #757575\n- 地板：#F5E6D3（浅木色黏土）\n- 按钮提示：#238be0（鼠尾草蓝）\n- 按钮重置：#f7b40d（含羞草黄）\n- 按钮提交：#19c348（碧绿）\n\n【字体】\n- 标题：\"方正粗圆\"，28px，深灰 #424242\n- 规则文字：\"方正准圆\"，14px，深灰 #616161\n- 按钮文字：\"方正准圆\"，16px，白色\n\n【网格规格】\n- 固定5×5方格（根据题面数据）\n- 格子大小：60×60px\n- 边框：2px 深棕色 #5D4037\n- 圆角：8px\n\n【按钮设计】（3D黏土按钮）\n- 形状：圆角胶囊形\n- 质感：3D黏土凸起效果\n- 阴影：底部投影增加立体感\n- 悬停：轻微上浮动画\n\n【音频】\n- 强制静音\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【游戏规则弹窗】（左侧规则区展示）\n\n标题区：\n┌─────────────────────┐\n│  📦 推箱子华容道     │\n│  ─────────────────  │\n│  3D黏土木工风·仓库  │\n└─────────────────────┘\n\n规则说明：\n一、游戏目标\n  工人要把所有棕色箱子推到绿色目标点\n\n二、操作方式\n  ① 点击方向按钮移动工人\n  ② 工人可以推动箱子（不能拉动）\n  ③ 规划路线，避免箱子卡住\n\n三、规则限制\n  ⚠️ 箱子只能推，不能拉\n  ⚠️ 不能穿过墙壁\n  ⚠️ 两个箱子不能同时推动\n\n四、胜利条件\n  ✅ 所有箱子都在目标点上\n  ✅ 步数越少越好！\n\n五、技巧提示\n  💡 先观察目标点位置\n  💡 预留退路，避免死角\n  💡 善用【撤回】功能\n\n【关闭弹窗】按钮\n\n【游戏区域交互】\n\n一、顶部信息栏（右区上方）\n- 关卡标题：关卡挑战\n- 步数计数：已走 0 步\n- 最佳记录：最少 8 步\n- 重置按钮：⟲ 重置挑战\n\n二、中央棋盘区（推箱子网格）\n\n地图元素：\n┌───┬───┬───┬───┬───┐\n│ 🧱 │ 🧱 │ 🧱 │ 🧱 │ 🧱 │  🧱 = 墙壁（灰色砖墙）\n├───┼───┼───┼───┼───┤\n│ 🧱 │   │ 👷 │   │ 🧱 │  👷 = 工人（黄色安全帽）\n├───┼───┼───┼───┼───┤\n│ 🧱 │ 📦│   │ 📦│ 🧱 │  📦 = 箱子（棕色木箱）\n├───┼───┼───┼───┼───┤\n│ 🧱 │ 🎯│   │ 🎯│ 🧱 │  🎯 = 目标点（绿色）\n├───┼───┼───┼───┼───┤\n│ 🧱 │ 🧱 │ 🧱 │ 🧱 │ 🧱 │\n└───┴───┴───┴───┴───┘\n\n交互1：方向控制\n- 点击 ↑ ↓ ← → 按钮移动工人\n- 工人朝向对应方向移动\n- 遇到箱子：推动箱子（如果前方可移动）\n- 遇到墙壁：无法移动，抖动提示\n\n交互2：推动判定\n- 工人前方是箱子：尝试推动\n- 箱子前方是空地/目标点：推动成功\n- 箱子前方是墙/箱子：推动失败，抖动提示\n- 更新步数计数器\n\n交互3：箱子状态\n- 箱子在目标点上：显示绿色勾 ✓\n- 箱子离开目标点：恢复棕色\n\n三、右侧方向控制区\n\n┌─────────┐\n│    ↑    │  上\n│  ┌───┐  │\n│ ←│ 👷 │→ │  左  右\n│  └───┘  │\n│    ↓    │  下\n└─────────┘\n\n- 方向按钮：3D黏土圆形按钮\n- 点击反馈：按钮按下动画\n- 连续移动：支持快速点击\n\n四、底部功能按钮区\n\n按钮1：【撤回】#f7b40d\n- 撤销上一步移动\n- 可连续撤回多步\n\n按钮2：【重置挑战】#f7b40d\n- 重置当前挑战到初始状态\n- 步数归零\n\n按钮3：【获取提示】#238be0\n- 显示下一步建议移动方向\n- 限制3次\n\n按钮4：【提交答案】#19c348\n- 检查所有箱子是否在目标点\n- 胜利：显示过关动画 + 统计步数\n- 未完成：提示剩余箱子数量\n\n五、胜利判定\n- 所有 📦 都在 🎯 上 = 胜利\n- 显示：\"🎉 恭喜过关！\"\n- 显示：实际步数 vs 最佳步数\n- 提供：再玩一次按钮\n\n六、失败/卡死检测\n- 箱子推到角落无法移动\n- 检测死局，提示重置\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【推箱子华容道 - 关卡挑战】\n\n棋盘大小：5×5\n工人初始位置：(2,3)\n箱子数量：2个\n目标点数量：2个\n\n初始布局：\n┌───┬───┬───┬───┬───┐\n│ 🧱 │ 🧱 │ 🧱 │ 🧱 │ 🧱 │\n├───┼───┼───┼───┼───┤\n│ 🧱 │   │ 👷 │   │ 🧱 │\n├───┼───┼───┼───┼───┤\n│ 🧱 │ 📦│   │ 📦│ 🧱 │\n├───┼───┼───┼───┼───┤\n│ 🧱 │ 🎯│   │ 🎯│ 🧱 │\n├───┼───┼───┼───┼───┤\n│ 🧱 │ 🧱 │ 🧱 │ 🧱 │ 🧱 │\n└───┴───┴───┴───┴───┘\n\n坐标表示（行,列）：\n- 工人初始位置：(2,3)\n- 箱子1位置：(3,2)\n- 箱子2位置：(3,4)\n- 目标1位置：(4,2)\n- 目标2位置：(4,4)\n\n最优解法：8步\n1. 左 (←) - 推箱子1\n2. 下 (↓) - 绕到下方\n3. 左 (←) - 推箱子1到目标1 ✓\n4. 右 (→) \n5. 上 (↑)\n6. 右 (→) - 推箱子2\n7. 下 (↓) - 推箱子2到目标2 ✓\n8. 完成！\n\n【配置】\n- 难度：入门\n- 最少步数：8步\n- 时间限制：无\n```\n\n---\n\n*推箱子华容道 | 益智谜题布局 + 3D黏土木工风 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sokoban/game-puzzle-style.md"
+      ],
+      "priority": 1924,
+      "status": "active"
+    },
+    {
+      "id": "sokoban-game",
+      "title": "game",
+      "category": "puzzle",
+      "secondaryCategory": "sokoban",
+      "secondaryLabel": "推箱子",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "推箱子",
+      "shortDesc": "路径规划、箱子推动和关卡挑战。适合把教学内容放进「game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "推箱子",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "推箱子",
+        "路径规划、箱子推动和关卡挑战",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「game」模板：路径规划、箱子推动和关卡挑战。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"推箱子\"\nversion: \"1.1\"\nrating: \"⭐⭐⭐⭐⭐\"\ngameType: \"sokoban\"\ndifficulty: \"easy\"\ncategory: \"益智谜题\"\ngrade: \"2-6\"\nsupportedLevelModes: [\"single\", \"multi\"]\ndefaultLevelMode: \"single\"\n---\n\n# 📦 推箱子\n\n> **难度**：⭐⭐ 中等  \n> **适用**：小学2-6年级  \n> **风格**：3D黏土木工风·仓库搬运\n\n---\n\n## 步骤一：视觉框架\n\n```\n请生成推箱子游戏视觉框架：\n\n【视觉规格】（3D黏土木工风·仓库搬运）\n- 背景: 仓库场景，货架、木箱\n- UI: 3D黏土工人、箱子、目标点\n- 标题: \"📦 推箱子\"，木工风格字体\n- 角色: 黏土小工人（底部）\n- 箱子: 3D黏木质箱子\n- 目标点: 黄色目标标记\n- 墙壁: 仓库货架\n- 字体: \"方正卡通\"\n- 音频: 强制静音\n\n【布局】（全屏游戏布局）\n- 顶部15%：信息栏\n  - 关卡信息（第1关）\n  - 步数计数（0步）\n  - 最优步数提示\n- 中部65%：游戏棋盘区\n  - 5×5或6×6仓库布局\n  - 工人、箱子、目标点、墙壁\n- 底部20%：控制区\n  - 小工人角色\n  - 【撤回】【重置】【提示】按钮\n  - 规则说明按钮（?）\n\n【颜色】\n- 仓库棕: #8B4513\n- 箱子木: #DEB887\n- 目标黄: #FFD700\n- 工人蓝: #3498DB\n- 墙壁灰: #708090\n\n【符号】\n- ▲ = 工人（玩家控制）\n- ■ = 箱子（需要推）\n- ○ = 目标点\n- █ = 墙壁\n- ☐ = 空格\n```\n\n---\n\n## 步骤二：交互功能\n\n```\n请添加交互功能：\n\n【关卡模式选择】（必选其一，默认：单关卡模式）\n\n模式A：单关卡模式（single）⭐ 推荐\n- 顶部：步数/最优步数，不显示\"第X关\"\n- 底部：【撤回】【重置】【提示】\n- 完成：【再玩一次】，无【下一关】\n- 适用：独立谜题挑战、嵌入课件\n\n模式B：多关卡模式（multi）\n- 顶部：\"第X关/Y关\" + 步数\n- 底部：【撤回】【重置】【提示】+【下一关】\n- 完成：【下一关】（解锁）\n- 适用：闯关游戏、完整产品\n\n请选择：A（单关卡）/ B（多关卡）\n默认：A（单关卡模式）\n\n【注入选定关卡模式参数】\n（根据选择注入level-mode-params.md对应内容）\n\n【游戏规则弹窗】（游戏前自动弹出一次）\n标题：「📦 推箱子规则」\n\n规则说明：\n1. 控制工人（▲）在仓库中移动\n2. 工人只能**推**箱子（■），不能拉\n3. 将箱子推到目标点（○）上\n4. 所有箱子就位 = 胜利！\n\n注意：\n- 避免将箱子推到角落（死局）\n- 避免箱子靠墙无法移动\n\n【关闭弹窗】按钮\n\n【游戏区域交互】\n\n一、顶部信息栏（根据关卡模式变化）\n单关卡模式：\n- ❌ 不显示：\"第1关\"\n- ✅ 显示：步数：0步\n- ✅ 显示：最优：5步\n\n多关卡模式：\n- ✅ 显示：第1关 / Y关\n- ✅ 显示：步数：0步\n- ✅ 显示：最优：5步\n\n二、中部游戏棋盘区\n\n棋盘设计：\n- 5×5或6×6网格\n- 显示工人、箱子、目标点、墙壁\n\n交互1：方向控制\n- 点击工人周围的空格移动\n- 或：方向键/手势滑动\n- 工人移动动画\n\n交互2：推箱子\n- 工人面向箱子时前进 → 推动箱子\n- 箱子移动到目标点：目标点亮起\n- 推动音效（视觉反馈）\n\n交互3：死局检测\n- 箱子被困角落：变红警告\n- 提示\"需要重置\"\n\n三、底部控制区（根据关卡模式变化）\n\n【公共按钮】（两种模式都有）\n按钮1：【撤回】#f7b40d\n- 撤销上一步操作\n- 步数-1\n\n按钮2：【重置】#f7b40d\n- 重新开始当前关卡\n- 所有元素复位\n\n按钮3：【提示】#238be0\n- 显示下一步建议\n- 限制3次\n\n按钮4：【规则说明】（?图标）\n- 点击弹出规则弹窗\n\n【单关卡模式特有】\n❌ 无【下一关】按钮\n✅ 完成后显示：【再玩一次】#f7b40d\n   - 重置当前题面\n   - 重新开始挑战\n\n【多关卡模式特有】\n✅ 完成后显示：【下一关】#19c348\n   - 解锁状态\n   - 进入下一关\n\n四、胜利判定（根据关卡模式变化）\n\n公共判定：\n- 所有箱子到目标点\n- 工人欢呼动画\n- \"🎉 搬运完成！\"\n- 显示步数对比（实际/最优）\n\n单关卡模式完成：\n✅ 显示：【再玩一次】按钮\n❌ 不显示：【下一关】\n❌ 不显示：\"恭喜通关第X关\"\n\n多关卡模式完成：\n✅ 显示：【下一关】按钮（解锁）\n✅ 显示：\"恭喜通关第X关！\"\n✅ 显示：关卡进度（X/Y）\n```\n\n---\n\n## 步骤三：题面数据\n\n```\n请填入题面数据：\n\n【单关卡模式题面】\n\n【题面1：入门】5×5棋盘\n\n    1   2   3   4   5\n   ┌───┬───┬───┬───┬───┐\nA  │ █ │ █ │ █ │ █ │ █ │\n   ├───┼───┼───┼───┼───┤\nB  │ █ │ ▲ │ ☐ │ ☐ │ █ │  ← 工人B2\n   ├───┼───┼───┼───┼───┤\nC  │ █ │ ☐ │ ■ │ ☐ │ █ │  ← 箱子C3\n   ├───┼───┼───┼───┼───┤\nD  │ █ │ ☐ │ ☐ │ ○ │ █ │  ← 目标D4\n   ├───┼───┼───┼───┼───┤\nE  │ █ │ █ │ █ │ █ │ █ │\n   └───┴───┴───┴───┴───┘\n\n最优解（5步）：\n1. 工人右移（B2→B3）\n2. 工人下移推箱子（B3→C3，箱子C3→D3）\n3. 工人左移（C3→C2）\n4. 工人下移（C2→D2）\n5. 工人右移推箱子（D2→D3，箱子D3→D4）✓\n\n【关卡2：进阶】6×6棋盘（2个箱子）\n工人：B2\n箱子1：C3 → 目标D4\n箱子2：D3 → 目标E4\n最优解：12步\n\n【配置】\n- 关卡数：5关\n- 难度递增：1箱→2箱→3箱\n- 棋盘：5×5→6×6→7×7\n```\n\n---\n\n*推箱子 | 3D黏土木工风·仓库搬运 | 三步生成 | 2026-04-14*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sokoban/game.md"
+      ],
+      "priority": 1923,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-6x6-game",
+      "title": "6x6·game",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「6x6·game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「6x6·game」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"六宫格数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/sudoku_6x6.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"sudoku-6x6\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"easy\"\n---\n\n# 🎯 六宫格数独（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成六宫格数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: 6×6方格，粗线分隔2×3宫\n   2. 预设数字: 黑色 #000000，居中显示\n   3. 填入数字: 深蓝色 #1976D2\n   4. 冲突数字: 标红 #D32F2F\n   5. 选中格: 淡蓝色背景 #E3F2FD\n   6. 同数字高亮: 点击数字时高亮所有相同数字\n   \n三、其他\n   1. 按钮: 扁平简约，极简胶囊形状\n   2. 字体: 标题\"方正粗圆\"金色 #FFD700，数字清晰\n   3. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 六宫格数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：6×6数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 六宫格数独\"\n\n规则说明：\n\"填入1-6让每行每列每宫都不重复！\n\n规则：\n① 填入1-6：每格填入1到6的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 宫不重复：每个2×3宫内数字不重复\"\n\n数字键盘（左侧）：\n   数字1  数字2  数字3\n   数字4  数字5  数字6\n   【清除】\n\n【右侧游戏区（70%）】\n\n一、数独棋盘区\n   1. 6×6网格，2×3宫分隔\n   2. 显示预设数字（黑色）\n   3. 空格等待填入\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中该格（淡蓝色高亮）\n      点击数字键盘：填入数字（深蓝色）\n      再次点击数字：覆盖\n      \n   2. 清除\n      点击【清除】：清空选中格\n      \n   3. 冲突检测（实时）\n      同行同列同宫重复：冲突数字标红闪烁\n      \n   4. 同数字高亮\n      点击已填数字：高亮所有相同数字\n      方便观察分布\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用，文字\"提示已用尽\"\n      ⚠️ 重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字，恢复初始\n      保留：预设数字不变\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n         部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n      \n      正确性检查：\n         行重复：标红该行，提示\"第X行有重复数字\"\n         列重复：标红该列，提示\"第Y列有重复数字\"\n         宫重复：标红该宫，提示\"第Z宫有重复数字\"\n         成功：绿色闪烁+通关动画+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. 6×6网格\n   2. 预设数字（行,列=数字）\n\n二、示例\n   第1行: [5, 0, 0, 0, 0, 2]\n   第2行: [0, 0, 3, 0, 0, 0]\n   第3行: [0, 6, 0, 0, 3, 0]\n   第4行: [0, 3, 0, 0, 6, 0]\n   第5行: [0, 0, 0, 3, 0, 0]\n   第6行: [4, 0, 0, 0, 0, 5]\n\n放置完成后，整个六宫格数独游戏完成。\n```\n\n---\n\n*六宫格数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/6x6-game.md"
+      ],
+      "priority": 1922,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-6x6-practice",
+      "title": "6x6·practice",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「6x6·practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「6x6·practice」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"六宫格数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/sudoku_6x6.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"sudoku-6x6\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"easy\"\n---\n\n# 🎯 六宫格数独（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成六宫格数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: 6×6方格，粗线分隔2×3宫\n   2. 预设数字: 黑色 #000000，居中显示\n   3. 填入数字: 深蓝色 #1976D2\n   4. 冲突数字: 标红 #D32F2F\n   5. 选中格: 淡蓝色背景 #E3F2FD\n   6. 同数字高亮: 点击数字时高亮所有相同数字\n   \n三、其他\n   1. 按钮: 扁平简约，极简胶囊形状\n   2. 字体: 标题\"方正粗圆\"金色 #FFD700，数字清晰\n   3. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 六宫格数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：6×6数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 六宫格数独\"\n\n规则说明：\n\"填入1-6让每行每列每宫都不重复！\n\n规则：\n① 填入1-6：每格填入1到6的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 宫不重复：每个2×3宫内数字不重复\"\n\n数字键盘（左侧）：\n   数字1  数字2  数字3\n   数字4  数字5  数字6\n   【清除】\n\n【右侧游戏区（70%）】\n\n一、数独棋盘区\n   1. 6×6网格，2×3宫分隔\n   2. 显示预设数字（黑色）\n   3. 空格等待填入\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中该格（淡蓝色高亮）\n      点击数字键盘：填入数字（深蓝色）\n      再次点击数字：覆盖\n      \n   2. 清除\n      点击【清除】：清空选中格\n      \n   3. 冲突检测（实时）\n      同行同列同宫重复：冲突数字标红闪烁\n      \n   4. 同数字高亮\n      点击已填数字：高亮所有相同数字\n      方便观察分布\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用，文字\"提示已用尽\"\n\n   2. 【检查进度】按钮（天蓝色 #4FC3F7）\n      - 功能：查看当前进度（做对格数、正确率、星级）\n      - 触发：点击后显示进度弹窗\n      - 不结束游戏，可继续作答\n      ⚠️ 重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字，恢复初始\n      保留：预设数字不变\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n         部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n      \n      正确性检查：\n         行重复：标红该行，提示\"第X行有重复数字\"\n         列重复：标红该列，提示\"第Y列有重复数字\"\n         宫重复：标红该宫，提示\"第Z宫有重复数字\"\n         成功：绿色闪烁+通关动画+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. 6×6网格\n   2. 预设数字（行,列=数字）\n\n二、示例\n   第1行: [5, 0, 0, 0, 0, 2]\n   第2行: [0, 0, 3, 0, 0, 0]\n   第3行: [0, 6, 0, 0, 3, 0]\n   第4行: [0, 3, 0, 0, 6, 0]\n   第5行: [0, 0, 0, 3, 0, 0]\n   第6行: [4, 0, 0, 0, 0, 5]\n\n放置完成后，整个六宫格数独游戏完成。\n```\n\n---\n\n*六宫格数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/6x6-practice.md"
+      ],
+      "priority": 1921,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-6x6-strict",
+      "title": "6x6·strict",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「6x6·strict」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「6x6·strict」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"六宫格数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/sudoku_6x6.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"sudoku-6x6\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"easy\"\n---\n\n# 🎯 六宫格数独（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成六宫格数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: 6×6方格，粗线分隔2×3宫\n   2. 预设数字: 黑色 #000000，居中显示\n   3. 填入数字: 深蓝色 #1976D2\n   4. 冲突数字: 标红 #D32F2F\n   5. 选中格: 淡蓝色背景 #E3F2FD\n   6. 同数字高亮: 点击数字时高亮所有相同数字\n   \n三、其他\n   1. 按钮: 扁平简约，极简胶囊形状\n   2. 字体: 标题\"方正粗圆\"金色 #FFD700，数字清晰\n   3. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 六宫格数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：6×6数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】（碧绿 #19c348） - 严格模式：仅成功/失败\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 六宫格数独\"\n\n规则说明：\n\"填入1-6让每行每列每宫都不重复！\n\n规则：\n① 填入1-6：每格填入1到6的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 宫不重复：每个2×3宫内数字不重复\"\n\n数字键盘（左侧）：\n   数字1  数字2  数字3\n   数字4  数字5  数字6\n   【清除】\n\n【右侧游戏区（70%）】\n\n一、数独棋盘区\n   1. 6×6网格，2×3宫分隔\n   2. 显示预设数字（黑色）\n   3. 空格等待填入\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中该格（淡蓝色高亮）\n      点击数字键盘：填入数字（深蓝色）\n      再次点击数字：覆盖\n      \n   2. 清除\n      点击【清除】：清空选中格\n      \n   3. 冲突检测（实时）\n      同行同列同宫重复：冲突数字标红闪烁\n      \n   4. 同数字高亮\n      点击已填数字：高亮所有相同数字\n      方便观察分布\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用，文字\"提示已用尽\"\n      ⚠️ 重置游戏不恢复提示次数，提示次数是全局限制，不会重置\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字，恢复初始\n      保留：预设数字不变\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n         部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n      \n      正确性检查：\n         行重复：标红该行，提示\"第X行有重复数字\"\n         列重复：标红该列，提示\"第Y列有重复数字\"\n         宫重复：标红该宫，提示\"第Z宫有重复数字\"\n         成功：绿色闪烁+通关动画+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. 6×6网格\n   2. 预设数字（行,列=数字）\n\n二、示例\n   第1行: [5, 0, 0, 0, 0, 2]\n   第2行: [0, 0, 3, 0, 0, 0]\n   第3行: [0, 6, 0, 0, 3, 0]\n   第4行: [0, 3, 0, 0, 6, 0]\n   第5行: [0, 0, 0, 3, 0, 0]\n   第6行: [4, 0, 0, 0, 0, 5]\n\n放置完成后，整个六宫格数独游戏完成。\n```\n\n---\n\n*六宫格数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/6x6-strict.md"
+      ],
+      "priority": 1920,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-6x6-teaching",
+      "title": "6x6·teaching",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "未标注",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「6x6·teaching」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "未标注"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「6x6·teaching」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"六宫格数独-教学模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/sudoku_6x6.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"sudoku-6x6\"\nmode: \"teaching\"\ncategory: \"填充类\"\ndifficulty: \"easy\"\n---\n\n# 📚 六宫格数独（教学模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成六宫格数独教学模式的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: 6×6方格，粗线分隔2×3宫\n   2. 预设数字: 黑色 #000000，居中显示\n   3. 填入数字: 深蓝色 #1976D2\n   4. 候选数: 小字显示在角落（笔记模式）\n   5. 选中高亮: 淡蓝色背景 #E3F2FD\n   6. 同数字高亮: 点击数字时高亮所有相同数字\n   \n三、其他\n   1. 按钮: 扁平简约，极简胶囊形状\n   2. 字体: 标题\"方正粗圆\"金色 #FFD700，数字清晰\n   3. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（指导区）：\n      标题「📚 六宫格数独-教学模式」金色大字\n      详细规则讲解 + 解题步骤引导 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：6×6数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【下一步提示】位置（鼠尾草蓝 #238be0）显示剩余次数(无限)\n   2. 【笔记模式】位置（含羞草黄 #f7b40d）\n   3. 【重置游戏】位置（含羞草黄 #f7b40d）\n   4. 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧指导区（30%）】\n标题：【方正粗圆】金色\"📚 六宫格数独-教学模式\"\n\n一、详细规则讲解\n   \"欢迎来到数独世界！\n   \n   数独规则：\n   ① 填入1-6：每格填入1到6的数字\n   ② 行不重复：每行数字不重复\n   ③ 列不重复：每列数字不重复\n   ④ 宫不重复：每个2×3宫内数字不重复\n   \n   解题技巧：\n   1. 唯一数法：某行/列/宫只剩一格可填某数\n   2. 排除法：观察某数在同行同列的排除\n   3. 候选数法：在格子里记可能数字\"\n\n二、解题步骤引导（动态更新）\n   \"当前步骤：观察第X行/列/宫\n   提示：看看数字Y可以放在哪里\"\n\n数字键盘（左侧）：\n   数字1  数字2  数字3\n   数字4  数字5  数字6\n   【清除】\n\n【右侧游戏区（70%）】\n\n一、数独棋盘区\n   1. 6×6网格，2×3宫分隔\n   2. 显示预设数字（黑色）\n   3. 空格等待填入\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中该格（淡蓝色高亮）\n      点击数字键盘：填入数字（深蓝色）\n      再次点击数字：覆盖\n      \n   2. 笔记模式\n      点击【笔记模式】：切换笔记状态\n      笔记状态下：填入小字候选数\n      再次点击：退出笔记模式\n      \n   3. 清除\n      点击【清除】：清空选中格\n      \n   4. 冲突检测（实时）\n      同行同列同宫重复：冲突数字标红闪烁\n      并显示提示\"这里有重复，请检查\"\n      \n   5. 同数字高亮\n      点击已填数字：高亮所有相同数字\n      方便观察分布\n\n三、功能按钮区\n\n   1. 下一步提示按钮（鼠尾草蓝 #238be0）\n      功能：详细讲解下一步解题思路\n      显示：\"观察第X行，数字Y只能放在第Z格，因为...\"\n      高亮：相关格子\n      限制：教学模式，提示次数不限\n\n   2. 笔记模式按钮（含羞草黄 #f7b40d）\n      功能：切换笔记模式\n      笔记模式：填入小字候选数\n      正常模式：填入正式答案\n\n   3. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字，恢复初始\n      保留：预设数字不变\n\n   4. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先尝试填入数字\"\n         部分完成：提示\"还有X格未完成，继续加油！\"\n      \n      正确性检查：\n         行重复：标红该行，提示\"第X行有重复，看看哪里错了\"\n         列重复：标红该列，提示\"第Y列有重复\"\n         宫重复：标红该宫，提示\"这个宫里有重复\"\n         成功：绿色闪烁+鼓励动画+\"🎉 太棒了！你学会数独了！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的教学框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. 6×6网格\n   2. 预设数字（行,列=数字）\n   3. 建议从简单题面开始\n\n二、示例（简单题面）\n   第1行: [5, 0, 0, 0, 0, 2]\n   第2行: [0, 0, 3, 0, 0, 0]\n   第3行: [0, 6, 0, 0, 3, 0]\n   第4行: [0, 3, 0, 0, 6, 0]\n   第5行: [0, 0, 0, 3, 0, 0]\n   第6行: [4, 0, 0, 0, 0, 5]\n\n放置完成后，整个六宫格数独教学模式完成。\n```\n\n---\n\n*六宫格数独 | 教学模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/6x6-teaching.md"
+      ],
+      "priority": 1919,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-game",
+      "title": "9x9·game",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·game」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"九宫格数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"006_九宫格数独_人工调试.md\"\nverified: \"2026-04-13\"\ngameType: \"sudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 九宫格数独（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5) 已通过 verify-prompt.js 全量检查\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成九宫格数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: 9×9数独棋盘，粗线分隔3×3宫格，细线分隔单元格\n- 预设数字: 【深灰色 #333333】，加粗显示\n- 填入数字: 【暖橙色 #FF8C00】，正常字重\n- 候选数字: 【淡蓝色 #64B5F6】，小字号（2×3排列在格子角落）\n- 选中格: 高亮背景 #E3F2FD\n- 冲突数字: 标红 #D32F2F\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区，暂时空白）：\n  - 标题位置\n  - 规则说明位置\n  - 操作指引位置\n- 右区70%（游戏区）：\n  - 上方：9×9数独棋盘（行列标A-I, 1-9）\n  - 右侧：数字键盘（1-9纵向排列）+ 功能按钮区\n  - 下方：撤回/提示/重置/提交按钮\n\n【数字键盘布局】（右侧纵向排列）\n数字键盘区（从上到下）：\n- 【笔记模式】切换按钮（灰色=关闭，蓝色=开启）\n- 【清除】按钮\n- 数字1-9按钮（纵向排列）\n\n【按钮位置规划】（右区下方横向排列）\n- 【撤回】位置（含羞草黄 #f7b40d）\n- 【获取提示】位置（鼠尾草蓝 #238be0）\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 九宫格数独\"\n\n规则说明：\n\"数独是一个填数字的益智游戏！\n大图是一个9×9的格子，分成9个小九宫格。\n规则：\n1. 每行必须填1-9，不能重复\n2. 每列必须填1-9，不能重复\n3. 每个小九宫格（3×3）也必须填1-9，不能重复\n\n【右侧游戏区（70%）】\n\n一、数独棋盘区\n- 9×9网格，3×3宫格用粗线分隔\n- 行标A-I（左侧），列标1-9（上方）\n- 预设数字【深灰色加粗】，填入数字【暖橙色】，候选数字【淡蓝色小字】\n- 选中格高亮，冲突数字标红\n\n二、数字键盘与功能区（右侧）\n\n1. 笔记模式按钮（灰色=关闭/蓝色=开启）\n   - 点击：在正常作答模式和笔记模式间切换\n   - 状态显示：按钮颜色+文字提示\n\n2. 清除按钮（浅灰色）\n   - 笔记模式关闭时：清除当前格的确定数字\n   - 笔记模式开启时：清除当前格的所有候选数\n\n3. 数字键盘1-9（纵向排列）\n   - 笔记模式关闭时：点击填入确定数字\n   - 笔记模式开启时：点击添加/擦除候选数\n\n三、功能按钮区（右侧游戏区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：揭示一个正确答案（填入一个格子或高亮提示）\n   - 限制：全局最多3次（整个游戏过程中只能使用3次）\n   - 提示次数显示：在按钮上显示剩余次数（如\"获取提示(3)\"）\n   - 用尽后：按钮变灰禁用，文字变为\"提示已用尽\"\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有填入的数字和候选数，恢复初始状态\n   - 注意：不会重置【获取提示】的使用次数（提示次数是全局限制）\n   - 保留：预设数字不变\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查整个数独是否正确\n   \n   【状态检查】\n   - 完全未填：提示\"请先填入数字再提交\"\n   - 部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n   \n   【正确性检查】\n   - 全部填满但错误：标红错误格子，显示\"有X处错误，请检查标红区域\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！\"\n\n【交互细节】\n- 单击格子：选中（高亮行/列/宫）\n- 双击格子：快速清除\n- 单击数字键盘：根据模式填入确定数或添加候选\n- 再次点击数字键盘（笔记模式）：擦除该候选\n\n- 冲突检测：实时高亮重复数字\n\n【校验逻辑】\n- 实时检测：同行/同列/同宫是否有重复数字\n- 冲突时：重复数字标红，选中格闪烁提示\n- 完成条件：81格全部填满且无冲突\n- 提交时：检查是否符合数独规则\n\n要求：完成所有交互功能，测试笔记模式切换。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体数独题面\n2. 格式要求：\n   - 显示格式：A-I行，1-9列，.表示空格\n   - 坐标格式：(行,列)=数字\n3. 示例：\n   初始盘面（预设数字，.表示空格）：\n   A: 2 5 3 | . 9 6 | 4 . 1\n   B: . 6 8 | 1 7 2 | . 3 5\n   ...\n   \n   坐标格式：\n   (1,1)=2, (1,2)=5, (1,3)=3, ...\n\n【显示要求】\n- 严格按照坐标填入预设数字\n- 预设数字用【深灰色加粗】显示\n- 空格初始状态为空\n- 答案不显示，仅用于校验\n\n放置完成后，整个9x9数独游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | 9×9 九宫格 |\n| **宫格** | 3×3 共9个宫 |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 笔记模式 + 智能高亮 + 冲突检测 |\n| **推荐时间** | 8分钟 |\n| **适合场景** | 已掌握6宫格，挑战标准数独 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从006_九宫格数独_人工调试.md归档\n\n---\n\n## 关联文档\n\n- [SOP-GENERATOR.md](../20-LIBRARIES/SOP-GENERATOR.md) - 生成指南\n- [type-index.json](../20-LIBRARIES/type-index.json) - 游戏类型索引\n- [submit-rules.md](../20-LIBRARIES/submit-rules.md) - 提交规则\n- [verify-prompt.js](../20-LIBRARIES/verify-prompt.js) - 验证脚本\n\n---\n\n*九宫格数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-game.md"
+      ],
+      "priority": 1918,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-jigsaw-game",
+      "title": "9x9·jigsaw·game",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·jigsaw·game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·jigsaw·game」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"锯齿数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_jigsawsudoku.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"jigsawsudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"hard\"\n---\n\n# 🎯 锯齿数独（Jigsaw Sudoku）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成锯齿数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: N×N方格\n   2. 区域: 锯齿形状，不同淡彩色区分\n   3. 预设数字: 黑色 #000000\n   4. 填入数字: 深蓝色 #1976D2\n   5. 冲突数字: 标红 #D32F2F\n   \n三、其他\n   1. 选中高亮: 淡蓝色 #E3F2FD\n   2. 按钮: 扁平简约，极简胶囊形状\n   3. 字体: 标题\"方正粗圆\"金色 #FFD700\n   4. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 锯齿数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：锯齿数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 锯齿数独\"\n\n规则说明：\n\"不规则区域数独！\n\n规则：\n① 填入1-N：每格填入1到N的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 区域不重复：每个锯齿区域内数字不重复\n⑤ 区域大小：每个区域恰好N格\"\n\n数字键盘（左侧）：\n   数字1到N\n\n【右侧游戏区（70%）】\n\n一、锯齿数独棋盘区\n   1. N×N网格\n   2. 锯齿区域分隔，不同颜色\n   3. 显示预设数字\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中\n      点击数字键盘：填入数字\n      \n   2. 冲突检测（实时）\n      同行同列同区域重复：标红\n      \n   3. 同数字高亮\n      点击已填数字：高亮所有相同数字\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用\n      ⚠️ 重置游戏不恢复提示次数\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n         部分完成：提示\"还有X格未完成，是否继续提交？\"\n      \n      正确性检查：\n         行/列/区域重复：标红并提示\n         成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. N×N网格\n   2. 区域划分（每个格子属于哪个区域）\n   3. 预设数字\n\n二、示例\n   N=6\n   区域划分：\n      A A B B C C\n      A D D B C C\n      A D D E E C\n      F F D E E G\n      F F H H G G\n      I I I H H G\n   \n   预设数字：\n      (1,1)=5, (3,4)=2...\n\n放置完成后，整个锯齿数独游戏完成。\n```\n\n---\n\n*锯齿数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-jigsaw-game.md"
+      ],
+      "priority": 1917,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-jigsaw-practice",
+      "title": "9x9·jigsaw·practice",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·jigsaw·practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·jigsaw·practice」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"锯齿数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_jigsawsudoku.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"jigsawsudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"hard\"\n---\n\n# 🎯 锯齿数独（Jigsaw Sudoku）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成锯齿数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: N×N方格\n   2. 区域: 锯齿形状，不同淡彩色区分\n   3. 预设数字: 黑色 #000000\n   4. 填入数字: 深蓝色 #1976D2\n   5. 冲突数字: 标红 #D32F2F\n   \n三、其他\n   1. 选中高亮: 淡蓝色 #E3F2FD\n   2. 按钮: 扁平简约，极简胶囊形状\n   3. 字体: 标题\"方正粗圆\"金色 #FFD700\n   4. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 锯齿数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：锯齿数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 锯齿数独\"\n\n规则说明：\n\"不规则区域数独！\n\n规则：\n① 填入1-N：每格填入1到N的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 区域不重复：每个锯齿区域内数字不重复\n⑤ 区域大小：每个区域恰好N格\"\n\n数字键盘（左侧）：\n   数字1到N\n\n【右侧游戏区（70%）】\n\n一、锯齿数独棋盘区\n   1. N×N网格\n   2. 锯齿区域分隔，不同颜色\n   3. 显示预设数字\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中\n      点击数字键盘：填入数字\n      \n   2. 冲突检测（实时）\n      同行同列同区域重复：标红\n      \n   3. 同数字高亮\n      点击已填数字：高亮所有相同数字\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用\n      ⚠️ 重置游戏不恢复提示次数\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n         部分完成：提示\"还有X格未完成，是否继续提交？\"\n      \n      正确性检查：\n         行/列/区域重复：标红并提示\n         成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. N×N网格\n   2. 区域划分（每个格子属于哪个区域）\n   3. 预设数字\n\n二、示例\n   N=6\n   区域划分：\n      A A B B C C\n      A D D B C C\n      A D D E E C\n      F F D E E G\n      F F H H G G\n      I I I H H G\n   \n   预设数字：\n      (1,1)=5, (3,4)=2...\n\n放置完成后，整个锯齿数独游戏完成。\n```\n\n---\n\n*锯齿数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-jigsaw-practice.md"
+      ],
+      "priority": 1916,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-jigsaw-strict",
+      "title": "9x9·jigsaw·strict",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·jigsaw·strict」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·jigsaw·strict」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"锯齿数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_jigsawsudoku.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"jigsawsudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"hard\"\n---\n\n# 🎯 锯齿数独（Jigsaw Sudoku）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成锯齿数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: N×N方格\n   2. 区域: 锯齿形状，不同淡彩色区分\n   3. 预设数字: 黑色 #000000\n   4. 填入数字: 深蓝色 #1976D2\n   5. 冲突数字: 标红 #D32F2F\n   \n三、其他\n   1. 选中高亮: 淡蓝色 #E3F2FD\n   2. 按钮: 扁平简约，极简胶囊形状\n   3. 字体: 标题\"方正粗圆\"金色 #FFD700\n   4. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 锯齿数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：锯齿数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】（碧绿 #19c348） - 严格模式：仅成功/失败\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 锯齿数独\"\n\n规则说明：\n\"不规则区域数独！\n\n规则：\n① 填入1-N：每格填入1到N的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 区域不重复：每个锯齿区域内数字不重复\n⑤ 区域大小：每个区域恰好N格\"\n\n数字键盘（左侧）：\n   数字1到N\n\n【右侧游戏区（70%）】\n\n一、锯齿数独棋盘区\n   1. N×N网格\n   2. 锯齿区域分隔，不同颜色\n   3. 显示预设数字\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中\n      点击数字键盘：填入数字\n      \n   2. 冲突检测（实时）\n      同行同列同区域重复：标红\n      \n   3. 同数字高亮\n      点击已填数字：高亮所有相同数字\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用\n      ⚠️ 重置游戏不恢复提示次数\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n         部分完成：提示\"还有X格未完成，是否继续提交？\"\n      \n      正确性检查：\n         行/列/区域重复：标红并提示\n         成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. N×N网格\n   2. 区域划分（每个格子属于哪个区域）\n   3. 预设数字\n\n二、示例\n   N=6\n   区域划分：\n      A A B B C C\n      A D D B C C\n      A D D E E C\n      F F D E E G\n      F F H H G G\n      I I I H H G\n   \n   预设数字：\n      (1,1)=5, (3,4)=2...\n\n放置完成后，整个锯齿数独游戏完成。\n```\n\n---\n\n*锯齿数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-jigsaw-strict.md"
+      ],
+      "priority": 1915,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-killer-game",
+      "title": "9x9·killer·game",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·killer·game」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·killer·game」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"杀手数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_killersudoku.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"killersudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"hard\"\n---\n\n# 🎯 杀手数独（Killer Sudoku）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成杀手数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: 9×9方格，3×3宫\n   2. 区域: 虚线框表示 cages\n   3. 区域和: 左上角显示 cage 数字和\n   4. 填入数字: 深蓝色 #1976D2\n   5. 冲突数字: 标红 #D32F2F\n   \n三、其他\n   1. 选中高亮: 淡蓝色 #E3F2FD\n   2. 按钮: 扁平简约，极简胶囊形状\n   3. 字体: 标题\"方正粗圆\"金色 #FFD700\n   4. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 杀手数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：杀手数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 杀手数独\"\n\n规则说明：\n\"区域和数独！\n\n规则：\n① 填入1-9：每格填入1到9的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 宫不重复：每个3×3宫内数字不重复\n⑤ 区域和：每个虚线框区域内数字之和等于左上角数字\"\n\n数字键盘（左侧）：\n   数字1到9\n\n【右侧游戏区（70%）】\n\n一、杀手数独棋盘区\n   1. 9×9网格，3×3宫\n   2. 虚线框 cages\n   3. 每个 cage 左上角显示目标和\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中\n      点击数字键盘：填入数字\n      \n   2. 区域和检测\n      实时计算每个 cage 的当前和\n      等于目标和时高亮绿色\n      \n   3. 冲突检测（实时）\n      同行同列同宫重复：标红\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用\n      ⚠️ 重置游戏不恢复提示次数\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n      \n      正确性检查：\n         重复数字：标红并提示\n         区域和错误：标红该 cage\n         成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. cages 划分（每个 cage 包含的格子）\n   2. 每个 cage 的和\n\n二、示例\n   Cage 1: 和=15, 包含 (1,1)(1,2)(2,1)\n   Cage 2: 和=8, 包含 (1,3)(2,3)\n   ...\n\n放置完成后，整个杀手数独游戏完成。\n```\n\n---\n\n*杀手数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-killer-game.md"
+      ],
+      "priority": 1914,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-killer-practice",
+      "title": "9x9·killer·practice",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·killer·practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·killer·practice」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"杀手数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_killersudoku.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"killersudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"hard\"\n---\n\n# 🎯 杀手数独（Killer Sudoku）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成杀手数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: 9×9方格，3×3宫\n   2. 区域: 虚线框表示 cages\n   3. 区域和: 左上角显示 cage 数字和\n   4. 填入数字: 深蓝色 #1976D2\n   5. 冲突数字: 标红 #D32F2F\n   \n三、其他\n   1. 选中高亮: 淡蓝色 #E3F2FD\n   2. 按钮: 扁平简约，极简胶囊形状\n   3. 字体: 标题\"方正粗圆\"金色 #FFD700\n   4. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 杀手数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：杀手数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 杀手数独\"\n\n规则说明：\n\"区域和数独！\n\n规则：\n① 填入1-9：每格填入1到9的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 宫不重复：每个3×3宫内数字不重复\n⑤ 区域和：每个虚线框区域内数字之和等于左上角数字\"\n\n数字键盘（左侧）：\n   数字1到9\n\n【右侧游戏区（70%）】\n\n一、杀手数独棋盘区\n   1. 9×9网格，3×3宫\n   2. 虚线框 cages\n   3. 每个 cage 左上角显示目标和\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中\n      点击数字键盘：填入数字\n      \n   2. 区域和检测\n      实时计算每个 cage 的当前和\n      等于目标和时高亮绿色\n      \n   3. 冲突检测（实时）\n      同行同列同宫重复：标红\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用\n      ⚠️ 重置游戏不恢复提示次数\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n      \n      正确性检查：\n         重复数字：标红并提示\n         区域和错误：标红该 cage\n         成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. cages 划分（每个 cage 包含的格子）\n   2. 每个 cage 的和\n\n二、示例\n   Cage 1: 和=15, 包含 (1,1)(1,2)(2,1)\n   Cage 2: 和=8, 包含 (1,3)(2,3)\n   ...\n\n放置完成后，整个杀手数独游戏完成。\n```\n\n---\n\n*杀手数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-killer-practice.md"
+      ],
+      "priority": 1913,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-killer-strict",
+      "title": "9x9·killer·strict",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·killer·strict」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·killer·strict」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"杀手数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"base/puzzle_killersudoku.md (已修复)\"\nverified: \"2026-04-13\"\ngameType: \"killersudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"hard\"\n---\n\n# 🎯 杀手数独（Killer Sudoku）游戏模式通用模板\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5)\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成杀手数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n一、背景与UI\n   1. 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n   2. UI: 白色圆角卡片底座，暖黄边框 #FFD700\n   \n二、棋盘元素\n   1. 网格: 9×9方格，3×3宫\n   2. 区域: 虚线框表示 cages\n   3. 区域和: 左上角显示 cage 数字和\n   4. 填入数字: 深蓝色 #1976D2\n   5. 冲突数字: 标红 #D32F2F\n   \n三、其他\n   1. 选中高亮: 淡蓝色 #E3F2FD\n   2. 按钮: 扁平简约，极简胶囊形状\n   3. 字体: 标题\"方正粗圆\"金色 #FFD700\n   4. 音频: 强制静音\n\n【布局】\n一、整体\n   白色卡片16:9比例，占背景85%\n   \n二、分区\n   1. 左区30%（规则区）：\n      标题「🎯 杀手数独」金色大字 + 规则说明 + 数字键盘\n   2. 右区70%（游戏区）：\n      上方：杀手数独棋盘\n      下方：功能按钮区\n\n【按钮位置规划】（横向排列）\n   1. 【获取提示】位置（鼠尾草蓝 #238be0）显示剩余次数(3)\n   2. 【重置游戏】位置（含羞草黄 #f7b40d）\n   3. 【提交答案】（碧绿 #19c348） - 严格模式：仅成功/失败\n\n要求：完成视觉样式和布局，确认后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 杀手数独\"\n\n规则说明：\n\"区域和数独！\n\n规则：\n① 填入1-9：每格填入1到9的数字\n② 行不重复：每行数字不重复\n③ 列不重复：每列数字不重复\n④ 宫不重复：每个3×3宫内数字不重复\n⑤ 区域和：每个虚线框区域内数字之和等于左上角数字\"\n\n数字键盘（左侧）：\n   数字1到9\n\n【右侧游戏区（70%）】\n\n一、杀手数独棋盘区\n   1. 9×9网格，3×3宫\n   2. 虚线框 cages\n   3. 每个 cage 左上角显示目标和\n\n二、交互功能\n   1. 数字填入\n      单击空格：选中\n      点击数字键盘：填入数字\n      \n   2. 区域和检测\n      实时计算每个 cage 的当前和\n      等于目标和时高亮绿色\n      \n   3. 冲突检测（实时）\n      同行同列同宫重复：标红\n\n三、功能按钮区\n\n   1. 获取提示按钮（鼠尾草蓝 #238be0）\n      功能：揭示一个正确答案\n      限制：全局最多3次\n      提示次数显示：按钮显示\"获取提示(3)\"\n      用尽后：按钮变灰禁用\n      ⚠️ 重置游戏不恢复提示次数\n\n   2. 重置游戏按钮（含羞草黄 #f7b40d）\n      功能：清空所有填入数字\n      ⚠️ 不重置：获取提示的使用次数\n\n   3. 提交答案按钮（碧绿 #19c348）\n      功能：检查数独是否正确\n      \n      状态检查：\n         完全未填：提示\"请先填入数字再提交\"\n      \n      正确性检查：\n         重复数字：标红并提示\n         区域和错误：标红该 cage\n         成功：绿色闪烁+\"🎉 恭喜通关！\"\n\n要求：完成所有交互功能。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n一、格式要求\n   1. cages 划分（每个 cage 包含的格子）\n   2. 每个 cage 的和\n\n二、示例\n   Cage 1: 和=15, 包含 (1,1)(1,2)(2,1)\n   Cage 2: 和=8, 包含 (1,3)(2,3)\n   ...\n\n放置完成后，整个杀手数独游戏完成。\n```\n\n---\n\n*杀手数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-killer-strict.md"
+      ],
+      "priority": 1912,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-practice",
+      "title": "9x9·practice",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·practice」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·practice」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"九宫格数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"006_九宫格数独_人工调试.md\"\nverified: \"2026-04-13\"\ngameType: \"sudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 九宫格数独（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5) 已通过 verify-prompt.js 全量检查\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成九宫格数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: 9×9数独棋盘，粗线分隔3×3宫格，细线分隔单元格\n- 预设数字: 【深灰色 #333333】，加粗显示\n- 填入数字: 【暖橙色 #FF8C00】，正常字重\n- 候选数字: 【淡蓝色 #64B5F6】，小字号（2×3排列在格子角落）\n- 选中格: 高亮背景 #E3F2FD\n- 冲突数字: 标红 #D32F2F\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区，暂时空白）：\n  - 标题位置\n  - 规则说明位置\n  - 操作指引位置\n- 右区70%（游戏区）：\n  - 上方：9×9数独棋盘（行列标A-I, 1-9）\n  - 右侧：数字键盘（1-9纵向排列）+ 功能按钮区\n  - 下方：撤回/提示/重置/提交按钮\n\n【数字键盘布局】（右侧纵向排列）\n数字键盘区（从上到下）：\n- 【笔记模式】切换按钮（灰色=关闭，蓝色=开启）\n- 【清除】按钮\n- 数字1-9按钮（纵向排列）\n\n【按钮位置规划】（右区下方横向排列）\n- 【撤回】位置（含羞草黄 #f7b40d）\n- 【获取提示】位置（鼠尾草蓝 #238be0）\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】位置（碧绿 #19c348）\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 九宫格数独\"\n\n规则说明：\n\"数独是一个填数字的益智游戏！\n大图是一个9×9的格子，分成9个小九宫格。\n规则：\n1. 每行必须填1-9，不能重复\n2. 每列必须填1-9，不能重复\n3. 每个小九宫格（3×3）也必须填1-9，不能重复\n\n【右侧游戏区（70%）】\n\n一、数独棋盘区\n- 9×9网格，3×3宫格用粗线分隔\n- 行标A-I（左侧），列标1-9（上方）\n- 预设数字【深灰色加粗】，填入数字【暖橙色】，候选数字【淡蓝色小字】\n- 选中格高亮，冲突数字标红\n\n二、数字键盘与功能区（右侧）\n\n1. 笔记模式按钮（灰色=关闭/蓝色=开启）\n   - 点击：在正常作答模式和笔记模式间切换\n   - 状态显示：按钮颜色+文字提示\n\n2. 清除按钮（浅灰色）\n   - 笔记模式关闭时：清除当前格的确定数字\n   - 笔记模式开启时：清除当前格的所有候选数\n\n3. 数字键盘1-9（纵向排列）\n   - 笔记模式关闭时：点击填入确定数字\n   - 笔记模式开启时：点击添加/擦除候选数\n\n三、功能按钮区（右侧游戏区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：揭示一个正确答案（填入一个格子或高亮提示）\n   - 限制：全局最多3次（整个游戏过程中只能使用3次）\n   - 提示次数显示：在按钮上显示剩余次数（如\"获取提示(3)\"）\n   - 用尽后：按钮变灰禁用，文字变为\"提示已用尽\"\n\n   2. 【检查进度】按钮（天蓝色 #4FC3F7）\n      - 功能：查看当前进度（做对格数、正确率、星级）\n      - 触发：点击后显示进度弹窗\n      - 不结束游戏，可继续作答\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有填入的数字和候选数，恢复初始状态\n   - 注意：不会重置【获取提示】的使用次数（提示次数是全局限制）\n   - 保留：预设数字不变\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查整个数独是否正确\n   \n   【状态检查】\n   - 完全未填：提示\"请先填入数字再提交\"\n   - 部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n   \n   【正确性检查】\n   - 全部填满但错误：标红错误格子，显示\"有X处错误，请检查标红区域\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！\"\n\n【交互细节】\n- 单击格子：选中（高亮行/列/宫）\n- 双击格子：快速清除\n- 单击数字键盘：根据模式填入确定数或添加候选\n- 再次点击数字键盘（笔记模式）：擦除该候选\n\n- 冲突检测：实时高亮重复数字\n\n【校验逻辑】\n- 实时检测：同行/同列/同宫是否有重复数字\n- 冲突时：重复数字标红，选中格闪烁提示\n- 完成条件：81格全部填满且无冲突\n- 提交时：检查是否符合数独规则\n\n要求：完成所有交互功能，测试笔记模式切换。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体数独题面\n2. 格式要求：\n   - 显示格式：A-I行，1-9列，.表示空格\n   - 坐标格式：(行,列)=数字\n3. 示例：\n   初始盘面（预设数字，.表示空格）：\n   A: 2 5 3 | . 9 6 | 4 . 1\n   B: . 6 8 | 1 7 2 | . 3 5\n   ...\n   \n   坐标格式：\n   (1,1)=2, (1,2)=5, (1,3)=3, ...\n\n【显示要求】\n- 严格按照坐标填入预设数字\n- 预设数字用【深灰色加粗】显示\n- 空格初始状态为空\n- 答案不显示，仅用于校验\n\n放置完成后，整个9x9数独游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | 9×9 九宫格 |\n| **宫格** | 3×3 共9个宫 |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 笔记模式 + 智能高亮 + 冲突检测 |\n| **推荐时间** | 8分钟 |\n| **适合场景** | 已掌握6宫格，挑战标准数独 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从006_九宫格数独_人工调试.md归档\n\n---\n\n## 关联文档\n\n- [SOP-GENERATOR.md](../20-LIBRARIES/SOP-GENERATOR.md) - 生成指南\n- [type-index.json](../20-LIBRARIES/type-index.json) - 游戏类型索引\n- [submit-rules.md](../20-LIBRARIES/submit-rules.md) - 提交规则\n- [verify-prompt.js](../20-LIBRARIES/verify-prompt.js) - 验证脚本\n\n---\n\n*九宫格数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-practice.md"
+      ],
+      "priority": 1911,
+      "status": "active"
+    },
+    {
+      "id": "sudoku-9x9-strict",
+      "title": "9x9·strict",
+      "category": "logic",
+      "secondaryCategory": "sudoku",
+      "secondaryLabel": "数独",
+      "subjectTags": [
+        "思维"
+      ],
+      "ageText": "10-14岁",
+      "typeLabel": "数独",
+      "shortDesc": "宫格排除、数字推理和严谨校验。适合把教学内容放进「9x9·strict」中，形成可操作、可反馈的课堂互动。",
+      "cardTags": [
+        "数独",
+        "思维",
+        "10-14岁"
+      ],
+      "suitableFor": [
+        "数独",
+        "宫格排除、数字推理和严谨校验",
+        "思维"
+      ],
+      "classFlow": [
+        "理解规则",
+        "观察盘面",
+        "尝试操作",
+        "系统校验",
+        "完成挑战"
+      ],
+      "replaceableContent": [
+        "教学内容",
+        "题目数据",
+        "选项与答案",
+        "反馈语",
+        "难度设置"
+      ],
+      "promptSnippet": "请采用「9x9·strict」模板：宫格排除、数字推理和严谨校验。围绕老师提供的教学内容组织互动课件，保留任务、操作、反馈和总结。",
+      "templatePrompt": "---\nname: \"九宫格数独-游戏模式-通用模板\"\nversion: \"1.0\"\nrating: \"⭐⭐⭐⭐⭐\"\nsource: \"006_九宫格数独_人工调试.md\"\nverified: \"2026-04-13\"\ngameType: \"sudoku\"\nmode: \"game\"\ncategory: \"填充类\"\ndifficulty: \"medium\"\n---\n\n# 🎯 九宫格数独（游戏模式通用模板）\n\n> **使用方法**：复制此模板 → 替换步骤三中的 `{{题面数据占位符}}` → 完成！\n> **验证状态**：⭐⭐⭐⭐⭐ (5/5) 已通过 verify-prompt.js 全量检查\n\n---\n\n## 步骤一：视觉框架生成指令\n\n```\n请生成九宫格数独的视觉框架：\n\n【视觉规格】（儿童逻辑风）\n- 背景: 青蓝色渐变 #87CEEB + 淡米白棋盘 #FAF0E6\n- UI: 白色圆角卡片底座，暖黄边框 #FFD700\n- 网格: 9×9数独棋盘，粗线分隔3×3宫格，细线分隔单元格\n- 预设数字: 【深灰色 #333333】，加粗显示\n- 填入数字: 【暖橙色 #FF8C00】，正常字重\n- 候选数字: 【淡蓝色 #64B5F6】，小字号（2×3排列在格子角落）\n- 选中格: 高亮背景 #E3F2FD\n- 冲突数字: 标红 #D32F2F\n- 按钮: 扁平简约，极简胶囊形状\n- 字体: 标题\"方正粗圆\"，内容\"方正准圆\"\n- 音频: 强制静音\n\n【布局】\n- 白色卡片16:9比例，占背景85%\n- 左区30%（规则区，暂时空白）：\n  - 标题位置\n  - 规则说明位置\n  - 操作指引位置\n- 右区70%（游戏区）：\n  - 上方：9×9数独棋盘（行列标A-I, 1-9）\n  - 右侧：数字键盘（1-9纵向排列）+ 功能按钮区\n  - 下方：撤回/提示/重置/提交按钮\n\n【数字键盘布局】（右侧纵向排列）\n数字键盘区（从上到下）：\n- 【笔记模式】切换按钮（灰色=关闭，蓝色=开启）\n- 【清除】按钮\n- 数字1-9按钮（纵向排列）\n\n【按钮位置规划】（右区下方横向排列）\n- 【撤回】位置（含羞草黄 #f7b40d）\n- 【获取提示】位置（鼠尾草蓝 #238be0）\n- 【重置游戏】位置（含羞草黄 #f7b40d）\n- 【提交答案】（碧绿 #19c348） - 严格模式：仅成功/失败\n\n要求：完成视觉样式和布局，确认视觉正确后再进行下一步。\n```\n\n---\n\n## 步骤二：交互功能生成指令\n\n```\n请在刚才的视觉框架基础上，添加交互功能：\n\n【左侧规则区（30%）】\n标题：【方正粗圆】金色\"🎯 九宫格数独\"\n\n规则说明：\n\"数独是一个填数字的益智游戏！\n大图是一个9×9的格子，分成9个小九宫格。\n规则：\n1. 每行必须填1-9，不能重复\n2. 每列必须填1-9，不能重复\n3. 每个小九宫格（3×3）也必须填1-9，不能重复\n\n【右侧游戏区（70%）】\n\n一、数独棋盘区\n- 9×9网格，3×3宫格用粗线分隔\n- 行标A-I（左侧），列标1-9（上方）\n- 预设数字【深灰色加粗】，填入数字【暖橙色】，候选数字【淡蓝色小字】\n- 选中格高亮，冲突数字标红\n\n二、数字键盘与功能区（右侧）\n\n1. 笔记模式按钮（灰色=关闭/蓝色=开启）\n   - 点击：在正常作答模式和笔记模式间切换\n   - 状态显示：按钮颜色+文字提示\n\n2. 清除按钮（浅灰色）\n   - 笔记模式关闭时：清除当前格的确定数字\n   - 笔记模式开启时：清除当前格的所有候选数\n\n3. 数字键盘1-9（纵向排列）\n   - 笔记模式关闭时：点击填入确定数字\n   - 笔记模式开启时：点击添加/擦除候选数\n\n三、功能按钮区（右侧游戏区下方横向排列）\n\n1. 获取提示按钮（鼠尾草蓝 #238be0）\n   - 功能：揭示一个正确答案（填入一个格子或高亮提示）\n   - 限制：全局最多3次（整个游戏过程中只能使用3次）\n   - 提示次数显示：在按钮上显示剩余次数（如\"获取提示(3)\"）\n   - 用尽后：按钮变灰禁用，文字变为\"提示已用尽\"\n\n2. 重置游戏按钮（含羞草黄 #f7b40d）\n   - 功能：清空所有填入的数字和候选数，恢复初始状态\n   - 注意：不会重置【获取提示】的使用次数（提示次数是全局限制）\n   - 保留：预设数字不变\n\n3. 提交答案按钮（碧绿 #19c348）\n   - 功能：检查整个数独是否正确\n   \n   【状态检查】\n   - 完全未填：提示\"请先填入数字再提交\"\n   - 部分完成：提示\"还有X格未完成，是否继续提交？\"[继续/返回]\n   \n   【正确性检查】\n   - 全部填满但错误：标红错误格子，显示\"有X处错误，请检查标红区域\"\n   - 成功：绿色闪烁+通关动画+\"🎉 恭喜通关！\"\n\n【交互细节】\n- 单击格子：选中（高亮行/列/宫）\n- 双击格子：快速清除\n- 单击数字键盘：根据模式填入确定数或添加候选\n- 再次点击数字键盘（笔记模式）：擦除该候选\n\n- 冲突检测：实时高亮重复数字\n\n【校验逻辑】\n- 实时检测：同行/同列/同宫是否有重复数字\n- 冲突时：重复数字标红，选中格闪烁提示\n- 完成条件：81格全部填满且无冲突\n- 提交时：检查是否符合数独规则\n\n要求：完成所有交互功能，测试笔记模式切换。确认后再进行下一步。\n```\n\n---\n\n## 步骤三：题面数据生成指令\n\n```\n请在刚才完成的游戏框架基础上，填充正确的题面数据：\n\n{{题面数据占位符}}\n\n【填入说明】\n1. 替换上面的占位符为具体数独题面\n2. 格式要求：\n   - 显示格式：A-I行，1-9列，.表示空格\n   - 坐标格式：(行,列)=数字\n3. 示例：\n   初始盘面（预设数字，.表示空格）：\n   A: 2 5 3 | . 9 6 | 4 . 1\n   B: . 6 8 | 1 7 2 | . 3 5\n   ...\n   \n   坐标格式：\n   (1,1)=2, (1,2)=5, (1,3)=3, ...\n\n【显示要求】\n- 严格按照坐标填入预设数字\n- 预设数字用【深灰色加粗】显示\n- 空格初始状态为空\n- 答案不显示，仅用于校验\n\n放置完成后，整个9x9数独游戏完成。\n```\n\n---\n\n## 游戏信息\n\n| 属性 | 值 |\n|:---|:---|\n| **棋盘** | 9×9 九宫格 |\n| **宫格** | 3×3 共9个宫 |\n| **难度** | ⭐⭐⭐ 中等 |\n| **交互** | 笔记模式 + 智能高亮 + 冲突检测 |\n| **推荐时间** | 8分钟 |\n| **适合场景** | 已掌握6宫格，挑战标准数独 |\n\n---\n\n## 更新记录\n\n- **v1.0** (2026-04-13): 5星模板，从006_九宫格数独_人工调试.md归档\n\n---\n\n## 关联文档\n\n- [SOP-GENERATOR.md](../20-LIBRARIES/SOP-GENERATOR.md) - 生成指南\n- [type-index.json](../20-LIBRARIES/type-index.json) - 游戏类型索引\n- [submit-rules.md](../20-LIBRARIES/submit-rules.md) - 提交规则\n- [verify-prompt.js](../20-LIBRARIES/verify-prompt.js) - 验证脚本\n\n---\n\n*九宫格数独 | 游戏模式通用模板 | 5星归档 | 2026-04-13*\n",
+      "recommendedStyleIds": [],
+      "exampleId": "animals_play_only",
+      "originalExampleId": null,
+      "sourceRefs": [
+        "creative-shrimp-suite-v1.0/workspace/GAME-VAULT/templates-ready/sudoku/9x9-strict.md"
+      ],
+      "priority": 1910,
+      "status": "active"
+    },
+    {
       "id": "jump-literacy",
       "title": "障碍跳跳跳-识字闯关",
-      "category": "jump_obstacle",
+      "category": "action",
+      "secondaryCategory": "jump_obstacle",
+      "secondaryLabel": "跳跃障碍",
       "subjectTags": [
         "chinese"
       ],
@@ -1125,7 +5432,9 @@ export const inspirationSeedData = {
     {
       "id": "rainbow-slide-arithmetic",
       "title": "彩虹滑梯-10以内加减法",
-      "category": "jump_obstacle",
+      "category": "action",
+      "secondaryCategory": "jump_obstacle",
+      "secondaryLabel": "跳跃障碍",
       "subjectTags": [
         "math"
       ],
@@ -1173,7 +5482,9 @@ export const inspirationSeedData = {
     {
       "id": "obstacle-poem-recite",
       "title": "障碍挑战赛-古诗背诵",
-      "category": "jump_obstacle",
+      "category": "action",
+      "secondaryCategory": "jump_obstacle",
+      "secondaryLabel": "跳跃障碍",
       "subjectTags": [
         "chinese"
       ],
@@ -1221,7 +5532,9 @@ export const inspirationSeedData = {
     {
       "id": "platform-idiom-chain",
       "title": "平台冲刺-成语接龙",
-      "category": "jump_obstacle",
+      "category": "action",
+      "secondaryCategory": "jump_obstacle",
+      "secondaryLabel": "跳跃障碍",
       "subjectTags": [
         "chinese"
       ],
@@ -1269,7 +5582,9 @@ export const inspirationSeedData = {
     {
       "id": "phonics-racing",
       "title": "甜甜圈滑道-拼音竞速",
-      "category": "race_speed",
+      "category": "action",
+      "secondaryCategory": "race_speed",
+      "secondaryLabel": "竞速赛跑",
       "subjectTags": [
         "chinese"
       ],
@@ -1317,7 +5632,9 @@ export const inspirationSeedData = {
     {
       "id": "space-racing-formula",
       "title": "星际赛车-数学公式",
-      "category": "race_speed",
+      "category": "action",
+      "secondaryCategory": "race_speed",
+      "secondaryLabel": "竞速赛跑",
       "subjectTags": [
         "math"
       ],
@@ -1365,7 +5682,9 @@ export const inspirationSeedData = {
     {
       "id": "speed-challenge-listening",
       "title": "极速挑战-英语听力",
-      "category": "race_speed",
+      "category": "action",
+      "secondaryCategory": "race_speed",
+      "secondaryLabel": "竞速赛跑",
       "subjectTags": [
         "english"
       ],
@@ -1413,7 +5732,9 @@ export const inspirationSeedData = {
     {
       "id": "light-speed-poem-fill",
       "title": "光速竞速-古诗填空",
-      "category": "race_speed",
+      "category": "action",
+      "secondaryCategory": "race_speed",
+      "secondaryLabel": "竞速赛跑",
       "subjectTags": [
         "chinese"
       ],
@@ -1461,7 +5782,9 @@ export const inspirationSeedData = {
     {
       "id": "character-hide-seek",
       "title": "图形躲猫猫-汉字寻找",
-      "category": "hide_seek",
+      "category": "action",
+      "secondaryCategory": "hide_seek",
+      "secondaryLabel": "找物伪装",
       "subjectTags": [
         "chinese"
       ],
@@ -1509,7 +5832,9 @@ export const inspirationSeedData = {
     {
       "id": "poem-disguise-recognition",
       "title": "古诗伪装者-古诗识别",
-      "category": "hide_seek",
+      "category": "action",
+      "secondaryCategory": "hide_seek",
+      "secondaryLabel": "找物伪装",
       "subjectTags": [
         "chinese"
       ],
@@ -1557,7 +5882,9 @@ export const inspirationSeedData = {
     {
       "id": "idiom-undercover",
       "title": "成语卧底-推理",
-      "category": "hide_seek",
+      "category": "action",
+      "secondaryCategory": "hide_seek",
+      "secondaryLabel": "找物伪装",
       "subjectTags": [
         "chinese"
       ],
@@ -1603,7 +5930,9 @@ export const inspirationSeedData = {
     {
       "id": "number-hide-seek",
       "title": "数字躲猫猫-数学",
-      "category": "hide_seek",
+      "category": "action",
+      "secondaryCategory": "hide_seek",
+      "secondaryLabel": "找物伪装",
       "subjectTags": [
         "math"
       ],
@@ -1649,7 +5978,9 @@ export const inspirationSeedData = {
     {
       "id": "team-knowledge-contest",
       "title": "团队知识竞赛",
-      "category": "team_coop",
+      "category": "action",
+      "secondaryCategory": "team_coop",
+      "secondaryLabel": "团队协作",
       "subjectTags": [
         "general"
       ],
@@ -1697,7 +6028,9 @@ export const inspirationSeedData = {
     {
       "id": "coop-puzzle-challenge",
       "title": "协作解谜挑战",
-      "category": "team_coop",
+      "category": "action",
+      "secondaryCategory": "team_coop",
+      "secondaryLabel": "团队协作",
       "subjectTags": [
         "general"
       ],
@@ -1743,7 +6076,9 @@ export const inspirationSeedData = {
     {
       "id": "knowledge-breakout",
       "title": "知识突围战-综合",
-      "category": "survival_arena",
+      "category": "action",
+      "secondaryCategory": "survival_arena",
+      "secondaryLabel": "生存竞技",
       "subjectTags": [
         "general"
       ],
@@ -1789,7 +6124,9 @@ export const inspirationSeedData = {
     {
       "id": "wrong-question-chase",
       "title": "错题追击赛-复习",
-      "category": "survival_arena",
+      "category": "action",
+      "secondaryCategory": "survival_arena",
+      "secondaryLabel": "生存竞技",
       "subjectTags": [
         "math"
       ],
@@ -1835,7 +6172,9 @@ export const inspirationSeedData = {
     {
       "id": "math-logic-werewolf",
       "title": "数学狼人杀-逻辑推理",
-      "category": "battle_reasoning",
+      "category": "action",
+      "secondaryCategory": "battle_reasoning",
+      "secondaryLabel": "对战推理",
       "subjectTags": [
         "math"
       ],
@@ -1881,7 +6220,9 @@ export const inspirationSeedData = {
     {
       "id": "idiom-undercover-battle",
       "title": "谁是卧底-成语",
-      "category": "battle_reasoning",
+      "category": "action",
+      "secondaryCategory": "battle_reasoning",
+      "secondaryLabel": "对战推理",
       "subjectTags": [
         "chinese"
       ],
@@ -1929,7 +6270,9 @@ export const inspirationSeedData = {
     {
       "id": "formula-rush",
       "title": "算式急先锋-数学运算",
-      "category": "puzzle_rush",
+      "category": "action",
+      "secondaryCategory": "puzzle_rush",
+      "secondaryLabel": "限时解谜",
       "subjectTags": [
         "math"
       ],
@@ -1977,7 +6320,9 @@ export const inspirationSeedData = {
     {
       "id": "poem-puzzle-rush",
       "title": "古诗拼图Rush-诗句拼装",
-      "category": "puzzle_rush",
+      "category": "action",
+      "secondaryCategory": "puzzle_rush",
+      "secondaryLabel": "限时解谜",
       "subjectTags": [
         "chinese"
       ],
@@ -2023,7 +6368,9 @@ export const inspirationSeedData = {
     {
       "id": "formula-assembly-rush",
       "title": "公式拼装赛",
-      "category": "puzzle_rush",
+      "category": "action",
+      "secondaryCategory": "puzzle_rush",
+      "secondaryLabel": "限时解谜",
       "subjectTags": [
         "math"
       ],
@@ -2071,7 +6418,9 @@ export const inspirationSeedData = {
     {
       "id": "idiom-assembly-rush",
       "title": "成语急先锋-成语拼装",
-      "category": "puzzle_rush",
+      "category": "action",
+      "secondaryCategory": "puzzle_rush",
+      "secondaryLabel": "限时解谜",
       "subjectTags": [
         "chinese"
       ],
@@ -2119,7 +6468,9 @@ export const inspirationSeedData = {
     {
       "id": "math-ranking",
       "title": "数学排位赛-数学综合",
-      "category": "elimination",
+      "category": "action",
+      "secondaryCategory": "elimination",
+      "secondaryLabel": "淘汰晋级",
       "subjectTags": [
         "math"
       ],
@@ -2167,7 +6518,9 @@ export const inspirationSeedData = {
     {
       "id": "knowledge-chaos",
       "title": "知识大乱斗-综合知识",
-      "category": "elimination",
+      "category": "action",
+      "secondaryCategory": "elimination",
+      "secondaryLabel": "淘汰晋级",
       "subjectTags": [
         "general"
       ],

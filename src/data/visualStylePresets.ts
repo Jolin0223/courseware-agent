@@ -267,6 +267,18 @@ export const visualStylePreviewImages: Record<string, string> = {
   'minimal-flat-childlike': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/C0bhtRn9-2600008999-AigcImage-a2e8f7af9eb94b29aa4eaea1bb5bdaef_0.png',
 };
 
+export const enhancementVisualStylePreviewImages: Record<string, string> = {
+  clay: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/oBInQDi6-921b112a-70a0-40fb-9225-2103026af6e8.png',
+  jelly: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/lWBRiIjV-b078283f-e614-4bdb-8fc1-6c3fb5a2fcd7.png',
+  storybook: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/RdCJufOb-d27bde3a-b93e-42b6-b848-94b93324b109.png',
+  felt: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/npt8pRaF-53dd4c12-2241-41c4-b703-5168a7853fc5.png',
+  watercolor: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/RkDyhKTL-88877663-68d0-4e39-8a40-baa0174e24a2.png',
+  thickpaint: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/Tg8XiFvE-8e70b935-248a-4d9d-b94d-bf3cb1eb9d56.png',
+  matte: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/WlXkS69d-a08371fb-c406-4c08-b6d2-460edc5fe383.png',
+  paper: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/WP3LS3WH-8e453316-9956-4398-b924-3168d3ab8709.png',
+  fairy3d: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/lV7RHytk-bcc9756f-4c34-44d9-a1a0-91b9608f934e.png',
+};
+
 export const getVisualStylePreviewStyle = (styleId: string): CSSProperties => {
   const previews: Record<string, CSSProperties> = {
     kidslogic: {

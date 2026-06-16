@@ -1,18 +1,19 @@
 import { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  BookOpenCheck,
   Brain,
+  Calculator,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
-  Flag,
   PlayCircle,
-  Search,
-  Shield,
+  Puzzle,
   Sparkles,
-  Timer,
+  Shapes,
   Trophy,
-  Users,
   X,
-  Zap,
 } from 'lucide-react';
 import animalsAdventureHTML from '../../assets/courseware/animals_adventure.html?raw';
 import animalsPlayOnlyHTML from '../../assets/courseware/animals_play_only.html?raw';
@@ -53,14 +54,12 @@ interface InspirationSectionProps {
 
 const tabIcons: Record<InspirationTabId, React.ElementType> = {
   featured: Sparkles,
-  jump_obstacle: Flag,
-  race_speed: Zap,
-  hide_seek: Search,
-  team_coop: Users,
-  survival_arena: Shield,
-  battle_reasoning: Brain,
-  puzzle_rush: Timer,
-  elimination: Trophy,
+  action: Trophy,
+  english: BookOpenCheck,
+  junior_math: Calculator,
+  logic: Brain,
+  spatial: Shapes,
+  puzzle: Puzzle,
 };
 
 const exampleHtmlById: Record<string, string> = {
@@ -87,6 +86,8 @@ const ageBandTabs: Array<{ id: InspirationAgeBandId; name: string; ageText: stri
   { id: 'all', name: '全部年龄', ageText: '6-14岁' },
   ...inspirationSeedData.categories.ageBands,
 ];
+
+const cardsPerPage = 8;
 
 const featuredIds = new Set(
   inspirationSeedData.playways
@@ -165,11 +166,12 @@ export default function InspirationSection({
 }: InspirationSectionProps) {
   const [activeTab, setActiveTab] = useState<InspirationTabId>('featured');
   const [activeAgeBand, setActiveAgeBand] = useState<InspirationAgeBandId>('all');
-  const [batchIndex, setBatchIndex] = useState(0);
+  const [activeSecondary, setActiveSecondary] = useState('all');
+  const [pageIndex, setPageIndex] = useState(0);
   const [examplePlaywayId, setExamplePlaywayId] = useState<string | null>(null);
   const lastActionKeyRef = useRef('');
 
-  const visiblePlayways = useMemo(() => {
+  const primaryFilteredPlayways = useMemo(() => {
     const byTab = inspirationSeedData.playways.filter(item => (
       activeTab === 'featured' ? featuredIds.has(item.id) : item.category === activeTab
     ));
@@ -178,14 +180,31 @@ export default function InspirationSection({
       .sort((a, b) => b.priority - a.priority);
   }, [activeAgeBand, activeTab]);
 
-  const batchSize = 8;
-  const visibleBatchPlayways = useMemo(() => {
-    if (visiblePlayways.length <= batchSize) return visiblePlayways;
-    const start = (batchIndex * batchSize) % visiblePlayways.length;
-    const batch = visiblePlayways.slice(start, start + batchSize);
-    if (batch.length === batchSize) return batch;
-    return [...batch, ...visiblePlayways.slice(0, batchSize - batch.length)];
-  }, [batchIndex, visiblePlayways]);
+  const secondaryOptions = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; count: number }>();
+    primaryFilteredPlayways.forEach(item => {
+      const current = map.get(item.secondaryCategory);
+      map.set(item.secondaryCategory, {
+        id: item.secondaryCategory,
+        name: item.secondaryLabel,
+        count: (current?.count || 0) + 1,
+      });
+    });
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [primaryFilteredPlayways]);
+
+  const visiblePlayways = useMemo(() => (
+    activeSecondary === 'all'
+      ? primaryFilteredPlayways
+      : primaryFilteredPlayways.filter(item => item.secondaryCategory === activeSecondary)
+  ), [activeSecondary, primaryFilteredPlayways]);
+
+  const totalPages = Math.max(1, Math.ceil(visiblePlayways.length / cardsPerPage));
+  const pagedPlayways = useMemo(() => {
+    const safePageIndex = Math.min(pageIndex, totalPages - 1);
+    const start = safePageIndex * cardsPerPage;
+    return visiblePlayways.slice(start, start + cardsPerPage);
+  }, [pageIndex, totalPages, visiblePlayways]);
 
   const examplePlayway = useMemo(
     () => inspirationSeedData.playways.find(item => item.id === examplePlaywayId) || null,
@@ -198,13 +217,21 @@ export default function InspirationSection({
 
   const handleTabChange = (tab: InspirationTabId) => {
     setActiveTab(tab);
-    setBatchIndex(0);
+    setActiveSecondary('all');
+    setPageIndex(0);
     setExamplePlaywayId(null);
   };
 
   const handleAgeBandChange = (ageBand: InspirationAgeBandId) => {
     setActiveAgeBand(ageBand);
-    setBatchIndex(0);
+    setActiveSecondary('all');
+    setPageIndex(0);
+    setExamplePlaywayId(null);
+  };
+
+  const handleSecondaryChange = (secondary: string) => {
+    setActiveSecondary(secondary);
+    setPageIndex(0);
     setExamplePlaywayId(null);
   };
 
@@ -226,6 +253,10 @@ export default function InspirationSection({
       <style>{`
         .inspiration-scroll { scrollbar-width: none; }
         .inspiration-scroll::-webkit-scrollbar { display: none; }
+        .inspiration-secondary-select:focus {
+          border-color: var(--agent-primary) !important;
+          box-shadow: 0 0 0 3px var(--agent-focus-ring) !important;
+        }
         @media (max-width: 980px) {
           .inspiration-header {
             flex-direction: column;
@@ -236,6 +267,10 @@ export default function InspirationSection({
           }
           .inspiration-card-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+          .inspiration-filter-row {
+            align-items: flex-start !important;
+            flex-direction: column !important;
           }
           .inspiration-example-dialog {
             width: calc(100vw - 28px) !important;
@@ -292,10 +327,34 @@ export default function InspirationSection({
             })}
           </div>
         </div>
+
+        <div className="inspiration-filter-row" style={styles.filterRow}>
+          <label style={styles.secondarySelectWrap}>
+            <span style={styles.secondarySelectLabel}>细分玩法</span>
+            <span style={styles.selectShell}>
+              <select
+                className="inspiration-secondary-select"
+                value={activeSecondary}
+                onChange={event => handleSecondaryChange(event.target.value)}
+                style={styles.secondarySelect}
+              >
+                <option value="all">全部细分玩法</option>
+                {secondaryOptions.map(option => (
+                  <option key={option.id} value={option.id}>{option.name}（{option.count}）</option>
+                ))}
+              </select>
+              <ChevronDown size={15} style={styles.selectIcon} />
+            </span>
+          </label>
+          <div style={styles.resultMeta}>
+            共 {visiblePlayways.length} 个玩法
+            {totalPages > 1 ? ` · 第 ${Math.min(pageIndex + 1, totalPages)} / ${totalPages} 页` : ''}
+          </div>
+        </div>
       </div>
 
       <div className="inspiration-card-grid" style={styles.templateGrid}>
-        {visibleBatchPlayways.map(playway => {
+        {pagedPlayways.map(playway => {
           const selected = selectedInspirationId === playway.id;
           const exampleTitle = exampleFallbackLabel[playway.exampleId] || '玩法效果示例';
           return (
@@ -316,11 +375,12 @@ export default function InspirationSection({
               <p style={styles.description}>{playway.shortDesc}</p>
 
               <div style={styles.compactMeta}>
-                {playway.classFlow.slice(0, 4).join(' → ')}
+                {playway.classFlow.slice(0, 3).join(' → ')}
               </div>
 
               <div style={styles.compactTags}>
-                {playway.cardTags.slice(0, 3).map(item => <span key={item} style={styles.tag}>{item}</span>)}
+                <span style={styles.secondaryTag}>{playway.secondaryLabel}</span>
+                {playway.cardTags.slice(0, 2).map(item => <span key={item} style={styles.tag}>{item}</span>)}
               </div>
 
               <div style={styles.cardActions}>
@@ -348,8 +408,42 @@ export default function InspirationSection({
         })}
       </div>
 
-      {visibleBatchPlayways.length === 0 && (
+      {pagedPlayways.length === 0 && (
         <div style={styles.emptyState}>当前分类下暂无匹配玩法，可以切换年龄段或点击其他分类看看。</div>
+      )}
+
+      {visiblePlayways.length > cardsPerPage && (
+        <div style={styles.pagination}>
+          <button
+            type="button"
+            style={{ ...styles.pageButton, ...(pageIndex <= 0 ? styles.pageButtonDisabled : {}) }}
+            disabled={pageIndex <= 0}
+            onClick={() => setPageIndex(prev => Math.max(0, prev - 1))}
+          >
+            <ChevronLeft size={15} />
+            上一页
+          </button>
+          <div style={styles.pageDots}>
+            {Array.from({ length: totalPages }).map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                aria-label={`第 ${index + 1} 页`}
+                style={{ ...styles.pageDot, ...(index === pageIndex ? styles.pageDotActive : {}) }}
+                onClick={() => setPageIndex(index)}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            style={{ ...styles.pageButton, ...(pageIndex >= totalPages - 1 ? styles.pageButtonDisabled : {}) }}
+            disabled={pageIndex >= totalPages - 1}
+            onClick={() => setPageIndex(prev => Math.min(totalPages - 1, prev + 1))}
+          >
+            下一页
+            <ChevronRight size={15} />
+          </button>
+        </div>
       )}
 
       {examplePlayway && example && createPortal((
@@ -473,6 +567,57 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900,
     lineHeight: '22px',
   },
+  filterRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    minHeight: 36,
+  },
+  secondarySelectWrap: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
+  },
+  secondarySelectLabel: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 850,
+    whiteSpace: 'nowrap',
+  },
+  selectShell: {
+    position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+    minWidth: 178,
+  },
+  secondarySelect: {
+    width: '100%',
+    height: 32,
+    padding: '0 32px 0 11px',
+    borderRadius: 8,
+    border: '1px solid var(--agent-border)',
+    background: '#FFFFFF',
+    color: '#334155',
+    fontSize: 13,
+    fontWeight: 850,
+    outline: 'none',
+    appearance: 'none',
+    cursor: 'pointer',
+  },
+  selectIcon: {
+    position: 'absolute',
+    right: 10,
+    color: '#64748B',
+    pointerEvents: 'none',
+  },
+  resultMeta: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 800,
+    whiteSpace: 'nowrap',
+  },
   headerHint: {
     color: '#64748B',
     fontSize: 13,
@@ -588,6 +733,11 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     lineHeight: 1.4,
     minHeight: 36,
+    maxHeight: 36,
+    overflow: 'hidden',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
   },
   compactMeta: {
     marginTop: 10,
@@ -790,6 +940,60 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 11,
     fontWeight: 850,
     lineHeight: '23px',
+  },
+  secondaryTag: {
+    height: 23,
+    padding: '0 7px',
+    borderRadius: 999,
+    background: '#ECFDF5',
+    color: '#047857',
+    fontSize: 11,
+    fontWeight: 900,
+    lineHeight: '23px',
+  },
+  pagination: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 14,
+  },
+  pageButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    height: 32,
+    padding: '0 11px',
+    borderRadius: 8,
+    border: '1px solid var(--agent-border)',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: 850,
+    cursor: 'pointer',
+  },
+  pageButtonDisabled: {
+    opacity: 0.45,
+    cursor: 'not-allowed',
+  },
+  pageDots: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  },
+  pageDot: {
+    width: 7,
+    height: 7,
+    padding: 0,
+    borderRadius: 999,
+    border: 'none',
+    background: '#CBD5E1',
+    cursor: 'pointer',
+  },
+  pageDotActive: {
+    width: 18,
+    background: 'var(--agent-primary)',
   },
   flow: {
     display: 'flex',

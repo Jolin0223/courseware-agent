@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   Award,
@@ -6,7 +6,6 @@ import {
   BookOpenCheck,
   Check,
   Clock3,
-  Eye,
   Layers3,
   RefreshCw,
   Tag,
@@ -150,7 +149,7 @@ export default function LearningDataRecoveryModal({
   onRegenerate,
   onConfirm,
 }: LearningDataRecoveryModalProps) {
-  const [activeTab, setActiveTab] = useState<'config' | 'preview'>('config');
+  const [viewMode, setViewMode] = useState<'preview' | 'config'>('preview');
   const [items, setItems] = useState<LearningDataRecoveryItem[]>(() => getRecoveryItemsForCourseware(coursewareTitle, initialItems));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reportCase, setReportCase] = useState<ReportCaseKey>(() => getCaseFromTitle(coursewareTitle));
@@ -158,6 +157,13 @@ export default function LearningDataRecoveryModal({
   const selectedItems = useMemo(() => items.filter(item => item.checked), [items]);
   const selectedCount = selectedItems.length;
   const canModifyRecovery = isLatestVersion;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setViewMode('preview');
+    setReportCase(getCaseFromTitle(coursewareTitle));
+    setShowCaseSwitch(false);
+  }, [coursewareTitle, isOpen]);
 
   if (isOpen === false) return null;
 
@@ -186,8 +192,14 @@ export default function LearningDataRecoveryModal({
           <div style={styles.headerLeft}>
             <div style={styles.iconCircle}><BarChart3 size={20} /></div>
             <div>
-              <div style={styles.title}>查看学情数据</div>
-              <div style={styles.subTitle}>{coursewareTitle || '当前课件'} 已完成学情数据回收设计</div>
+              <div style={styles.title}>{viewMode === 'preview' ? '学情报告预览' : canModifyRecovery ? '调整回收数据' : '查看回收数据'}</div>
+              <div style={styles.subTitle}>
+                {viewMode === 'preview'
+                  ? `以下为「${coursewareTitle || '当前课件'}」的学生端/家长端报告示意`
+                  : canModifyRecovery
+                    ? '选择需要进入学情报告的回收数据，确认后将重新生成下一版课件'
+                    : '当前为历史版本，仅可查看本版已生效的回收数据'}
+              </div>
             </div>
           </div>
           <button style={styles.closeBtn} onClick={onClose} aria-label="关闭">
@@ -195,51 +207,7 @@ export default function LearningDataRecoveryModal({
           </button>
         </div>
 
-        <div
-          style={styles.tabs}
-          onDoubleClick={() => {
-            setShowCaseSwitch(prev => {
-              if (!prev) setReportCase('bowen');
-              if (prev) setReportCase(getCaseFromTitle(coursewareTitle));
-              return !prev;
-            });
-          }}
-        >
-          <button
-            style={{ ...styles.tab, ...(activeTab === 'config' ? styles.tabActive : {}) }}
-            onClick={() => setActiveTab('config')}
-          >
-            <RefreshCw size={15} />
-            {canModifyRecovery ? '修改回收数据' : '查看回收数据'}
-          </button>
-          <button
-            style={{ ...styles.tab, ...(activeTab === 'preview' ? styles.tabActive : {}) }}
-            onClick={() => setActiveTab('preview')}
-          >
-            <Eye size={15} />
-            预览学情报告
-          </button>
-          {showCaseSwitch && activeTab === 'preview' && (
-            <div style={styles.caseSwitch}>
-              {[
-                ['bowen', '博文'],
-                ['bilingual', '双语'],
-                ['brain', '脑力'],
-              ].map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  style={{ ...styles.caseBtn, ...(reportCase === key ? styles.caseBtnActive : {}) }}
-                  onClick={() => setReportCase(key as ReportCaseKey)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {activeTab === 'config' ? (
+        {viewMode === 'config' ? (
           <div style={styles.content}>
             <div style={styles.notice}>
               {canModifyRecovery
@@ -277,25 +245,71 @@ export default function LearningDataRecoveryModal({
               <div style={styles.footerHint}>
                 {canModifyRecovery ? `已选择 ${selectedCount} 项回收数据` : `本版已回收 ${selectedCount} 项学情数据`}
               </div>
-              {canModifyRecovery ? (
-                <button
-                  style={{
-                    ...styles.primaryBtn,
-                    opacity: selectedCount === 0 || isSubmitting ? 0.55 : 1,
-                    cursor: selectedCount === 0 || isSubmitting ? 'not-allowed' : 'pointer',
-                  }}
-                  disabled={selectedCount === 0 || isSubmitting}
-                  onClick={handleRegenerate}
-                >
-                  {isSubmitting ? '生成中...' : '确定并重新生成课件'}
+              <div style={styles.footerActions}>
+                <button type="button" style={styles.secondaryBtn} onClick={() => setViewMode('preview')}>
+                  {canModifyRecovery ? '取消，返回预览' : '返回预览'}
                 </button>
-              ) : (
-                <div style={styles.readOnlyHint}>历史版本仅支持查看，请在最新版本中修改回收数据</div>
-              )}
+                {canModifyRecovery ? (
+                  <button
+                    style={{
+                      ...styles.primaryBtn,
+                      opacity: selectedCount === 0 || isSubmitting ? 0.55 : 1,
+                      cursor: selectedCount === 0 || isSubmitting ? 'not-allowed' : 'pointer',
+                    }}
+                    disabled={selectedCount === 0 || isSubmitting}
+                    onClick={handleRegenerate}
+                  >
+                    {isSubmitting ? '生成中...' : '确定并重新生成课件'}
+                  </button>
+                ) : (
+                  <div style={styles.readOnlyHint}>历史版本仅支持查看，请在最新版本中修改回收数据</div>
+                )}
+              </div>
             </div>
           </div>
         ) : (
           <div style={styles.previewContent}>
+            <div
+              style={styles.previewTopBar}
+              onDoubleClick={() => {
+                setShowCaseSwitch(prev => {
+                  if (!prev) setReportCase('bowen');
+                  if (prev) setReportCase(getCaseFromTitle(coursewareTitle));
+                  return !prev;
+                });
+              }}
+            >
+              <div style={styles.previewInfo}>
+                <div style={styles.previewInfoTitle}>当前报告将展示</div>
+                <div style={styles.previewInfoDesc}>
+                  {selectedItems.length
+                    ? selectedItems.map(item => item.label).join('、')
+                    : '暂无可展示的学习表现指标'}
+                </div>
+              </div>
+              <button type="button" style={styles.adjustBtn} onClick={() => setViewMode('config')}>
+                <RefreshCw size={15} />
+                {canModifyRecovery ? '调整回收数据' : '查看回收数据'}
+              </button>
+              {showCaseSwitch && (
+                <div style={styles.caseSwitch}>
+                  {[
+                    ['bowen', '博文'],
+                    ['bilingual', '双语'],
+                    ['brain', '脑力'],
+                  ].map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      style={{ ...styles.caseBtn, ...(reportCase === key ? styles.caseBtnActive : {}) }}
+                      onClick={() => setReportCase(key as ReportCaseKey)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <div style={styles.notice}>
               这里仅示意学生端/家长端收到的个性化学情报告样式，当前展示为模拟数据，正式报告会使用学生真实作答结果生成。
             </div>
@@ -547,39 +561,11 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabs: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '12px 20px 0',
-    background: '#FFFFFF',
-  },
-  tab: {
-    height: 36,
-    padding: '0 14px',
-    borderRadius: '8px 8px 0 0',
-    border: '1px solid #E2E8F0',
-    borderBottom: 'none',
-    background: '#F8FAFC',
-    color: '#64748B',
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-  },
-  tabActive: {
-    background: '#FFFFFF',
-    color: 'var(--agent-primary-text)',
-    borderColor: '#99F6E4',
-  },
   caseSwitch: {
-    marginLeft: 'auto',
     display: 'flex',
     alignItems: 'center',
     gap: 6,
-    paddingBottom: 6,
+    flexShrink: 0,
   },
   caseBtn: {
     height: 28,
@@ -680,6 +666,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     color: '#64748B',
   },
+  footerActions: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
   primaryBtn: {
     height: 36,
     minWidth: 168,
@@ -690,6 +683,17 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: 800,
+  },
+  secondaryBtn: {
+    height: 36,
+    padding: '0 16px',
+    borderRadius: 8,
+    border: '1px solid #CBD5E1',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: 'pointer',
   },
   readOnlyHint: {
     fontSize: 13,
@@ -704,6 +708,51 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '16px 20px 22px',
     overflowY: 'auto',
     background: '#F8FAFC',
+  },
+  previewTopBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    padding: '12px 14px',
+    borderRadius: 12,
+    border: '1px solid #D1FAE5',
+    background: '#FFFFFF',
+    boxShadow: '0 10px 26px rgba(15, 23, 42, 0.05)',
+    marginBottom: 12,
+  },
+  previewInfo: {
+    minWidth: 0,
+    flex: 1,
+  },
+  previewInfoTitle: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: 850,
+    marginBottom: 4,
+  },
+  previewInfoDesc: {
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.5,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  adjustBtn: {
+    height: 34,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    padding: '0 14px',
+    borderRadius: 8,
+    border: '1.5px solid var(--agent-primary)',
+    background: 'var(--agent-soft)',
+    color: 'var(--agent-primary-text)',
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: 'pointer',
+    flexShrink: 0,
   },
   reportCanvas: {
     width: 'min(460px, 100%)',

@@ -5,6 +5,7 @@ import toast from '../../utils/toast';
 import { demoMs } from '../../constants/demoTiming';
 import {
   baseVisualStylePresets,
+  enhancementVisualStylePreviewImages,
   enhancementVisualStylePresets,
   getVisualStylePreviewStyle,
   getVisualStyleSelection,
@@ -278,6 +279,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                   <div style={visualStyleStyles.enhancementGrid}>
                     {enhancementVisualStylePresets.map(option => {
                       const selected = selectedEnhancementIds.includes(option.id);
+                      const previewImage = enhancementVisualStylePreviewImages[option.id];
                       return (
                         <button
                           key={option.id}
@@ -290,7 +292,15 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                             ...(!selectedBaseStyleId ? visualStyleStyles.enhancementDisabled : {}),
                           }}
                         >
-                          <span>{option.name}</span>
+                          {previewImage && (
+                            <span style={visualStyleStyles.enhancementThumb}>
+                              <img src={previewImage} alt={`${option.name}示例`} style={visualStyleStyles.enhancementThumbImage} />
+                            </span>
+                          )}
+                          <span style={visualStyleStyles.enhancementText}>
+                            <span style={visualStyleStyles.enhancementName}>{option.name}</span>
+                            <span style={visualStyleStyles.enhancementDesc}>{option.desc}</span>
+                          </span>
                         </button>
                       );
                     })}
@@ -442,20 +452,24 @@ const visualStyleStyles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap',
   },
   enhancementGrid: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 7,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+    gap: 8,
   },
   enhancementOption: {
-    minHeight: 28,
-    padding: '0 10px',
-    borderRadius: 999,
+    minHeight: 58,
+    padding: 7,
+    borderRadius: 10,
     border: '1px solid #D8F3EF',
     background: '#FFFFFF',
     color: '#475569',
     fontSize: 12,
     fontWeight: 750,
     cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    textAlign: 'left',
   },
   enhancementOptionSelected: {
     borderColor: 'var(--agent-primary)',
@@ -465,6 +479,40 @@ const visualStyleStyles: Record<string, React.CSSProperties> = {
   enhancementDisabled: {
     opacity: 0.46,
     cursor: 'not-allowed',
+  },
+  enhancementThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    flexShrink: 0,
+    overflow: 'hidden',
+    background: '#F8FAFC',
+    border: '1px solid rgba(15, 118, 110, 0.10)',
+  },
+  enhancementThumbImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+  },
+  enhancementText: {
+    minWidth: 0,
+    display: 'block',
+  },
+  enhancementName: {
+    display: 'block',
+    color: '#1E293B',
+    fontSize: 12,
+    fontWeight: 850,
+    lineHeight: 1.2,
+  },
+  enhancementDesc: {
+    display: 'block',
+    marginTop: 3,
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: 600,
+    lineHeight: 1.25,
   },
 };
 

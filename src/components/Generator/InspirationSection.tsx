@@ -165,7 +165,6 @@ export default function InspirationSection({
 }: InspirationSectionProps) {
   const [activeTab, setActiveTab] = useState<InspirationTabId>('featured');
   const [activeAgeBand, setActiveAgeBand] = useState<InspirationAgeBandId>('all');
-  const [activeSecondary, setActiveSecondary] = useState('all');
   const [pageIndex, setPageIndex] = useState(0);
   const [examplePlaywayId, setExamplePlaywayId] = useState<string | null>(null);
   const lastActionKeyRef = useRef('');
@@ -179,24 +178,9 @@ export default function InspirationSection({
       .sort((a, b) => b.priority - a.priority);
   }, [activeAgeBand, activeTab]);
 
-  const secondaryOptions = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; count: number }>();
-    primaryFilteredPlayways.forEach(item => {
-      const current = map.get(item.secondaryCategory);
-      map.set(item.secondaryCategory, {
-        id: item.secondaryCategory,
-        name: item.secondaryLabel,
-        count: (current?.count || 0) + 1,
-      });
-    });
-    return Array.from(map.values()).sort((a, b) => b.count - a.count);
-  }, [primaryFilteredPlayways]);
-
   const visiblePlayways = useMemo(() => (
-    activeSecondary === 'all'
-      ? primaryFilteredPlayways
-      : primaryFilteredPlayways.filter(item => item.secondaryCategory === activeSecondary)
-  ), [activeSecondary, primaryFilteredPlayways]);
+    primaryFilteredPlayways
+  ), [primaryFilteredPlayways]);
 
   const totalPages = Math.max(1, Math.ceil(visiblePlayways.length / cardsPerPage));
   const pagedPlayways = useMemo(() => {
@@ -216,20 +200,12 @@ export default function InspirationSection({
 
   const handleTabChange = (tab: InspirationTabId) => {
     setActiveTab(tab);
-    setActiveSecondary('all');
     setPageIndex(0);
     setExamplePlaywayId(null);
   };
 
   const handleAgeBandChange = (ageBand: InspirationAgeBandId) => {
     setActiveAgeBand(ageBand);
-    setActiveSecondary('all');
-    setPageIndex(0);
-    setExamplePlaywayId(null);
-  };
-
-  const handleSecondaryChange = (secondary: string) => {
-    setActiveSecondary(secondary);
     setPageIndex(0);
     setExamplePlaywayId(null);
   };
@@ -262,10 +238,6 @@ export default function InspirationSection({
           }
           .inspiration-card-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-          .inspiration-filter-row {
-            align-items: flex-start !important;
-            flex-direction: column !important;
           }
           .inspiration-example-dialog {
             width: calc(100vw - 28px) !important;
@@ -323,43 +295,6 @@ export default function InspirationSection({
           </div>
         </div>
 
-        <div className="inspiration-filter-row" style={styles.filterRow}>
-          {activeTab === 'featured' ? (
-            <div style={styles.featuredHint}>优先展示更适合课堂直接套用的玩法</div>
-          ) : (
-            <div style={styles.secondaryRail}>
-              <span style={styles.secondaryRailLabel}>玩法类型</span>
-              <div className="inspiration-scroll" style={styles.secondaryPills}>
-                <button
-                  type="button"
-                  style={{ ...styles.secondaryPill, ...(activeSecondary === 'all' ? styles.secondaryPillActive : {}) }}
-                  onMouseDown={event => event.preventDefault()}
-                  onClick={() => handleSecondaryChange('all')}
-                >
-                  全部
-                </button>
-                {secondaryOptions.map(option => {
-                  const active = activeSecondary === option.id;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      style={{ ...styles.secondaryPill, ...(active ? styles.secondaryPillActive : {}) }}
-                      onMouseDown={event => event.preventDefault()}
-                      onClick={() => handleSecondaryChange(option.id)}
-                    >
-                      {option.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          <div style={styles.resultMeta}>
-            共 {visiblePlayways.length} 个玩法
-            {totalPages > 1 ? ` · 第 ${Math.min(pageIndex + 1, totalPages)} / ${totalPages} 页` : ''}
-          </div>
-        </div>
       </div>
 
       <div className="inspiration-card-grid" style={styles.templateGrid}>
@@ -388,8 +323,7 @@ export default function InspirationSection({
               </div>
 
               <div style={styles.compactTags}>
-                <span style={styles.secondaryTag}>{playway.secondaryLabel}</span>
-                {playway.cardTags.slice(0, 2).map(item => <span key={item} style={styles.tag}>{item}</span>)}
+                {playway.cardTags.slice(0, 3).map(item => <span key={item} style={styles.tag}>{item}</span>)}
               </div>
 
               <div style={styles.cardActions}>
@@ -443,6 +377,7 @@ export default function InspirationSection({
               />
             ))}
           </div>
+          <div style={styles.pageText}>{Math.min(pageIndex + 1, totalPages)} / {totalPages}</div>
           <button
             type="button"
             style={{ ...styles.pageButton, ...(pageIndex >= totalPages - 1 ? styles.pageButtonDisabled : {}) }}
@@ -575,68 +510,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 11,
     fontWeight: 900,
     lineHeight: '22px',
-  },
-  filterRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    minHeight: 36,
-  },
-  secondaryRail: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    minWidth: 0,
-    flex: 1,
-  },
-  secondaryRailLabel: {
-    color: '#64748B',
-    fontSize: 12,
-    fontWeight: 850,
-    whiteSpace: 'nowrap',
-  },
-  featuredHint: {
-    color: '#64748B',
-    fontSize: 12,
-    fontWeight: 800,
-    lineHeight: 1.4,
-  },
-  secondaryPills: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    minWidth: 0,
-    overflowX: 'auto',
-    paddingBottom: 1,
-  },
-  secondaryPill: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 28,
-    padding: '0 10px',
-    borderRadius: 999,
-    border: '1px solid transparent',
-    background: 'rgba(255,255,255,0.68)',
-    color: '#64748B',
-    fontSize: 13,
-    fontWeight: 850,
-    outline: 'none',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-  },
-  secondaryPillActive: {
-    background: '#FFFFFF',
-    borderColor: 'var(--agent-primary)',
-    color: 'var(--agent-primary-text)',
-    boxShadow: '0 5px 14px rgba(34, 197, 190, 0.12)',
-  },
-  resultMeta: {
-    color: '#64748B',
-    fontSize: 12,
-    fontWeight: 800,
-    whiteSpace: 'nowrap',
   },
   headerHint: {
     color: '#64748B',
@@ -961,16 +834,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 850,
     lineHeight: '23px',
   },
-  secondaryTag: {
-    height: 23,
-    padding: '0 7px',
-    borderRadius: 999,
-    background: '#ECFDF5',
-    color: '#047857',
-    fontSize: 11,
-    fontWeight: 900,
-    lineHeight: '23px',
-  },
   pagination: {
     display: 'flex',
     alignItems: 'center',
@@ -1014,6 +877,13 @@ const styles: Record<string, React.CSSProperties> = {
   pageDotActive: {
     width: 18,
     background: 'var(--agent-primary)',
+  },
+  pageText: {
+    minWidth: 36,
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 850,
+    textAlign: 'center',
   },
   flow: {
     display: 'flex',

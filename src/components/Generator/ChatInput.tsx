@@ -842,12 +842,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   onClick={() => setIsDraftPromptOpen(prev => !prev)}
                   style={styles.promptPreviewToggle}
                 >
-                  <span>生成提示词预览</span>
+                  <span>玩法模板说明</span>
                   <span style={styles.promptPreviewMeta}>系统会自动带入，不需要手动修改</span>
                   {isDraftPromptOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
+                <div style={styles.promptTemplateNotice}>
+                  这是当前玩法的原始模板说明。生成时会结合你填写的教学内容，自动改写成新课件。
+                </div>
                 {isDraftPromptOpen && (
-                  <MarkdownPromptPreview text={draftPromptPreview} />
+                  <div style={styles.promptTemplateContent}>
+                    <MarkdownPromptPreview text={draftPromptPreview} />
+                  </div>
                 )}
               </div>
             </div>
@@ -1379,11 +1384,23 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 150,
     overflowY: 'auto' as const,
     padding: '10px 12px 12px',
-    borderTop: '1px solid #E2E8F0',
     color: '#334155',
     fontSize: 12,
     lineHeight: 1.55,
     fontFamily: 'inherit',
+  },
+  promptTemplateContent: {
+    borderTop: '1px solid #E2E8F0',
+  },
+  promptTemplateNotice: {
+    margin: '0 12px 10px',
+    padding: '8px 10px',
+    borderRadius: 9,
+    background: 'rgba(37, 99, 235, 0.07)',
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 1.55,
+    fontWeight: 700,
   },
   markdownH1: {
     margin: '0 0 8px',

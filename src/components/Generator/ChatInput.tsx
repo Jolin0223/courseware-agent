@@ -64,8 +64,8 @@ const parseAppliedInspirationDraft = (value: string) => {
     playwayType: pick('玩法类型'),
     ageRange: pick('适用年龄'),
     suitableFor: pick('适合内容'),
-    flow: section('课堂互动流程', '可替换内容'),
-    replaceable: section('可替换内容', '玩法要求'),
+    flow: section('课堂互动流程', '玩法改编建议'),
+    adaptation: section('玩法改编建议', '玩法要求'),
     prompt,
   };
 };
@@ -834,7 +834,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   </span>
                 </div>
                 <div style={styles.appliedPlaywayFlow}>{formatDraftFlow(appliedInspirationDraft.flow)}</div>
-                <div style={styles.appliedPlaywayHint}>可替换：{appliedInspirationDraft.replaceable}</div>
+                <div style={styles.appliedPlaywayHint}>改编建议：{appliedInspirationDraft.adaptation}</div>
               </div>
               <div style={styles.promptPreviewBox}>
                 <button

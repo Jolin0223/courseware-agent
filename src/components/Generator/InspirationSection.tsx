@@ -31,17 +31,14 @@ export interface GameplayInspiration {
   id: string;
   title: string;
   summary: string;
-  subjects: string[];
   keywords: string[];
   ageRange: string;
   learningAction: string;
   interactionTags: string[];
   structure: string[];
-  enhancements: string[];
-  visual: string;
+  adaptationText: string;
   promptEnhancement: string;
   sourceType: string;
-  replaceableContent: string[];
   typeLabel: string;
 }
 
@@ -82,15 +79,15 @@ const exampleFallbackLabel: Record<string, string> = {
 
 const cardsPerPage = 8;
 
-const featuredIds = new Set(
-  inspirationSeedData.playways
-    .slice()
-    .sort((a, b) => b.priority - a.priority)
-    .slice(0, 16)
-    .map(item => item.id),
-);
-
 const isKnownAge = (ageText: string) => Boolean(ageText && ageText !== '未标注');
+
+const sortByFinalSeedOrder = (items: InspirationPlayway[]) => items.slice().sort((a, b) => {
+  if (a.isFeatured && b.isFeatured) {
+    return (a.featuredRank ?? 999) - (b.featuredRank ?? 999) || a.sourceOrder - b.sourceOrder;
+  }
+  if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+  return a.sourceOrder - b.sourceOrder;
+});
 
 const getCardKicker = (playway: InspirationPlayway) => (
   isKnownAge(playway.ageText)
@@ -99,37 +96,28 @@ const getCardKicker = (playway: InspirationPlayway) => (
 );
 
 const getVisibleCardTags = (playway: InspirationPlayway) => (
-  playway.cardTags
+  playway.suitableTags
     .filter(item => item !== playway.secondaryLabel && item !== '未标注')
     .slice(0, 2)
 );
 
 const getVisibleSuitableTags = (playway: InspirationPlayway) => (
-  playway.suitableFor.filter(item => item && item !== '未标注')
+  playway.suitableTags.filter(item => item && item !== '未标注')
 );
-
-const getExampleAdaptationText = (playway: InspirationPlayway) => {
-  const suitable = getVisibleSuitableTags(playway).slice(0, 3).join('、') || '示例里的教学内容';
-  const replaceable = playway.replaceableContent.slice(0, 3).join('、') || '题目、选项和反馈语';
-  return `把${suitable}换成你的知识点，再替换${replaceable}，玩法节奏和反馈会一起带入。`;
-};
 
 const toGameplayInspiration = (playway: InspirationPlayway): GameplayInspiration => ({
   id: playway.id,
-  title: playway.title,
+  title: playway.displayTitle,
   summary: playway.shortDesc,
-  subjects: playway.subjectTags,
-  keywords: playway.suitableFor,
+  keywords: playway.suitableTags,
   ageRange: playway.ageText,
-  learningAction: playway.typeLabel,
-  interactionTags: playway.cardTags,
-  structure: playway.classFlow,
-  enhancements: playway.replaceableContent,
-  visual: playway.recommendedStyleIds.join('、') || 'AI 默认匹配',
-  promptEnhancement: playway.templatePrompt || playway.promptSnippet,
-  sourceType: playway.category,
-  replaceableContent: playway.replaceableContent,
-  typeLabel: playway.typeLabel,
+  learningAction: playway.secondaryLabel,
+  interactionTags: [playway.secondaryLabel, ...getVisibleCardTags(playway)].filter(Boolean),
+  structure: playway.flowSteps,
+  adaptationText: playway.adaptationText,
+  promptEnhancement: playway.templatePrompt,
+  sourceType: playway.primaryCategory,
+  typeLabel: playway.secondaryLabel,
 });
 
 export const buildStructuredInspirationPrompt = (item: GameplayInspiration, currentInput: string) => {
@@ -139,10 +127,6 @@ export const buildStructuredInspirationPrompt = (item: GameplayInspiration, curr
     .replace(/^教学内容：/g, '')
     .trim();
   const content = cleaned;
-  const replaceable = item.replaceableContent.length > 0
-    ? item.replaceableContent.join('、')
-    : '题目、选项、素材、反馈语';
-
   const ageLine = isKnownAge(item.ageRange) ? `适用年龄：${item.ageRange}\n` : '';
 
   return `教学内容：${content}
@@ -155,8 +139,8 @@ ${ageLine}适合内容：${item.keywords.join('、')}
 课堂互动流程：
 ${item.structure.map((step, index) => `${index + 1}. ${step}`).join('\n')}
 
-可替换内容：
-${replaceable}
+玩法改编建议：
+${item.adaptationText}
 
 玩法要求：
 ${item.promptEnhancement}
@@ -200,9 +184,9 @@ export default function InspirationSection({
 
   const primaryFilteredPlayways = useMemo(() => {
     const byTab = inspirationSeedData.playways.filter(item => (
-      activeTab === 'featured' ? featuredIds.has(item.id) : item.category === activeTab
+      activeTab === 'featured' ? item.isFeatured : item.primaryCategory === activeTab
     ));
-    return byTab.sort((a, b) => b.priority - a.priority);
+    return sortByFinalSeedOrder(byTab);
   }, [activeTab]);
 
   const secondaryOptions = useMemo(() => {
@@ -393,7 +377,7 @@ export default function InspirationSection({
               <div style={styles.cardHeader}>
                 <div style={{ minWidth: 0 }}>
                   <div style={styles.cardKicker}>{getCardKicker(playway)}</div>
-                  <h3 style={styles.cardTitle}>{playway.title}</h3>
+                  <h3 style={styles.cardTitle}>{playway.displayTitle}</h3>
                 </div>
                 {selected && (
                   <span style={styles.selectedBadge}>
@@ -406,7 +390,7 @@ export default function InspirationSection({
               <p style={styles.description}>{playway.shortDesc}</p>
 
               <div style={styles.compactMeta}>
-                {playway.classFlow.slice(0, 3).join(' → ')}
+                {playway.flowSteps.slice(0, 3).join(' → ')}
               </div>
 
               <div style={styles.compactTags}>
@@ -490,11 +474,9 @@ export default function InspirationSection({
             <div style={styles.exampleHeader}>
               <div>
                 <div style={styles.exampleEyebrow}>玩法效果示例</div>
-                <h3 style={styles.exampleTitle}>{examplePlayway.title}</h3>
+                <h3 style={styles.exampleTitle}>{examplePlayway.displayTitle}</h3>
                 <p style={styles.exampleSubtitle}>
-                  {examplePlayway.originalExampleId === null
-                    ? '先看这种互动在课堂上怎么玩。套用后，AI 会按你填写的教学内容重新生成一节新课。'
-                    : '先看这个玩法在课堂上的呈现效果。套用后，AI 会按你填写的教学内容重新生成一节新课。'}
+                  先看这个玩法在课堂上的呈现效果。套用后，AI 会按你填写的教学内容重新生成一节新课。
                 </p>
               </div>
               <button
@@ -509,7 +491,7 @@ export default function InspirationSection({
             <div className="inspiration-example-body" style={styles.exampleBody}>
               <div style={styles.examplePreviewShell}>
                 <iframe
-                  title={`${examplePlayway.title}玩法示例`}
+                  title={`${examplePlayway.displayTitle}玩法示例`}
                   sandbox="allow-scripts"
                   srcDoc={exampleHtmlById[example.id] || animalsPlayOnlyHTML}
                   style={styles.exampleIframe}
@@ -527,9 +509,9 @@ export default function InspirationSection({
                 <div style={styles.exampleBlock}>
                   <div style={styles.blockLabel}>课堂流程</div>
                   <div style={styles.flow}>
-                    {examplePlayway.classFlow.map((step, index) => (
+                    {examplePlayway.flowSteps.map((step, index) => (
                       <span key={step} style={styles.flowStep}>
-                        {step}{index < examplePlayway.classFlow.length - 1 ? ' →' : ''}
+                        {step}{index < examplePlayway.flowSteps.length - 1 ? ' →' : ''}
                       </span>
                     ))}
                   </div>
@@ -537,7 +519,7 @@ export default function InspirationSection({
                 <div style={styles.exampleBlock}>
                   <div style={styles.blockLabel}>可以怎么改成你的课</div>
                   <div style={styles.exampleText}>
-                    {getExampleAdaptationText(examplePlayway)}
+                    {examplePlayway.adaptationText}
                   </div>
                 </div>
                 <button

@@ -90,9 +90,29 @@ const featuredIds = new Set(
     .map(item => item.id),
 );
 
-const getDisplayAge = (ageText: string) => (
-  ageText === '未标注' ? '多年龄可用' : ageText
+const isKnownAge = (ageText: string) => Boolean(ageText && ageText !== '未标注');
+
+const getCardKicker = (playway: InspirationPlayway) => (
+  isKnownAge(playway.ageText)
+    ? `${playway.ageText} · ${playway.secondaryLabel}`
+    : playway.secondaryLabel
 );
+
+const getVisibleCardTags = (playway: InspirationPlayway) => (
+  playway.cardTags
+    .filter(item => item !== playway.secondaryLabel && item !== '未标注')
+    .slice(0, 2)
+);
+
+const getVisibleSuitableTags = (playway: InspirationPlayway) => (
+  playway.suitableFor.filter(item => item && item !== '未标注')
+);
+
+const getExampleAdaptationText = (playway: InspirationPlayway) => {
+  const suitable = getVisibleSuitableTags(playway).slice(0, 3).join('、') || '示例里的教学内容';
+  const replaceable = playway.replaceableContent.slice(0, 3).join('、') || '题目、选项和反馈语';
+  return `把${suitable}换成你的知识点，再替换${replaceable}，玩法节奏和反馈会一起带入。`;
+};
 
 const toGameplayInspiration = (playway: InspirationPlayway): GameplayInspiration => ({
   id: playway.id,
@@ -123,13 +143,14 @@ export const buildStructuredInspirationPrompt = (item: GameplayInspiration, curr
     ? item.replaceableContent.join('、')
     : '题目、选项、素材、反馈语';
 
+  const ageLine = isKnownAge(item.ageRange) ? `适用年龄：${item.ageRange}\n` : '';
+
   return `教学内容：${content}
 
 <已套用玩法>
 玩法名称：${item.title}
 玩法类型：${item.typeLabel}
-适用年龄：${item.ageRange}
-适合内容：${item.keywords.join('、')}
+${ageLine}适合内容：${item.keywords.join('、')}
 
 课堂互动流程：
 ${item.structure.map((step, index) => `${index + 1}. ${step}`).join('\n')}
@@ -371,7 +392,7 @@ export default function InspirationSection({
             <article key={playway.id} style={{ ...styles.card, ...(selected ? styles.cardSelected : {}) }}>
               <div style={styles.cardHeader}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={styles.cardKicker}>{getDisplayAge(playway.ageText)} · {playway.secondaryLabel}</div>
+                  <div style={styles.cardKicker}>{getCardKicker(playway)}</div>
                   <h3 style={styles.cardTitle}>{playway.title}</h3>
                 </div>
                 {selected && (
@@ -390,7 +411,7 @@ export default function InspirationSection({
 
               <div style={styles.compactTags}>
                 <span style={styles.secondaryTag}>{playway.secondaryLabel}</span>
-                {playway.cardTags.filter(item => item !== playway.secondaryLabel).slice(0, 2).map(item => (
+                {getVisibleCardTags(playway).map(item => (
                   <span key={item} style={styles.tag}>{item}</span>
                 ))}
               </div>
@@ -500,7 +521,7 @@ export default function InspirationSection({
                 <div style={styles.exampleBlock}>
                   <div style={styles.blockLabel}>这个玩法适合</div>
                   <div style={styles.tagRow}>
-                    {examplePlayway.suitableFor.map(item => <span key={item} style={styles.tag}>{item}</span>)}
+                    {getVisibleSuitableTags(examplePlayway).map(item => <span key={item} style={styles.tag}>{item}</span>)}
                   </div>
                 </div>
                 <div style={styles.exampleBlock}>
@@ -516,8 +537,7 @@ export default function InspirationSection({
                 <div style={styles.exampleBlock}>
                   <div style={styles.blockLabel}>可以怎么改成你的课</div>
                   <div style={styles.exampleText}>
-                    把{examplePlayway.suitableFor.slice(0, 3).join('、')}换成你的知识点，
-                    再替换{examplePlayway.replaceableContent.slice(0, 3).join('、')}，玩法节奏和反馈会一起带入。
+                    {getExampleAdaptationText(examplePlayway)}
                   </div>
                 </div>
                 <button

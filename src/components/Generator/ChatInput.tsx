@@ -84,6 +84,10 @@ const formatDraftFlow = (flow: string) => flow
   .filter(Boolean)
   .join(' → ');
 
+const formatAppliedPlaywayMeta = (playwayType: string, ageRange: string) => (
+  [playwayType, ageRange].filter(Boolean).join(' · ')
+);
+
 const renderInlineMarkdown = (value: string) => {
   const parts = value.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
   return parts.map((part, index) => {
@@ -825,7 +829,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <div style={styles.appliedPlaywayCard}>
                 <div style={styles.appliedPlaywayHeader}>
                   <span style={styles.appliedPlaywayName}>已套用：{appliedInspirationDraft.playwayName}</span>
-                  <span style={styles.appliedPlaywayMeta}>{appliedInspirationDraft.playwayType} · {appliedInspirationDraft.ageRange}</span>
+                  <span style={styles.appliedPlaywayMeta}>
+                    {formatAppliedPlaywayMeta(appliedInspirationDraft.playwayType, appliedInspirationDraft.ageRange)}
+                  </span>
                 </div>
                 <div style={styles.appliedPlaywayFlow}>{formatDraftFlow(appliedInspirationDraft.flow)}</div>
                 <div style={styles.appliedPlaywayHint}>可替换：{appliedInspirationDraft.replaceable}</div>

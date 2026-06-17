@@ -174,7 +174,8 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
 
 const ProgressPanel: React.FC<ProgressPanelProps> = ({ progress, onRetry }) => {
   const allStagesCompleted = progress.stages.length > 0 && progress.stages.every(stage => stage.status === 'completed');
-  const [textDone, setTextDone] = useState(allStagesCompleted);
+  const introText = progress.introText || CONFIRM_TEXT;
+  const [textDone, setTextDone] = useState(allStagesCompleted || Boolean(progress.instantIntro));
   const [imageExpanded, setImageExpanded] = useState(true);
   const [audioExpanded, setAudioExpanded] = useState(true);
   const [codeExpanded, setCodeExpanded] = useState(true);
@@ -184,10 +185,16 @@ const ProgressPanel: React.FC<ProgressPanelProps> = ({ progress, onRetry }) => {
   const audioStage = progress.stages[1];
   const codeStages = progress.stages.slice(2);
 
+  useEffect(() => {
+    if (allStagesCompleted || progress.instantIntro) {
+      setTextDone(true);
+    }
+  }, [allStagesCompleted, progress.instantIntro]);
+
   return (
     <div ref={containerRef} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.7, padding: '14px 18px', background: '#fff', borderRadius: 10, border: '1px solid #E2E8F0' }}>
-        {allStagesCompleted ? CONFIRM_TEXT : <StreamingText text={CONFIRM_TEXT} speed={25} onComplete={() => setTextDone(true)} />}
+        {allStagesCompleted || progress.instantIntro ? introText : <StreamingText text={introText} speed={25} onComplete={() => setTextDone(true)} />}
       </div>
 
       {textDone && imageStage && (

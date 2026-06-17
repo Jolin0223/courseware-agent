@@ -63,6 +63,8 @@ export interface GeneratedImage {
 export interface GenerationProgress {
   stages: GenerationStage[];
   images?: GeneratedImage[];
+  introText?: string;
+  instantIntro?: boolean;
 }
 
 export interface CoursewareResult {

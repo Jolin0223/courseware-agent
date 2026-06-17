@@ -2066,36 +2066,109 @@ export default function GeneratorPage() {
                         onVisualStyleRegenerate={(request) => {
                           if (!activeConversationId) return;
                           const newCoursewareId = Date.now();
-                          addCourseware({
-                            id: newCoursewareId,
-                            title: request.coursewareTitle,
-                            subject: '英语',
-                            grade: '一年级',
-                            type: '画面风格重生成',
-                            author: '张老师',
-                            publishTime: new Date().toISOString().split('T')[0],
-                            views: 0,
-                            favorites: 0,
-                            likes: 0,
-                            htmlContent: request.htmlContent,
-                            isOwn: true,
-                            isPublished: false,
-                          });
                           addUserMessage(activeConversationId, `使用${request.styleName}重新生成课件`);
                           addAssistantMessage(
                             activeConversationId,
                             '需求已明确，正在为您重新生成课件，请稍后。',
                             'text'
                           );
+
+                          setPhase('generating');
+                          startGeneration(activeConversationId);
+
+                          const initialProgress: GenerationProgress = {
+                            introText: `正在按「${request.styleName}」重新生成课件画面资源，玩法、题目和反馈节奏会保持不变。`,
+                            instantIntro: true,
+                            stages: [
+                              { name: '图片生成', status: 'in-progress', progress: 0 },
+                              { name: '音频生成', status: 'pending', progress: 0 },
+                              { name: '代码生成', status: 'pending', progress: 0 },
+                              { name: '代码审查', status: 'pending', progress: 0 },
+                              { name: '代码修复', status: 'pending', progress: 0 },
+                              { name: '学情数据回收数据设计', status: 'pending', progress: 0 },
+                            ],
+                          };
+                          addAssistantMessage(activeConversationId, initialProgress, 'generation-progress');
+
+                          const controller = new AbortController();
+                          abortControllerRef.current = controller;
+
+                          const updateLatestProgress = (updatedProgress: GenerationProgress) => {
+                            const progressWithStyleIntro: GenerationProgress = {
+                              ...updatedProgress,
+                              introText: initialProgress.introText,
+                              instantIntro: true,
+                            };
+                            useConversationStore.setState(state => ({
+                              conversations: state.conversations.map(conversation => {
+                                if (conversation.id !== activeConversationId) return conversation;
+
+                                const lastProgressIndex = conversation.messages.reduce(
+                                  (latestIndex, message, index) => (
+                                    message.type === 'generation-progress' ? index : latestIndex
+                                  ),
+                                  -1
+                                );
+
+                                return {
+                                  ...conversation,
+                                  messages: conversation.messages.map((message, index) => (
+                                    index === lastProgressIndex
+                                      ? { ...message, content: progressWithStyleIntro }
+                                      : message
+                                  )),
+                                };
+                              }),
+                            }));
+                          };
+
+                          simulateGeneration(
+                            activeConversationId,
+                            updateLatestProgress,
+                            (result) => {
+                              const nextCourseware: Courseware = {
+                                id: newCoursewareId,
+                                title: request.coursewareTitle,
+                                subject: '英语',
+                                grade: '一年级',
+                                type: '画面风格重生成',
+                                author: '张老师',
+                                publishTime: new Date().toISOString().split('T')[0],
+                                views: 0,
+                                favorites: 0,
+                                likes: 0,
+                                htmlContent: request.htmlContent,
+                                isOwn: true,
+                                isPublished: false,
+                                learningDataRecovery: result.learningDataRecovery,
+                              };
+                              addCourseware(nextCourseware);
+                              addAssistantMessage(activeConversationId, {
+                                coursewareId: newCoursewareId,
+                                title: request.coursewareTitle,
+                                version: request.version || '下一版',
+                                htmlContent: request.htmlContent,
+                                visualStylePrompt: request.stylePrompt,
+                                learningDataRecovery: result.learningDataRecovery,
+                              }, 'courseware-result');
+                              completeGeneration(activeConversationId, {
+                                title: request.coursewareTitle,
+                                version: request.version || '下一版',
+                                htmlContent: request.htmlContent,
+                                visualStylePrompt: request.stylePrompt,
+                                learningDataRecovery: result.learningDataRecovery,
+                              }, newCoursewareId);
+                              setPhase('completed');
+                              setSidebarCollapsed(true);
+                              openPreview(newCoursewareId);
+                              abortControllerRef.current = null;
+                            },
+                            controller.signal
+                          );
+
                           window.setTimeout(() => {
-                            addAssistantMessage(activeConversationId, {
-                              coursewareId: newCoursewareId,
-                              title: request.coursewareTitle,
-                              version: request.version || '下一版',
-                              htmlContent: request.htmlContent,
-                              visualStylePrompt: request.stylePrompt,
-                            }, 'courseware-result');
-                          }, demoMs(700));
+                            forceBottomScrollRef.current = true;
+                          }, demoMs(100));
                         }}
                       />
                       {msg.type === 'courseware-result' && lastGeneratedInspiration && (

@@ -687,12 +687,20 @@ export default function CoursewareCard({
                                   cursor: 'zoom-in',
                                 }}
                               />
-                              <button
-                                type="button"
+                              <span
+                                role="button"
+                                tabIndex={0}
                                 title="查看大图"
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   openStylePreview('base', style.id);
+                                }}
+                                onKeyDown={(event) => {
+                                  if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    openStylePreview('base', style.id);
+                                  }
                                 }}
                                 style={{
                                   position: 'absolute',
@@ -713,7 +721,7 @@ export default function CoursewareCard({
                                 }}
                               >
                                 <ZoomIn size={15} />
-                              </button>
+                              </span>
                             </>
                           ) : (
                             <>

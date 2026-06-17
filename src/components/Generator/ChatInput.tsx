@@ -843,12 +843,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   style={styles.promptPreviewToggle}
                 >
                   <span>玩法模板说明</span>
-                  <span style={styles.promptPreviewMeta}>系统会自动带入，不需要手动修改</span>
+                  <span style={styles.promptPreviewMeta}>这是当前玩法的原始模板说明，生成时会结合教学内容自动改写成新课件</span>
                   {isDraftPromptOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
-                <div style={styles.promptTemplateNotice}>
-                  这是当前玩法的原始模板说明。生成时会结合你填写的教学内容，自动改写成新课件。
-                </div>
                 {isDraftPromptOpen && (
                   <div style={styles.promptTemplateContent}>
                     <MarkdownPromptPreview text={draftPromptPreview} />
@@ -1391,16 +1388,6 @@ const styles: Record<string, React.CSSProperties> = {
   },
   promptTemplateContent: {
     borderTop: '1px solid #E2E8F0',
-  },
-  promptTemplateNotice: {
-    margin: '0 12px 10px',
-    padding: '8px 10px',
-    borderRadius: 9,
-    background: 'rgba(37, 99, 235, 0.07)',
-    color: '#475569',
-    fontSize: 12,
-    lineHeight: 1.55,
-    fontWeight: 700,
   },
   markdownH1: {
     margin: '0 0 8px',

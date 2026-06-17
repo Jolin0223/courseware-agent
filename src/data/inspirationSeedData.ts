@@ -21,7 +21,6 @@ export interface InspirationReadonlyExample {
   id: string;
   title: string;
   htmlAssetPath: string;
-  note: string;
   suitablePlaywayIds: string[];
   readonly: boolean;
 }
@@ -109,7 +108,6 @@ export const inspirationSeedData = {
       "id": "animals_play_only",
       "title": "闯关答题节奏示例",
       "htmlAssetPath": "src/assets/courseware/animals_play_only.html",
-      "note": "先看题目如何一轮轮推进，以及答对答错如何反馈。换成自己的内容时，可以替换为数学、语文、英语或综合复习题。",
       "suitablePlaywayIds": [
         "jump-literacy",
         "rainbow-slide-arithmetic",
@@ -207,7 +205,6 @@ export const inspirationSeedData = {
       "id": "animals_spelling",
       "title": "单词拼写互动示例",
       "htmlAssetPath": "src/assets/courseware/animals_adventure.html",
-      "note": "先看学生如何选择字母、拼出答案并得到即时反馈。换成自己的内容时，可以替换词库、拼装部件和题目。",
       "suitablePlaywayIds": [
         "extreme-jump-spelling",
         "word-assembly-rush"
@@ -218,7 +215,6 @@ export const inspirationSeedData = {
       "id": "math_racing_demo",
       "title": "口算赛车玩法示例",
       "htmlAssetPath": "src/assets/courseware/examples/math_racing_demo.html",
-      "note": "先看答题后赛车加速、减速和冲线的课堂节奏。换成自己的内容时，可以替换为口算、听力、古诗填空或知识复习题。",
       "suitablePlaywayIds": [
         "math-racing",
         "junior-math-card-flip-race",
@@ -244,7 +240,6 @@ export const inspirationSeedData = {
       "id": "fruit_garden_full",
       "title": "英语图文互动示例",
       "htmlAssetPath": "src/assets/courseware/fruit_garden_adventure.html",
-      "note": "先看单词、图片、发音和小游戏如何串成一节课。换成自己的内容时，可以替换词库、图片和主题。",
       "suitablePlaywayIds": [
         "word-racing",
         "word-rocket-reading",
@@ -268,7 +263,6 @@ export const inspirationSeedData = {
       "id": "fruit_read_aloud",
       "title": "听音跟读互动示例",
       "htmlAssetPath": "src/assets/courseware/fruit_garden_read_aloud_only.html",
-      "note": "先看学生如何听一遍、跟着读，再获得星星和鼓励反馈。换成自己的内容时，可以替换为拼音、单词或朗读材料。",
       "suitablePlaywayIds": [
         "phonics-racing",
         "speed-challenge-listening",
@@ -281,7 +275,6 @@ export const inspirationSeedData = {
       "id": "word_disguise_demo",
       "title": "单词找物玩法示例",
       "htmlAssetPath": "src/assets/courseware/examples/word_disguise_demo.html",
-      "note": "先看学生如何在场景里寻找隐藏目标并完成校验。换成自己的内容时，可以替换为单词、拼音、汉字、数字或古诗线索。",
       "suitablePlaywayIds": [
         "word-hide-seek"
       ],
@@ -291,7 +284,6 @@ export const inspirationSeedData = {
       "id": "wisdom_jump_pinyin_demo",
       "title": "拼音跳跃玩法示例",
       "htmlAssetPath": "src/assets/courseware/examples/wisdom_jump_pinyin_demo.html",
-      "note": "先看学生如何听题、跳到目标平台并获得星星反馈。换成自己的内容时，可以把题目改成拼音、汉字、单词或口算。",
       "suitablePlaywayIds": [
         "wisdom-jump-pinyin"
       ],

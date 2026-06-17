@@ -499,7 +499,6 @@ export default function InspirationSection({
               </div>
 
               <aside style={styles.exampleInfo}>
-                <p style={styles.exampleNote}>{example.note}</p>
                 <div style={styles.exampleBlock}>
                   <div style={styles.blockLabel}>这个玩法适合</div>
                   <div style={styles.tagRow}>
@@ -775,13 +774,14 @@ const styles: Record<string, React.CSSProperties> = {
     height: 30,
     padding: '0 10px',
     borderRadius: 8,
-    border: '1px solid var(--agent-border)',
-    background: '#FFFFFF',
-    color: 'var(--agent-secondary-text)',
+    border: '1px solid rgba(14, 165, 233, 0.34)',
+    background: 'linear-gradient(180deg, rgba(240, 249, 255, 0.96), rgba(236, 253, 245, 0.92))',
+    color: 'var(--agent-primary-text)',
     fontSize: 12,
     fontWeight: 850,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
+    boxShadow: '0 6px 14px rgba(14, 165, 233, 0.08)',
   },
   primaryBtn: {
     display: 'inline-flex',
@@ -939,7 +939,8 @@ const styles: Record<string, React.CSSProperties> = {
     height: 23,
     padding: '0 7px',
     borderRadius: 999,
-    background: 'var(--agent-soft)',
+    border: '1px solid rgba(14, 165, 233, 0.14)',
+    background: 'rgba(240, 249, 255, 0.92)',
     color: 'var(--agent-primary-text)',
     fontSize: 11,
     fontWeight: 850,
@@ -949,10 +950,11 @@ const styles: Record<string, React.CSSProperties> = {
     height: 23,
     padding: '0 7px',
     borderRadius: 999,
-    background: '#ECFDF5',
-    color: '#047857',
+    border: '1px solid rgba(14, 165, 233, 0.14)',
+    background: 'rgba(240, 249, 255, 0.92)',
+    color: 'var(--agent-primary-text)',
     fontSize: 11,
-    fontWeight: 900,
+    fontWeight: 850,
     lineHeight: '23px',
   },
   pagination: {

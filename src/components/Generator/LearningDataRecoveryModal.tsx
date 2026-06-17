@@ -289,7 +289,7 @@ export default function LearningDataRecoveryModal({
               </div>
               <button type="button" style={styles.adjustBtn} onClick={() => setViewMode('config')}>
                 <RefreshCw size={15} />
-                {canModifyRecovery ? '调整回收数据' : '查看回收数据'}
+                修改报告数据
               </button>
               {showCaseSwitch && (
                 <div style={styles.caseSwitch}>

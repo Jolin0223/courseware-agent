@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   BookOpenCheck,
@@ -156,6 +156,26 @@ export default function InspirationSection({
   const [pageIndex, setPageIndex] = useState(0);
   const [examplePlaywayId, setExamplePlaywayId] = useState<string | null>(null);
   const lastActionKeyRef = useRef('');
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const subNavWrapRef = useRef<HTMLDivElement | null>(null);
+  const tabRefs = useRef(new Map<InspirationTabId, HTMLButtonElement>());
+  const [subNavPointerLeft, setSubNavPointerLeft] = useState(78);
+
+  const updateSubNavPointer = useCallback(() => {
+    const activeTabElement = tabRefs.current.get(activeTab);
+    const subNavWrapElement = subNavWrapRef.current;
+    if (!activeTabElement || !subNavWrapElement) return;
+
+    const tabRect = activeTabElement.getBoundingClientRect();
+    const wrapRect = subNavWrapElement.getBoundingClientRect();
+    const pointerWidth = 12;
+    const nextLeft = tabRect.left + tabRect.width / 2 - wrapRect.left - pointerWidth / 2;
+    const clampedLeft = Math.max(12, Math.min(wrapRect.width - 24, nextLeft));
+
+    setSubNavPointerLeft(prev => (
+      Math.abs(prev - clampedLeft) < 0.5 ? prev : clampedLeft
+    ));
+  }, [activeTab]);
 
   const primaryFilteredPlayways = useMemo(() => {
     const byTab = inspirationSeedData.playways.filter(item => (
@@ -205,6 +225,27 @@ export default function InspirationSection({
     setPageIndex(0);
     setExamplePlaywayId(null);
   };
+
+  useEffect(() => {
+    if (activeTab === 'featured') return;
+
+    const frame = window.requestAnimationFrame(updateSubNavPointer);
+    const resizeObserver = new ResizeObserver(updateSubNavPointer);
+    const tabsElement = tabsRef.current;
+    const subNavWrapElement = subNavWrapRef.current;
+    const activeTabElement = tabRefs.current.get(activeTab);
+
+    if (tabsElement) resizeObserver.observe(tabsElement);
+    if (subNavWrapElement) resizeObserver.observe(subNavWrapElement);
+    if (activeTabElement) resizeObserver.observe(activeTabElement);
+    window.addEventListener('resize', updateSubNavPointer);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateSubNavPointer);
+    };
+  }, [activeTab, secondaryOptions.length, updateSubNavPointer]);
 
   const handleSecondaryChange = (secondary: string) => {
     setActiveSecondary(secondary);
@@ -261,13 +302,25 @@ export default function InspirationSection({
       </div>
 
       <div style={styles.filterPanel}>
-        <div className="inspiration-scroll" style={styles.tabs}>
+        <div
+          ref={tabsRef}
+          className="inspiration-scroll"
+          style={styles.tabs}
+          onScroll={updateSubNavPointer}
+        >
           {inspirationSeedData.categories.tabs.map(tab => {
             const Icon = tabIcons[tab.id];
             const active = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
+                ref={(node) => {
+                  if (node) {
+                    tabRefs.current.set(tab.id, node);
+                  } else {
+                    tabRefs.current.delete(tab.id);
+                  }
+                }}
                 style={{ ...styles.tab, ...(active ? styles.tabActive : {}) }}
                 onMouseDown={event => event.preventDefault()}
                 onClick={() => handleTabChange(tab.id)}
@@ -280,8 +333,8 @@ export default function InspirationSection({
         </div>
 
         {activeTab !== 'featured' && secondaryOptions.length > 0 && (
-          <div style={styles.subNavWrap}>
-            <div style={styles.subNavPointer} />
+          <div ref={subNavWrapRef} style={styles.subNavWrap}>
+            <div style={{ ...styles.subNavPointer, left: subNavPointerLeft }} />
             <div className="inspiration-scroll" style={styles.subNav}>
               <button
                 type="button"

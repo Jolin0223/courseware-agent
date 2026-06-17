@@ -460,7 +460,7 @@ export default function CoursewareCard({
             onMouseLeave={e => handleActionLeave(e)}
           >
             <BarChart3 size={15} />
-            查看学情数据
+            预览学情报告
           </button>
           {isEmbedded && (
             <button

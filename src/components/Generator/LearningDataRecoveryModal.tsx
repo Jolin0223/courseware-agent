@@ -192,7 +192,7 @@ export default function LearningDataRecoveryModal({
           <div style={styles.headerLeft}>
             <div style={styles.iconCircle}><BarChart3 size={20} /></div>
             <div>
-              <div style={styles.title}>{viewMode === 'preview' ? '学情报告预览' : canModifyRecovery ? '调整回收数据' : '查看回收数据'}</div>
+              <div style={styles.title}>{viewMode === 'preview' ? '学情报告预览' : canModifyRecovery ? '修改报告数据' : '查看回收数据'}</div>
               <div style={styles.subTitle}>
                 {viewMode === 'preview'
                   ? `以下为「${coursewareTitle || '当前课件'}」的学生端/家长端报告示意`

@@ -325,6 +325,58 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
         ? '已发布(历史版本)'
         : '发布';
   const publishBtnDisabled = (currentVersion?.isCurrentPublished || currentVersion?.isHistoricalPublished || currentVersion?.isRemoved) && !canUpdateCurrentDraft;
+  const renderPublishActions = (options?: { exitFullscreenFirst?: boolean }) => {
+    const exitFullscreenFirst = options?.exitFullscreenFirst;
+    const runOutsideFullscreen = (action: () => void) => {
+      if (exitFullscreenFirst) setFullscreenOpen(false);
+      action();
+    };
+
+    return (
+      <div ref={exitFullscreenFirst ? undefined : publishBtnRef} style={{ position: 'relative', display: 'flex', gap: 6 }}>
+        {canUpdateCurrentDraft ? (
+          <>
+            <button
+              onClick={() => runOutsideFullscreen(handleUpdatePublishClick)}
+              style={{ ...panelStyle.actionBtn, background: 'var(--agent-gradient)', color: '#fff' }}
+              title="替换"
+            >
+              <RefreshCw size={14} />
+              替换
+            </button>
+            <button
+              onClick={() => runOutsideFullscreen(() => setPublishMode('new-game'))}
+              style={{ ...panelStyle.actionBtn, background: '#F59E0B', color: '#fff' }}
+              title="发布"
+            >
+              <Send size={14} />
+              发布
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => runOutsideFullscreen(handlePublish)}
+            disabled={!!publishBtnDisabled}
+            style={{
+              ...panelStyle.actionBtn,
+              background: publishBtnDisabled ? '#F1F5F9' : 'var(--agent-gradient)',
+              color: publishBtnDisabled ? '#94A3B8' : '#fff',
+              cursor: publishBtnDisabled ? 'default' : 'pointer',
+            }}
+            title={publishBtnText}
+          >
+            <Send size={14} />
+            {publishBtnText}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const handleFullscreenEdit = () => {
+    setFullscreenOpen(false);
+    handleEdit();
+  };
 
   return (
     <div style={panelStyle.container}>
@@ -337,43 +389,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
           </div>
         </div>
         <div style={panelStyle.headerRight}>
-          <div ref={publishBtnRef} style={{ position: 'relative', display: 'flex', gap: 6 }}>
-            {canUpdateCurrentDraft ? (
-              <>
-                <button
-                  onClick={handleUpdatePublishClick}
-                  style={{ ...panelStyle.actionBtn, background: 'var(--agent-gradient)', color: '#fff' }}
-                  title="替换"
-                >
-                  <RefreshCw size={14} />
-                  替换
-                </button>
-                <button
-                  onClick={() => setPublishMode('new-game')}
-                  style={{ ...panelStyle.actionBtn, background: '#F59E0B', color: '#fff' }}
-                  title="发布"
-                >
-                  <Send size={14} />
-                  发布
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handlePublish}
-                disabled={!!publishBtnDisabled}
-                style={{
-                  ...panelStyle.actionBtn,
-                  background: publishBtnDisabled ? '#F1F5F9' : 'var(--agent-gradient)',
-                  color: publishBtnDisabled ? '#94A3B8' : '#fff',
-                  cursor: publishBtnDisabled ? 'default' : 'pointer',
-                }}
-                title={publishBtnText}
-              >
-                <Send size={14} />
-                {publishBtnText}
-              </button>
-            )}
-          </div>
+          {renderPublishActions()}
           {isEmbedded && courseware && !isRemovedVersion && (
             <button
               onClick={() => {
@@ -435,10 +451,25 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
         <div style={panelStyle.fullscreenMask}>
           <div style={panelStyle.fullscreenHeader}>
             <span style={panelStyle.fullscreenTitle}>{currentTitle}</span>
-            <button onClick={() => setFullscreenOpen(false)} style={panelStyle.fullscreenClose} title="退出全屏">
-              <X size={18} />
-              退出全屏
-            </button>
+            <div style={panelStyle.fullscreenActions}>
+              {renderPublishActions({ exitFullscreenFirst: true })}
+              <button
+                onClick={handleFullscreenEdit}
+                disabled={isRemovedVersion}
+                style={{
+                  ...panelStyle.fullscreenActionBtn,
+                  ...(isRemovedVersion ? { color: '#CBD5E1', cursor: 'default', background: '#F8FAFC' } : {}),
+                }}
+                title={isRemovedVersion ? '已下架资源不可编辑' : '编辑资源'}
+              >
+                <Edit3 size={14} />
+                编辑资源
+              </button>
+              <button onClick={() => setFullscreenOpen(false)} style={panelStyle.fullscreenClose} title="退出全屏">
+                <X size={18} />
+                退出全屏
+              </button>
+            </div>
           </div>
           <iframe
             srcDoc={srcDoc}
@@ -733,12 +764,35 @@ const panelStyle: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   fullscreenTitle: {
+    flex: 1,
+    minWidth: 0,
     color: '#1E293B',
     fontSize: 15,
     fontWeight: 700,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
+  },
+  fullscreenActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
+  fullscreenActionBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 32,
+    padding: '0 12px',
+    borderRadius: 8,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
   },
   fullscreenClose: {
     display: 'inline-flex',

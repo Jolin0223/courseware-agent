@@ -796,7 +796,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 950,
     cursor: 'pointer',
-    boxShadow: '0 7px 14px rgba(255, 138, 31, 0.18)',
+    boxShadow: '0 7px 14px var(--agent-shadow)',
     whiteSpace: 'nowrap',
   },
   emptyState: {

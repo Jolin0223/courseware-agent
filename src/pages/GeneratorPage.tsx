@@ -726,6 +726,42 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     width: 'calc(100% - 42px)',
     maxWidth: 760,
   },
+  textWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    width: '100%',
+  },
+  collapsibleBubble: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  collapsedBubble: {
+    maxHeight: 168,
+  },
+  fadeMask: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 54,
+    borderRadius: '0 0 4px 16px',
+    background: 'linear-gradient(180deg, rgba(14, 165, 233, 0), var(--agent-secondary) 78%)',
+    pointerEvents: 'none',
+  },
+  expandButton: {
+    marginTop: 6,
+    height: 26,
+    padding: '0 10px',
+    borderRadius: 999,
+    border: '1px solid rgba(255, 255, 255, 0.78)',
+    background: 'rgba(255, 255, 255, 0.92)',
+    color: 'var(--agent-primary-text)',
+    fontSize: 12,
+    fontWeight: 850,
+    cursor: 'pointer',
+    boxShadow: '0 6px 16px rgba(15, 23, 42, 0.08)',
+  },
   imageGrid: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -865,10 +901,12 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
 
 function UserMessage({ content }: { content: string | UserMaterialMessage }) {
   const [previewImage, setPreviewImage] = useState<UploadedAttachment | null>(null);
+  const [longTextExpanded, setLongTextExpanded] = useState(false);
   const message = typeof content === 'string' ? { text: content } : content;
   const images = message.attachments?.filter(file => file.type === 'image') || [];
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
   const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
+  const isLongText = Boolean(message.text && (message.text.length > 260 || message.text.split('\n').length > 8));
 
   return (
     <>
@@ -918,7 +956,28 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
           )}
 
           {message.text && (
-            <div style={{ ...styles.userBubble, whiteSpace: 'pre-wrap' }}>{message.text}</div>
+            <div style={userMessageStyles.textWrap}>
+              <div
+                style={{
+                  ...styles.userBubble,
+                  ...userMessageStyles.collapsibleBubble,
+                  ...(isLongText && !longTextExpanded ? userMessageStyles.collapsedBubble : {}),
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {message.text}
+                {isLongText && !longTextExpanded && <div style={userMessageStyles.fadeMask} />}
+              </div>
+              {isLongText && (
+                <button
+                  type="button"
+                  style={userMessageStyles.expandButton}
+                  onClick={() => setLongTextExpanded(prev => !prev)}
+                >
+                  {longTextExpanded ? '收起内容' : '展开全部'}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

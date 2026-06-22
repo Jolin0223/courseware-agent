@@ -359,43 +359,6 @@ const styles: Record<string, React.CSSProperties> = {
   },
 };
 
-const replayStyles: Record<string, React.CSSProperties> = {
-  card: {
-    marginTop: 12,
-    padding: 14,
-    borderRadius: 12,
-    border: '1px solid var(--agent-border)',
-    background: 'var(--agent-soft)',
-    boxShadow: '0 8px 24px var(--agent-shadow)',
-  },
-  title: {
-    color: 'var(--agent-primary-text)',
-    fontSize: 14,
-    fontWeight: 800,
-    marginBottom: 8,
-  },
-  body: {
-    color: '#334155',
-    fontSize: 13,
-    lineHeight: 1.6,
-  },
-  chips: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 10,
-  },
-  chip: {
-    padding: '5px 9px',
-    borderRadius: 999,
-    background: '#FFFFFF',
-    border: '1px solid var(--agent-border)',
-    color: 'var(--agent-primary-text)',
-    fontSize: 12,
-    fontWeight: 700,
-  },
-};
-
 const intentCardStyles: Record<string, React.CSSProperties> = {
   card: {
     background: '#FFFFFF',
@@ -1300,22 +1263,6 @@ function VoiceCapabilityCard({
   );
 }
 
-function GameplayReplayCard({ item }: { item: GameplayInspiration }) {
-  return (
-    <div style={replayStyles.card}>
-      <div style={replayStyles.title}>本次玩法结构：{item.title}</div>
-      <div style={replayStyles.body}>
-        已将“{item.learningAction}”承接为 {item.structure.join(' → ')}。如果后续点击一键同款，新会话会保留这套玩法结构、反馈节奏和视觉方向，只需要输入新的知识点。
-      </div>
-      <div style={replayStyles.chips}>
-        {item.interactionTags.map(tag => (
-          <span key={tag} style={replayStyles.chip}>{tag}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function AssistantMessage({
   message,
   phase,
@@ -1516,7 +1463,6 @@ export default function GeneratorPage() {
   const [draftPrompt, setDraftPrompt] = useState('');
   const [draftVersion, setDraftVersion] = useState(0);
   const [selectedInspiration, setSelectedInspiration] = useState<GameplayInspiration | null>(null);
-  const [lastGeneratedInspiration, setLastGeneratedInspiration] = useState<GameplayInspiration | null>(null);
   const [promptFly, setPromptFly] = useState<PromptFlyState | null>(null);
   const frameworkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingFrameworkRef = useRef<string | null>(null);
@@ -1733,7 +1679,6 @@ export default function GeneratorPage() {
       text: text || '请帮我看看这些上传材料',
       attachments,
     });
-    setLastGeneratedInspiration(selectedInspiration);
     setDraftPrompt('');
 
     const cloneAttachments = attachments.filter(file => file.type === 'html' && file.locked);
@@ -1778,7 +1723,7 @@ export default function GeneratorPage() {
     }
 
     maybeAskVoiceCapability(convId, text, text);
-  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability, selectedInspiration]);
+  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
 
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
@@ -2230,11 +2175,6 @@ export default function GeneratorPage() {
                           }, demoMs(100));
                         }}
                       />
-                      {msg.type === 'courseware-result' && lastGeneratedInspiration && (
-                        <div style={{ paddingLeft: 42, maxWidth: 760 }}>
-                          <GameplayReplayCard item={lastGeneratedInspiration} />
-                        </div>
-                      )}
                     </>
                   )}
                 </motion.div>

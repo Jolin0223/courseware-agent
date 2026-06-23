@@ -106,9 +106,7 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
     title,
     tags: [
       { label: '水果词汇识别', value: 88 },
-      { label: '听音辨词', value: 84 },
       { label: '图词匹配', value: 82 },
-      { label: '跟读表达', value: 78 },
     ],
     suggestion: '本次能完成水果单词认读、跟读和游戏巩固，基础词汇识别较稳定；可继续复习 watermelon、strawberry 等较长单词。',
     metricRows: [
@@ -343,6 +341,7 @@ function StudentReportPreview({
   const selectedIds = new Set(selectedItems.map(item => item.id));
   const visibleMetrics = profile.metricRows.filter(metric => selectedIds.has(metric.id));
   const showPublishedData = showPublishedRadar || showKnowledgeTags;
+  const useBarKnowledgeChart = profile.tags.length < 3;
 
   return (
     <div style={styles.reportCanvas}>
@@ -383,30 +382,38 @@ function StudentReportPreview({
         </section>
 
         <section style={styles.reportSection}>
-          <div style={styles.sectionTitle}>知识点雷达图</div>
+          <div style={styles.sectionTitle}>{useBarKnowledgeChart ? '知识点掌握度' : '知识点雷达图'}</div>
           <div
             style={showPublishedData ? styles.radarReady : styles.radarPending}
             onDoubleClick={() => setShowPublishedRadar(prev => !prev)}
           >
             {showPublishedData ? (
               <>
-                <RadarChart tags={profile.tags} />
-                <div style={styles.radarLegend}>
-                  {profile.tags.map(tag => (
-                    <div key={tag.label} style={styles.radarLegendRow}>
-                      <span>{tag.label}</span>
-                      <strong>{tag.value}%</strong>
+                {useBarKnowledgeChart ? (
+                  <KnowledgeBarChart tags={profile.tags} />
+                ) : (
+                  <>
+                    <RadarChart tags={profile.tags} />
+                    <div style={styles.radarLegend}>
+                      {profile.tags.map(tag => (
+                        <div key={tag.label} style={styles.radarLegendRow}>
+                          <span>{tag.label}</span>
+                          <strong>{tag.value}%</strong>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
               </>
             ) : (
               <>
                 <div style={styles.radarPendingIcon}><Tag size={18} /></div>
                 <div style={styles.radarPendingText}>
-                  <div style={styles.radarPendingTitle}>发布并完成知识点标签后生成真实雷达图</div>
+                  <div style={styles.radarPendingTitle}>
+                    {useBarKnowledgeChart ? '发布并完成知识点标签后生成真实掌握度图' : '发布并完成知识点标签后生成真实雷达图'}
+                  </div>
                   <div style={styles.radarPendingDesc}>
-                    预览态展示报告位置。正式报告会读取资源发布后绑定的集团知识点标签或校本标签，再结合学生作答数据生成各维度掌握度。
+                    预览态展示报告位置。正式报告会读取资源发布后绑定的集团知识点标签或校本标签；标签少于 3 个时用柱状图展示，3 个及以上时用雷达图展示。
                   </div>
                 </div>
               </>
@@ -427,6 +434,22 @@ function StudentReportPreview({
           </div>
           <div style={styles.suggestion}>{profile.suggestion}</div>
         </section>
+      </div>
+    </div>
+  );
+}
+
+function KnowledgeBarChart({ tags }: { tags: ReportProfile['tags'] }) {
+  return (
+    <div style={styles.knowledgeBarChart} aria-label="知识点掌握度柱状图">
+      <div style={styles.knowledgeBarPlot}>
+        {tags.map(tag => (
+          <div key={tag.label} style={styles.knowledgeBarColumn}>
+            <div style={styles.knowledgeBarValue}>{tag.value}%</div>
+            <div style={{ ...styles.knowledgeBarFill, height: `${tag.value}%` }} />
+            <div style={styles.knowledgeBarLabel}>{tag.label}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1098,6 +1121,57 @@ const styles: Record<string, React.CSSProperties> = {
     width: 116,
     height: 116,
     display: 'block',
+  },
+  knowledgeBarChart: {
+    gridColumn: '1 / -1',
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    minWidth: 0,
+  },
+  knowledgeBarPlot: {
+    position: 'relative',
+    width: '100%',
+    height: 150,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    alignItems: 'end',
+    gap: 22,
+    padding: '18px 18px 10px',
+    borderRadius: 14,
+    background: '#FFFFFF',
+    border: '1px solid #DCFCE7',
+  },
+  knowledgeBarColumn: {
+    position: 'relative',
+    height: '100%',
+    display: 'grid',
+    gridTemplateRows: '18px 1fr auto',
+    justifyItems: 'center',
+    alignItems: 'end',
+    gap: 7,
+    zIndex: 1,
+  },
+  knowledgeBarValue: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: 900,
+    lineHeight: 1,
+  },
+  knowledgeBarFill: {
+    width: 'min(56px, 70%)',
+    borderRadius: '12px 12px 8px 8px',
+    background: 'linear-gradient(180deg, #38BDF8 0%, #22C55E 52%, #84CC16 100%)',
+    boxShadow: '0 8px 16px rgba(34, 197, 94, 0.24)',
+  },
+  knowledgeBarLabel: {
+    maxWidth: '100%',
+    color: '#14532D',
+    fontSize: 12,
+    fontWeight: 900,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   radarLegend: {
     display: 'flex',

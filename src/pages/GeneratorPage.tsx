@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Headphones, Info, Mic, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Headphones, Info, Mic, Sparkles } from 'lucide-react';
 import ChatInput from '../components/Generator/ChatInput';
 // ChatHistory moved to Sidebar
 import RequirementCard from '../components/Generator/RequirementCard';
@@ -809,25 +809,25 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     lineHeight: 1.55,
   },
   appliedPromptPreviewBox: {
-    marginTop: 4,
-    borderRadius: 10,
-    border: '1px solid #E2E8F0',
-    background: '#FFFFFF',
+    marginTop: 6,
+    borderRadius: 12,
+    border: '1px solid rgba(15, 118, 110, 0.14)',
+    background: 'rgba(248, 250, 252, 0.72)',
     overflow: 'hidden',
   },
   appliedPromptPreviewToggle: {
     width: '100%',
-    minHeight: 34,
-    padding: '0 10px',
+    minHeight: 36,
+    padding: '0 11px',
     border: 'none',
-    background: '#F8FAFC',
+    background: 'transparent',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
-    color: '#334155',
+    color: 'var(--agent-primary-text)',
     fontSize: 12,
-    fontWeight: 850,
+    fontWeight: 900,
     cursor: 'pointer',
   },
   appliedPromptRaw: {
@@ -837,6 +837,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     overflowY: 'auto',
     color: '#334155',
     background: '#FFFFFF',
+    borderTop: '1px solid #E2E8F0',
     fontSize: 12,
     lineHeight: 1.55,
     whiteSpace: 'pre-wrap',
@@ -1073,8 +1074,8 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
                         style={userMessageStyles.appliedPromptPreviewToggle}
                         onClick={() => setPlaywayPromptOpen(prev => !prev)}
                       >
-                        <span>原始提示词</span>
-                        <span>{playwayPromptOpen ? '收起' : '查看'}</span>
+                        <span>玩法说明模板</span>
+                        {playwayPromptOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </button>
                       {playwayPromptOpen && (
                         <pre style={userMessageStyles.appliedPromptRaw}>{appliedPlaywayMessage.prompt}</pre>

@@ -124,12 +124,12 @@ export const buildStructuredInspirationPrompt = (item: GameplayInspiration, curr
   const cleaned = currentInput
     .replace(/<已套用玩法>[\s\S]*?<\/已套用玩法>/g, '')
     .replace(/已套用「[^」]+」玩法[\s\S]*$/g, '')
-    .replace(/^教学内容：/g, '')
+    .replace(/^(?:教学内容|你的需求)：/g, '')
     .trim();
   const content = cleaned;
   const ageLine = isKnownAge(item.ageRange) ? `适用年龄：${item.ageRange}\n` : '';
 
-  return `教学内容：${content}
+  return `你的需求：${content}
 
 <已套用玩法>
 玩法名称：${item.title}
@@ -146,7 +146,7 @@ ${item.adaptationText}
 ${item.promptEnhancement}
 
 本次生成要求：
-1. 保留上方“教学内容”里的年级、学科、知识点或老师补充要求。
+1. 保留上方“你的需求”里的年级、学科、知识点、素材说明或老师补充要求。
 2. 只把互动玩法切换为「${item.title}」，不要丢失老师已经输入的内容。
 3. 按该玩法生成可直接课堂使用的互动课件，包含明确题目、操作方式、正确反馈、错误提示和完成总结。
 </已套用玩法>`;
@@ -476,7 +476,7 @@ export default function InspirationSection({
                 <div style={styles.exampleEyebrow}>玩法效果示例</div>
                 <h3 style={styles.exampleTitle}>{examplePlayway.displayTitle}</h3>
                 <p style={styles.exampleSubtitle}>
-                  先看这个玩法在课堂上的呈现效果。套用后，AI 会按你填写的教学内容重新生成一节新课。
+                  先看这个玩法在课堂上的呈现效果。套用后，AI 会按你填写的需求重新生成一节新课。
                 </p>
               </div>
               <button

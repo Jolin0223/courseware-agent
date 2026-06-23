@@ -9,6 +9,7 @@ import {
   Square,
   ChevronDown,
   ChevronUp,
+  X,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 import type { UploadedAttachment } from '../../types';
@@ -48,8 +49,10 @@ interface AttachedFile {
   loading?: boolean;
 }
 
+const APPLIED_DEMAND_LABEL = '你的需求';
+
 const parseAppliedInspirationDraft = (value: string) => {
-  const match = value.match(/^教学内容：([\s\S]*?)\n\n<已套用玩法>\n([\s\S]*?)\n<\/已套用玩法>$/);
+  const match = value.match(/^(?:教学内容|你的需求)：([\s\S]*?)\n\n<已套用玩法>\n([\s\S]*?)\n<\/已套用玩法>$/);
   if (!match) return null;
   const body = match[2];
   const pick = (label: string) => body.match(new RegExp(`${label}：([^\\n]+)`))?.[1]?.trim() || '';
@@ -59,7 +62,7 @@ const parseAppliedInspirationDraft = (value: string) => {
   };
   const prompt = body.match(/玩法要求：\n([\s\S]*?)\n\n(?:本次生成要求|生成要求)：/)?.[1]?.trim() || '';
   return {
-    teachingContent: match[1].trim(),
+    demand: match[1].trim(),
     playwayName: pick('玩法名称'),
     playwayType: pick('玩法类型'),
     ageRange: pick('适用年龄'),
@@ -72,10 +75,10 @@ const parseAppliedInspirationDraft = (value: string) => {
 
 const buildAppliedInspirationDraft = (
   currentText: string,
-  nextTeachingContent: string,
+  nextDemand: string,
 ) => currentText.replace(
-  /^教学内容：[\s\S]*?\n\n<已套用玩法>/,
-  `教学内容：${nextTeachingContent}\n\n<已套用玩法>`,
+  /^(?:教学内容|你的需求)：[\s\S]*?\n\n<已套用玩法>/,
+  `${APPLIED_DEMAND_LABEL}：${nextDemand}\n\n<已套用玩法>`,
 );
 
 const formatDraftFlow = (flow: string) => flow
@@ -807,33 +810,51 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   <Sparkles size={14} />
                   基于玩法生成
                 </div>
-                <div style={styles.structuredDraftHint}>先补充教学内容，已选玩法会自动带入；切换其他玩法时，只替换玩法，不覆盖这里填写的内容。</div>
+                <div style={styles.structuredDraftHint}>先写清楚你的需求，已选玩法会自动带入；切换或移除玩法，都不会覆盖这里填写的内容和已上传材料。</div>
               </div>
               <div style={styles.structuredFieldLabel}>
-                <span style={styles.structuredFieldName}>教学内容</span>
+                <span style={styles.structuredFieldName}>你的需求</span>
                 <span style={styles.structuredRequired}>请填写</span>
               </div>
               <textarea
                 ref={textareaRef}
-                value={appliedInspirationDraft.teachingContent}
+                value={appliedInspirationDraft.demand}
                 onChange={(event) => {
                   const next = buildAppliedInspirationDraft(text, event.target.value);
                   setText(next);
                   onTextChange?.(next);
                 }}
-                placeholder="例如：小学一年级英语，常见水果单词 apple、banana、orange..."
+                placeholder="例如：小学一年级英语水果单词，想做听音选择；也可以上传素材后说明怎么使用"
                 disabled={disabled}
                 rows={3}
                 style={styles.teachingContentTextarea}
               />
               <div style={styles.appliedPlaywayCard}>
                 <div style={styles.appliedPlaywayHeader}>
-                  <span style={styles.appliedPlaywayName}>已套用：{appliedInspirationDraft.playwayName}</span>
-                  <span style={styles.appliedPlaywayMeta}>
-                    {formatAppliedPlaywayMeta(appliedInspirationDraft.playwayType, appliedInspirationDraft.ageRange)}
-                  </span>
+                  <div style={styles.appliedPlaywayTitleGroup}>
+                    <span style={styles.appliedPlaywayName}>已套用：{appliedInspirationDraft.playwayName}</span>
+                    <span style={styles.appliedPlaywayMeta}>
+                      {formatAppliedPlaywayMeta(appliedInspirationDraft.playwayType, appliedInspirationDraft.ageRange)}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => {
+                      const next = appliedInspirationDraft.demand;
+                      setText(next);
+                      onTextChange?.(next);
+                    }}
+                    style={styles.clearAppliedPlaywayButton}
+                    title="不套用这个玩法"
+                  >
+                    <X size={13} />
+                    不套用
+                  </button>
                 </div>
-                <div style={styles.appliedPlaywayFlow}>{formatDraftFlow(appliedInspirationDraft.flow)}</div>
+                <div style={styles.appliedPlaywayBody}>
+                  <div style={styles.appliedPlaywayFlow}>{formatDraftFlow(appliedInspirationDraft.flow)}</div>
+                </div>
                 <div style={styles.appliedPlaywayHint}>改编建议：{appliedInspirationDraft.adaptation}</div>
               </div>
               <div style={styles.promptPreviewBox}>
@@ -843,7 +864,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   style={styles.promptPreviewToggle}
                 >
                   <span>玩法模板说明</span>
-                  <span style={styles.promptPreviewMeta}>这是当前玩法的原始模板说明，生成时会结合教学内容自动改写成新课件</span>
+                  <span style={styles.promptPreviewMeta}>这是当前玩法的原始模板说明，生成时会结合你的需求自动改写成新课件</span>
                   {isDraftPromptOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
                 {isDraftPromptOpen && (
@@ -1324,6 +1345,13 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 8,
     marginBottom: 6,
   },
+  appliedPlaywayTitleGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
+    flexWrap: 'wrap' as const,
+  },
   appliedPlaywayName: {
     color: '#0F172A',
     fontSize: 13,
@@ -1334,6 +1362,25 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 750,
     whiteSpace: 'nowrap',
+  },
+  clearAppliedPlaywayButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    height: 28,
+    padding: '0 9px',
+    borderRadius: 999,
+    border: '1px solid var(--agent-border)',
+    background: 'var(--agent-soft)',
+    color: 'var(--agent-primary-text)',
+    fontSize: 12,
+    fontWeight: 850,
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  appliedPlaywayBody: {
+    marginTop: 4,
   },
   appliedPlaywayFlow: {
     color: 'var(--agent-primary-text)',

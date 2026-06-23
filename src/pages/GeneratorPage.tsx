@@ -69,6 +69,33 @@ const buildAttachmentSummary = (attachments: UploadedAttachment[]) => {
   return parts.join('、');
 };
 
+const parseAppliedPlaywayMessage = (value: string) => {
+  const match = value.match(/^(?:教学内容|你的需求)：([\s\S]*?)\n\n<已套用玩法>\n([\s\S]*?)\n<\/已套用玩法>$/);
+  if (!match) return null;
+
+  const body = match[2];
+  const pick = (label: string) => body.match(new RegExp(`${label}：([^\\n]+)`))?.[1]?.trim() || '';
+  const section = (label: string, nextLabel: string) => {
+    const result = body.match(new RegExp(`${label}：\\n([\\s\\S]*?)\\n\\n${nextLabel}：`));
+    return result?.[1]?.trim() || '';
+  };
+  const flow = section('课堂互动流程', '玩法改编建议')
+    .split('\n')
+    .map(item => item.replace(/^\d+\.\s*/, '').trim())
+    .filter(Boolean)
+    .join(' → ');
+
+  return {
+    demand: match[1].trim(),
+    playwayName: pick('玩法名称'),
+    playwayType: pick('玩法类型'),
+    ageRange: pick('适用年龄'),
+    suitableFor: pick('适合内容'),
+    flow,
+    adaptation: section('玩法改编建议', '玩法要求'),
+  };
+};
+
 const detectMaterialIntentForAttachment = (prompt: string, attachment: UploadedAttachment): MaterialIntentResolution | null => {
   const text = prompt.toLowerCase();
   if (attachment.type === 'image' && /(背景|角色|道具|素材|插图|放到|用这张图|用这个图|图片.*用|图.*作为|图片作为|图作为)/i.test(prompt)) {
@@ -725,6 +752,73 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     boxShadow: '0 6px 16px rgba(15, 23, 42, 0.08)',
   },
+  appliedPromptCard: {
+    width: '100%',
+    maxWidth: 560,
+    padding: 12,
+    borderRadius: '16px 16px 4px 16px',
+    border: '1px solid var(--agent-border)',
+    background: '#FFFFFF',
+    boxShadow: '0 10px 28px rgba(15, 23, 42, 0.08)',
+    color: '#0F172A',
+  },
+  appliedPromptSection: {
+    display: 'grid',
+    gap: 6,
+  },
+  appliedPromptHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  appliedPromptLabel: {
+    color: 'var(--agent-primary-text)',
+    fontSize: 12,
+    fontWeight: 900,
+  },
+  appliedPromptDemand: {
+    padding: '10px 11px',
+    borderRadius: 10,
+    background: 'var(--agent-soft)',
+    color: '#0F172A',
+    fontSize: 14,
+    lineHeight: 1.55,
+    whiteSpace: 'pre-wrap',
+  },
+  appliedPromptDivider: {
+    height: 1,
+    margin: '10px 0',
+    background: '#E2E8F0',
+  },
+  appliedPromptTitle: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: 900,
+  },
+  appliedPromptBadge: {
+    padding: '3px 8px',
+    borderRadius: 999,
+    background: 'var(--agent-soft)',
+    color: 'var(--agent-primary-text)',
+    fontSize: 11,
+    fontWeight: 850,
+    whiteSpace: 'nowrap',
+  },
+  appliedPromptFlow: {
+    color: 'var(--agent-primary-text)',
+    fontSize: 12,
+    fontWeight: 850,
+    lineHeight: 1.5,
+  },
+  appliedPromptAdvice: {
+    padding: '9px 10px',
+    borderRadius: 10,
+    background: '#F8FAFC',
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 1.55,
+  },
   imageGrid: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -869,7 +963,12 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
   const images = message.attachments?.filter(file => file.type === 'image') || [];
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
   const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
-  const isLongText = Boolean(message.text && (message.text.length > 260 || message.text.split('\n').length > 8));
+  const appliedPlaywayMessage = message.text ? parseAppliedPlaywayMessage(message.text) : null;
+  const isLongText = Boolean(
+    message.text
+    && !appliedPlaywayMessage
+    && (message.text.length > 260 || message.text.split('\n').length > 8)
+  );
 
   return (
     <>
@@ -918,7 +1017,36 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
             </div>
           )}
 
-          {message.text && (
+          {appliedPlaywayMessage && (
+            <div style={userMessageStyles.textWrap}>
+              <div style={userMessageStyles.appliedPromptCard}>
+                <div style={userMessageStyles.appliedPromptSection}>
+                  <div style={userMessageStyles.appliedPromptLabel}>我的需求</div>
+                  <div style={userMessageStyles.appliedPromptDemand}>
+                    {appliedPlaywayMessage.demand || '未填写具体需求'}
+                  </div>
+                </div>
+                <div style={userMessageStyles.appliedPromptDivider} />
+                <div style={userMessageStyles.appliedPromptSection}>
+                  <div style={userMessageStyles.appliedPromptHeader}>
+                    <span style={userMessageStyles.appliedPromptLabel}>已套用玩法</span>
+                    <span style={userMessageStyles.appliedPromptBadge}>
+                      {[appliedPlaywayMessage.playwayType, appliedPlaywayMessage.ageRange].filter(Boolean).join(' · ')}
+                    </span>
+                  </div>
+                  <div style={userMessageStyles.appliedPromptTitle}>{appliedPlaywayMessage.playwayName}</div>
+                  {appliedPlaywayMessage.flow && (
+                    <div style={userMessageStyles.appliedPromptFlow}>{appliedPlaywayMessage.flow}</div>
+                  )}
+                  {appliedPlaywayMessage.adaptation && (
+                    <div style={userMessageStyles.appliedPromptAdvice}>{appliedPlaywayMessage.adaptation}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {message.text && !appliedPlaywayMessage && (
             <div style={userMessageStyles.textWrap}>
               <div
                 style={{
@@ -1512,6 +1640,13 @@ export default function GeneratorPage() {
     setDraftVersion(prev => prev + 1);
   }, []);
 
+  const handleDraftPromptChange = useCallback((nextText: string) => {
+    setDraftPrompt(nextText);
+    if (!nextText.includes('<已套用玩法>')) {
+      setSelectedInspiration(null);
+    }
+  }, []);
+
   const getActiveInputAnchor = useCallback(() => {
     if (!hasMessages && phase === 'input') return centeredInputAnchorRef.current;
     return bottomInputAnchorRef.current || centeredInputAnchorRef.current;
@@ -1680,6 +1815,7 @@ export default function GeneratorPage() {
       attachments,
     });
     setDraftPrompt('');
+    setSelectedInspiration(null);
 
     const cloneAttachments = attachments.filter(file => file.type === 'html' && file.locked);
     const materialAttachments = attachments.filter(file => file.type !== 'html');
@@ -1994,7 +2130,7 @@ export default function GeneratorPage() {
       return (
         <div style={styles.welcomeSection}>
           <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
-          <p style={styles.welcomeSubtitle}>输入教学内容，AI 会补全玩法；也可以先套用一个课堂互动模板，或跟灵感助手聊聊看。</p>
+          <p style={styles.welcomeSubtitle}>输入你的需求，AI 会补全玩法；也可以先套用一个课堂互动模板，或跟灵感助手聊聊看。</p>
           <div ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 720 }}>
             <ChatInput
               onSend={handleSend}
@@ -2003,7 +2139,7 @@ export default function GeneratorPage() {
               placeholder="例如：做一个颜色单词游戏，或者上传材料后描述你想怎么用"
               injectedText={draftPrompt}
               injectedTextVersion={draftVersion}
-              onTextChange={setDraftPrompt}
+              onTextChange={handleDraftPromptChange}
               lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
             />
           </div>
@@ -2276,7 +2412,7 @@ export default function GeneratorPage() {
             onStop={handleStop}
             injectedText={draftPrompt}
             injectedTextVersion={draftVersion}
-            onTextChange={setDraftPrompt}
+            onTextChange={handleDraftPromptChange}
             lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
           />
         </div>

@@ -84,6 +84,7 @@ const parseAppliedPlaywayMessage = (value: string) => {
     .map(item => item.replace(/^\d+\.\s*/, '').trim())
     .filter(Boolean)
     .join(' → ');
+  const prompt = body.match(/玩法要求：\n([\s\S]*?)\n\n(?:本次生成要求|生成要求)：/)?.[1]?.trim() || '';
 
   return {
     demand: match[1].trim(),
@@ -93,6 +94,7 @@ const parseAppliedPlaywayMessage = (value: string) => {
     suitableFor: pick('适合内容'),
     flow,
     adaptation: section('玩法改编建议', '玩法要求'),
+    prompt,
   };
 };
 
@@ -756,7 +758,8 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     width: '100%',
     maxWidth: 560,
     padding: 12,
-    borderRadius: '16px 16px 4px 16px',
+    marginTop: 8,
+    borderRadius: 14,
     border: '1px solid var(--agent-border)',
     background: '#FFFFFF',
     boxShadow: '0 10px 28px rgba(15, 23, 42, 0.08)',
@@ -776,20 +779,6 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     color: 'var(--agent-primary-text)',
     fontSize: 12,
     fontWeight: 900,
-  },
-  appliedPromptDemand: {
-    padding: '10px 11px',
-    borderRadius: 10,
-    background: 'var(--agent-soft)',
-    color: '#0F172A',
-    fontSize: 14,
-    lineHeight: 1.55,
-    whiteSpace: 'pre-wrap',
-  },
-  appliedPromptDivider: {
-    height: 1,
-    margin: '10px 0',
-    background: '#E2E8F0',
   },
   appliedPromptTitle: {
     color: '#0F172A',
@@ -818,6 +807,40 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     color: '#475569',
     fontSize: 12,
     lineHeight: 1.55,
+  },
+  appliedPromptPreviewBox: {
+    marginTop: 4,
+    borderRadius: 10,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    overflow: 'hidden',
+  },
+  appliedPromptPreviewToggle: {
+    width: '100%',
+    minHeight: 34,
+    padding: '0 10px',
+    border: 'none',
+    background: '#F8FAFC',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    color: '#334155',
+    fontSize: 12,
+    fontWeight: 850,
+    cursor: 'pointer',
+  },
+  appliedPromptRaw: {
+    maxHeight: 180,
+    margin: 0,
+    padding: '10px 12px',
+    overflowY: 'auto',
+    color: '#334155',
+    background: '#FFFFFF',
+    fontSize: 12,
+    lineHeight: 1.55,
+    whiteSpace: 'pre-wrap',
+    fontFamily: 'inherit',
   },
   imageGrid: {
     display: 'flex',
@@ -959,6 +982,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
 function UserMessage({ content }: { content: string | UserMaterialMessage }) {
   const [previewImage, setPreviewImage] = useState<UploadedAttachment | null>(null);
   const [longTextExpanded, setLongTextExpanded] = useState(false);
+  const [playwayPromptOpen, setPlaywayPromptOpen] = useState(false);
   const message = typeof content === 'string' ? { text: content } : content;
   const images = message.attachments?.filter(file => file.type === 'image') || [];
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
@@ -1019,14 +1043,15 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
 
           {appliedPlaywayMessage && (
             <div style={userMessageStyles.textWrap}>
+              <div
+                style={{
+                  ...styles.userBubble,
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {appliedPlaywayMessage.demand || '基于这个玩法生成互动课件'}
+              </div>
               <div style={userMessageStyles.appliedPromptCard}>
-                <div style={userMessageStyles.appliedPromptSection}>
-                  <div style={userMessageStyles.appliedPromptLabel}>我的需求</div>
-                  <div style={userMessageStyles.appliedPromptDemand}>
-                    {appliedPlaywayMessage.demand || '未填写具体需求'}
-                  </div>
-                </div>
-                <div style={userMessageStyles.appliedPromptDivider} />
                 <div style={userMessageStyles.appliedPromptSection}>
                   <div style={userMessageStyles.appliedPromptHeader}>
                     <span style={userMessageStyles.appliedPromptLabel}>已套用玩法</span>
@@ -1040,6 +1065,21 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
                   )}
                   {appliedPlaywayMessage.adaptation && (
                     <div style={userMessageStyles.appliedPromptAdvice}>{appliedPlaywayMessage.adaptation}</div>
+                  )}
+                  {appliedPlaywayMessage.prompt && (
+                    <div style={userMessageStyles.appliedPromptPreviewBox}>
+                      <button
+                        type="button"
+                        style={userMessageStyles.appliedPromptPreviewToggle}
+                        onClick={() => setPlaywayPromptOpen(prev => !prev)}
+                      >
+                        <span>原始提示词</span>
+                        <span>{playwayPromptOpen ? '收起' : '查看'}</span>
+                      </button>
+                      {playwayPromptOpen && (
+                        <pre style={userMessageStyles.appliedPromptRaw}>{appliedPlaywayMessage.prompt}</pre>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

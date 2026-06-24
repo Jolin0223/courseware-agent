@@ -32,8 +32,10 @@ import type {
 } from '../types';
 import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
+import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
 import { createLearningDataRecoverySummary } from '../utils/learningDataRecovery';
+import toast from '../utils/toast';
 
 type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 
@@ -1462,6 +1464,22 @@ function AssistantMessage({
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
   const activeConversation = conversations.find(c => c.id === activeConversationId);
+  const handleUndoResult = (isPublished: boolean) => {
+    if (isPublished) {
+      toast('已发布的不能撤销，如需下架请在 iTeach 资源库操作～');
+      return;
+    }
+    if (!activeConversationId) return;
+    useConversationStore.setState(state => ({
+      conversations: state.conversations.map(conversation => (
+        conversation.id === activeConversationId
+          ? { ...conversation, messages: conversation.messages.filter(item => item.id !== message.id) }
+          : conversation
+      )),
+    }));
+    useUIStore.getState().closePreview();
+    toast('已撤销本次生成的 HTML');
+  };
 
   if (message.type === 'requirement-framework') {
     return (
@@ -1554,6 +1572,20 @@ function AssistantMessage({
     const coursewareIndex = allCoursewareMessages.findIndex(m => m.id === message.id);
     const versionNum = coursewareIndex + 1;
     const isLatestVersion = coursewareIndex === allCoursewareMessages.length - 1;
+    const linkedDemoVersion = activeConversation?.id === 'conv_1'
+      ? demoSessionVersions[coursewareIndex] as {
+          isCurrentPublished?: boolean;
+          isHistoricalPublished?: boolean;
+          isRemoved?: boolean;
+        } | undefined
+      : undefined;
+    const isPublishedResult = Boolean(
+      courseware.isPublished
+      || linkedDemoVersion?.isCurrentPublished
+      || linkedDemoVersion?.isHistoricalPublished
+      || linkedDemoVersion?.isRemoved
+    );
+    const publishBadgeLabel = isPublishedResult ? '已发布' : undefined;
     
     return (
       <div style={styles.messageAssistant}>
@@ -1566,6 +1598,8 @@ function AssistantMessage({
             onOpenPreview={onOpenPreview}
             onLearningDataRecoveryRequest={onLearningDataRecoveryRequest}
             onVisualStyleRegenerate={onVisualStyleRegenerate}
+            onUndoResult={() => handleUndoResult(isPublishedResult)}
+            publishBadgeLabel={publishBadgeLabel}
           />
         </div>
       </div>

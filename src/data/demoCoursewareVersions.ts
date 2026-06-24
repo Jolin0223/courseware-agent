@@ -38,7 +38,7 @@ export const demoVersionResults: CoursewareResult[] = [
     htmlContent: animalsPlayOnlyHTML,
     learningDataRecovery: recoveryFor('动物单词玩一玩'),
   },
-];
+] as const;
 
 export const demoSessionVersions = [
   {
@@ -92,11 +92,16 @@ export const demoPublishedTargets = [
     name: '水果单词读一读',
     currentVersion: 'v3',
     urlLabel: '固定链接 A',
+    resourceScope: 'group',
+    subject: '英语',
   },
   {
     id: 'game-b',
     name: '动物单词互动乐园',
     currentVersion: 'v2',
     urlLabel: '固定链接 B',
+    resourceScope: 'school',
+    schoolName: '广州学校',
+    subject: '英语',
   },
-];
+] as const;

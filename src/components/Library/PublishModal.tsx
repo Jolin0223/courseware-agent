@@ -207,6 +207,9 @@ interface UpdateTargetOption {
   currentSessionNumber?: number;
   nextSessionNumber?: number;
   urlLabel?: string;
+  resourceScope?: PublishScope;
+  schoolName?: string;
+  subject?: string;
 }
 
 interface PublishModalProps {
@@ -278,6 +281,7 @@ export default function PublishModal({
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
   const [schoolDropdownOpen, setSchoolDropdownOpen] = useState(false);
   const [updateTargetDropdownOpen, setUpdateTargetDropdownOpen] = useState(false);
+  const isUpdateMode = mode === 'update';
   const shouldDemoInvalidTag = useMemo(() => {
     try {
       return new URLSearchParams(window.location.search).get('demoInvalidTag') === '1';
@@ -555,6 +559,30 @@ export default function PublishModal({
     return schools.filter(school => school.toLowerCase().includes(query));
   }, [schoolSearch]);
 
+  const modalTitle = mode === 'update' ? '替换' : mode === 'new-game' ? '发布' : '发布作品';
+  const primaryText = mode === 'update' ? '确认替换' : '确认发布';
+  const shouldShowUpdateTargets = mode === 'update' && updateTargets.length > 1;
+  const selectedUpdateTarget = updateTargets.find(target => target.id === selectedUpdateTargetId) || updateTargets[0];
+  const effectivePublishScope = isUpdateMode ? (selectedUpdateTarget?.resourceScope || publishScope) : publishScope;
+  const effectiveSchoolName = effectivePublishScope === 'school'
+    ? (isUpdateMode ? selectedUpdateTarget?.schoolName || selectedSchool : selectedSchool)
+    : undefined;
+  const effectiveSubject = isUpdateMode ? (selectedUpdateTarget?.subject || subject) : subject;
+  const shouldShowResourceTags = effectivePublishScope !== 'personal';
+  const resourceTagLabel = effectivePublishScope === 'school' ? '校本标签' : '知识点标签';
+  const resourceTagPlaceholder = effectivePublishScope === 'school' ? '点击选择校本标签...' : '点击选择知识点标签...';
+  const getScopeLabel = (scope?: PublishScope) => publishScopes.find(item => item.key === scope)?.label || '资源库';
+  const getUpdateTargetMeta = (target?: UpdateTargetOption) => {
+    if (!target) return '';
+    const scope = target.resourceScope || publishScope;
+    const parts = [`原发布：${getScopeLabel(scope)}`];
+    if (scope === 'school') {
+      parts.push(target.schoolName || selectedSchool);
+    }
+    parts.push(target.subject || subject);
+    return parts.join(' / ');
+  };
+
   const handlePublish = () => {
     if (!title.trim()) {
       toast('请输入AI互动课件名称');
@@ -564,15 +592,15 @@ export default function PublishModal({
       toast('请选择要替换的互动课件');
       return;
     }
-    if (publishScope === 'school' && !selectedSchool) {
+    if (effectivePublishScope === 'school' && !effectiveSchoolName) {
       toast('请选择发布到哪个学校');
       return;
     }
-    if (publishScope !== 'personal' && selectedTags.length === 0) {
-      toast(`请选择${publishScope === 'school' ? '校本标签' : '知识点标签'}`);
+    if (effectivePublishScope !== 'personal' && selectedTags.length === 0) {
+      toast(`请选择${effectivePublishScope === 'school' ? '校本标签' : '知识点标签'}`);
       return;
     }
-    if (publishScope !== 'personal' && invalidSelectedTagIds.length > 0) {
+    if (effectivePublishScope !== 'personal' && invalidSelectedTagIds.length > 0) {
       toast('当前标签已失效，请删除后重新选择标签');
       return;
     }
@@ -582,9 +610,9 @@ export default function PublishModal({
         ...courseware,
         id: nextId,
         title: title.trim(),
-        resourceScope: publishScope,
-        schoolName: publishScope === 'school' ? selectedSchool : undefined,
-        subject,
+        resourceScope: effectivePublishScope,
+        schoolName: effectiveSchoolName,
+        subject: effectiveSubject,
         grade,
         publishTime: new Date().toISOString().split('T')[0],
         views: 0,
@@ -596,14 +624,14 @@ export default function PublishModal({
     } else {
       updateCourseware(coursewareId, {
         title: title.trim(),
-        resourceScope: publishScope,
-        schoolName: publishScope === 'school' ? selectedSchool : undefined,
-        subject,
+        resourceScope: effectivePublishScope,
+        schoolName: effectiveSchoolName,
+        subject: effectiveSubject,
         grade,
         isPublished: true,
       });
     }
-    const scopeLabel = publishScopes.find(item => item.key === publishScope)?.label || '资源库';
+    const scopeLabel = publishScopes.find(item => item.key === effectivePublishScope)?.label || '资源库';
     toast(mode === 'update' ? `已替换并同步到${scopeLabel}~` : mode === 'new-game' ? `已发布为新互动课件，并同步到${scopeLabel}~` : `发布成功，已同步到${scopeLabel}~`);
     onPublishSuccess?.();
     onClose();
@@ -614,21 +642,27 @@ export default function PublishModal({
       window.setTimeout(() => {
         const nextReturnUrl = new URL(returnTo);
         nextReturnUrl.searchParams.set('scene', 'collected');
-        nextReturnUrl.searchParams.set('scope', publishScope === 'school' ? 'school' : 'group');
+        nextReturnUrl.searchParams.set('scope', effectivePublishScope === 'school' ? 'school' : 'group');
         window.location.href = nextReturnUrl.toString();
       }, 650);
     }
   };
 
-  const modalTitle = mode === 'update' ? '替换' : mode === 'new-game' ? '发布' : '发布作品';
-  const primaryText = mode === 'update' ? '确认替换' : '确认发布';
-  const shouldShowUpdateTargets = mode === 'update' && updateTargets.length > 1;
-  const selectedUpdateTarget = updateTargets.find(target => target.id === selectedUpdateTargetId) || updateTargets[0];
-  const shouldShowResourceTags = publishScope !== 'personal';
-  const resourceTagLabel = publishScope === 'school' ? '校本标签' : '知识点标签';
-  const resourceTagPlaceholder = publishScope === 'school' ? '点击选择校本标签...' : '点击选择知识点标签...';
   const openSchoolTagManager = () => {
     window.open(`${SHELL_URL}/?scene=tagAdmin&scope=school`, '_blank', 'noopener,noreferrer');
+  };
+  const handleUpdateTargetSelect = (target: UpdateTargetOption) => {
+    onUpdateTargetChange?.(target.id);
+    if (target.resourceScope) {
+      setPublishScope(target.resourceScope);
+    }
+    if (target.schoolName) {
+      setSelectedSchool(target.schoolName);
+    }
+    if (target.subject) {
+      setSubject(target.subject);
+    }
+    setUpdateTargetDropdownOpen(false);
   };
 
   return (
@@ -664,37 +698,39 @@ export default function PublishModal({
             </div>
           )}
 
-          <div style={styles.field}>
-            <label style={styles.label}><span style={styles.required}>*</span> 发布到</label>
-            <div style={styles.scopeGrid}>
-              {publishScopes.map(item => {
-                const active = publishScope === item.key;
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setPublishScope(item.key)}
-                    style={{
-                      ...styles.scopeCard,
-                      ...(active ? styles.scopeCardActive : {}),
-                    }}
-                  >
-                    <span style={styles.scopeLabelRow}>
-                      <span style={styles.radioDotOuter}>
-                        {active && <span style={styles.radioDotInner} />}
+          {!isUpdateMode && (
+            <div style={styles.field}>
+              <label style={styles.label}><span style={styles.required}>*</span> 发布到</label>
+              <div style={styles.scopeGrid}>
+                {publishScopes.map(item => {
+                  const active = publishScope === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setPublishScope(item.key)}
+                      style={{
+                        ...styles.scopeCard,
+                        ...(active ? styles.scopeCardActive : {}),
+                      }}
+                    >
+                      <span style={styles.scopeLabelRow}>
+                        <span style={styles.radioDotOuter}>
+                          {active && <span style={styles.radioDotInner} />}
+                        </span>
+                        <span style={styles.scopeCopy}>
+                          <span style={styles.scopeName}>{item.label}</span>
+                          <span style={styles.scopeHint}>{item.hint}</span>
+                        </span>
                       </span>
-                      <span style={styles.scopeCopy}>
-                        <span style={styles.scopeName}>{item.label}</span>
-                        <span style={styles.scopeHint}>{item.hint}</span>
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
-          {publishScope === 'school' && (
+          {!isUpdateMode && publishScope === 'school' && (
             <div style={styles.field} ref={schoolDropdownRef}>
               <label style={styles.label}><span style={styles.required}>*</span> 选择学校</label>
               <button
@@ -792,7 +828,10 @@ export default function PublishModal({
                 }}
               >
                 <span style={styles.updateTargetSelected}>
-                  <span style={styles.updateTargetName}>{selectedUpdateTarget.name}</span>
+                  <span style={styles.updateTargetTitleRow}>
+                    <span style={styles.updateTargetName}>{selectedUpdateTarget.name}</span>
+                    <span style={styles.updateTargetMetaStrong}>{getUpdateTargetMeta(selectedUpdateTarget)}</span>
+                  </span>
                   <span style={styles.updateTargetMeta}>
                     当前课件中使用：会话第 {selectedUpdateTarget.currentSessionNumber || '-'} 版；更新后替换为：会话第 {selectedUpdateTarget.nextSessionNumber || '-'} 版，原链接不变
                   </span>
@@ -813,13 +852,10 @@ export default function PublishModal({
                   {updateTargets.map(target => {
                     const selected = selectedUpdateTargetId === target.id;
                     return (
-                      <button
+                        <button
                         key={target.id}
                         type="button"
-                        onClick={() => {
-                          onUpdateTargetChange?.(target.id);
-                          setUpdateTargetDropdownOpen(false);
-                        }}
+                        onClick={() => handleUpdateTargetSelect(target)}
                         style={{
                           ...styles.updateTargetOption,
                           ...(selected ? styles.updateTargetOptionActive : {}),
@@ -827,10 +863,10 @@ export default function PublishModal({
                       >
                         <span style={styles.updateTargetOptionTop}>
                           <span style={styles.updateTargetName}>{target.name}</span>
+                          <span style={styles.updateTargetMetaStrong}>{getUpdateTargetMeta(target)}</span>
                           {selected && <Check size={15} color="#00A67D" strokeWidth={2.5} />}
                         </span>
-                        <span style={styles.updateTargetMeta}>当前课件中使用：会话第 {target.currentSessionNumber || '-'} 版</span>
-                        <span style={styles.updateTargetMeta}>更新后替换为：会话第 {target.nextSessionNumber || '-'} 版，原链接不变</span>
+                        <span style={styles.updateTargetMeta}>当前课件中使用：会话第 {target.currentSessionNumber || '-'} 版；更新后替换为：会话第 {target.nextSessionNumber || '-'} 版，原链接不变</span>
                       </button>
                     );
                   })}
@@ -840,23 +876,25 @@ export default function PublishModal({
           )}
 
           {/* 科目 */}
-          <div style={styles.field}>
-            <label style={styles.label}><span style={styles.required}>*</span> 科目</label>
-            <div style={styles.chipGroup}>
-              {subjects.map(s => (
-                <button
-                  key={s}
-                  onClick={() => setSubject(s)}
-                  style={{
-                    ...styles.chip,
-                    ...(subject === s ? styles.chipActive : {}),
-                  }}
-                >
-                  {s}
-                </button>
-              ))}
+          {!isUpdateMode && (
+            <div style={styles.field}>
+              <label style={styles.label}><span style={styles.required}>*</span> 科目</label>
+              <div style={styles.chipGroup}>
+                {subjects.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setSubject(s)}
+                    style={{
+                      ...styles.chip,
+                      ...(subject === s ? styles.chipActive : {}),
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 年级 */}
           <div style={styles.field}>
@@ -998,45 +1036,37 @@ export default function PublishModal({
             <div style={styles.labelRow}>
               <label style={{ ...styles.label, marginBottom: 0 }}>内容标签 <span style={styles.aiTag}>AI默认推荐</span></label>
               <div style={styles.labelActions}>
-                {publishScope === 'personal' && (
-                  <span style={styles.autoTagBtnWrap}>
-                    {confirmRetagOpen && confirmRetagAnchor === 'personal' && (
-                      <RetagConfirmPopover
-                        onCancel={() => {
-                          setConfirmRetagOpen(false);
-                          setConfirmRetagAnchor(null);
-                        }}
-                        onConfirm={() => {
-                          setConfirmRetagOpen(false);
-                          setConfirmRetagAnchor(null);
-                          runAutoTag();
-                        }}
-                      />
-                    )}
-                    <button
-                      type="button"
-                      style={{
-                        ...styles.autoTagInlineBtn,
-                        ...(autoTagStatus === 'loading' ? styles.autoTagInlineBtnLoading : {}),
+                <span style={styles.autoTagBtnWrap}>
+                  {confirmRetagOpen && confirmRetagAnchor === 'personal' && (
+                    <RetagConfirmPopover
+                      onCancel={() => {
+                        setConfirmRetagOpen(false);
+                        setConfirmRetagAnchor(null);
                       }}
-                      onClick={() => handleAutoTagClick('personal')}
-                      disabled={autoTagStatus === 'loading'}
-                    >
-                      {autoTagStatus === 'loading'
-                        ? <Loader2 size={13} style={styles.spinIcon} />
-                        : <Wand2 size={13} />}
-                      {autoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
-                    </button>
-                  </span>
-                )}
-                {publishScope !== 'personal' && (
-                  <span style={styles.optionalHint}>非必填，用于标记玩法或视觉风格</span>
-                )}
+                      onConfirm={() => {
+                        setConfirmRetagOpen(false);
+                        setConfirmRetagAnchor(null);
+                        runAutoTag();
+                      }}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.autoTagInlineBtn,
+                      ...(autoTagStatus === 'loading' ? styles.autoTagInlineBtnLoading : {}),
+                    }}
+                    onClick={() => handleAutoTagClick('personal')}
+                    disabled={autoTagStatus === 'loading'}
+                  >
+                    {autoTagStatus === 'loading'
+                      ? <Loader2 size={13} style={styles.spinIcon} />
+                      : <Wand2 size={13} />}
+                    {autoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
+                  </button>
+                </span>
               </div>
             </div>
-            {publishScope === 'personal' && (
-              <div style={styles.contentTagHint}>非必填，用于标记玩法或视觉风格</div>
-            )}
             <div style={styles.contentTagBox}>
               {contentTags.map((tag, index) => (
                 editingContentTagIndex === index ? (
@@ -1131,7 +1161,6 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 12,
     width: '100%',
     maxWidth: 1040,
-    height: 'min(880px, 92vh)',
     maxHeight: '92vh',
     overflow: 'hidden',
     boxShadow: '0 24px 80px rgba(15, 23, 42, 0.22)',
@@ -1164,7 +1193,7 @@ const styles: Record<string, React.CSSProperties> = {
   content: {
     padding: '8px 22px 20px',
     overflowY: 'auto',
-    flex: 1,
+    flex: '0 1 auto',
   },
   field: {
     marginBottom: 18,
@@ -1289,16 +1318,31 @@ const styles: Record<string, React.CSSProperties> = {
     minWidth: 0,
     flex: 1,
   },
+  updateTargetTitleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 10,
+    minWidth: 0,
+  },
   updateTargetName: {
     fontSize: 14,
     fontWeight: 700,
     color: '#1E293B',
     lineHeight: 1.35,
+    minWidth: 0,
   },
   updateTargetMeta: {
     fontSize: 12,
     color: '#64748B',
     lineHeight: 1.45,
+  },
+  updateTargetMetaStrong: {
+    fontSize: 12,
+    color: 'var(--agent-primary-text)',
+    lineHeight: 1.45,
+    fontWeight: 700,
+    flexShrink: 0,
   },
   updateTargetDropdown: {
     position: 'absolute',
@@ -1334,8 +1378,8 @@ const styles: Record<string, React.CSSProperties> = {
   updateTargetOptionTop: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
+    justifyContent: 'flex-start',
+    gap: 10,
   },
   inputWrap: {
     width: '100%',

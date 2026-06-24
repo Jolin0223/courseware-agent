@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Copy, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import type { Courseware, LearningDataRecoveryRequest, VisualStyleRegenerationRequest } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
@@ -47,6 +47,8 @@ export default function CoursewareCard({
   onOpenPreview,
   onLearningDataRecoveryRequest,
   onVisualStyleRegenerate,
+  onUndoResult,
+  publishBadgeLabel,
 }: {
   courseware: Courseware;
   version?: string;
@@ -54,6 +56,8 @@ export default function CoursewareCard({
   onOpenPreview?: (coursewareId: number) => void;
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
+  onUndoResult?: () => void;
+  publishBadgeLabel?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const [feedbackCopied, setFeedbackCopied] = useState(false);
@@ -377,7 +381,24 @@ export default function CoursewareCard({
             <span style={{ fontSize: 8, fontWeight: 900, lineHeight: 1, marginTop: 1 }}>HTML</span>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px rgba(5, 35, 86, 0.18)' }}>{courseware.title}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px rgba(5, 35, 86, 0.18)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{courseware.title}</span>
+              {publishBadgeLabel && (
+                <span style={{
+                  flexShrink: 0,
+                  padding: '2px 7px',
+                  borderRadius: 999,
+                  background: 'rgba(255,255,255,0.22)',
+                  border: '1px solid rgba(255,255,255,0.34)',
+                  color: '#FFFFFF',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  lineHeight: 1.4,
+                }}>
+                  {publishBadgeLabel}
+                </span>
+              )}
+            </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.86)', marginTop: 3, textShadow: '0 1px 2px rgba(5, 35, 86, 0.14)' }}>刚刚生成</div>
           </div>
           <div style={{
@@ -496,6 +517,8 @@ export default function CoursewareCard({
       <div style={{
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
         marginTop: 8,
         paddingLeft: 2,
         color: '#94A3B8',
@@ -515,6 +538,24 @@ export default function CoursewareCard({
           {feedbackCopied ? <CheckCircle2 size={13} /> : <MessageSquareWarning size={13} />}
           <span style={{ fontWeight: 600 }}>{feedbackCopied ? '已复制反馈信息' : '反馈问题'}</span>
         </button>
+        {onUndoResult && (
+          <button
+            onClick={onUndoResult}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4, padding: 0,
+              border: 'none', background: 'transparent',
+              color: '#64748B',
+              cursor: 'pointer', outline: 'none', lineHeight: 1.2,
+              fontSize: 12, fontWeight: 650,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--agent-primary-text)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#64748B'; }}
+            title="撤回本次生成"
+          >
+            <RotateCcw size={13} />
+            <span>撤回</span>
+          </button>
+        )}
       </div>
 
       <ResourceEditModal

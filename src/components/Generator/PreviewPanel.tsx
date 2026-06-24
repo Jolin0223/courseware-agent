@@ -45,6 +45,9 @@ interface PublishedGameTarget {
   name: string;
   currentVersion: string;
   urlLabel: string;
+  resourceScope?: 'group' | 'school' | 'personal';
+  schoolName?: string;
+  subject?: string;
 }
 
 const REAL_CASE_TITLES = ['近义词大挑战', '单词神枪手', '比绳子长短'];
@@ -109,7 +112,7 @@ const buildSessionVersions = (courseware?: { title?: string; htmlContent?: strin
   ];
 };
 
-const buildPublishedTargets = (courseware?: { title?: string } | null): PublishedGameTarget[] => {
+const buildPublishedTargets = (courseware?: { title?: string; subject?: string } | null): PublishedGameTarget[] => {
   if (courseware?.title?.includes('水果单词互动乐园')) {
     return demoPublishedTargets.map(target => ({ ...target }));
   }
@@ -123,12 +126,17 @@ const buildPublishedTargets = (courseware?: { title?: string } | null): Publishe
       name: baseTitle,
       currentVersion: 'v3',
       urlLabel: '固定链接 A',
+      resourceScope: 'group' as const,
+      subject: courseware?.subject || '英语',
     },
     {
       id: 'game-b',
       name: `${baseTitle}优化版`,
       currentVersion: 'v2',
       urlLabel: '固定链接 B',
+      resourceScope: 'school' as const,
+      schoolName: '广州学校',
+      subject: courseware?.subject || '英语',
     },
   ];
 };
@@ -274,6 +282,9 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
         name: targetName,
         currentVersion: selectedVersion,
         urlLabel: `固定链接 ${publishedTargets.length + 1}`,
+        resourceScope: 'school' as const,
+        schoolName: '广州学校',
+        subject: courseware?.subject || '英语',
       }]);
       setVersions(prev => prev.map(v =>
         v.version === selectedVersion
@@ -312,6 +323,9 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
       currentSessionNumber: linkedVersion?.sessionNumber,
       nextSessionNumber: currentVersion?.sessionNumber,
       urlLabel: target.urlLabel,
+      resourceScope: target.resourceScope,
+      schoolName: target.schoolName,
+      subject: target.subject,
     };
   });
 

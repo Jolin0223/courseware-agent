@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
 import {
   Award,
   BarChart3,
   BookOpenCheck,
   Check,
+  ChevronUp,
   Clock3,
   Layers3,
   RefreshCw,
-  Tag,
   Target,
   X,
 } from 'lucide-react';
@@ -32,8 +31,9 @@ type MetricIconKey = 'score' | 'accuracy' | 'time' | 'reward' | 'correct' | 'com
 interface ReportProfile {
   key: ReportCaseKey;
   title: string;
-  tags: Array<{ label: string; value: number }>;
-  suggestion: string;
+  drawerTitle: string;
+  interactionTitle: string;
+  interactionTime: string;
   metricRows: Array<{ id: string; label: string; value: string; icon: MetricIconKey }>;
 }
 
@@ -42,12 +42,9 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
     return {
       key: 'bowen',
       title: '近义词大挑战',
-      tags: [
-        { label: '近义词辨析', value: 92 },
-        { label: '语境理解', value: 86 },
-        { label: '准确用词', value: 78 },
-      ],
-      suggestion: '本次能根据句子语境选择合适的近义词，整体掌握较好；“屹立、矗立、耸立”这类易混词还可以继续通过例句巩固。',
+      drawerTitle: '近义词大挑战',
+      interactionTitle: '近义词辨析闯关',
+      interactionTime: '用时2分16秒',
       metricRows: [
         { id: 'final-score', label: '总得分', value: '40分', icon: 'score' },
         { id: 'accuracy', label: '正确率', value: '80%', icon: 'accuracy' },
@@ -62,12 +59,9 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
     return {
       key: 'bilingual',
       title: '单词神枪手',
-      tags: [
-        { label: '图词匹配', value: 90 },
-        { label: '单词辨认', value: 84 },
-        { label: '快速反应', value: 80 },
-      ],
-      suggestion: '本次能较快完成图片与英文单词的匹配，身体部位类单词掌握稳定；个别形近词、音近词还可以继续巩固。',
+      drawerTitle: '单词神枪手',
+      interactionTitle: '单词神枪手',
+      interactionTime: '用时1分42秒',
       metricRows: [
         { id: 'final-score', label: '总得分', value: '110分', icon: 'score' },
         { id: 'accuracy', label: '正确率', value: '85%', icon: 'accuracy' },
@@ -83,12 +77,9 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
     return {
       key: 'brain',
       title: '比绳子长短',
-      tags: [
-        { label: '长短比较', value: 90 },
-        { label: '空间观察', value: 86 },
-        { label: '路径判断', value: 82 },
-      ],
-      suggestion: '本次能通过观察和拉直比较绳子长短，基础比较能力较好；遇到路径更复杂的关卡时，可以继续练习按格数判断长短。',
+      drawerTitle: '比绳子长短',
+      interactionTitle: '比一比绳子长短',
+      interactionTime: '用时3分42秒',
       metricRows: [
         { id: 'final-score', label: '总得分', value: '90分', icon: 'score' },
         { id: 'accuracy', label: '正确率', value: '90%', icon: 'accuracy' },
@@ -104,11 +95,9 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
   return {
     key: 'fruit',
     title,
-    tags: [
-      { label: '水果词汇识别', value: 88 },
-      { label: '图词匹配', value: 82 },
-    ],
-    suggestion: '本次能完成水果单词认读、跟读和游戏巩固，基础词汇识别较稳定；可继续复习 watermelon、strawberry 等较长单词。',
+    drawerTitle: '认识颜色',
+    interactionTitle: '趣味互动',
+    interactionTime: '用时2分18秒',
     metricRows: [
       { id: 'final-score', label: '总得分', value: '86分', icon: 'score' },
       { id: 'accuracy', label: '正确率', value: '84%', icon: 'accuracy' },
@@ -193,7 +182,7 @@ export default function LearningDataRecoveryModal({
               <div style={styles.title}>{viewMode === 'preview' ? '学情报告预览' : canModifyRecovery ? '修改报告数据' : '查看回收数据'}</div>
               <div style={styles.subTitle}>
                 {viewMode === 'preview'
-                  ? `以下为「${coursewareTitle || '当前课件'}」的学生端/家长端报告示意`
+                  ? '学生端/家长端报告样式预览，正式报告将使用真实作答结果生成。'
                   : canModifyRecovery
                     ? '选择需要进入学情报告的回收数据，确认后将重新生成下一版课件'
                     : '当前为历史版本，仅可查看本版已生效的回收数据'}
@@ -267,8 +256,14 @@ export default function LearningDataRecoveryModal({
           </div>
         ) : (
           <div style={styles.previewContent}>
+            <StudentReportPreview
+              coursewareTitle={coursewareTitle}
+              selectedItems={selectedItems}
+              reportCase={reportCase}
+              isSimpleDemo={showCaseSwitch}
+            />
             <div
-              style={styles.previewTopBar}
+              style={styles.previewBottomBar}
               onDoubleClick={() => {
                 setShowCaseSwitch(prev => {
                   if (!prev) setReportCase('bowen');
@@ -278,7 +273,7 @@ export default function LearningDataRecoveryModal({
               }}
             >
               <div style={styles.previewInfo}>
-                <div style={styles.previewInfoTitle}>当前报告将展示</div>
+                <div style={styles.previewInfoTitle}>当前报告展示</div>
                 <div style={styles.previewInfoDesc}>
                   {selectedItems.length
                     ? selectedItems.map(item => item.label).join('、')
@@ -308,15 +303,6 @@ export default function LearningDataRecoveryModal({
                 </div>
               )}
             </div>
-            <div style={styles.notice}>
-              这里仅示意学生端/家长端收到的个性化学情报告样式，当前展示为模拟数据，正式报告会使用学生真实作答结果生成。
-            </div>
-            <StudentReportPreview
-              coursewareTitle={coursewareTitle}
-              selectedItems={selectedItems}
-              reportCase={reportCase}
-              isSimpleDemo={showCaseSwitch}
-            />
           </div>
         )}
       </div>
@@ -335,186 +321,80 @@ function StudentReportPreview({
   reportCase: ReportCaseKey;
   isSimpleDemo?: boolean;
 }) {
-  const [showPublishedRadar, setShowPublishedRadar] = useState(false);
-  const [showKnowledgeTags, setShowKnowledgeTags] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true);
   const profile = getReportProfile(coursewareTitle || '水果单词互动乐园', isSimpleDemo ? reportCase : getCaseFromTitle(coursewareTitle));
   const selectedIds = new Set(selectedItems.map(item => item.id));
   const visibleMetrics = profile.metricRows.filter(metric => selectedIds.has(metric.id));
-  const showPublishedData = showPublishedRadar || showKnowledgeTags;
-  const useBarKnowledgeChart = profile.tags.length < 3;
+  const summaryText = visibleMetrics.length
+    ? `本次记录了 ${visibleMetrics.length} 项学习表现`
+    : '当前暂无可展示的学习表现';
+
+  useEffect(() => {
+    setDrawerOpen(true);
+  }, [profile.key, coursewareTitle]);
 
   return (
-    <div style={styles.reportCanvas}>
-      <div style={styles.reportHeader}>
-        <div style={styles.headerGlow} />
-        <div style={styles.reportHeaderMain}>
-          <div>
-            <div style={styles.reportKicker}>学生个性化学情报告</div>
-            <div style={styles.reportTitle}>{profile.title}</div>
-          </div>
-          <div style={styles.reportBadge}>已完成</div>
+    <div style={styles.phonePreview}>
+      <div style={styles.phoneScreenshot} />
+      {drawerOpen && <div style={styles.drawerOverlay} />}
+      {drawerOpen ? <div style={styles.reportDrawer}>
+        <div style={styles.drawerHeader}>
+          <div style={styles.drawerTitle}>{profile.drawerTitle}</div>
+          <button type="button" style={styles.collapseButton} onClick={() => setDrawerOpen(false)}>
+            收起 <ChevronUp size={14} />
+          </button>
         </div>
-      </div>
-
-      <div style={styles.reportBody}>
-        <section style={styles.reportSection}>
-          <div style={styles.sectionTitle}>学习表现</div>
-          <div style={styles.moduleStack}>
-            <DynamicModule icon={<Target size={15} />} title="本次表现">
-              {visibleMetrics.length ? (
-                <div style={styles.metricList}>
-                  {visibleMetrics.map(metric => {
-                    const Icon = iconMap[metric.icon];
-                    return (
-                      <div key={metric.id} style={styles.metricTile}>
-                        <span style={styles.metricIcon}><Icon size={15} /></span>
-                        <span style={styles.metricValue}>{metric.value}</span>
-                        <span style={styles.metricLabel}>{metric.label}</span>
-                      </div>
-                    );
-                  })}
+        <div style={styles.drawerSummary}>
+          <span>{summaryText}</span>
+          <span style={styles.summaryBadge}>
+            <span style={styles.summaryBadgeIcon}>✓</span>
+            已记录
+          </span>
+        </div>
+        {visibleMetrics.length ? (
+          <div style={styles.drawerMetricList}>
+            {visibleMetrics.map((metric, index) => {
+              const Icon = iconMap[metric.icon];
+              const accent = metricAccents[index % metricAccents.length];
+              return (
+                <div key={metric.id} style={{ ...styles.drawerMetricTile, background: accent.card, borderColor: accent.border }}>
+                  <span style={{ ...styles.drawerMetricIcon, background: accent.iconBg, color: accent.icon }}>
+                    <Icon size={18} />
+                  </span>
+                  <span style={styles.drawerMetricLabel}>{metric.label}</span>
+                  <span style={styles.drawerMetricValue}>{metric.value}</span>
+                  <span style={{ ...styles.metricCornerMark, background: accent.corner }} />
                 </div>
-              ) : (
-                <div style={styles.emptyMetricHint}>当前未选择可展示的学习表现指标</div>
-              )}
-            </DynamicModule>
+              );
+            })}
           </div>
-        </section>
-
-        <section style={styles.reportSection}>
-          <div style={styles.sectionTitle}>{useBarKnowledgeChart ? '知识点掌握度' : '知识点雷达图'}</div>
-          <div
-            style={showPublishedData ? styles.radarReady : styles.radarPending}
-            onDoubleClick={() => setShowPublishedRadar(prev => !prev)}
-          >
-            {showPublishedData ? (
-              <>
-                {useBarKnowledgeChart ? (
-                  <KnowledgeBarChart tags={profile.tags} />
-                ) : (
-                  <>
-                    <RadarChart tags={profile.tags} />
-                    <div style={styles.radarLegend}>
-                      {profile.tags.map(tag => (
-                        <div key={tag.label} style={styles.radarLegendRow}>
-                          <span>{tag.label}</span>
-                          <strong>{tag.value}%</strong>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                <div style={styles.radarPendingIcon}><Tag size={18} /></div>
-                <div style={styles.radarPendingText}>
-                  <div style={styles.radarPendingTitle}>
-                    {useBarKnowledgeChart ? '发布并完成知识点标签后生成真实掌握度图' : '发布并完成知识点标签后生成真实雷达图'}
-                  </div>
-                  <div style={styles.radarPendingDesc}>
-                    预览态展示报告位置。正式报告会读取资源发布后绑定的集团知识点标签或校本标签；标签少于 3 个时用柱状图展示，3 个及以上时用雷达图展示。
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </section>
-
-        <section style={{ ...styles.reportSection, ...styles.overallSection }}>
-          <div style={styles.sectionTitle}>整体表现</div>
-          <div style={styles.tagToggleArea} onDoubleClick={() => setShowKnowledgeTags(prev => !prev)}>
-            {showPublishedData ? (
-              <div style={styles.tagList}>
-                {profile.tags.map(tag => <span key={tag.label} style={styles.tag}>{tag.label}</span>)}
-              </div>
-            ) : (
-              <div style={styles.tagPending}>发布并完成知识点标签后展示本次涉及的知识点标签</div>
-            )}
-          </div>
-          <div style={styles.suggestion}>{profile.suggestion}</div>
-        </section>
-      </div>
+        ) : (
+          <div style={styles.emptyMetricHint}>当前未选择可展示的学习表现指标</div>
+        )}
+        <div style={styles.drawerFooterText}>
+          <span>每一次互动，都是一次小小的进步记录。</span>
+          <span style={styles.footerStars} aria-hidden="true">
+            <span style={styles.footerStarLarge}>★</span>
+            <span style={styles.footerStarSmall}>★</span>
+          </span>
+        </div>
+      </div> : (
+        <button type="button" style={styles.openReportButton} onClick={() => setDrawerOpen(true)}>
+          看报告
+        </button>
+      )}
     </div>
   );
 }
 
-function KnowledgeBarChart({ tags }: { tags: ReportProfile['tags'] }) {
-  return (
-    <div style={styles.knowledgeBarChart} aria-label="知识点掌握度柱状图">
-      <div style={styles.knowledgeBarPlot}>
-        {tags.map(tag => (
-          <div key={tag.label} style={styles.knowledgeBarColumn}>
-            <div style={styles.knowledgeBarValue}>{tag.value}%</div>
-            <div style={{ ...styles.knowledgeBarFill, height: `${tag.value}%` }} />
-            <div style={styles.knowledgeBarLabel}>{tag.label}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RadarChart({ tags }: { tags: ReportProfile['tags'] }) {
-  const size = 116;
-  const center = size / 2;
-  const maxRadius = 47;
-  const points = tags.map((tag, index) => {
-    const angle = -Math.PI / 2 + (index * Math.PI * 2) / tags.length;
-    const radius = maxRadius * (tag.value / 100);
-    return {
-      x: center + Math.cos(angle) * radius,
-      y: center + Math.sin(angle) * radius,
-    };
-  });
-  const polygon = points.map(point => `${point.x},${point.y}`).join(' ');
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={styles.radarSvg} aria-label="知识点雷达图">
-      {[1, 0.66, 0.33].map(ring => (
-        <circle
-          key={ring}
-          cx={center}
-          cy={center}
-          r={maxRadius * ring}
-          fill={ring === 1 ? '#F0FDF4' : 'none'}
-          stroke="#BBF7D0"
-          strokeWidth="1"
-        />
-      ))}
-      {tags.map((tag, index) => {
-        const angle = -Math.PI / 2 + (index * Math.PI * 2) / tags.length;
-        const x = center + Math.cos(angle) * maxRadius;
-        const y = center + Math.sin(angle) * maxRadius;
-        return <line key={tag.label} x1={center} y1={center} x2={x} y2={y} stroke="#86EFAC" strokeWidth="1" />;
-      })}
-      <polygon points={polygon} fill="rgba(34, 197, 94, 0.34)" stroke="#16A34A" strokeWidth="2" />
-      {points.map((point, index) => (
-        <circle key={tags[index].label} cx={point.x} cy={point.y} r="3" fill="#16A34A" />
-      ))}
-    </svg>
-  );
-}
-
-function DynamicModule({
-  icon,
-  title,
-  children,
-}: {
-  icon: ReactNode;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <div style={styles.detailModule}>
-      <div style={styles.moduleHeader}>
-        <span style={styles.moduleIcon}>{icon}</span>
-        <span style={styles.moduleTitle}>{title}</span>
-      </div>
-      {children}
-    </div>
-  );
-}
+const metricAccents = [
+  { card: 'rgba(255, 255, 255, 0.94)', border: '#D1FAE5', iconBg: '#ECFDF5', icon: '#16A34A', corner: '#BBF7D0' },
+  { card: 'rgba(255, 255, 255, 0.94)', border: '#DBEAFE', iconBg: '#EFF6FF', icon: '#2563EB', corner: '#BFDBFE' },
+  { card: 'rgba(255, 255, 255, 0.94)', border: '#FED7AA', iconBg: '#FFF7ED', icon: '#F97316', corner: '#FDBA74' },
+  { card: 'rgba(255, 255, 255, 0.94)', border: '#FBCFE8', iconBg: '#FDF2F8', icon: '#DB2777', corner: '#F9A8D4' },
+  { card: 'rgba(255, 255, 255, 0.94)', border: '#CCFBF1', iconBg: '#F0FDFA', icon: '#0F766E', corner: '#99F6E4' },
+  { card: 'rgba(255, 255, 255, 0.94)', border: '#DDD6FE', iconBg: '#F5F3FF', icon: '#7C3AED', corner: '#C4B5FD' },
+];
 
 const styles: Record<string, React.CSSProperties> = {
   mask: {
@@ -528,8 +408,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 24,
   },
   dialog: {
-    width: 'min(860px, 96vw)',
-    maxHeight: '88vh',
+    width: 'min(900px, 96vw)',
+    maxHeight: '96vh',
     background: '#FFFFFF',
     borderRadius: 14,
     boxShadow: '0 28px 90px rgba(15, 23, 42, 0.28)',
@@ -571,6 +451,11 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: 4,
     fontSize: 13,
     color: '#64748B',
+    lineHeight: 1.45,
+    maxWidth: 620,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   closeBtn: {
     width: 34,
@@ -728,11 +613,12 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.4,
   },
   previewContent: {
-    padding: '16px 20px 22px',
+    position: 'relative',
+    padding: '12px 20px 16px',
     overflowY: 'auto',
     background: '#F8FAFC',
   },
-  previewTopBar: {
+  previewBottomBar: {
     display: 'flex',
     alignItems: 'center',
     gap: 12,
@@ -741,7 +627,8 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #D1FAE5',
     background: '#FFFFFF',
     boxShadow: '0 10px 26px rgba(15, 23, 42, 0.05)',
-    marginBottom: 12,
+    margin: '14px auto 0',
+    maxWidth: 760,
   },
   previewInfo: {
     minWidth: 0,
@@ -777,159 +664,166 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     flexShrink: 0,
   },
-  reportCanvas: {
-    width: 'min(460px, 100%)',
+  phonePreview: {
+    position: 'relative',
+    width: 'min(390px, 100%)',
+    height: 750,
     margin: '0 auto',
     borderRadius: 18,
-    background: '#FFFFFF',
-    border: '1px solid #D9F99D',
-    boxShadow: '0 16px 48px rgba(22, 163, 74, 0.15)',
+    background: '#F8FAFC',
+    border: '1px solid #C7F9E8',
+    boxShadow: '0 18px 50px rgba(14, 116, 144, 0.16)',
     overflow: 'hidden',
   },
-  reportHeader: {
-    position: 'relative',
-    overflow: 'hidden',
-    padding: 0,
-    background: 'linear-gradient(135deg, #22C55E 0%, #84CC16 52%, #38BDF8 100%)',
-    color: '#FFFFFF',
-  },
-  headerGlow: {
+  phoneScreenshot: {
     position: 'absolute',
-    right: -26,
-    top: -34,
-    width: 150,
-    height: 150,
-    borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.28)',
+    inset: 0,
+    backgroundImage: 'url("/images/single-lesson-learning-report-copy.png")',
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'top center',
+    backgroundColor: '#FFFFFF',
   },
-  reportHeaderMain: {
-    position: 'relative',
-    padding: 18,
+  drawerOverlay: {
+    position: 'absolute',
+    inset: 0,
+    background: 'rgba(15, 23, 42, 0.42)',
+    zIndex: 3,
+  },
+  reportDrawer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 4,
+    minHeight: 560,
+    maxHeight: '98%',
+    padding: '24px 14px 20px',
+    borderRadius: '18px 18px 0 0',
+    backgroundImage: 'url("/images/color-game-learning-report-mobile.png")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center bottom',
+    boxShadow: '0 -16px 38px rgba(15, 23, 42, 0.18)',
+    overflowY: 'auto',
+  },
+  drawerHeader: {
     display: 'flex',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    alignItems: 'flex-start',
-  },
-  reportKicker: {
-    fontSize: 12,
-    opacity: 0.92,
-    fontWeight: 800,
-  },
-  reportTitle: {
-    marginTop: 6,
-    fontSize: 19,
-    fontWeight: 900,
-    lineHeight: 1.25,
-  },
-  reportMeta: {
-    marginTop: 8,
-    fontSize: 12,
-    opacity: 0.9,
-    fontWeight: 700,
-  },
-  reportBadge: {
-    flexShrink: 0,
-    padding: '6px 10px',
-    borderRadius: 999,
-    background: 'rgba(255, 255, 255, 0.24)',
-    border: '1px solid rgba(255, 255, 255, 0.42)',
-    boxShadow: '0 6px 18px rgba(21, 128, 61, 0.16)',
-    fontSize: 12,
-    fontWeight: 900,
-  },
-  reportBody: {
-    padding: '16px 14px 18px',
-    background: '#F7FEE7',
-  },
-  reportSection: {
+    minHeight: 44,
     marginBottom: 14,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: 900,
-    color: '#14532D',
-    marginBottom: 10,
+  drawerTitle: {
+    color: '#0F172A',
+    fontSize: 20,
+    fontWeight: 950,
   },
-  overviewCard: {
-    padding: 12,
+  collapseButton: {
+    height: 32,
+    padding: '0 12px',
+    borderRadius: 999,
+    border: 'none',
+    background: 'rgba(15, 23, 42, 0.68)',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 900,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  drawerSummary: {
+    padding: '15px 16px',
     borderRadius: 12,
-    background: '#FFFFFF',
-    border: '1px solid #DCFCE7',
+    background: 'rgba(255, 255, 255, 0.86)',
     color: '#334155',
-    fontSize: 13,
-    lineHeight: 1.6,
-  },
-  moduleStack: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 10,
-  },
-  detailModule: {
-    padding: 12,
-    borderRadius: 12,
-    background: '#FFFFFF',
-    border: '1px solid #DCFCE7',
-    boxShadow: '0 6px 18px rgba(22, 163, 74, 0.06)',
-  },
-  moduleHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
-  },
-  moduleIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    background: '#DCFCE7',
-    color: '#15803D',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  moduleTitle: {
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 1.5,
     fontWeight: 900,
-    color: '#0F172A',
-  },
-  metricList: {
+    marginBottom: 16,
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: 8,
+    gridTemplateColumns: '1fr auto',
+    alignItems: 'center',
+    gap: 12,
+    overflow: 'hidden',
   },
-  metricTile: {
-    minHeight: 70,
-    borderRadius: 12,
-    background: '#F8FAFC',
-    border: '1px solid #E2E8F0',
-    padding: '10px 10px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+  summaryBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
     gap: 5,
-  },
-  metricIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
+    padding: '5px 8px',
+    borderRadius: 999,
     background: '#ECFDF5',
-    color: '#15803D',
-    display: 'flex',
+    border: '1px solid #BBF7D0',
+    color: '#047857',
+    fontSize: 12,
+    fontWeight: 950,
+    whiteSpace: 'nowrap',
+  },
+  summaryBadgeIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: '50%',
+    background: '#22C55E',
+    color: '#FFFFFF',
+    display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  metricValue: {
-    fontSize: 18,
-    fontWeight: 900,
-    color: '#0F172A',
+    fontSize: 11,
     lineHeight: 1,
   },
-  metricLabel: {
+  drawerMetricList: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 13,
+  },
+  drawerMetricTile: {
+    position: 'relative',
+    minHeight: 96,
+    borderRadius: 14,
+    background: 'rgba(255, 255, 255, 0.94)',
+    padding: '13px 13px',
+    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.065)',
+    border: '1px solid rgba(226, 232, 240, 0.76)',
+    overflow: 'hidden',
+  },
+  drawerMetricIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: '50%',
+    background: '#ECFDF5',
+    color: '#16A34A',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    float: 'left',
+    marginRight: 10,
+  },
+  drawerMetricLabel: {
+    display: 'block',
     fontSize: 12,
     color: '#64748B',
-    fontWeight: 700,
+    fontWeight: 800,
+    marginTop: 3,
+  },
+  drawerMetricValue: {
+    display: 'block',
+    clear: 'both',
+    marginTop: 10,
+    color: '#0F172A',
+    fontSize: 24,
+    fontWeight: 500,
+    lineHeight: 1,
+  },
+  metricCornerMark: {
+    position: 'absolute',
+    right: -18,
+    bottom: -18,
+    width: 56,
+    height: 56,
+    borderRadius: '50%',
+    opacity: 0.55,
   },
   emptyMetricHint: {
     padding: 12,
@@ -940,289 +834,72 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     lineHeight: 1.5,
   },
-  tableWrap: {
-    borderRadius: 10,
-    overflow: 'hidden',
-    border: '1px solid #E2E8F0',
-  },
-  tableHeader: {
-    display: 'grid',
-    gridAutoFlow: 'column',
-    gridAutoColumns: '1fr',
-    background: '#F8FAFC',
-    color: '#0F172A',
-    fontSize: 13,
-    fontWeight: 900,
-    textAlign: 'center',
-    borderBottom: '1px solid #E2E8F0',
-  },
-  tableHeaderOrange: {
-    background: '#FB8500',
-    color: '#FFFFFF',
-  },
-  tableRow: {
-    display: 'grid',
-    gridAutoFlow: 'column',
-    gridAutoColumns: '1fr',
-    background: '#FFFFFF',
-    color: '#111827',
-    fontSize: 13,
-    fontWeight: 800,
-    textAlign: 'center',
-  },
-  answerRows: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-  },
-  answerRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr auto',
-    gap: 8,
-    alignItems: 'center',
-    padding: '8px 0',
-    borderTop: '1px solid #F1F5F9',
-  },
-  answerName: {
-    minWidth: 0,
-    fontSize: 12,
-    color: '#334155',
-    fontWeight: 700,
-  },
-  answerCorrect: {
-    fontSize: 12,
-    color: '#047857',
-    fontWeight: 800,
-  },
-  answerMistake: {
-    fontSize: 12,
-    color: '#C2410C',
-    fontWeight: 800,
-  },
-  wordList: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  wordPill: {
-    padding: '6px 10px',
-    borderRadius: 999,
-    background: '#FFF7ED',
-    border: '1px solid #FED7AA',
-    color: '#C2410C',
-    fontSize: 12,
-    fontWeight: 900,
-  },
-  moduleDesc: {
-    marginTop: 10,
-    color: '#64748B',
-    fontSize: 12,
-    lineHeight: 1.55,
-  },
-  levelList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-  },
-  levelRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr auto',
-    gap: 10,
-    alignItems: 'center',
-    padding: '8px 10px',
-    borderRadius: 10,
-    background: '#F8FAFC',
-  },
-  levelText: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-    minWidth: 0,
-  },
-  levelName: {
-    fontSize: 12,
-    fontWeight: 900,
-    color: '#0F172A',
-  },
-  levelDesc: {
-    fontSize: 11,
-    color: '#64748B',
-  },
-  levelValue: {
-    fontSize: 13,
-    fontWeight: 900,
-    color: '#0F766E',
-  },
-  achievement: {
-    padding: 10,
-    borderRadius: 10,
-    background: '#FEFCE8',
-    color: '#854D0E',
-    border: '1px solid #FEF08A',
-    fontSize: 12,
-    lineHeight: 1.55,
-    fontWeight: 700,
-  },
-  oralGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: 8,
-    color: '#334155',
-    fontSize: 12,
-    fontWeight: 800,
-  },
-  radarPending: {
-    display: 'flex',
-    gap: 12,
-    alignItems: 'flex-start',
-    padding: 14,
-    borderRadius: 12,
-    border: '1px dashed #86EFAC',
-    background: '#F0FDF4',
-    cursor: 'default',
-  },
-  radarPendingIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    background: '#FFFFFF',
-    color: '#15803D',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.08)',
-  },
-  radarPendingText: {
-    minWidth: 0,
-  },
-  radarPendingTitle: {
-    fontSize: 13,
-    fontWeight: 900,
-    color: '#0F172A',
-    marginBottom: 5,
-  },
-  radarPendingDesc: {
-    fontSize: 12,
-    lineHeight: 1.55,
-    color: '#64748B',
-  },
-  radarReady: {
-    display: 'grid',
-    gridTemplateColumns: '132px 1fr',
-    gap: 12,
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: 12,
-    background: '#FFFFFF',
-    border: '1px solid #BBF7D0',
-  },
-  radarSvg: {
-    width: 116,
-    height: 116,
-    display: 'block',
-  },
-  knowledgeBarChart: {
-    gridColumn: '1 / -1',
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    minWidth: 0,
-  },
-  knowledgeBarPlot: {
+  drawerFooterText: {
     position: 'relative',
-    width: '100%',
-    height: 150,
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    alignItems: 'end',
-    gap: 22,
-    padding: '18px 18px 10px',
-    borderRadius: 14,
-    background: '#FFFFFF',
-    border: '1px solid #DCFCE7',
-  },
-  knowledgeBarColumn: {
-    position: 'relative',
-    height: '100%',
-    display: 'grid',
-    gridTemplateRows: '18px 1fr auto',
-    justifyItems: 'center',
-    alignItems: 'end',
-    gap: 7,
-    zIndex: 1,
-  },
-  knowledgeBarValue: {
-    color: '#0F172A',
-    fontSize: 13,
-    fontWeight: 900,
-    lineHeight: 1,
-  },
-  knowledgeBarFill: {
-    width: 'min(56px, 70%)',
-    borderRadius: '12px 12px 8px 8px',
-    background: 'linear-gradient(180deg, #38BDF8 0%, #22C55E 52%, #84CC16 100%)',
-    boxShadow: '0 8px 16px rgba(34, 197, 94, 0.24)',
-  },
-  knowledgeBarLabel: {
-    maxWidth: '100%',
-    color: '#14532D',
-    fontSize: 12,
-    fontWeight: 900,
+    marginTop: 14,
+    padding: '14px 72px 14px 15px',
+    borderRadius: 12,
+    background: 'rgba(255, 255, 255, 0.86)',
+    color: '#334155',
+    fontSize: 14,
+    fontWeight: 800,
+    lineHeight: 1.3,
+    minHeight: 48,
     overflow: 'hidden',
-    textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
-  radarLegend: {
+  footerStars: {
+    position: 'absolute',
+    right: 13,
+    top: '50%',
+    width: 44,
+    height: 34,
+    transform: 'translateY(-50%)',
+  },
+  footerStarLarge: {
+    position: 'absolute',
+    right: 0,
+    top: 2,
+    width: 30,
+    height: 30,
+    borderRadius: '50%',
+    background: '#FEF3C7',
+    color: '#F59E0B',
     display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 16,
+    boxShadow: '0 5px 12px rgba(245, 158, 11, 0.2)',
   },
-  radarLegendRow: {
+  footerStarSmall: {
+    position: 'absolute',
+    left: 2,
+    top: 0,
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    background: '#DBEAFE',
+    color: '#2563EB',
     display: 'flex',
-    justifyContent: 'space-between',
-    gap: 8,
-    fontSize: 12,
-    color: '#334155',
-    fontWeight: 800,
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 11,
   },
-  tagToggleArea: {
-    minHeight: 30,
-    marginBottom: 10,
-  },
-  tagList: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  tag: {
-    padding: '5px 9px',
+  openReportButton: {
+    position: 'absolute',
+    left: '50%',
+    top: 625,
+    transform: 'translateX(-50%)',
+    zIndex: 4,
+    height: 42,
+    padding: '0 20px',
     borderRadius: 999,
-    background: '#E0F2FE',
-    border: '1px solid #BAE6FD',
-    color: '#0369A1',
-    fontSize: 12,
-    fontWeight: 800,
-  },
-  tagPending: {
-    padding: '8px 10px',
-    borderRadius: 10,
-    border: '1px dashed #CBD5E1',
-    background: '#FFFFFF',
-    color: '#64748B',
-    fontSize: 12,
-    lineHeight: 1.45,
-  },
-  suggestion: {
-    padding: 12,
-    borderRadius: 10,
-    background: '#FFFFFF',
-    border: '1px solid #DCFCE7',
-    color: '#334155',
-    fontSize: 13,
-    lineHeight: 1.6,
-  },
-  overallSection: {
-    marginBottom: 0,
+    border: 'none',
+    background: 'linear-gradient(135deg, #20D6B5, #10B981)',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 950,
+    boxShadow: '0 10px 22px rgba(16, 185, 129, 0.32)',
+    cursor: 'pointer',
   },
 };

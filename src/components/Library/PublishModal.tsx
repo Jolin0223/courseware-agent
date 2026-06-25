@@ -596,10 +596,6 @@ export default function PublishModal({
       toast('请选择发布到哪个学校');
       return;
     }
-    if (effectivePublishScope !== 'personal' && selectedTags.length === 0) {
-      toast(`请选择${effectivePublishScope === 'school' ? '校本标签' : '知识点标签'}`);
-      return;
-    }
     if (effectivePublishScope !== 'personal' && invalidSelectedTagIds.length > 0) {
       toast('当前标签已失效，请删除后重新选择标签');
       return;
@@ -918,7 +914,7 @@ export default function PublishModal({
           {shouldShowResourceTags && (
             <div style={styles.field} ref={tagDropdownRef}>
                 <div style={styles.labelRow}>
-                  <label style={{ ...styles.label, marginBottom: 0 }}><span style={styles.required}>*</span> {resourceTagLabel} <span style={styles.aiTag}>AI默认推荐</span></label>
+                  <label style={{ ...styles.label, marginBottom: 0 }}>{resourceTagLabel} <span style={styles.aiTag}>AI默认推荐</span></label>
                   <div style={styles.labelActions}>
                     <span style={styles.autoTagBtnWrap}>
                       {confirmRetagOpen && confirmRetagAnchor !== 'personal' && (

@@ -105,6 +105,117 @@ const getVisibleSuitableTags = (playway: InspirationPlayway) => (
   playway.suitableTags.filter(item => item && item !== '未标注')
 );
 
+const coverProfiles: Record<string, {
+  gradient: string;
+  accent: string;
+  scene: string;
+  props: string[];
+}> = {
+  jump_obstacle: {
+    gradient: 'linear-gradient(135deg, #D9F99D 0%, #67E8F9 48%, #38BDF8 100%)',
+    accent: '#0F766E',
+    scene: '跳跃平台',
+    props: ['平台', '星星', '终点旗'],
+  },
+  racing: {
+    gradient: 'linear-gradient(135deg, #FDE68A 0%, #FB923C 48%, #38BDF8 100%)',
+    accent: '#B45309',
+    scene: '竞速赛道',
+    props: ['跑道', '计时', '加速'],
+  },
+  hide_seek: {
+    gradient: 'linear-gradient(135deg, #C7D2FE 0%, #FBCFE8 52%, #BAE6FD 100%)',
+    accent: '#6D28D9',
+    scene: '找一找',
+    props: ['放大镜', '目标', '场景'],
+  },
+  teamwork: {
+    gradient: 'linear-gradient(135deg, #BBF7D0 0%, #A7F3D0 48%, #FDE68A 100%)',
+    accent: '#15803D',
+    scene: '协作任务',
+    props: ['队友', '任务卡', '进度'],
+  },
+  survival: {
+    gradient: 'linear-gradient(135deg, #FECACA 0%, #FDBA74 48%, #A7F3D0 100%)',
+    accent: '#B91C1C',
+    scene: '生存挑战',
+    props: ['能量', '倒计时', '补给'],
+  },
+  battle: {
+    gradient: 'linear-gradient(135deg, #BFDBFE 0%, #DDD6FE 48%, #FDE68A 100%)',
+    accent: '#1D4ED8',
+    scene: '对战推理',
+    props: ['阵营', '线索', '投票'],
+  },
+  timed_puzzle: {
+    gradient: 'linear-gradient(135deg, #FDE68A 0%, #A7F3D0 48%, #93C5FD 100%)',
+    accent: '#0F766E',
+    scene: '限时解谜',
+    props: ['谜题', '时钟', '答案'],
+  },
+  elimination: {
+    gradient: 'linear-gradient(135deg, #FBCFE8 0%, #FDE68A 48%, #C4B5FD 100%)',
+    accent: '#BE185D',
+    scene: '晋级赛',
+    props: ['关卡', '榜单', '奖杯'],
+  },
+  spelling: {
+    gradient: 'linear-gradient(135deg, #BAE6FD 0%, #C7D2FE 48%, #FDE68A 100%)',
+    accent: '#0369A1',
+    scene: '拼读闯关',
+    props: ['字母', '音频', '拼词'],
+  },
+  reading: {
+    gradient: 'linear-gradient(135deg, #FEF3C7 0%, #BBF7D0 48%, #BAE6FD 100%)',
+    accent: '#047857',
+    scene: '读一读',
+    props: ['卡片', '跟读', '鼓励'],
+  },
+  logic_grid: {
+    gradient: 'linear-gradient(135deg, #DBEAFE 0%, #E9D5FF 50%, #DCFCE7 100%)',
+    accent: '#4338CA',
+    scene: '逻辑宫格',
+    props: ['格子', '线索', '推理'],
+  },
+  geometry: {
+    gradient: 'linear-gradient(135deg, #CCFBF1 0%, #FDE68A 50%, #BFDBFE 100%)',
+    accent: '#0F766E',
+    scene: '图形空间',
+    props: ['方块', '拼搭', '旋转'],
+  },
+};
+
+const getCoverProfile = (playway: InspirationPlayway) => (
+  coverProfiles[playway.secondaryCategory]
+  || coverProfiles[playway.primaryCategory]
+  || coverProfiles.timed_puzzle
+);
+
+const renderCardCover = (playway: InspirationPlayway) => {
+  const profile = getCoverProfile(playway);
+  const tagText = getVisibleCardTags(playway)[0] || playway.secondaryLabel;
+
+  return (
+    <div style={{ ...styles.cardCover, background: profile.gradient }}>
+      <div style={styles.coverShade} />
+      <div style={{ ...styles.coverSceneBadge, color: profile.accent }}>{profile.scene}</div>
+      <div style={styles.coverStage}>
+        <div style={{ ...styles.coverMainObject, borderColor: profile.accent }}>
+          <span style={{ ...styles.coverMainText, color: profile.accent }}>{tagText.slice(0, 4)}</span>
+        </div>
+        <div style={{ ...styles.coverPath, background: profile.accent }} />
+        <div style={styles.coverMiniObjects}>
+          {profile.props.map((prop, index) => (
+            <span key={prop} style={{ ...styles.coverProp, transform: `translateY(${index % 2 === 0 ? -2 : 3}px)` }}>
+              {prop}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const toGameplayInspiration = (playway: InspirationPlayway): GameplayInspiration => ({
   id: playway.id,
   title: playway.displayTitle,
@@ -374,51 +485,51 @@ export default function InspirationSection({
           const exampleTitle = exampleFallbackLabel[playway.exampleId] || '玩法效果示例';
           return (
             <article key={playway.id} style={{ ...styles.card, ...(selected ? styles.cardSelected : {}) }}>
-              <div style={styles.cardHeader}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={styles.cardKicker}>{getCardKicker(playway)}</div>
-                  <h3 style={styles.cardTitle}>{playway.displayTitle}</h3>
+              {renderCardCover(playway)}
+
+              <div style={styles.cardBody}>
+                <div style={styles.cardHeader}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={styles.cardKicker}>{getCardKicker(playway)}</div>
+                    <h3 style={styles.cardTitle}>{playway.displayTitle}</h3>
+                  </div>
+                  {selected && (
+                    <span style={styles.selectedBadge}>
+                      <CheckCircle2 size={12} />
+                      已套用
+                    </span>
+                  )}
                 </div>
-                {selected && (
-                  <span style={styles.selectedBadge}>
-                    <CheckCircle2 size={12} />
-                    已套用
-                  </span>
-                )}
-              </div>
 
-              <p style={styles.description}>{playway.shortDesc}</p>
+                <p style={styles.description}>{playway.shortDesc}</p>
 
-              <div style={styles.compactMeta}>
-                {playway.flowSteps.slice(0, 3).join(' → ')}
-              </div>
+                <div style={styles.compactTags}>
+                  <span style={styles.secondaryTag}>{playway.secondaryLabel}</span>
+                  {getVisibleCardTags(playway).slice(0, 1).map(item => (
+                    <span key={item} style={styles.tag}>{item}</span>
+                  ))}
+                </div>
 
-              <div style={styles.compactTags}>
-                <span style={styles.secondaryTag}>{playway.secondaryLabel}</span>
-                {getVisibleCardTags(playway).map(item => (
-                  <span key={item} style={styles.tag}>{item}</span>
-                ))}
-              </div>
-
-              <div style={styles.cardActions}>
-                <button
-                  style={styles.detailBtn}
-                  title={exampleTitle}
-                  data-playway-id={playway.id}
-                  data-example-id={playway.exampleId}
-                  onPointerUp={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
-                  onClick={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
-                >
-                  <PlayCircle size={14} />
-                  试玩一下
-                </button>
-                <button
-                  style={styles.primaryBtn}
-                  onPointerUp={(event) => runOnce(`apply-${playway.id}`, () => handleApply(playway, event.currentTarget))}
-                  onClick={(event) => runOnce(`apply-${playway.id}`, () => handleApply(playway, event.currentTarget))}
-                >
-                  套用玩法
-                </button>
+                <div style={styles.cardActions}>
+                  <button
+                    style={styles.detailBtn}
+                    title={exampleTitle}
+                    data-playway-id={playway.id}
+                    data-example-id={playway.exampleId}
+                    onPointerUp={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
+                    onClick={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
+                  >
+                    <PlayCircle size={14} />
+                    试玩一下
+                  </button>
+                  <button
+                    style={styles.primaryBtn}
+                    onPointerUp={(event) => runOnce(`apply-${playway.id}`, () => handleApply(playway, event.currentTarget))}
+                    onClick={(event) => runOnce(`apply-${playway.id}`, () => handleApply(playway, event.currentTarget))}
+                  >
+                    套用玩法
+                  </button>
+                </div>
               </div>
             </article>
           );
@@ -683,17 +794,102 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    minHeight: 166,
-    padding: 14,
-    borderRadius: 10,
+    minHeight: 244,
+    padding: 0,
+    borderRadius: 14,
     border: '1px solid var(--agent-border)',
     background: '#FFFFFF',
-    boxShadow: '0 8px 20px rgba(37, 74, 120, 0.05)',
+    boxShadow: '0 10px 24px rgba(37, 74, 120, 0.07)',
     overflow: 'hidden',
   },
   cardSelected: {
     borderColor: 'var(--agent-primary)',
     boxShadow: '0 10px 24px var(--agent-focus-ring-strong)',
+  },
+  cardCover: {
+    position: 'relative',
+    aspectRatio: '16 / 9',
+    minHeight: 104,
+    overflow: 'hidden',
+  },
+  coverShade: {
+    position: 'absolute',
+    inset: 0,
+    background: 'radial-gradient(circle at 18% 16%, rgba(255,255,255,0.82), transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.12), rgba(15,23,42,0.08))',
+  },
+  coverSceneBadge: {
+    position: 'absolute',
+    left: 10,
+    top: 9,
+    height: 22,
+    padding: '0 8px',
+    borderRadius: 999,
+    background: 'rgba(255,255,255,0.82)',
+    border: '1px solid rgba(255,255,255,0.74)',
+    fontSize: 11,
+    fontWeight: 950,
+    lineHeight: '22px',
+    boxShadow: '0 8px 16px rgba(15, 23, 42, 0.08)',
+  },
+  coverStage: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 12,
+    height: 54,
+  },
+  coverMainObject: {
+    position: 'absolute',
+    left: 0,
+    bottom: 4,
+    width: 74,
+    height: 42,
+    borderRadius: 16,
+    border: '2px solid',
+    background: 'rgba(255,255,255,0.84)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 12px 22px rgba(15, 23, 42, 0.12)',
+  },
+  coverMainText: {
+    fontSize: 14,
+    fontWeight: 950,
+  },
+  coverPath: {
+    position: 'absolute',
+    left: 64,
+    right: 8,
+    bottom: 20,
+    height: 4,
+    borderRadius: 999,
+    opacity: 0.48,
+  },
+  coverMiniObjects: {
+    position: 'absolute',
+    right: 0,
+    bottom: 2,
+    display: 'flex',
+    alignItems: 'flex-end',
+    gap: 5,
+  },
+  coverProp: {
+    height: 24,
+    padding: '0 7px',
+    borderRadius: 999,
+    background: 'rgba(255,255,255,0.86)',
+    border: '1px solid rgba(255,255,255,0.74)',
+    color: '#334155',
+    fontSize: 10,
+    fontWeight: 900,
+    lineHeight: '24px',
+    boxShadow: '0 8px 16px rgba(15, 23, 42, 0.1)',
+  },
+  cardBody: {
+    display: 'flex',
+    flex: 1,
+    flexDirection: 'column',
+    padding: 12,
   },
   cardHeader: {
     display: 'flex',
@@ -733,30 +929,20 @@ const styles: Record<string, React.CSSProperties> = {
   description: {
     margin: 0,
     color: '#334155',
-    fontSize: 13,
+    fontSize: 12,
     lineHeight: 1.4,
-    minHeight: 36,
-    maxHeight: 36,
+    minHeight: 34,
+    maxHeight: 34,
     overflow: 'hidden',
     display: '-webkit-box',
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
   },
-  compactMeta: {
-    marginTop: 10,
-    color: 'var(--agent-primary-text)',
-    fontSize: 12,
-    fontWeight: 850,
-    lineHeight: 1.35,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
   compactTags: {
     display: 'flex',
     flexWrap: 'wrap',
     gap: 6,
-    marginTop: 10,
+    marginTop: 8,
   },
   cardActions: {
     display: 'flex',
@@ -764,7 +950,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     gap: 8,
     marginTop: 'auto',
-    paddingTop: 10,
+    paddingTop: 9,
   },
   detailBtn: {
     display: 'inline-flex',

@@ -89,12 +89,6 @@ const sortByFinalSeedOrder = (items: InspirationPlayway[]) => items.slice().sort
   return a.sourceOrder - b.sourceOrder;
 });
 
-const getCardKicker = (playway: InspirationPlayway) => (
-  isKnownAge(playway.ageText)
-    ? `${playway.ageText} · ${playway.secondaryLabel}`
-    : playway.secondaryLabel
-);
-
 const getVisibleCardTags = (playway: InspirationPlayway) => (
   playway.suitableTags
     .filter(item => item !== playway.secondaryLabel && item !== '未标注')
@@ -490,7 +484,6 @@ export default function InspirationSection({
               <div style={styles.cardBody}>
                 <div style={styles.cardHeader}>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={styles.cardKicker}>{getCardKicker(playway)}</div>
                     <h3 style={styles.cardTitle}>{playway.displayTitle}</h3>
                   </div>
                   {selected && (
@@ -889,12 +882,6 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     gap: 8,
     marginBottom: 6,
-  },
-  cardKicker: {
-    color: '#64748B',
-    fontSize: 12,
-    fontWeight: 850,
-    marginBottom: 4,
   },
   cardTitle: {
     margin: 0,

@@ -503,13 +503,6 @@ export default function InspirationSection({
 
                 <p style={styles.description}>{playway.shortDesc}</p>
 
-                <div style={styles.compactTags}>
-                  <span style={styles.secondaryTag}>{playway.secondaryLabel}</span>
-                  {getVisibleCardTags(playway).slice(0, 1).map(item => (
-                    <span key={item} style={styles.tag}>{item}</span>
-                  ))}
-                </div>
-
                 <div style={styles.cardActions}>
                   <button
                     style={styles.detailBtn}
@@ -938,12 +931,6 @@ const styles: Record<string, React.CSSProperties> = {
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
   },
-  compactTags: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 8,
-  },
   cardActions: {
     display: 'flex',
     alignItems: 'center',
@@ -1122,17 +1109,6 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
   },
   tag: {
-    height: 23,
-    padding: '0 7px',
-    borderRadius: 999,
-    border: '1px solid rgba(14, 165, 233, 0.14)',
-    background: 'rgba(240, 249, 255, 0.92)',
-    color: 'var(--agent-primary-text)',
-    fontSize: 11,
-    fontWeight: 850,
-    lineHeight: '23px',
-  },
-  secondaryTag: {
     height: 23,
     padding: '0 7px',
     borderRadius: 999,

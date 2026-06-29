@@ -11,16 +11,8 @@ import {
   Puzzle,
   Sparkles,
   Shapes,
-  Trophy,
   X,
 } from 'lucide-react';
-import animalsAdventureHTML from '../../assets/courseware/animals_adventure.html?raw';
-import animalsPlayOnlyHTML from '../../assets/courseware/animals_play_only.html?raw';
-import fruitGardenHTML from '../../assets/courseware/fruit_garden_adventure.html?raw';
-import fruitReadAloudHTML from '../../assets/courseware/fruit_garden_read_aloud_only.html?raw';
-import mathRacingDemoHTML from '../../assets/courseware/examples/math_racing_demo.html?raw';
-import wisdomJumpPinyinDemoHTML from '../../assets/courseware/examples/wisdom_jump_pinyin_demo.html?raw';
-import wordDisguiseDemoHTML from '../../assets/courseware/examples/word_disguise_demo.html?raw';
 import {
   inspirationSeedData,
   type InspirationPlayway,
@@ -49,32 +41,12 @@ interface InspirationSectionProps {
 
 const tabIcons: Record<InspirationTabId, React.ElementType> = {
   featured: Sparkles,
-  action: Trophy,
-  english: BookOpenCheck,
-  junior_math: Calculator,
+  recognition: BookOpenCheck,
   logic: Brain,
   spatial: Shapes,
   puzzle: Puzzle,
-};
-
-const exampleHtmlById: Record<string, string> = {
-  fruit_garden_full: fruitGardenHTML,
-  fruit_read_aloud: fruitReadAloudHTML,
-  animals_spelling: animalsAdventureHTML,
-  animals_play_only: animalsPlayOnlyHTML,
-  wisdom_jump_pinyin_demo: wisdomJumpPinyinDemoHTML,
-  math_racing_demo: mathRacingDemoHTML,
-  word_disguise_demo: wordDisguiseDemoHTML,
-};
-
-const exampleFallbackLabel: Record<string, string> = {
-  fruit_garden_full: '英语图文互动示例',
-  fruit_read_aloud: '听音跟读互动示例',
-  animals_spelling: '单词拼写互动示例',
-  animals_play_only: '闯关答题节奏示例',
-  wisdom_jump_pinyin_demo: '拼音跳跃玩法示例',
-  math_racing_demo: '口算赛车玩法示例',
-  word_disguise_demo: '单词找物玩法示例',
+  junior_math: Calculator,
+  scenario: Sparkles,
 };
 
 const cardsPerPage = 8;
@@ -99,113 +71,14 @@ const getVisibleSuitableTags = (playway: InspirationPlayway) => (
   playway.suitableTags.filter(item => item && item !== '未标注')
 );
 
-const coverProfiles: Record<string, {
-  gradient: string;
-  accent: string;
-  scene: string;
-  props: string[];
-}> = {
-  jump_obstacle: {
-    gradient: 'linear-gradient(135deg, #D9F99D 0%, #67E8F9 48%, #38BDF8 100%)',
-    accent: '#0F766E',
-    scene: '跳跃平台',
-    props: ['平台', '星星', '终点旗'],
-  },
-  racing: {
-    gradient: 'linear-gradient(135deg, #FDE68A 0%, #FB923C 48%, #38BDF8 100%)',
-    accent: '#B45309',
-    scene: '竞速赛道',
-    props: ['跑道', '计时', '加速'],
-  },
-  hide_seek: {
-    gradient: 'linear-gradient(135deg, #C7D2FE 0%, #FBCFE8 52%, #BAE6FD 100%)',
-    accent: '#6D28D9',
-    scene: '找一找',
-    props: ['放大镜', '目标', '场景'],
-  },
-  teamwork: {
-    gradient: 'linear-gradient(135deg, #BBF7D0 0%, #A7F3D0 48%, #FDE68A 100%)',
-    accent: '#15803D',
-    scene: '协作任务',
-    props: ['队友', '任务卡', '进度'],
-  },
-  survival: {
-    gradient: 'linear-gradient(135deg, #FECACA 0%, #FDBA74 48%, #A7F3D0 100%)',
-    accent: '#B91C1C',
-    scene: '生存挑战',
-    props: ['能量', '倒计时', '补给'],
-  },
-  battle: {
-    gradient: 'linear-gradient(135deg, #BFDBFE 0%, #DDD6FE 48%, #FDE68A 100%)',
-    accent: '#1D4ED8',
-    scene: '对战推理',
-    props: ['阵营', '线索', '投票'],
-  },
-  timed_puzzle: {
-    gradient: 'linear-gradient(135deg, #FDE68A 0%, #A7F3D0 48%, #93C5FD 100%)',
-    accent: '#0F766E',
-    scene: '限时解谜',
-    props: ['谜题', '时钟', '答案'],
-  },
-  elimination: {
-    gradient: 'linear-gradient(135deg, #FBCFE8 0%, #FDE68A 48%, #C4B5FD 100%)',
-    accent: '#BE185D',
-    scene: '晋级赛',
-    props: ['关卡', '榜单', '奖杯'],
-  },
-  spelling: {
-    gradient: 'linear-gradient(135deg, #BAE6FD 0%, #C7D2FE 48%, #FDE68A 100%)',
-    accent: '#0369A1',
-    scene: '拼读闯关',
-    props: ['字母', '音频', '拼词'],
-  },
-  reading: {
-    gradient: 'linear-gradient(135deg, #FEF3C7 0%, #BBF7D0 48%, #BAE6FD 100%)',
-    accent: '#047857',
-    scene: '读一读',
-    props: ['卡片', '跟读', '鼓励'],
-  },
-  logic_grid: {
-    gradient: 'linear-gradient(135deg, #DBEAFE 0%, #E9D5FF 50%, #DCFCE7 100%)',
-    accent: '#4338CA',
-    scene: '逻辑宫格',
-    props: ['格子', '线索', '推理'],
-  },
-  geometry: {
-    gradient: 'linear-gradient(135deg, #CCFBF1 0%, #FDE68A 50%, #BFDBFE 100%)',
-    accent: '#0F766E',
-    scene: '图形空间',
-    props: ['方块', '拼搭', '旋转'],
-  },
-};
-
-const getCoverProfile = (playway: InspirationPlayway) => (
-  coverProfiles[playway.secondaryCategory]
-  || coverProfiles[playway.primaryCategory]
-  || coverProfiles.timed_puzzle
-);
-
 const renderCardCover = (playway: InspirationPlayway) => {
-  const profile = getCoverProfile(playway);
-  const tagText = getVisibleCardTags(playway)[0] || playway.secondaryLabel;
-
   return (
-    <div style={{ ...styles.cardCover, background: profile.gradient }}>
-      <div style={styles.coverShade} />
-      <div style={{ ...styles.coverSceneBadge, color: profile.accent }}>{profile.scene}</div>
-      <div style={styles.coverStage}>
-        <div style={{ ...styles.coverMainObject, borderColor: profile.accent }}>
-          <span style={{ ...styles.coverMainText, color: profile.accent }}>{tagText.slice(0, 4)}</span>
-        </div>
-        <div style={{ ...styles.coverPath, background: profile.accent }} />
-        <div style={styles.coverMiniObjects}>
-          {profile.props.map((prop, index) => (
-            <span key={prop} style={{ ...styles.coverProp, transform: `translateY(${index % 2 === 0 ? -2 : 3}px)` }}>
-              {prop}
-            </span>
-          ))}
-        </div>
-      </div>
+    <div style={styles.cardCover}>
+      {playway.coverUrl ? (
+        <img src={playway.coverUrl} alt={`${playway.displayTitle}封面`} style={styles.cardCoverImage} />
+      ) : (
+        <div style={styles.cardCoverEmpty}>{playway.secondaryLabel}</div>
+      )}
     </div>
   );
 };
@@ -324,10 +197,6 @@ export default function InspirationSection({
     () => inspirationSeedData.playways.find(item => item.id === examplePlaywayId) || null,
     [examplePlaywayId],
   );
-
-  const example = examplePlayway
-    ? inspirationSeedData.examples.find(item => item.id === examplePlayway.exampleId) || null
-    : null;
 
   const handleTabChange = (tab: InspirationTabId) => {
     setActiveTab(tab);
@@ -476,7 +345,6 @@ export default function InspirationSection({
       <div className="inspiration-card-grid" style={styles.templateGrid}>
         {pagedPlayways.map(playway => {
           const selected = selectedInspirationId === playway.id;
-          const exampleTitle = exampleFallbackLabel[playway.exampleId] || '玩法效果示例';
           return (
             <article key={playway.id} style={{ ...styles.card, ...(selected ? styles.cardSelected : {}) }}>
               {renderCardCover(playway)}
@@ -499,7 +367,7 @@ export default function InspirationSection({
                 <div style={styles.cardActions}>
                   <button
                     style={styles.detailBtn}
-                    title={exampleTitle}
+                    title="玩法效果示例"
                     data-playway-id={playway.id}
                     data-example-id={playway.exampleId}
                     onPointerUp={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
@@ -561,7 +429,7 @@ export default function InspirationSection({
         </div>
       )}
 
-      {examplePlayway && example && createPortal((
+      {examplePlayway && createPortal((
         <div style={styles.exampleOverlay} onClick={() => setExamplePlaywayId(null)}>
           <div
             className="inspiration-example-dialog"
@@ -587,12 +455,16 @@ export default function InspirationSection({
 
             <div className="inspiration-example-body" style={styles.exampleBody}>
               <div style={styles.examplePreviewShell}>
-                <iframe
-                  title={`${examplePlayway.displayTitle}玩法示例`}
-                  sandbox="allow-scripts"
-                  srcDoc={exampleHtmlById[example.id] || animalsPlayOnlyHTML}
-                  style={styles.exampleIframe}
-                />
+                {examplePlayway.examplePreviewUrl ? (
+                  <iframe
+                    title={`${examplePlayway.displayTitle}玩法示例`}
+                    sandbox="allow-scripts allow-same-origin"
+                    src={examplePlayway.examplePreviewUrl}
+                    style={styles.exampleIframe}
+                  />
+                ) : (
+                  <div style={styles.exampleEmptyPreview}>该玩法题板预览暂未配置</div>
+                )}
               </div>
 
               <aside style={styles.exampleInfo}>
@@ -797,79 +669,24 @@ const styles: Record<string, React.CSSProperties> = {
     aspectRatio: '16 / 9',
     minHeight: 104,
     overflow: 'hidden',
+    background: '#F8FAFC',
   },
-  coverShade: {
-    position: 'absolute',
-    inset: 0,
-    background: 'radial-gradient(circle at 18% 16%, rgba(255,255,255,0.82), transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.12), rgba(15,23,42,0.08))',
+  cardCoverImage: {
+    display: 'block',
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
   },
-  coverSceneBadge: {
-    position: 'absolute',
-    left: 10,
-    top: 9,
-    height: 22,
-    padding: '0 8px',
-    borderRadius: 999,
-    background: 'rgba(255,255,255,0.82)',
-    border: '1px solid rgba(255,255,255,0.74)',
-    fontSize: 11,
-    fontWeight: 950,
-    lineHeight: '22px',
-    boxShadow: '0 8px 16px rgba(15, 23, 42, 0.08)',
-  },
-  coverStage: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: 12,
-    height: 54,
-  },
-  coverMainObject: {
-    position: 'absolute',
-    left: 0,
-    bottom: 4,
-    width: 74,
-    height: 42,
-    borderRadius: 16,
-    border: '2px solid',
-    background: 'rgba(255,255,255,0.84)',
+  cardCoverEmpty: {
     display: 'flex',
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 12px 22px rgba(15, 23, 42, 0.12)',
-  },
-  coverMainText: {
-    fontSize: 14,
-    fontWeight: 950,
-  },
-  coverPath: {
-    position: 'absolute',
-    left: 64,
-    right: 8,
-    bottom: 20,
-    height: 4,
-    borderRadius: 999,
-    opacity: 0.48,
-  },
-  coverMiniObjects: {
-    position: 'absolute',
-    right: 0,
-    bottom: 2,
-    display: 'flex',
-    alignItems: 'flex-end',
-    gap: 5,
-  },
-  coverProp: {
-    height: 24,
-    padding: '0 7px',
-    borderRadius: 999,
-    background: 'rgba(255,255,255,0.86)',
-    border: '1px solid rgba(255,255,255,0.74)',
-    color: '#334155',
-    fontSize: 10,
+    background: 'linear-gradient(135deg, #ECFDF5, #E0F2FE)',
+    color: 'var(--agent-primary-text)',
+    fontSize: 13,
     fontWeight: 900,
-    lineHeight: '24px',
-    boxShadow: '0 8px 16px rgba(15, 23, 42, 0.1)',
   },
   cardBody: {
     display: 'flex',
@@ -1049,6 +866,17 @@ const styles: Record<string, React.CSSProperties> = {
     height: 430,
     border: 0,
     background: '#FFFFFF',
+  },
+  exampleEmptyPreview: {
+    display: 'flex',
+    width: '100%',
+    height: 430,
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#94A3B8',
+    fontSize: 14,
+    fontWeight: 850,
+    background: '#F8FAFC',
   },
   exampleInfo: {
     display: 'flex',

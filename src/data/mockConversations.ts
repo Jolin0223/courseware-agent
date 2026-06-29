@@ -242,6 +242,7 @@ export function createEmptyConversation(): Conversation {
 }
 
 export function generateRequirementFromPrompt(prompt: string): RequirementFramework {
+  const appliedPlaywayPrompt = prompt.match(/玩法要求：\n([\s\S]*?)\n\n(?:本次生成要求|生成要求)：/)?.[1]?.trim();
   const materialLine = prompt.includes('上传材料：')
     ? `\n③上传材料：${prompt.split('上传材料：')[1]?.split('\n')[0] || '已上传材料'}`
     : '';
@@ -255,22 +256,41 @@ export function generateRequirementFromPrompt(prompt: string): RequirementFramew
     ? `\n5. 上传图片仅作为视觉参考，提取配色、构图和画风，不直接使用原图，避免误把参考图当作课件素材。`
     : '';
 
+  const withAppliedPlaywayTemplate = (framework: RequirementFramework): RequirementFramework => (
+    appliedPlaywayPrompt
+      ? { ...framework, featureDesign: appliedPlaywayPrompt, featureDesignFormat: 'markdown' }
+      : framework
+  );
+
+  if (appliedPlaywayPrompt) {
+    const demand = prompt.match(/^(?:教学内容|你的需求)：([\s\S]*?)\n\n<已套用玩法>/)?.[1]?.trim();
+    const playwayName = prompt.match(/玩法名称：([^\n]+)/)?.[1]?.trim();
+    const playwayType = prompt.match(/玩法类型：([^\n]+)/)?.[1]?.trim();
+    const ageRange = prompt.match(/适用年龄：([^\n]+)/)?.[1]?.trim();
+    return withAppliedPlaywayTemplate({
+      generationSettings: `课件结构：基于已套用玩法模板生成横版 16:9 互动课件。\n提交方式：优先遵循玩法说明模板中的交互、校验、反馈和完成标准。\n生成原则：保留老师输入的需求内容，只替换为当前套用玩法的课堂互动结构。`,
+      userRequirement: `老师需求：${demand || '基于已套用玩法生成互动课件'}\n已套用玩法：${[playwayName, playwayType, ageRange].filter(Boolean).join(' · ')}`,
+      featureDesign: appliedPlaywayPrompt,
+      designStyle: `画面与反馈优先遵循玩法说明模板中的视觉框架、UI 风格、交互反馈和完成标准；如果老师另有画面风格要求，则在不破坏玩法结构和可读性的前提下融合。${materialStyle}`,
+    });
+  }
+
   if (isFruitCoursewarePrompt(prompt)) {
-    return {
+    return withAppliedPlaywayTemplate({
       generationSettings: `课件结构：9 页横版 16:9 互动课件，包含封面、认一认、读一读、玩一玩和课堂总结。\n提交方式：练习模式，所有环节允许重试，语音评测用 1-3 颗星鼓励反馈。\n默认风格：清新秋日橘子树，暖橙色秋日果园主题，按钮大而圆润，避免成人化网页表单。`,
       userRequirement: `学习对象：小学一年级英语学习儿童\n课件主题：《Fruit Garden 水果乐园大冒险》\n课程目标：认识 apple、banana、orange、pear、grape、watermelon、strawberry、peach 8 个常见水果单词；完成听音、看图、跟读、语音评测和游戏巩固。${materialLine}${intentLine}`,
       featureDesign: `整体结构：\n1. 课程封面：水果花园场景，小朋友进入花园，水果角色从树和篮子里探出头，点击“开始学习”。\n2. 认一认：第 2-4 页展示水果插画、英文单词、中文含义、小喇叭和“我认识了”按钮，点击水果可放大查看单词并获得星星。\n3. 读一读：第 5-6 页支持“听一听”“我来读”，录音 3 秒后用 1-3 颗星反馈发音，不显示复杂分数。\n4. 玩一玩：第 7-8 页设计《Fruit Catch 水果抓抓乐》，参考抓取目标物、堆叠物件、收集槽和轮次递进的节奏，不复刻任何现成品牌或界面。\n5. 课堂总结：第 9 页展示 8 个水果徽章，点击可再次播放发音，并提供“再玩一次”“完成学习”。${materialDesign}`,
       designStyle: `默认画面风格：使用【清新秋日橘子树】。\n视觉规格：背景为秋日果园场景和暖色调渐变，浅色系像秋天的阳光一样温暖；画面可包含橘子树、蓝天白云、绿色山丘、果篮、树叶和水果角色，整体温暖明亮，有收获感。\nUI与反馈：按钮可设计为橘子形或树叶形，使用橙色系；卡片和按钮保持大圆角；动画使用水果轻微摇摆、落叶飘动、采摘收集、星星奖励和轻柔提示。保留低龄友好、少文字、多图像、多语音、多动画，不出现密集表格、复杂菜单、后台页面或题库列表。${materialStyle}`,
-    };
+    });
   }
 
   if (/颜色|颜色单词|color|colour/i.test(prompt)) {
-    return {
+    return withAppliedPlaywayTemplate({
       generationSettings: `课件结构：单关卡学练融合，适合 3-5 分钟课堂互动。\n提交方式：练习模式，允许学生多次尝试。\n默认风格：明亮卡片风，保留大按钮和清晰图片区；不默认开启 3D 粘土质感。`,
       userRequirement: `学习对象：5-8 岁儿童\n学习目标：听到或看到颜色英文单词后，能匹配正确颜色，并在多轮互动中巩固颜色词认读。${materialLine}${intentLine}`,
       featureDesign: `推荐玩法：彩虹修复师\n互动流程：\n1. 系统播放或展示颜色单词，如 red、blue、yellow。\n2. 学生从颜色块中选择正确颜色，并拖拽到彩虹缺口。\n3. 答对时彩虹对应区域点亮，播放英文发音和鼓励反馈。\n4. 答错时给出轻提示，例如轻微闪烁正确颜色边缘。\n\n课堂节奏：建议设计 3 关，从常见颜色识别，到听音辨色，再到多颜色混合挑战。${materialDesign}`,
       designStyle: `画面方向：明亮课堂风，彩虹作为主视觉，颜色块要大且清晰，适合大屏操作。\n反馈方式：答对点亮彩虹、获得星星；连续答对可触发彩虹完整闪光。答错反馈保持轻柔，不打断课堂节奏。${materialStyle}`,
-    };
+    });
   }
 
   if (/单词图片配对|Matching|配对消除|翻开卡片/.test(prompt)) {

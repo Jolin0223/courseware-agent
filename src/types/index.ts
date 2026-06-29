@@ -37,6 +37,7 @@ export interface RequirementFramework {
   userRequirement: string;
   featureDesign: string;
   designStyle: string;
+  featureDesignFormat?: 'text' | 'markdown';
   visualStyleSelection?: {
     baseStyleId: string | null;
     enhancementStyleIds: string[];

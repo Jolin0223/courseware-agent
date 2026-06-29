@@ -1489,9 +1489,11 @@ function AssistantMessage({
           <RequirementCard 
             framework={message.content as RequirementFramework}
             isStreaming={phase === 'framework' && !frameworkDone}
+            readOnly={phase !== 'framework'}
             streamDuration={streamDuration}
             onStreamComplete={onFrameworkStreamComplete}
             onFrameworkChange={(nextFramework) => {
+              if (phase !== 'framework') return;
               if (!activeConversationId) return;
               useConversationStore.setState(state => ({
                 conversations: state.conversations.map(conversation => (
@@ -1940,9 +1942,9 @@ export default function GeneratorPage() {
     if (!activeConversationId) return;
     
     addUserMessage(activeConversationId, skipMessage || '我已确认需求，立即生成。');
+    setPhase('generating');
     
     setTimeout(() => {
-      setPhase('generating');
       startGeneration(activeConversationId);
       
       const initialProgress: GenerationProgress = {
@@ -2205,7 +2207,7 @@ export default function GeneratorPage() {
       return (
         <div style={styles.welcomeSection}>
           <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
-          <p style={styles.welcomeSubtitle}>输入你的需求，AI 会补全玩法；也可以先套用一个课堂互动模板，或跟灵感助手聊聊看。</p>
+          <p style={styles.welcomeSubtitle}>输入你的课件需求，或先从灵感推荐区套用一个课堂互动模板。</p>
           <div ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 720 }}>
             <ChatInput
               onSend={handleSend}

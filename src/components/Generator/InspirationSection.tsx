@@ -83,6 +83,18 @@ const renderCardCover = (playway: InspirationPlayway) => {
   );
 };
 
+const renderAdaptationText = (text: string) => (
+  <div style={styles.exampleText}>
+    {text
+      .split(/(?<=[。；：])/)
+      .map(item => item.trim())
+      .filter(Boolean)
+      .map((item, index) => (
+        <p key={`${item}-${index}`} style={styles.exampleTextParagraph}>{item}</p>
+      ))}
+  </div>
+);
+
 const toGameplayInspiration = (playway: InspirationPlayway): GameplayInspiration => ({
   id: playway.id,
   title: playway.displayTitle,
@@ -265,6 +277,8 @@ export default function InspirationSection({
             width: calc(100vw - 28px) !important;
             max-height: calc(100vh - 28px) !important;
           }
+        }
+        @media (max-width: 760px) {
           .inspiration-example-body {
             grid-template-columns: 1fr !important;
           }
@@ -362,7 +376,10 @@ export default function InspirationSection({
                   )}
                 </div>
 
-                <p style={styles.description}>{playway.shortDesc}</p>
+                <p style={styles.description}>
+                  <span style={styles.descriptionLabel}>课堂流程：</span>
+                  {playway.flowSteps.slice(0, 4).join(' → ')}
+                </p>
 
                 <div style={styles.cardActions}>
                   <button
@@ -484,11 +501,12 @@ export default function InspirationSection({
                     ))}
                   </div>
                 </div>
-                <div style={styles.exampleBlock}>
-                  <div style={styles.blockLabel}>可以怎么改成你的课</div>
-                  <div style={styles.exampleText}>
-                    {examplePlayway.adaptationText}
+                <div style={{ ...styles.exampleBlock, ...styles.inspirationBlock }}>
+                  <div style={styles.inspirationBlockLabel}>
+                    <Sparkles size={13} />
+                    可以怎么改成你的课
                   </div>
+                  {renderAdaptationText(examplePlayway.adaptationText)}
                 </div>
                 <button
                   style={styles.exampleApplyBtn}
@@ -800,7 +818,7 @@ const styles: Record<string, React.CSSProperties> = {
   exampleDialog: {
     width: 'min(1180px, calc(100vw - 40px))',
     maxHeight: 'calc(100vh - 40px)',
-    overflow: 'auto',
+    overflow: 'hidden',
     borderRadius: 18,
     border: '1px solid rgba(255,255,255,0.72)',
     background: 'linear-gradient(180deg, rgba(248, 253, 252, 0.98), rgba(255,255,255,0.98))',
@@ -811,7 +829,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 16,
-    padding: '18px 20px 14px',
+    padding: '14px 18px 12px',
     borderBottom: '1px solid var(--agent-border)',
   },
   exampleEyebrow: {
@@ -823,12 +841,12 @@ const styles: Record<string, React.CSSProperties> = {
   exampleTitle: {
     margin: 0,
     color: '#0F172A',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 950,
     lineHeight: 1.2,
   },
   exampleSubtitle: {
-    margin: '6px 0 0',
+    margin: '4px 0 0',
     color: '#64748B',
     fontSize: 13,
     lineHeight: 1.45,
@@ -848,9 +866,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   exampleBody: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr)',
-    gap: 16,
-    padding: 18,
+    gridTemplateColumns: 'minmax(0, 1.45fr) minmax(260px, 0.55fr)',
+    alignItems: 'stretch',
+    gap: 14,
+    padding: 14,
   },
   examplePreviewShell: {
     minWidth: 0,
@@ -883,8 +902,10 @@ const styles: Record<string, React.CSSProperties> = {
   exampleInfo: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 12,
+    gap: 10,
     minWidth: 0,
+    minHeight: 0,
+    height: '100%',
   },
   exampleNote: {
     margin: 0,
@@ -898,12 +919,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
   },
   exampleBlock: {
-    padding: 12,
+    padding: 10,
     borderRadius: 12,
     background: '#FFFFFF',
     border: '1px solid var(--agent-border)',
   },
   exampleApplyBtn: {
+    marginTop: 'auto',
     height: 38,
     borderRadius: 10,
     border: 'none',
@@ -996,14 +1018,39 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#F8FAFC',
     color: '#475569',
     fontSize: 12,
-    lineHeight: 1.45,
+    lineHeight: 1.4,
   },
   flowStep: {
     fontWeight: 700,
   },
   exampleText: {
     color: '#334155',
-    fontSize: 13,
-    lineHeight: 1.55,
+    fontSize: 12,
+    lineHeight: 1.5,
+    overflow: 'hidden',
+  },
+  exampleTextParagraph: {
+    margin: 0,
+  },
+  inspirationBlock: {
+    position: 'relative',
+    flex: '1 1 auto',
+    minHeight: 132,
+    background: '#F8FEFC',
+    borderColor: 'rgba(20, 184, 166, 0.30)',
+    boxShadow: '0 6px 14px rgba(15, 118, 110, 0.05)',
+  },
+  inspirationBlockLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+    color: 'var(--agent-primary-text)',
+    fontSize: 12,
+    fontWeight: 950,
+    marginBottom: 6,
+  },
+  descriptionLabel: {
+    color: 'var(--agent-primary-text)',
+    fontWeight: 900,
   },
 };

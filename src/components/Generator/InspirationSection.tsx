@@ -798,7 +798,7 @@ const styles: Record<string, React.CSSProperties> = {
     backdropFilter: 'blur(10px)',
   },
   exampleDialog: {
-    width: 'min(1080px, calc(100vw - 40px))',
+    width: 'min(1180px, calc(100vw - 40px))',
     maxHeight: 'calc(100vh - 40px)',
     overflow: 'auto',
     borderRadius: 18,
@@ -848,12 +848,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   exampleBody: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1.45fr) minmax(280px, 0.55fr)',
+    gridTemplateColumns: 'minmax(0, 1fr)',
     gap: 16,
     padding: 18,
   },
   examplePreviewShell: {
     minWidth: 0,
+    aspectRatio: '16 / 9',
     borderRadius: 14,
     overflow: 'hidden',
     border: '1px solid var(--agent-border)',
@@ -863,14 +864,15 @@ const styles: Record<string, React.CSSProperties> = {
   exampleIframe: {
     display: 'block',
     width: '100%',
-    height: 430,
+    height: '100%',
     border: 0,
     background: '#FFFFFF',
   },
   exampleEmptyPreview: {
     display: 'flex',
     width: '100%',
-    height: 430,
+    height: '100%',
+    minHeight: 360,
     alignItems: 'center',
     justifyContent: 'center',
     color: '#94A3B8',

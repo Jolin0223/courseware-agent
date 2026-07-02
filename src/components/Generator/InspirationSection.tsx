@@ -4,8 +4,6 @@ import {
   BookOpenCheck,
   Brain,
   Calculator,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle2,
   PlayCircle,
   Puzzle,
@@ -148,10 +146,11 @@ export default function InspirationSection({
 }: InspirationSectionProps) {
   const [activeTab, setActiveTab] = useState<InspirationTabId>('featured');
   const [activeSecondary, setActiveSecondary] = useState('all');
-  const [pageIndex, setPageIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(cardsPerPage);
   const [examplePlaywayId, setExamplePlaywayId] = useState<string | null>(null);
   const lastActionKeyRef = useRef('');
   const tabsRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const subNavWrapRef = useRef<HTMLDivElement | null>(null);
   const tabRefs = useRef(new Map<InspirationTabId, HTMLButtonElement>());
   const [subNavPointerLeft, setSubNavPointerLeft] = useState(78);
@@ -198,12 +197,11 @@ export default function InspirationSection({
       : primaryFilteredPlayways.filter(item => item.secondaryCategory === activeSecondary)
   ), [activeSecondary, primaryFilteredPlayways]);
 
-  const totalPages = Math.max(1, Math.ceil(visiblePlayways.length / cardsPerPage));
-  const pagedPlayways = useMemo(() => {
-    const safePageIndex = Math.min(pageIndex, totalPages - 1);
-    const start = safePageIndex * cardsPerPage;
-    return visiblePlayways.slice(start, start + cardsPerPage);
-  }, [pageIndex, totalPages, visiblePlayways]);
+  const displayedPlayways = useMemo(() => (
+    visiblePlayways.slice(0, visibleCount)
+  ), [visibleCount, visiblePlayways]);
+
+  const hasMorePlayways = visibleCount < visiblePlayways.length;
 
   const examplePlayway = useMemo(
     () => inspirationSeedData.playways.find(item => item.id === examplePlaywayId) || null,
@@ -213,7 +211,7 @@ export default function InspirationSection({
   const handleTabChange = (tab: InspirationTabId) => {
     setActiveTab(tab);
     setActiveSecondary('all');
-    setPageIndex(0);
+    setVisibleCount(cardsPerPage);
     setExamplePlaywayId(null);
   };
 
@@ -240,9 +238,24 @@ export default function InspirationSection({
 
   const handleSecondaryChange = (secondary: string) => {
     setActiveSecondary(secondary);
-    setPageIndex(0);
+    setVisibleCount(cardsPerPage);
     setExamplePlaywayId(null);
   };
+
+  useEffect(() => {
+    if (!hasMorePlayways) return undefined;
+
+    const node = loadMoreRef.current;
+    if (!node) return undefined;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setVisibleCount(prev => Math.min(prev + cardsPerPage, visiblePlayways.length));
+    }, { rootMargin: '240px 0px' });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMorePlayways, visiblePlayways.length]);
 
   const handleApply = (playway: InspirationPlayway, sourceElement?: HTMLElement | null) => {
     onApplyInspiration?.(toGameplayInspiration(playway), sourceElement);
@@ -357,7 +370,7 @@ export default function InspirationSection({
       </div>
 
       <div className="inspiration-card-grid" style={styles.templateGrid}>
-        {pagedPlayways.map(playway => {
+        {displayedPlayways.map(playway => {
           const selected = selectedInspirationId === playway.id;
           return (
             <article key={playway.id} style={{ ...styles.card, ...(selected ? styles.cardSelected : {}) }}>
@@ -407,43 +420,18 @@ export default function InspirationSection({
         })}
       </div>
 
-      {pagedPlayways.length === 0 && (
+      {displayedPlayways.length === 0 && (
         <div style={styles.emptyState}>当前分类下暂无匹配玩法，可以切换年龄段或点击其他分类看看。</div>
       )}
 
-      {visiblePlayways.length > cardsPerPage && (
-        <div style={styles.pagination}>
-          <button
-            type="button"
-            style={{ ...styles.pageButton, ...(pageIndex <= 0 ? styles.pageButtonDisabled : {}) }}
-            disabled={pageIndex <= 0}
-            onClick={() => setPageIndex(prev => Math.max(0, prev - 1))}
-          >
-            <ChevronLeft size={15} />
-            上一页
-          </button>
-          <div style={styles.pageDots}>
-            {Array.from({ length: totalPages }).map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                aria-label={`第 ${index + 1} 页`}
-                style={{ ...styles.pageDot, ...(index === pageIndex ? styles.pageDotActive : {}) }}
-                onClick={() => setPageIndex(index)}
-              />
-            ))}
-          </div>
-          <div style={styles.pageText}>{Math.min(pageIndex + 1, totalPages)} / {totalPages}</div>
-          <button
-            type="button"
-            style={{ ...styles.pageButton, ...(pageIndex >= totalPages - 1 ? styles.pageButtonDisabled : {}) }}
-            disabled={pageIndex >= totalPages - 1}
-            onClick={() => setPageIndex(prev => Math.min(totalPages - 1, prev + 1))}
-          >
-            下一页
-            <ChevronRight size={15} />
-          </button>
+      {hasMorePlayways && (
+        <div ref={loadMoreRef} style={styles.loadMoreSentinel}>
+          向下浏览，自动加载更多玩法
         </div>
+      )}
+
+      {!hasMorePlayways && visiblePlayways.length > cardsPerPage && (
+        <div style={styles.loadMoreSentinel}>已展示全部玩法</div>
       )}
 
       {examplePlayway && createPortal((
@@ -958,52 +946,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 850,
     lineHeight: '23px',
   },
-  pagination: {
+  loadMoreSentinel: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    marginTop: 14,
-  },
-  pageButton: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    height: 32,
-    padding: '0 11px',
-    borderRadius: 8,
-    border: '1px solid var(--agent-border)',
-    background: '#FFFFFF',
-    color: '#475569',
-    fontSize: 12,
-    fontWeight: 850,
-    cursor: 'pointer',
-  },
-  pageButtonDisabled: {
-    opacity: 0.45,
-    cursor: 'not-allowed',
-  },
-  pageDots: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-  },
-  pageDot: {
-    width: 7,
-    height: 7,
-    padding: 0,
-    borderRadius: 999,
-    border: 'none',
-    background: '#CBD5E1',
-    cursor: 'pointer',
-  },
-  pageDotActive: {
-    width: 18,
-    background: 'var(--agent-primary)',
-  },
-  pageText: {
-    minWidth: 36,
+    minHeight: 36,
+    marginTop: 12,
     color: '#64748B',
     fontSize: 12,
     fontWeight: 850,

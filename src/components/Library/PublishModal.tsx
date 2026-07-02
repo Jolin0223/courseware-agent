@@ -8,9 +8,9 @@ import type { KnowledgeTag } from '../../data/knowledgeTags';
 import toast from '../../utils/toast';
 
 const subjects = [
+  '双语故事表演', '脑力与思维', '博文妙笔',
   '语文', '创客', '美术', '思辨与口才',
-  '脑力与思维', '双语故事表演', '机器人', '编程',
-  '博文妙笔', '书法', '数学', '英语', '顾问通识', '系统工具',
+  '机器人', '编程', '书法', '数学', '英语', '顾问通识', '系统工具',
 ];
 
 const grades = [

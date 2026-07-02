@@ -211,9 +211,12 @@ export async function simulateGeneration(
   onProgress: (progress: GenerationProgress) => void,
   onComplete: (result: CoursewareResult, coursewareId: number) => void,
   signal?: AbortSignal,
-  failAtStage?: number
+  failAtStage?: number,
+  stageNameOverride?: string[],
 ): Promise<void> {
-  const stageNames = ['图片生成', '音频生成', '代码生成', '代码审查', '代码修复', '学情数据回收数据设计'];
+  const stageNames = stageNameOverride?.length
+    ? stageNameOverride
+    : ['图片生成', '音频生成', '代码生成', '代码审查', '代码修复', '学情数据回收数据设计'];
   const stageErrors: Record<number, string> = {
     0: '图片生成超时，服务响应时间过长',
     1: '音频合成服务异常，连接中断',
@@ -250,7 +253,6 @@ export async function simulateGeneration(
     if (failAtStage === idx) {
       stages[idx].status = 'failed';
       stages[idx].error = stageErrors[idx];
-      stages[idx].progress = stages[idx].progress;
       emit();
       return 'failed';
     }
@@ -261,7 +263,8 @@ export async function simulateGeneration(
     return 'completed';
   };
 
-  const durations = [8000, 6000, 2500, 2500, 2500, 2200].map(demoMs);
+  const baseDurations = [8000, 6000, 2500, 2500, 2500, 2200];
+  const durations = stageNames.map((_, index) => demoMs(baseDurations[index] ?? 2200));
   for (let i = 0; i < durations.length; i++) {
     const result = await runStage(i, durations[i]);
     if (signal?.aborted) return;

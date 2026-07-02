@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, Loader2, ChevronDown, ChevronUp, Code, XCircle, RotateCcw } from 'lucide-react';
-import type { GenerationProgress } from '../../types';
+import type { GenerationProgress, GenerationStage } from '../../types';
 import ImageGenerationPanelV2 from './ImageGenerationPanelV2';
 import AudioGenerationPanel from './AudioGenerationPanel';
 
@@ -55,7 +55,7 @@ const StreamingText: React.FC<{ text: string; speed?: number; onComplete?: () =>
 const CODE_INTRO_TEXT = '正在为您打造专属互动教学课件~';
 const CODE_ASSETS_TEXT = '将自动完成代码生成、智能审查，若检测到问题还会进行修复优化 💪🏻💪🏻💪🏻';
 
-const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onToggle: () => void; onRetry?: (stageIndex: number) => void; instant?: boolean }> = ({ stages, isExpanded, onToggle, onRetry, instant = false }) => {
+const CodeGenerationPanel: React.FC<{ stages: GenerationStage[]; isExpanded: boolean; onToggle: () => void; onRetry?: (stageIndex: number) => void; instant?: boolean }> = ({ stages, isExpanded, onToggle, onRetry, instant = false }) => {
   const codeStage = stages[0];
   const reviewStage = stages[1];
   const fixStage = stages[2];
@@ -66,6 +66,8 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
   const stageCount = learningDataStage ? 4 : 3;
   const overallProgress = Math.round(((codeStage?.progress || 0) + (reviewStage?.progress || 0) + (fixStage?.progress || 0) + (learningDataStage?.progress || 0)) / stageCount);
   const [introTextDone, setIntroTextDone] = useState(instant);
+  const codeStageName = codeStage?.name || '代码生成';
+  const isCoursewareStage = codeStageName.includes('课件');
 
   return (
     <div style={panelStyles.card}>
@@ -103,9 +105,9 @@ const CodeGenerationPanel: React.FC<{ stages: any[]; isExpanded: boolean; onTogg
             <div style={{ marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <StatusIcon status={codeStage.status} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>代码生成</span>
-                {codeStage.status === 'in-progress' && <span style={{ fontSize: 12, color: '#94A3B8' }}>正在为您生成课件代码...</span>}
-                {codeStage.status === 'completed' && <span style={{ fontSize: 12, color: '#94A3B8' }}>代码生成完成</span>}
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>{codeStageName}</span>
+                {codeStage.status === 'in-progress' && <span style={{ fontSize: 12, color: '#94A3B8' }}>{codeStage.detail || (isCoursewareStage ? '正在生成课件 HTML...' : '正在为您生成课件代码...')}</span>}
+                {codeStage.status === 'completed' && <span style={{ fontSize: 12, color: '#94A3B8' }}>{isCoursewareStage ? '课件生成完成' : '代码生成完成'}</span>}
                 {codeStage.status === 'failed' && <span style={{ fontSize: 12, color: '#EF4444' }}>{codeStage.error || '生成失败'}</span>}
               </div>
               {codeStage.status === 'failed' && (
@@ -181,9 +183,9 @@ const ProgressPanel: React.FC<ProgressPanelProps> = ({ progress, onRetry }) => {
   const [codeExpanded, setCodeExpanded] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const imageStage = progress.stages[0];
-  const audioStage = progress.stages[1];
-  const codeStages = progress.stages.slice(2);
+  const imageStage = progress.stages.find(stage => stage.name.includes('图片'));
+  const audioStage = progress.stages.find(stage => stage.name.includes('音频'));
+  const codeStages = progress.stages.filter(stage => !stage.name.includes('图片') && !stage.name.includes('音频'));
 
   useEffect(() => {
     if (allStagesCompleted || progress.instantIntro) {

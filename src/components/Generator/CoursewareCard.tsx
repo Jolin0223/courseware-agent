@@ -70,7 +70,7 @@ export default function CoursewareCard({
   const [currentVersion, setCurrentVersion] = useState(version);
   const [showLearningDataModal, setShowLearningDataModal] = useState(false);
   const [showVisualStyleModal, setShowVisualStyleModal] = useState(false);
-  const [selectedBaseStyleId, setSelectedBaseStyleId] = useState(baseVisualStylePresets[0]?.id || '');
+  const [selectedBaseStyleId, setSelectedBaseStyleId] = useState<string | null>(null);
   const [selectedEnhancementIds, setSelectedEnhancementIds] = useState<string[]>([]);
   const [previewingStyle, setPreviewingStyle] = useState<{
     id: string;
@@ -198,9 +198,18 @@ export default function CoursewareCard({
   };
 
   const visualStyleSelection = getVisualStyleSelection(selectedBaseStyleId, selectedEnhancementIds);
-  const selectedBaseStyle = visualStyleSelection.selectedBaseStyle || baseVisualStylePresets[0];
+  const selectedBaseStyle = visualStyleSelection.selectedBaseStyle;
   const selectedStyleName = visualStyleSelection.styleName;
   const selectedStylePrompt = visualStyleSelection.stylePrompt;
+  const hasStyleSelection = Boolean(selectedBaseStyle || selectedEnhancementIds.length > 0);
+  const regenerationMode = selectedBaseStyle ? 'courseware-regeneration' : 'image-texture-only';
+  const selectedFlowLabel = selectedBaseStyle
+    ? selectedEnhancementIds.length > 0
+      ? '重新生成课件，并在资产规划阶段叠加图片质感'
+      : '按基础风格 UI 规范重新生成课件'
+    : selectedEnhancementIds.length > 0
+      ? '仅对现有图片资产做图生图质感叠加'
+      : '请选择基础风格或叠加图片质感';
   const previewStyleList = previewingStyle
     ? (previewingStyle.kind === 'base' ? baseVisualStylePresets : enhancementVisualStylePresets)
       .filter(style => Boolean((previewingStyle.kind === 'base' ? visualStylePreviewImages : enhancementVisualStylePreviewImages)[style.id]))
@@ -277,7 +286,7 @@ export default function CoursewareCard({
   }, [previewingStyle]);
 
   const handleVisualStyleRegenerate = () => {
-    if (!selectedBaseStyle) return;
+    if (!hasStyleSelection) return;
     setIsLatest(false);
     setShowVisualStyleModal(false);
     onVisualStyleRegenerate?.({
@@ -289,6 +298,7 @@ export default function CoursewareCard({
       styleName: selectedStyleName,
       stylePrompt: selectedStylePrompt,
       previewImageUrl: visualStyleSelection.previewImageUrl,
+      regenerationMode,
     });
   };
 
@@ -631,7 +641,7 @@ export default function CoursewareCard({
               <div>
                 <div style={{ fontSize: 18, fontWeight: 850, color: '#0F172A' }}>调整画面风格</div>
                 <div style={{ marginTop: 5, fontSize: 13, lineHeight: 1.55, color: '#64748B' }}>
-                  保留当前课件的知识点、玩法流程和反馈节奏，只重新生成画面表现。
+                  基础风格会按该风格的 UI 规范重新生成课件；图片质感可单独使用，也可叠加到基础风格中一起生成
                 </div>
               </div>
               <button
@@ -669,8 +679,8 @@ export default function CoursewareCard({
                   marginBottom: 12,
                 }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 850, color: '#0F172A' }}>1. 选择基础风格</div>
-                    <div style={{ marginTop: 3, fontSize: 12, color: '#64748B' }}>决定整节课件的主画面方向</div>
+                    <div style={{ fontSize: 14, fontWeight: 850, color: '#0F172A' }}>1. 基础风格</div>
+                    <div style={{ marginTop: 3, fontSize: 12, color: '#64748B' }}>可选。选择后按该风格的 UI 规范重新生成课件</div>
                   </div>
                   <span style={{ fontSize: 12, color: '#94A3B8' }}>15 种</span>
                 </div>
@@ -825,9 +835,9 @@ export default function CoursewareCard({
                 overflowY: 'auto',
                 maxHeight: 'calc(90vh - 170px)',
               }}>
-                <div style={{ fontSize: 14, fontWeight: 850, color: '#0F172A' }}>2. 叠加增强质感</div>
+                <div style={{ fontSize: 14, fontWeight: 850, color: '#0F172A' }}>2. 图片质感</div>
                 <div style={{ marginTop: 3, marginBottom: 14, fontSize: 12, lineHeight: 1.5, color: '#64748B' }}>
-                  可不选，选中后只改变材质和笔触，不改变基础画面风格。
+                  可选。未选基础风格时只对现有图片做质感叠加
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                   {enhancementVisualStylePresets.map(style => {
@@ -960,7 +970,7 @@ export default function CoursewareCard({
               background: '#FFFFFF',
             }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 12, color: '#64748B', marginBottom: 4 }}>将使用</div>
+                <div style={{ fontSize: 12, color: '#64748B', marginBottom: 4 }}>{selectedFlowLabel}</div>
                 <div style={{
                   color: '#0F172A',
                   fontSize: 14,
@@ -969,13 +979,13 @@ export default function CoursewareCard({
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                 }}>
-                  {selectedStyleName || '请选择基础风格'}
+                  {selectedStyleName || '暂未选择风格'}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleVisualStyleRegenerate}
-                disabled={!selectedBaseStyle}
+                disabled={!hasStyleSelection}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -985,16 +995,16 @@ export default function CoursewareCard({
                   padding: '0 16px',
                   borderRadius: 10,
                   border: 'none',
-                  background: selectedBaseStyle ? 'var(--agent-gradient)' : '#E2E8F0',
-                  color: selectedBaseStyle ? '#fff' : '#94A3B8',
+                  background: hasStyleSelection ? 'var(--agent-gradient)' : '#E2E8F0',
+                  color: hasStyleSelection ? '#fff' : '#94A3B8',
                   fontSize: 14,
                   fontWeight: 750,
-                  cursor: selectedBaseStyle ? 'pointer' : 'default',
+                  cursor: hasStyleSelection ? 'pointer' : 'default',
                   whiteSpace: 'nowrap',
                 }}
               >
                 <Wand2 size={16} />
-                使用该风格重新生成
+                重新生成课件
               </button>
             </div>
           </div>

@@ -6,6 +6,7 @@ interface ImageGenerationPanelV2Props {
   stage: {
     status: 'pending' | 'in-progress' | 'completed' | 'failed';
     progress: number;
+    detail?: string;
     error?: string;
   };
   isExpanded: boolean;
@@ -180,7 +181,7 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
           )}
 
           <p style={{ fontSize: 13, color: '#64748B', marginBottom: 12 }}>
-            为课件生成配套图片资源。
+            {stage.detail || '为课件生成配套图片资源。'}
           </p>
           {stage.status === 'completed' && (
             <p style={{ fontSize: 12, color: 'var(--agent-primary)', marginBottom: 12 }}>

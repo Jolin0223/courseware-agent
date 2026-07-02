@@ -109,6 +109,7 @@ export interface VisualStyleRegenerationRequest {
   styleName: string;
   stylePrompt: string;
   previewImageUrl?: string;
+  regenerationMode?: 'courseware-regeneration' | 'image-texture-only';
 }
 
 export type UploadedAttachmentType = 'image' | 'document' | 'html';

@@ -2283,10 +2283,22 @@ export default function GeneratorPage() {
                         onVisualStyleRegenerate={(request) => {
                           if (!activeConversationId) return;
                           const newCoursewareId = Date.now();
-                          addUserMessage(activeConversationId, `使用${request.styleName}重新生成课件`);
+                          const isTextureOnly = request.regenerationMode === 'image-texture-only';
+                          const stageNames = isTextureOnly
+                            ? ['图片生成']
+                            : ['图片生成', '音频生成', '课件生成', '代码审查', '代码修复', '学情数据回收数据设计'];
+                          const introText = isTextureOnly
+                            ? `正在为「${request.styleName}」执行图片质感叠加，仅重绘课件中的图片资产，玩法、题目、音频和交互代码保持不变。`
+                            : request.enhancementStyleIds?.length
+                              ? `正在按「${request.styleName}」重新生成课件：先注入基础风格 UI 规范，再在资产规划阶段把图片质感写入生图提示词。`
+                              : `正在按「${request.styleName}」的 UI 规范重新生成课件，包含图片生成、音频生成和课件 HTML 生成。`;
+
+                          addUserMessage(activeConversationId, isTextureOnly ? `叠加${request.styleName}` : `使用${request.styleName}重新生成课件`);
                           addAssistantMessage(
                             activeConversationId,
-                            '需求已明确，正在为您重新生成课件，请稍后。',
+                            isTextureOnly
+                              ? '需求已明确，正在为您叠加图片质感，请稍后。'
+                              : '需求已明确，正在为您重新生成课件，请稍后。',
                             'text'
                           );
 
@@ -2294,16 +2306,24 @@ export default function GeneratorPage() {
                           startGeneration(activeConversationId);
 
                           const initialProgress: GenerationProgress = {
-                            introText: `正在按「${request.styleName}」重新生成课件画面资源，玩法、题目和反馈节奏会保持不变。`,
+                            introText,
                             instantIntro: true,
-                            stages: [
-                              { name: '图片生成', status: 'in-progress', progress: 0 },
-                              { name: '音频生成', status: 'pending', progress: 0 },
-                              { name: '代码生成', status: 'pending', progress: 0 },
-                              { name: '代码审查', status: 'pending', progress: 0 },
-                              { name: '代码修复', status: 'pending', progress: 0 },
-                              { name: '学情数据回收数据设计', status: 'pending', progress: 0 },
-                            ],
+                            stages: stageNames.map((name, index) => ({
+                              name,
+                              status: index === 0 ? 'in-progress' : 'pending',
+                              progress: 0,
+                              detail: name === '图片生成'
+                                ? isTextureOnly
+                                  ? '基于原课件截图做图生图，只叠加图片材质、笔触和光影质感。'
+                                  : request.enhancementStyleIds?.length
+                                    ? '根据基础风格规划图片资产，并在生图提示词里叠加所选质感。'
+                                    : '根据基础风格 UI 规范生成背景、角色、按钮和反馈素材。'
+                                : name === '音频生成'
+                                  ? '重新合成课件所需发音、反馈音和引导音频。'
+                                  : name === '课件生成'
+                                    ? '按所选基础风格的 UI 规范生成课件 HTML。'
+                                    : undefined,
+                            })),
                           };
                           addAssistantMessage(activeConversationId, initialProgress, 'generation-progress');
 
@@ -2315,6 +2335,20 @@ export default function GeneratorPage() {
                               ...updatedProgress,
                               introText: initialProgress.introText,
                               instantIntro: true,
+                              stages: updatedProgress.stages.map(stage => ({
+                                ...stage,
+                                detail: stage.name === '图片生成'
+                                  ? isTextureOnly
+                                    ? '基于原课件截图做图生图，只叠加图片材质、笔触和光影质感。'
+                                    : request.enhancementStyleIds?.length
+                                      ? '根据基础风格规划图片资产，并在生图提示词里叠加所选质感。'
+                                      : '根据基础风格 UI 规范生成背景、角色、按钮和反馈素材。'
+                                  : stage.name === '音频生成'
+                                    ? '重新合成课件所需发音、反馈音和引导音频。'
+                                    : stage.name === '课件生成'
+                                      ? '按所选基础风格的 UI 规范生成课件 HTML。'
+                                      : stage.detail,
+                              })),
                             };
                             useConversationStore.setState(state => ({
                               conversations: state.conversations.map(conversation => {
@@ -2380,7 +2414,9 @@ export default function GeneratorPage() {
                               openPreview(newCoursewareId);
                               abortControllerRef.current = null;
                             },
-                            controller.signal
+                            controller.signal,
+                            undefined,
+                            stageNames
                           );
 
                           window.setTimeout(() => {

@@ -4,6 +4,7 @@ import {
   BarChart3,
   BookOpenCheck,
   Check,
+  ChevronDown,
   ChevronUp,
   Clock3,
   Layers3,
@@ -380,7 +381,7 @@ function StudentReportPreview({
         </div>
       </div> : (
         <button type="button" style={styles.openReportButton} onClick={() => setDrawerOpen(true)}>
-          互动详情
+          互动详情 <ChevronDown size={14} />
         </button>
       )}
     </div>
@@ -901,5 +902,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900,
     boxShadow: '0 8px 18px rgba(15, 23, 42, 0.18)',
     cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
   },
 };

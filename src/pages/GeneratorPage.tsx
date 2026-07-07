@@ -240,7 +240,7 @@ const buildVoiceCapabilityAppendix = (selection: VoiceCapabilitySelection) => {
 
   const lines = ['', '语音服务配置：'];
   if (selection.smallScreenRecording) {
-    lines.push('- 启用学习机小屏真实收音：学生在学习机小屏点击录音并提交真实作答。');
+    lines.push('- 启用学生小屏真实收音：学生通过学生小屏点击录音并提交真实作答。');
   }
   if (selection.englishOralAssessment) {
     lines.push('- 启用英语口语评测：仅用于英语单词、短句、简单对话等当前支持范围；需要展示真实评测结果。');
@@ -1388,8 +1388,8 @@ function VoiceCapabilityCard({
         >
           <span style={iconStyle(selectedChoice === 'record-with-assessment')}><Headphones size={17} /></span>
           <span>
-            <span style={voiceCardStyles.optionTitle}>学习机小屏真实收音+ 英语口语评测</span>
-            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，同时展示英语口语评测结果。</span>
+            <span style={voiceCardStyles.optionTitle}>学生小屏真实收音+ 英语口语评测</span>
+            <span style={voiceCardStyles.optionDesc}>学生通过学生小屏点击录音并提交真实作答，同时展示英语口语评测结果。</span>
           </span>
         </button>
 
@@ -1400,8 +1400,8 @@ function VoiceCapabilityCard({
         >
           <span style={iconStyle(selectedChoice === 'record-only')}><Mic size={17} /></span>
           <span>
-            <span style={voiceCardStyles.optionTitle}>仅学习机小屏真实收音</span>
-            <span style={voiceCardStyles.optionDesc}>学生在学习机小屏点击录音并提交真实作答，不展示英语口语评测结果。</span>
+            <span style={voiceCardStyles.optionTitle}>仅学生小屏真实收音</span>
+            <span style={voiceCardStyles.optionDesc}>学生通过学生小屏点击录音并提交真实作答，不展示英语口语评测结果。</span>
           </span>
         </button>
       </div>
@@ -2190,9 +2190,9 @@ export default function GeneratorPage() {
 
     const confirmation = message.content as VoiceCapabilityConfirmation;
     const selectedText = selection.englishOralAssessment
-      ? '启用学习机小屏真实收音和英语口语评测'
+      ? '启用学生小屏真实收音和英语口语评测'
       : selection.smallScreenRecording
-        ? '启用学习机小屏真实收音，不启用口语评测'
+        ? '启用学生小屏真实收音，不启用口语评测'
         : '不需要语音服务，继续';
 
     addUserMessage(activeConversationId, selectedText);

@@ -559,7 +559,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
               </div>
             ) : previewDevice === 'tablet' ? (
               <div style={panelStyle.tabletFrame}>
-                <img src="/images/tablet-preview.png" alt="学习机小屏端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
+                <img src="/images/tablet-preview.png" alt="学生小屏端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
               </div>
             ) : (
               <div style={panelStyle.comingSoon}>

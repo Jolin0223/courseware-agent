@@ -180,7 +180,7 @@ export default function LearningDataRecoveryModal({
           <div style={styles.headerLeft}>
             <div style={styles.iconCircle}><BarChart3 size={20} /></div>
             <div>
-              <div style={styles.title}>{viewMode === 'preview' ? '学情报告预览' : canModifyRecovery ? '修改报告数据' : '查看回收数据'}</div>
+              <div style={styles.title}>{viewMode === 'preview' ? '预览报告展示' : canModifyRecovery ? '修改报告数据' : '查看回收数据'}</div>
               <div style={styles.subTitle}>
                 {viewMode === 'preview'
                   ? '学生端/家长端报告样式预览，正式报告将使用真实作答结果生成。'

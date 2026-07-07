@@ -380,7 +380,7 @@ function StudentReportPreview({
         </div>
       </div> : (
         <button type="button" style={styles.openReportButton} onClick={() => setDrawerOpen(true)}>
-          看报告
+          互动详情
         </button>
       )}
     </div>
@@ -891,15 +891,15 @@ const styles: Record<string, React.CSSProperties> = {
     top: 625,
     transform: 'translateX(-50%)',
     zIndex: 4,
-    height: 42,
-    padding: '0 20px',
+    height: 32,
+    padding: '0 14px',
     borderRadius: 999,
     border: 'none',
-    background: 'linear-gradient(135deg, #20D6B5, #10B981)',
+    background: 'rgba(15, 23, 42, 0.68)',
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: 950,
-    boxShadow: '0 10px 22px rgba(16, 185, 129, 0.32)',
+    fontSize: 12,
+    fontWeight: 900,
+    boxShadow: '0 8px 18px rgba(15, 23, 42, 0.18)',
     cursor: 'pointer',
   },
 };

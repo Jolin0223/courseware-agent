@@ -32,14 +32,6 @@ const schools = ['北京学校', '上海学校', '广州学校', '武汉学校',
 type PublishMode = 'publish' | 'update' | 'new-game';
 type PublishScope = 'group' | 'school' | 'personal';
 
-type TagPermission = {
-  id: string;
-  scope: Exclude<PublishScope, 'personal'>;
-  subject: string;
-  schoolName?: string;
-  label: string;
-};
-
 type AutoTagStatus = 'idle' | 'loading' | 'ready';
 
 type AutoTagCacheItem = {
@@ -53,15 +45,9 @@ type AutoTagCacheItem = {
 type AutoTagTarget = 'resource' | 'content' | 'all';
 type RetagConfirmAnchor = 'resource' | 'content';
 
-const AUTO_TAG_CACHE_KEY = 'ai-courseware-publish-auto-tags-v4';
+const AUTO_TAG_CACHE_KEY = 'ai-courseware-publish-auto-tags-v5';
 const DEMO_INVALID_TAG_ID = 'demo-iteach-deleted-tag';
 const DEMO_INVALID_TAG_LABEL = '水果';
-
-const demoTagPermissions: TagPermission[] = [
-  { id: 'group-english', scope: 'group', subject: '英语', label: '集团英语教研员' },
-  { id: 'school-guangzhou-english', scope: 'school', subject: '英语', schoolName: '广州学校', label: '广州学校英语教研员' },
-  { id: 'school-beijing-math', scope: 'school', subject: '数学', schoolName: '北京学校', label: '北京学校数学教研员' },
-];
 
 const readAutoTagCache = (): Record<string, AutoTagCacheItem> => {
   try {
@@ -358,16 +344,6 @@ export default function PublishModal({
     ));
   }, [demoInvalidTagDismissed, publishScope, shouldDemoInvalidTag]);
 
-  const userTreePermissions = useMemo(
-    () => demoTagPermissions.filter(permission => permission.subject === subject),
-    [subject],
-  );
-  const singlePermission = userTreePermissions.length === 1 ? userTreePermissions[0] : null;
-  const canAutoTagImmediately = publishScope !== 'personal' && Boolean(
-    singlePermission
-    && singlePermission.scope === publishScope
-    && (publishScope === 'group' || singlePermission.schoolName === selectedSchool),
-  );
   const activeAutoTagCacheKey = useMemo(
     () => getAutoTagCacheKey(coursewareId, publishScope, subject, selectedSchool),
     [coursewareId, publishScope, selectedSchool, subject],
@@ -527,23 +503,16 @@ export default function PublishModal({
       return;
     }
 
-    if (publishScope === 'personal') {
-      setResourceAutoTagStatus('idle');
-      setContentAutoTagStatus('ready');
-      return;
-    }
-
-    setSelectedTags(shouldDemoInvalidTag && !demoInvalidTagDismissed ? [DEMO_INVALID_TAG_ID] : []);
-    setContentTags([]);
     setHasManualResourceTagEdit(false);
     setHasManualContentTagEdit(false);
-    setResourceAutoTagStatus(canAutoTagImmediately ? 'loading' : 'idle');
-    setContentAutoTagStatus(canAutoTagImmediately ? 'loading' : 'idle');
+    setResourceAutoTagStatus(publishScope === 'personal' ? 'idle' : 'loading');
+    setContentAutoTagStatus('loading');
 
-    if (canAutoTagImmediately) {
-      runAutoTag({ silent: true, target: 'all' });
-    }
-  }, [activeAutoTagCacheKey, autoTagCache, canAutoTagImmediately, demoInvalidTagDismissed, publishScope, runAutoTag, shouldDemoInvalidTag]);
+    runAutoTag({
+      silent: true,
+      target: publishScope === 'personal' ? 'content' : 'all',
+    });
+  }, [activeAutoTagCacheKey, autoTagCache, demoInvalidTagDismissed, publishScope, runAutoTag, shouldDemoInvalidTag]);
 
   const toggleTag = useCallback((id: string) => {
     setHasManualResourceTagEdit(true);
@@ -1917,14 +1886,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   confirmPopoverArrow: {
     position: 'absolute' as const,
-    left: '50%',
+    right: 44,
     bottom: -7,
     width: 14,
     height: 14,
     background: '#FFFFFF',
     borderRight: '1px solid #E2E8F0',
     borderBottom: '1px solid #E2E8F0',
-    transform: 'translateX(-50%) rotate(45deg)',
+    transform: 'rotate(45deg)',
   },
   confirmTitle: {
     fontSize: 16,

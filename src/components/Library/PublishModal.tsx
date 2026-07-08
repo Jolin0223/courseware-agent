@@ -286,6 +286,12 @@ export default function PublishModal({
   const tagDropdownRef = useRef<HTMLDivElement>(null);
   const schoolDropdownRef = useRef<HTMLDivElement>(null);
   const updateTargetDropdownRef = useRef<HTMLDivElement>(null);
+  const selectedTagsRef = useRef(selectedTags);
+  const contentTagsRef = useRef(contentTags);
+  const resourceTagTreeRef = useRef(resourceTagTree);
+  const autoTagCacheRef = useRef(autoTagCache);
+  const hasManualResourceTagEditRef = useRef(hasManualResourceTagEdit);
+  const hasManualContentTagEditRef = useRef(hasManualContentTagEdit);
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
   const [schoolDropdownOpen, setSchoolDropdownOpen] = useState(false);
   const [updateTargetDropdownOpen, setUpdateTargetDropdownOpen] = useState(false);
@@ -297,6 +303,30 @@ export default function PublishModal({
       return false;
     }
   }, []);
+
+  useEffect(() => {
+    selectedTagsRef.current = selectedTags;
+  }, [selectedTags]);
+
+  useEffect(() => {
+    contentTagsRef.current = contentTags;
+  }, [contentTags]);
+
+  useEffect(() => {
+    resourceTagTreeRef.current = resourceTagTree;
+  }, [resourceTagTree]);
+
+  useEffect(() => {
+    autoTagCacheRef.current = autoTagCache;
+  }, [autoTagCache]);
+
+  useEffect(() => {
+    hasManualResourceTagEditRef.current = hasManualResourceTagEdit;
+  }, [hasManualResourceTagEdit]);
+
+  useEffect(() => {
+    hasManualContentTagEditRef.current = hasManualContentTagEdit;
+  }, [hasManualContentTagEdit]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -363,13 +393,13 @@ export default function PublishModal({
         ? publishScope === 'school'
           ? await fetchSchoolTagTree(selectedSchool, subject)
           : await fetchGroupKnowledgeTree(subject)
-        : resourceTagTree;
+        : resourceTagTreeRef.current;
       const nextResourceTags = shouldTagResource && publishScope !== 'personal'
         ? inferKnowledgeTags(title, subject, nextTree, coursewareHtmlContent)
-        : selectedTags;
+        : selectedTagsRef.current;
       const nextContentTags = shouldTagContent
         ? inferContentTags(title, subject, coursewareHtmlContent)
-        : contentTags;
+        : contentTagsRef.current;
 
       await new Promise(resolve => window.setTimeout(resolve, options.silent ? 0 : 650));
       if (shouldTagResource && publishScope !== 'personal') {
@@ -388,15 +418,16 @@ export default function PublishModal({
       }
 
       const nextCache = {
-        ...autoTagCache,
+        ...autoTagCacheRef.current,
         [activeAutoTagCacheKey]: {
           resourceTags: publishScope === 'personal' ? [] : nextResourceTags,
           contentTags: nextContentTags,
           hasManualTagEdit: false,
-          hasManualResourceTagEdit: shouldTagResource ? false : hasManualResourceTagEdit,
-          hasManualContentTagEdit: shouldTagContent ? false : hasManualContentTagEdit,
+          hasManualResourceTagEdit: shouldTagResource ? false : hasManualResourceTagEditRef.current,
+          hasManualContentTagEdit: shouldTagContent ? false : hasManualContentTagEditRef.current,
         },
       };
+      autoTagCacheRef.current = nextCache;
       setAutoTagCache(nextCache);
       writeAutoTagCache(nextCache);
     } catch {
@@ -412,15 +443,9 @@ export default function PublishModal({
     }
   }, [
     activeAutoTagCacheKey,
-    autoTagCache,
-    contentTags,
     coursewareHtmlContent,
-    hasManualContentTagEdit,
-    hasManualResourceTagEdit,
     publishScope,
-    resourceTagTree,
     selectedSchool,
-    selectedTags,
     subject,
     title,
   ]);
@@ -448,10 +473,10 @@ export default function PublishModal({
     nextContentTags: string[],
     manualEdited: Partial<Pick<AutoTagCacheItem, 'hasManualResourceTagEdit' | 'hasManualContentTagEdit'>> = {},
   ) => {
-    const nextHasManualResourceTagEdit = manualEdited.hasManualResourceTagEdit ?? hasManualResourceTagEdit;
-    const nextHasManualContentTagEdit = manualEdited.hasManualContentTagEdit ?? hasManualContentTagEdit;
+    const nextHasManualResourceTagEdit = manualEdited.hasManualResourceTagEdit ?? hasManualResourceTagEditRef.current;
+    const nextHasManualContentTagEdit = manualEdited.hasManualContentTagEdit ?? hasManualContentTagEditRef.current;
     const nextCache = {
-      ...autoTagCache,
+      ...autoTagCacheRef.current,
       [activeAutoTagCacheKey]: {
         resourceTags: publishScope === 'personal' ? [] : nextResourceTags,
         contentTags: nextContentTags,
@@ -460,13 +485,11 @@ export default function PublishModal({
         hasManualContentTagEdit: nextHasManualContentTagEdit,
       },
     };
+    autoTagCacheRef.current = nextCache;
     setAutoTagCache(nextCache);
     writeAutoTagCache(nextCache);
   }, [
     activeAutoTagCacheKey,
-    autoTagCache,
-    hasManualContentTagEdit,
-    hasManualResourceTagEdit,
     publishScope,
   ]);
 

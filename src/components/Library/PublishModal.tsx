@@ -46,7 +46,12 @@ type AutoTagCacheItem = {
   resourceTags: string[];
   contentTags: string[];
   hasManualTagEdit?: boolean;
+  hasManualResourceTagEdit?: boolean;
+  hasManualContentTagEdit?: boolean;
 };
+
+type AutoTagTarget = 'resource' | 'content' | 'all';
+type RetagConfirmAnchor = 'resource' | 'content';
 
 const AUTO_TAG_CACHE_KEY = 'ai-courseware-publish-auto-tags-v4';
 const DEMO_INVALID_TAG_ID = 'demo-iteach-deleted-tag';
@@ -237,6 +242,7 @@ export default function PublishModal({
     return coursewares.find(c => c.id === coursewareId)
       || mockCoursewares.find(c => c.id === coursewareId);
   }, [coursewareId, coursewares]);
+  const coursewareHtmlContent = courseware?.htmlContent;
 
   const [title, setTitle] = useState(courseware?.title || '');
   const [publishScope, setPublishScope] = useState<PublishScope>(courseware?.resourceScope || 'school');
@@ -248,11 +254,13 @@ export default function PublishModal({
   );
   const [contentTags, setContentTags] = useState<string[]>(['闯关玩法', '语音跟读', '果园视觉风格']);
   const [resourceTagTree, setResourceTagTree] = useState<KnowledgeTag[]>(() => getSubjectTree(courseware?.subject || '语文'));
-  const [autoTagStatus, setAutoTagStatus] = useState<AutoTagStatus>('idle');
+  const [resourceAutoTagStatus, setResourceAutoTagStatus] = useState<AutoTagStatus>('idle');
+  const [contentAutoTagStatus, setContentAutoTagStatus] = useState<AutoTagStatus>('idle');
   const [autoTagCache, setAutoTagCache] = useState<Record<string, AutoTagCacheItem>>(() => readAutoTagCache());
-  const [hasManualTagEdit, setHasManualTagEdit] = useState(false);
+  const [hasManualResourceTagEdit, setHasManualResourceTagEdit] = useState(false);
+  const [hasManualContentTagEdit, setHasManualContentTagEdit] = useState(false);
   const [confirmRetagOpen, setConfirmRetagOpen] = useState(false);
-  const [confirmRetagAnchor, setConfirmRetagAnchor] = useState<PublishScope | null>(null);
+  const [confirmRetagAnchor, setConfirmRetagAnchor] = useState<RetagConfirmAnchor | null>(null);
   const [demoInvalidTagDismissed, setDemoInvalidTagDismissed] = useState(false);
   const [contentTagInput, setContentTagInput] = useState('');
   const [editingContentTagIndex, setEditingContentTagIndex] = useState<number | null>(null);
@@ -340,27 +348,41 @@ export default function PublishModal({
     [publishScope, selectedTags, validResourceTagIds],
   );
 
-  const runAutoTag = useCallback(async (options: { silent?: boolean } = {}) => {
-    setAutoTagStatus('loading');
+  const runAutoTag = useCallback(async (options: { silent?: boolean; target?: AutoTagTarget } = {}) => {
+    const target = options.target || 'all';
+    const shouldTagResource = target === 'resource' || target === 'all';
+    const shouldTagContent = target === 'content' || target === 'all';
+    if (shouldTagResource && publishScope !== 'personal') {
+      setResourceAutoTagStatus('loading');
+    }
+    if (shouldTagContent) {
+      setContentAutoTagStatus('loading');
+    }
     try {
-      const nextTree = publishScope === 'school'
-        ? await fetchSchoolTagTree(selectedSchool, subject)
-        : publishScope === 'group'
-          ? await fetchGroupKnowledgeTree(subject)
-          : [];
-      const nextResourceTags = publishScope === 'personal'
-        ? []
-        : inferKnowledgeTags(title, subject, nextTree, courseware?.htmlContent);
-      const nextContentTags = inferContentTags(title, subject, courseware?.htmlContent);
+      const nextTree = shouldTagResource && publishScope !== 'personal'
+        ? publishScope === 'school'
+          ? await fetchSchoolTagTree(selectedSchool, subject)
+          : await fetchGroupKnowledgeTree(subject)
+        : resourceTagTree;
+      const nextResourceTags = shouldTagResource && publishScope !== 'personal'
+        ? inferKnowledgeTags(title, subject, nextTree, coursewareHtmlContent)
+        : selectedTags;
+      const nextContentTags = shouldTagContent
+        ? inferContentTags(title, subject, coursewareHtmlContent)
+        : contentTags;
 
       await new Promise(resolve => window.setTimeout(resolve, options.silent ? 0 : 650));
-      setResourceTagTree(nextTree);
-      if (publishScope !== 'personal') {
+      if (shouldTagResource && publishScope !== 'personal') {
+        setResourceTagTree(nextTree);
         setSelectedTags(nextResourceTags);
+        setHasManualResourceTagEdit(false);
+        setResourceAutoTagStatus('ready');
       }
-      setContentTags(nextContentTags);
-      setHasManualTagEdit(false);
-      setAutoTagStatus('ready');
+      if (shouldTagContent) {
+        setContentTags(nextContentTags);
+        setHasManualContentTagEdit(false);
+        setContentAutoTagStatus('ready');
+      }
       if (!options.silent) {
         toast('AI智能打标完成~如有问题可人工修改。');
       }
@@ -368,47 +390,85 @@ export default function PublishModal({
       const nextCache = {
         ...autoTagCache,
         [activeAutoTagCacheKey]: {
-          resourceTags: nextResourceTags,
+          resourceTags: publishScope === 'personal' ? [] : nextResourceTags,
           contentTags: nextContentTags,
           hasManualTagEdit: false,
+          hasManualResourceTagEdit: shouldTagResource ? false : hasManualResourceTagEdit,
+          hasManualContentTagEdit: shouldTagContent ? false : hasManualContentTagEdit,
         },
       };
       setAutoTagCache(nextCache);
       writeAutoTagCache(nextCache);
     } catch {
-      setAutoTagStatus('idle');
+      if (shouldTagResource && publishScope !== 'personal') {
+        setResourceAutoTagStatus('idle');
+      }
+      if (shouldTagContent) {
+        setContentAutoTagStatus('idle');
+      }
       if (!options.silent) {
         toast('AI智能打标失败，已保留当前标签，请稍后重试或手动修改。');
       }
     }
-  }, [activeAutoTagCacheKey, autoTagCache, courseware?.htmlContent, publishScope, selectedSchool, subject, title]);
+  }, [
+    activeAutoTagCacheKey,
+    autoTagCache,
+    contentTags,
+    coursewareHtmlContent,
+    hasManualContentTagEdit,
+    hasManualResourceTagEdit,
+    publishScope,
+    resourceTagTree,
+    selectedSchool,
+    selectedTags,
+    subject,
+    title,
+  ]);
 
-  const handleAutoTagClick = useCallback((anchor: PublishScope = publishScope) => {
-    if (autoTagStatus === 'loading') return;
-    if (hasManualTagEdit) {
-      setConfirmRetagAnchor(anchor);
+  const handleAutoTagClick = useCallback((target: RetagConfirmAnchor) => {
+    const currentStatus = target === 'resource' ? resourceAutoTagStatus : contentAutoTagStatus;
+    const hasManualEdit = target === 'resource' ? hasManualResourceTagEdit : hasManualContentTagEdit;
+    if (currentStatus === 'loading') return;
+    if (hasManualEdit) {
+      setConfirmRetagAnchor(target);
       setConfirmRetagOpen(true);
       return;
     }
-    runAutoTag();
-  }, [autoTagStatus, hasManualTagEdit, publishScope, runAutoTag]);
+    runAutoTag({ target });
+  }, [
+    contentAutoTagStatus,
+    hasManualContentTagEdit,
+    hasManualResourceTagEdit,
+    resourceAutoTagStatus,
+    runAutoTag,
+  ]);
 
   const updateCurrentTagCache = useCallback((
     nextResourceTags: string[],
     nextContentTags: string[],
-    manualEdited = true,
+    manualEdited: Partial<Pick<AutoTagCacheItem, 'hasManualResourceTagEdit' | 'hasManualContentTagEdit'>> = {},
   ) => {
+    const nextHasManualResourceTagEdit = manualEdited.hasManualResourceTagEdit ?? hasManualResourceTagEdit;
+    const nextHasManualContentTagEdit = manualEdited.hasManualContentTagEdit ?? hasManualContentTagEdit;
     const nextCache = {
       ...autoTagCache,
       [activeAutoTagCacheKey]: {
         resourceTags: publishScope === 'personal' ? [] : nextResourceTags,
         contentTags: nextContentTags,
-        hasManualTagEdit: manualEdited,
+        hasManualTagEdit: nextHasManualResourceTagEdit || nextHasManualContentTagEdit,
+        hasManualResourceTagEdit: nextHasManualResourceTagEdit,
+        hasManualContentTagEdit: nextHasManualContentTagEdit,
       },
     };
     setAutoTagCache(nextCache);
     writeAutoTagCache(nextCache);
-  }, [activeAutoTagCacheKey, autoTagCache, publishScope]);
+  }, [
+    activeAutoTagCacheKey,
+    autoTagCache,
+    hasManualContentTagEdit,
+    hasManualResourceTagEdit,
+    publishScope,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -437,31 +497,36 @@ export default function PublishModal({
         );
       }
       setContentTags(cached.contentTags);
-      setHasManualTagEdit(Boolean(cached.hasManualTagEdit));
-      setAutoTagStatus('ready');
+      setHasManualResourceTagEdit(cached.hasManualResourceTagEdit ?? Boolean(cached.hasManualTagEdit));
+      setHasManualContentTagEdit(cached.hasManualContentTagEdit ?? Boolean(cached.hasManualTagEdit));
+      setResourceAutoTagStatus(publishScope === 'personal' ? 'idle' : 'ready');
+      setContentAutoTagStatus('ready');
       return;
     }
 
     if (publishScope === 'personal') {
-      setAutoTagStatus('ready');
+      setResourceAutoTagStatus('idle');
+      setContentAutoTagStatus('ready');
       return;
     }
 
     setSelectedTags(shouldDemoInvalidTag && !demoInvalidTagDismissed ? [DEMO_INVALID_TAG_ID] : []);
     setContentTags([]);
-    setHasManualTagEdit(false);
-    setAutoTagStatus(canAutoTagImmediately ? 'loading' : 'idle');
+    setHasManualResourceTagEdit(false);
+    setHasManualContentTagEdit(false);
+    setResourceAutoTagStatus(canAutoTagImmediately ? 'loading' : 'idle');
+    setContentAutoTagStatus(canAutoTagImmediately ? 'loading' : 'idle');
 
     if (canAutoTagImmediately) {
-      runAutoTag({ silent: true });
+      runAutoTag({ silent: true, target: 'all' });
     }
   }, [activeAutoTagCacheKey, autoTagCache, canAutoTagImmediately, demoInvalidTagDismissed, publishScope, runAutoTag, shouldDemoInvalidTag]);
 
   const toggleTag = useCallback((id: string) => {
-    setHasManualTagEdit(true);
+    setHasManualResourceTagEdit(true);
     setSelectedTags(prev => {
       const next = prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id];
-      updateCurrentTagCache(next, contentTags);
+      updateCurrentTagCache(next, contentTags, { hasManualResourceTagEdit: true });
       return next;
     });
   }, [contentTags, updateCurrentTagCache]);
@@ -470,10 +535,10 @@ export default function PublishModal({
     if (id === DEMO_INVALID_TAG_ID) {
       setDemoInvalidTagDismissed(true);
     }
-    setHasManualTagEdit(true);
+    setHasManualResourceTagEdit(true);
     setSelectedTags(prev => {
       const next = prev.filter(t => t !== id);
-      updateCurrentTagCache(next, contentTags);
+      updateCurrentTagCache(next, contentTags, { hasManualResourceTagEdit: true });
       return next;
     });
   }, [contentTags, updateCurrentTagCache]);
@@ -484,8 +549,8 @@ export default function PublishModal({
     setContentTags(prev => {
       if (prev.includes(next)) return prev;
       const nextTags = [...prev, next];
-      setHasManualTagEdit(true);
-      updateCurrentTagCache(selectedTags, nextTags);
+      setHasManualContentTagEdit(true);
+      updateCurrentTagCache(selectedTags, nextTags, { hasManualContentTagEdit: true });
       return nextTags;
     });
     setContentTagInput('');
@@ -494,8 +559,8 @@ export default function PublishModal({
   const removeContentTag = useCallback((index: number) => {
     setContentTags(prev => {
       const nextTags = prev.filter((_, i) => i !== index);
-      setHasManualTagEdit(true);
-      updateCurrentTagCache(selectedTags, nextTags);
+      setHasManualContentTagEdit(true);
+      updateCurrentTagCache(selectedTags, nextTags, { hasManualContentTagEdit: true });
       return nextTags;
     });
     if (editingContentTagIndex === index) {
@@ -518,8 +583,8 @@ export default function PublishModal({
         ? prev.map((tag, i) => i === editingContentTagIndex ? next : tag)
         : prev.filter((_, i) => i !== editingContentTagIndex);
       if (current !== next) {
-        setHasManualTagEdit(true);
-        updateCurrentTagCache(selectedTags, nextTags);
+        setHasManualContentTagEdit(true);
+        updateCurrentTagCache(selectedTags, nextTags, { hasManualContentTagEdit: true });
       }
       return nextTags;
     });
@@ -917,7 +982,7 @@ export default function PublishModal({
                   <label style={{ ...styles.label, marginBottom: 0 }}>{resourceTagLabel} <span style={styles.aiTag}>AI默认推荐</span></label>
                   <div style={styles.labelActions}>
                     <span style={styles.autoTagBtnWrap}>
-                      {confirmRetagOpen && confirmRetagAnchor !== 'personal' && (
+                      {confirmRetagOpen && confirmRetagAnchor === 'resource' && (
                         <RetagConfirmPopover
                           onCancel={() => {
                             setConfirmRetagOpen(false);
@@ -926,7 +991,7 @@ export default function PublishModal({
                           onConfirm={() => {
                             setConfirmRetagOpen(false);
                             setConfirmRetagAnchor(null);
-                            runAutoTag();
+                            runAutoTag({ target: 'resource' });
                           }}
                         />
                       )}
@@ -934,15 +999,15 @@ export default function PublishModal({
                         type="button"
                         style={{
                           ...styles.autoTagInlineBtn,
-                          ...(autoTagStatus === 'loading' ? styles.autoTagInlineBtnLoading : {}),
+                          ...(resourceAutoTagStatus === 'loading' ? styles.autoTagInlineBtnLoading : {}),
                         }}
-                        onClick={() => handleAutoTagClick(publishScope)}
-                        disabled={autoTagStatus === 'loading'}
+                        onClick={() => handleAutoTagClick('resource')}
+                        disabled={resourceAutoTagStatus === 'loading'}
                       >
-                        {autoTagStatus === 'loading'
+                        {resourceAutoTagStatus === 'loading'
                           ? <Loader2 size={13} style={styles.spinIcon} />
                           : <Wand2 size={13} />}
-                        {autoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
+                        {resourceAutoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
                       </button>
                     </span>
                     {publishScope === 'school' && (
@@ -1033,7 +1098,7 @@ export default function PublishModal({
               <label style={{ ...styles.label, marginBottom: 0 }}>内容标签 <span style={styles.aiTag}>AI默认推荐</span></label>
               <div style={styles.labelActions}>
                 <span style={styles.autoTagBtnWrap}>
-                  {confirmRetagOpen && confirmRetagAnchor === 'personal' && (
+                  {confirmRetagOpen && confirmRetagAnchor === 'content' && (
                     <RetagConfirmPopover
                       onCancel={() => {
                         setConfirmRetagOpen(false);
@@ -1042,7 +1107,7 @@ export default function PublishModal({
                       onConfirm={() => {
                         setConfirmRetagOpen(false);
                         setConfirmRetagAnchor(null);
-                        runAutoTag();
+                        runAutoTag({ target: 'content' });
                       }}
                     />
                   )}
@@ -1050,15 +1115,15 @@ export default function PublishModal({
                     type="button"
                     style={{
                       ...styles.autoTagInlineBtn,
-                      ...(autoTagStatus === 'loading' ? styles.autoTagInlineBtnLoading : {}),
+                      ...(contentAutoTagStatus === 'loading' ? styles.autoTagInlineBtnLoading : {}),
                     }}
-                    onClick={() => handleAutoTagClick('personal')}
-                    disabled={autoTagStatus === 'loading'}
+                    onClick={() => handleAutoTagClick('content')}
+                    disabled={contentAutoTagStatus === 'loading'}
                   >
-                    {autoTagStatus === 'loading'
+                    {contentAutoTagStatus === 'loading'
                       ? <Loader2 size={13} style={styles.spinIcon} />
                       : <Wand2 size={13} />}
-                    {autoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
+                    {contentAutoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
                   </button>
                 </span>
               </div>

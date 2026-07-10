@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>分数披萨店 - 认识分数互动游戏</title>
+    <!-- 引入动画和音效库 -->
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/gsap.min.js"></script>
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/howler.min.js"></script>
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/aijs/confetti.browser.min.js"></script>
+    
+    <!-- 屏幕适配代码 (必须放在script标签最前面) -->
+    <script>
+        const DESIGN_WIDTH = 1920;
+        const DESIGN_HEIGHT = 1080;
+        function resizeGame() {
+            const container = document.getElementById('gameContainer');
+            if (!container) return;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const scaleX = windowWidth / DESIGN_WIDTH;
+            const scaleY = windowHeight / DESIGN_HEIGHT;
+            const scale = Math.min(scaleX, scaleY);
+            container.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
+        document.addEventListener('DOMContentLoaded', resizeGame);
+        window.addEventListener('load', resizeGame);
+        window.addEventListener('resize', resizeGame);
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(resizeGame, 0);
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap');
+
+        /* 基础重置 */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 主容器 - 固定1920x1080设计稿 */
+        .game-container {
+            width: 1920px;
+            height: 1080px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transform-origin: center center;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* 通用类 */
+        .hidden { display: none !important; }
+        .btn { cursor: pointer; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.95); }
+
+        /* ========== 场景：开始封面 ========== */
+        #startScreen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/tKaqXQLA-2600008999-AigcImage-dfa186ad6f7d49b1b8383397bdaa4ed6_0.png') no-repeat center center;
+            background-size: cover;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .title-container {
+            display: none;
+            text-align: center;
+            margin-bottom: 50px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            animation: floatTitle 3s ease-in-out infinite;
+        }
+
+        @keyframes floatTitle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .game-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 140px;
+            color: #FF9F1C;
+            text-shadow: 6px 6px 0px #8B4513, 12px 12px 0px rgba(0,0,0,0.2);
+            margin: 0;
+            letter-spacing: 5px;
+            transform: rotate(-5deg);
+        }
+
+        .game-subtitle {
+            font-family: 'Nunito', sans-serif;
+            font-size: 48px;
+            color: #FFFFFF;
+            background-color: #E74C3C;
+            padding: 10px 40px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: rotate(2deg);
+        }
+
+        .start-btn {
+            display: none !important;
+            width: 320px;
+            height: 100px;
+            background: linear-gradient(to bottom, #2ECC71, #27AE60);
+            border-radius: 50px;
+            border: 5px solid #FFFFFF;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 48px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #1E8449, 0 20px 20px rgba(0,0,0,0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+            position: relative;
+            overflow: hidden;
+            z-index: 101;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 0 #1E8449, 0 25px 25px rgba(0,0,0,0.3);
+        }
+
+        .start-btn:active {
+            transform: translateY(10px);
+            box-shadow: 0 0 0 #1E8449, 0 5px 5px rgba(0,0,0,0.3);
+        }
+
+        /* ========== 场景：游戏主界面 ========== */
+        #gameScreen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/GvqUaFOZ-2600008999-AigcImage-6b8b9d2cc3f0432680e1f881f3161069_0.png') no-repeat center center;
+            background-size: cover;
+            display: none;
+        }
+
+        /* 顶部栏 */
+        .top-bar {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            width: 1400px;
+            height: 120px;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 25px;
+            z-index: 60;
+            pointer-events: none;
+        }
+
+        .status-group {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 25px 8px 10px;
+            border-radius: 60px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 4px solid #F39C12;
+            pointer-events: auto;
+            min-width: 520px;
+            flex-shrink: 0;
+        }
+
+        .chef-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/g6mLY8aZ-efa930aa-cd52-4817-a1fc-4f8ec4dbe0b4.png') no-repeat center center;
+            background-size: cover;
+            border: 3px solid #FFF;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .chef-speech-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .chef-speech {
+            font-size: 28px;
+            color: #333;
+            font-weight: bold;
+            line-height: 1.24;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 470px;
+        }
+
+        /* 关卡进度 */
+        .level-display {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 25px;
+            border-radius: 50px;
+            border: 4px solid #3498DB;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            pointer-events: auto;
+            flex-shrink: 0;
+            font-family: 'Fredoka One', cursive;
+            font-size: 36px;
+            color: #3498DB;
+        }
+
+        .coin-display {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 25px 8px 10px;
+            border-radius: 50px;
+            border: 4px solid #F1C40F;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            pointer-events: auto;
+            flex-shrink: 0;
+        }
+
+        .coin-icon {
+            width: 50px;
+            height: 50px;
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/RSFMkOEI-d666d60c-870e-413b-a451-e3d0a02efe9d.png') no-repeat center center;
+            background-size: contain;
+            margin-right: 10px;
+        }
+
+        .coin-text {
+            font-family: 'Fredoka One', cursive;
+            font-size: 42px;
+            color: #F39C12;
+            text-shadow: 1px 1px 0 #FFF;
+            min-width: 60px;
+            text-align: left;
+        }
+
+        .audio-toggle {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            pointer-events: auto;
+            border: 3px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 6px 14px rgba(52, 152, 219, 0.2), inset 0 2px 8px rgba(255,255,255,0.8);
+            flex-shrink: 0;
+            transition: transform 0.16s ease, box-shadow 0.16s ease;
+        }
+
+        .audio-toggle:hover {
+            transform: translateY(-1px) scale(1.04);
+            box-shadow: 0 9px 18px rgba(52, 152, 219, 0.26), inset 0 2px 8px rgba(255,255,255,0.9);
+        }
+        
+        .audio-icon-img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+
+        /* 订单轨道 */
+        .order-rail-container {
+            position: absolute;
+            left: 74px;
+            top: 330px;
+            width: 300px;
+            height: 700px;
+            z-index: 10;
+        }
+
+        .order-rail {
+            width: 100%;
+            height: 20px;
+            background: #95A5A6;
+            border-radius: 10px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        .order-ticket {
+            position: absolute;
+            top: 0; 
+            left: 0;
+            width: 300px;
+            height: 410px;
+            background: #FFF;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transform-origin: top center;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            z-index: 15;
+            background-image: linear-gradient(#f8f9fa 2px, transparent 2px), linear-gradient(90deg, #f8f9fa 2px, transparent 2px), linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+        }
+
+        .order-ticket::before {
+            content: '';
+            position: absolute;
+            top: -74px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 112px;
+            height: 112px;
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/AYkHmZMZ-8688342d-9ef8-410d-9997-13c92429b1ad.png') center/contain no-repeat;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .order-header {
+            font-size: 28px;
+            font-weight: bold;
+            border-bottom: 2px dashed #333;
+            width: 100%;
+            text-align: center;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .fraction-display {
+            font-size: 92px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+            font-family: 'Fredoka One', cursive;
+        }
+        
+        .fraction-display .numerator { color: #E74C3C; }
+
+        .order-item-icon {
+            width: 100px;
+            height: 100px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin: 10px 0;
+            border-radius: 50%;
+            border: 2px solid #eee;
+            background-color: transparent;
+        }
+
+        .order-item-name {
+            font-size: 30px;
+            color: #555;
+            font-weight: bold;
+            margin-top: 10px;
+            text-transform: capitalize;
+        }
+
+        /* 披萨操作台 - 绝对居中修正 */
+        .workstation {
+            position: absolute;
+            left: 50%; /* 水平居中 */
+            top: 50%;  /* 垂直居中 */
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5; /* 确保层级 */
+        }
+
+        .pizza-plate {
+            width: 700px;
+            height: 700px;
+            position: relative; /* 相对定位，内部子元素绝对定位 */
+            border-radius: 50%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        }
+
+        .pizza-plate::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 820px;
+            height: 820px;
+            transform: translate(-50%, -50%);
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/6JlhC0JS-ee8e3497-5302-48d5-9e17-395067e89529.png') center/contain no-repeat;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 统一的图层样式：绝对定位，填满父容器 */
+        .layer-full {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* 1. 底层：披萨图片 */
+        .pizza-base-img {
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/la8HfGQc-167c5e5d-2de7-4633-aa8e-221cd76dcce5.png') no-repeat center center;
+            background-size: cover;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        /* 2. 切割线层 */
+        .pizza-svg-layer {
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        /* 3. 配料层 */
+        .toppings-container {
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* 强制圆形裁切的配料样式 */
+        .topping-item {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            transform: translate(-50%, -50%);
+            border-radius: 50%; /* 完美圆形 */
+            overflow: hidden; 
+            background-color: transparent; /* 透明背景 */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.2), 0 5px 10px rgba(0,0,0,0.3); /* 边缘柔化 */
+        }
+
+        /* 4. 交互层 */
+        .interaction-layer {
+            z-index: 20;
+        }
+
+        .slice-path {
+            fill: transparent;
+            cursor: pointer;
+            transition: fill 0.2s;
+        }
+
+        .slice-path:hover {
+            fill: rgba(255, 255, 255, 0.25);
+        }
+
+        /* 配料盘 */
+        .ingredients-panel {
+            position: absolute;
+            right: 50px;
+            top: 220px;
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .ingredient-bowl {
+            width: 180px;
+            height: 180px;
+            background: #FDFEFE;
+            border-radius: 50%;
+            border: 8px solid #BDC3C7;
+            box-shadow: inset 0 10px 20px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.2);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; 
+        }
+
+        .ingredient-bowl.active {
+            border-color: #F39C12;
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(243, 156, 18, 0.6);
+        }
+
+        .ingredient-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .bowl-label {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            font-size: 26px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* 底部控制栏 - 优化按铃 */
+        .bottom-controls {
+            position: absolute;
+            bottom: 34px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .bell-btn-container {
+            width: 132px;
+            height: 132px;
+            border-radius: 50%; /* 容器本身也是圆形 */
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s;
+            /* 阴影效果增强立体感 */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.24); 
+            background: transparent;
+        }
+
+        .bell-btn-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 14px 26px rgba(0,0,0,0.32);
+        }
+
+        .bell-btn-container:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .bell-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%; /* 强制圆形裁切 */
+            object-fit: cover; /* 填充模式 */
+            /* 边缘柔化 */
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.4); 
+            background-color: transparent;
+            display: block;
+        }
+
+        /* 统一标准弹窗样式 */
+        .feedback-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(31, 23, 13, 0.66);
+            backdrop-filter: blur(2px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+        }
+
+        .popup-card {
+            width: 600px;
+            min-height: 400px;
+            background: #FFF;
+            border-radius: 30px;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.8);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .popup-card.success {
+            border: 8px solid #F1C40F;
+            width: 800px;
+            min-height: 500px;
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/YF5LhF8j-2600008999-AigcImage-9443e36ebd7840b2827c26b6d68aeb97_0.png') center/cover;
+            justify-content: flex-start;
+            padding-top: 120px;
+            padding-bottom: 36px;
+        }
+        .popup-card.fail {
+            width: 560px;
+            min-height: 360px;
+            padding: 34px 44px 36px;
+            border: 6px solid #FF7F6E;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,248,232,0.98) 100%),
+                radial-gradient(circle at 18% 16%, rgba(255, 194, 103, 0.28), transparent 32%),
+                radial-gradient(circle at 86% 82%, rgba(117, 196, 143, 0.22), transparent 34%);
+            border-radius: 34px;
+            box-shadow: 0 18px 0 rgba(185, 80, 59, 0.22), 0 28px 60px rgba(71, 38, 18, 0.34);
+            justify-content: center;
+        }
+
+        .popup-card.fail::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 22px;
+            background: repeating-linear-gradient(90deg, #FF7F6E 0 42px, #FFE6C7 42px 84px);
+        }
+
+        .popup-card.finish { 
+            border: 8px solid #F1C40F; 
+            width: 800px;
+            min-height: 500px;
+            background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/YF5LhF8j-2600008999-AigcImage-9443e36ebd7840b2827c26b6d68aeb97_0.png') center/cover;
+            justify-content: flex-start;
+            padding-top: 120px;
+            padding-bottom: 36px;
+        }
+
+        .popup-icon {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .popup-card.success .popup-icon {
+            display: none;
+        }
+
+        .popup-card.fail .popup-icon {
+            width: 82px;
+            height: 82px;
+            margin-bottom: 12px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #FFF9EE 0%, #FFE5D5 100%);
+            border: 5px solid #FFD0BF;
+            color: #E85A48;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 58px;
+            line-height: 1;
+            box-shadow: inset 0 4px 10px rgba(255,255,255,0.7), 0 8px 18px rgba(198,74,53,0.18);
+        }
+
+        .popup-card.success .popup-title,
+        .popup-card.success .popup-desc,
+        .popup-card.finish .popup-title,
+        .popup-card.finish .popup-desc {
+            color: #FFFFFF;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.45);
+        }
+
+        .popup-card.success .popup-title,
+        .popup-card.finish .popup-title {
+            font-size: 64px;
+            margin-bottom: 8px;
+        }
+
+        .popup-card.success .popup-desc,
+        .popup-card.finish .popup-desc {
+            font-size: 34px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .popup-card.fail .popup-title {
+            color: #6A352A;
+            font-size: 52px;
+            margin-bottom: 8px;
+        }
+
+        .popup-card.fail .popup-desc {
+            min-width: 360px;
+            margin-bottom: 22px;
+            padding: 18px 24px;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.78);
+            border: 3px dashed rgba(255, 149, 123, 0.65);
+            color: #6A4A3B;
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.45;
+        }
+
+        .fail-line-main {
+            display: block;
+            color: #D84D3E;
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+
+        .fail-line-sub {
+            display: block;
+            color: #6F5A48;
+            font-size: 26px;
+        }
+
+        .popup-card.success .popup-btn,
+        .popup-card.finish .popup-btn {
+            background: linear-gradient(180deg, #FFBE57 0%, #F97316 100%);
+            border: 4px solid rgba(255,255,255,0.9);
+            color: #fff;
+            box-shadow: 0 8px 0 #C75A11, 0 16px 24px rgba(199,90,17,0.22);
+            padding: 14px 54px;
+            text-shadow: 0 2px 3px rgba(133,63,0,0.25);
+        }
+
+        .popup-card.fail .popup-btn {
+            background: linear-gradient(180deg, #FF927E 0%, #E9503F 100%);
+            border: 4px solid rgba(255,255,255,0.9);
+            box-shadow: 0 8px 0 #B93F31, 0 14px 22px rgba(185,63,49,0.2);
+            padding: 12px 46px;
+        }
+
+        .popup-card.success .popup-btn:active,
+        .popup-card.finish .popup-btn:active {
+            transform: translateY(6px) scale(0.98);
+            box-shadow: 0 2px 0 #C75A11, 0 8px 14px rgba(199,90,17,0.18);
+        }
+
+        .popup-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 54px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .popup-desc {
+            font-size: 28px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .popup-btn {
+            padding: 15px 50px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 32px;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        
+        .popup-btn:active { transform: scale(0.95); }
+        .btn-green { background: #2ECC71; }
+        .btn-red { background: #E74C3C; }
+        .btn-gold { background: #F39C12; font-size: 40px; padding: 20px 80px; }
+
+        /* 第一关操作指引 */
+        .tutorial-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 85;
+            pointer-events: none;
+            display: none;
+        }
+
+        .tutorial-overlay.active {
+            display: block;
+        }
+
+        .tutorial-bubble {
+            position: absolute;
+            min-width: 330px;
+            max-width: 460px;
+            padding: 18px 26px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 5px solid #FFBE57;
+            box-shadow: 0 12px 0 rgba(210, 121, 25, 0.22), 0 18px 34px rgba(79, 43, 18, 0.24);
+            color: #613A23;
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 1.28;
+            text-align: center;
+        }
+
+        .tutorial-bubble::after {
+            content: "";
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: rgba(255,255,255,0.96);
+            border-right: 5px solid #FFBE57;
+            border-bottom: 5px solid #FFBE57;
+            transform: rotate(45deg);
+        }
+
+        .tutorial-hand {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            display: block;
+            color: #E9503F;
+            font-size: 54px;
+            line-height: 1;
+            text-shadow:
+                0 3px 0 #FFFFFF,
+                0 -3px 0 #FFFFFF,
+                3px 0 0 #FFFFFF,
+                -3px 0 0 #FFFFFF,
+                0 8px 16px rgba(121, 66, 20, 0.24);
+            animation: tutorialPoint 0.9s ease-in-out infinite;
+        }
+
+        .tutorial-target {
+            animation: tutorialPulse 1.05s ease-in-out infinite;
+        }
+
+        .ingredient-bowl.tutorial-target {
+            border-color: #FFBE57;
+            box-shadow: 0 0 0 9px rgba(255, 190, 87, 0.22), 0 0 34px rgba(255, 147, 43, 0.56);
+        }
+
+        .pizza-plate.tutorial-target {
+            box-shadow: 0 0 0 10px rgba(255, 190, 87, 0.18), 0 30px 60px rgba(0,0,0,0.6), 0 0 40px rgba(255, 147, 43, 0.46);
+        }
+
+        .bell-btn-container.tutorial-target {
+            box-shadow: 0 0 0 10px rgba(255, 190, 87, 0.22), 0 14px 32px rgba(121, 66, 20, 0.3);
+        }
+
+        .tutorial-overlay[data-step="ingredient"] .tutorial-bubble {
+            left: 1225px;
+            top: 176px;
+        }
+
+        .tutorial-overlay[data-step="ingredient"] .tutorial-bubble::after {
+            right: 54px;
+            bottom: -18px;
+        }
+
+        .tutorial-overlay[data-step="ingredient"] .tutorial-hand {
+            left: 1718px;
+            top: 176px;
+        }
+
+        .tutorial-overlay[data-step="pizza"] .tutorial-bubble {
+            left: 690px;
+            top: 158px;
+        }
+
+        .tutorial-overlay[data-step="pizza"] .tutorial-bubble::after {
+            left: 50%;
+            bottom: -18px;
+            margin-left: -14px;
+        }
+
+        .tutorial-overlay[data-step="pizza"] .tutorial-hand {
+            left: 960px;
+            top: 345px;
+        }
+
+        .tutorial-overlay[data-step="bell"] .tutorial-bubble {
+            left: 1080px;
+            top: 760px;
+        }
+
+        .tutorial-overlay[data-step="bell"] .tutorial-bubble::after {
+            left: -18px;
+            top: 42px;
+            transform: rotate(135deg);
+        }
+
+        .tutorial-overlay[data-step="bell"] .tutorial-hand {
+            left: 965px;
+            top: 805px;
+        }
+
+        @keyframes tutorialPoint {
+            0%, 100% { margin-top: 0; margin-left: 0; }
+            50% { margin-top: 12px; margin-left: 0; }
+        }
+
+        @keyframes tutorialPulse {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.14); }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        
+        <!-- 开始封面 -->
+        <div id="startScreen" onclick="startGame()">
+            <div class="title-container">
+                <h1 class="game-title">分数披萨店</h1>
+                <div class="game-subtitle">Fraction Pizzeria</div>
+            </div>
+        </div>
+
+        <!-- 游戏主界面 -->
+        <div id="gameScreen">
+            
+            <!-- 顶部栏 -->
+            <div class="top-bar">
+                <div class="status-group">
+                    <div class="chef-avatar"></div>
+                    <div class="chef-speech-container">
+                        <div class="chef-speech" id="chefSpeech">欢迎光临！请按照订单制作披萨。</div>
+                    </div>
+                </div>
+                
+                <div class="level-display">
+                    Order: <span id="currentLevelDisplay">1</span>/5
+                </div>
+
+                <div class="coin-display">
+                    <div class="coin-icon"></div>
+                    <div class="coin-text" id="coinCount">0</div>
+                </div>
+
+                <div class="audio-toggle" onclick="toggleMute()">
+                    <img
+                        id="audioIcon"
+                        class="audio-icon-img"
+                        src="https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/AqgJ6Tsq-be1b47cc-cf4f-4e99-b21d-81495c7e8c61.png"
+                        alt="音频开关"
+                    >
+                </div>
+            </div>
+
+            <!-- 订单区域 -->
+            <div class="order-rail-container">
+                <div class="order-rail"></div>
+                <div class="order-ticket" id="currentOrder">
+                    <div class="order-header">ORDER #<span id="levelNum">001</span></div>
+                    <div class="fraction-display">
+                        <span class="numerator" id="targetNum">3</span>/8
+                    </div>
+                    <div class="order-item-icon" id="orderIcon"></div>
+                    <div class="order-item-name" id="orderName">Pepperoni</div>
+                </div>
+            </div>
+
+            <!-- 披萨制作区 (绝对居中) -->
+            <div class="workstation">
+                <div class="pizza-plate" id="pizzaPlate" data-tutorial-target="pizza">
+                    <!-- 1. 底层图片 -->
+                    <div class="pizza-base-img layer-full"></div>
+                    
+                    <!-- 2. 切割线层 (视觉对齐：SVG从-90度开始) -->
+                    <svg class="pizza-svg-layer layer-full" viewBox="0 0 700 700">
+                        <g transform="rotate(-90 350 350)">
+                            <!-- 加粗的白色底线 -->
+                            <g stroke="rgba(255,255,255,0.7)" stroke-width="6" stroke-linecap="round">
+                                <line x1="350" y1="350" x2="700" y2="350" />
+                                <line x1="350" y1="350" x2="597" y2="597" />
+                                <line x1="350" y1="350" x2="350" y2="700" />
+                                <line x1="350" y1="350" x2="103" y2="597" />
+                                <line x1="350" y1="350" x2="0" y2="350" />
+                                <line x1="350" y1="350" x2="103" y2="103" />
+                                <line x1="350" y1="350" x2="350" y2="0" />
+                                <line x1="350" y1="350" x2="597" y2="103" />
+                            </g>
+                            <!-- 深色虚线叠加 -->
+                            <g stroke="rgba(0,0,0,0.5)" stroke-width="2" stroke-dasharray="10,8">
+                                <line x1="350" y1="350" x2="700" y2="350" />
+                                <line x1="350" y1="350" x2="597" y2="597" />
+                                <line x1="350" y1="350" x2="350" y2="700" />
+                                <line x1="350" y1="350" x2="103" y2="597" />
+                                <line x1="350" y1="350" x2="0" y2="350" />
+                                <line x1="350" y1="350" x2="103" y2="103" />
+                                <line x1="350" y1="350" x2="350" y2="0" />
+                                <line x1="350" y1="350" x2="597" y2="103" />
+                            </g>
+                        </g>
+                    </svg>
+
+                    <!-- 3. 配料层 -->
+                    <div class="toppings-container layer-full" id="toppingsContainer"></div>
+
+                    <!-- 4. 交互层 -->
+                    <svg class="interaction-layer layer-full" viewBox="0 0 700 700" id="interactionLayer"></svg>
+                </div>
+            </div>
+
+            <!-- 配料盘 -->
+            <div class="ingredients-panel">
+                <div class="ingredient-bowl active" data-ingredient-type="pepperoni" data-tutorial-target="ingredient" onclick="selectIngredient('pepperoni', this)">
+                    <img src="https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/NUn4FhLL-99d2fe46-4923-4a96-86fb-675890eddf46.png" class="ingredient-img">
+                    <div class="bowl-label">腊肠</div>
+                </div>
+                <div class="ingredient-bowl" data-ingredient-type="mushroom" onclick="selectIngredient('mushroom', this)">
+                    <img src="https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/e2Jtvqkq-d54513a9-eb38-4aee-a4b4-06535de6b1ae.png" class="ingredient-img">
+                    <div class="bowl-label">蘑菇</div>
+                </div>
+                <div class="ingredient-bowl" data-ingredient-type="pepper" onclick="selectIngredient('pepper', this)">
+                    <img src="https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/LBxZVYef-4fc00168-8db0-43ee-8ca8-31eb5bec5316.png" class="ingredient-img">
+                    <div class="bowl-label">青椒</div>
+                </div>
+            </div>
+
+            <!-- 底部按钮 - 优化按铃 -->
+            <div class="bottom-controls">
+                <div class="bell-btn-container" id="bellBtn" data-tutorial-target="bell" onclick="submitOrder()">
+                    <img src="https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/FG10Jgyn-3f399565-371e-40a5-af45-1210fd0a8a90.png" class="bell-img" alt="Bell">
+                </div>
+            </div>
+
+            <!-- 第一关操作指引 -->
+            <div class="tutorial-overlay" id="tutorialOverlay" data-step="ingredient">
+                <div class="tutorial-bubble" id="tutorialBubble">先选订单里的配料：腊肠</div>
+                <div class="tutorial-hand">👇</div>
+            </div>
+
+            <!-- 标准弹窗遮罩 -->
+            <div class="feedback-overlay" id="feedbackOverlay">
+                <!-- 成功弹窗 -->
+                <div class="popup-card success" id="popupSuccess" style="display:none;">
+                    <div class="popup-icon" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%232ECC71\'><path d=\'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z\'/></svg>');"></div>
+                    <div class="popup-title">太棒了!</div>
+                    <div class="popup-desc" id="successDesc">你完成了订单！<br>获得 10 金币</div>
+                    <button class="popup-btn btn-green" onclick="nextLevel()">下一单</button>
+                </div>
+
+                <!-- 失败弹窗 -->
+                <div class="popup-card fail" id="popupFail" style="display:none;">
+                    <div class="popup-icon">!</div>
+                    <div class="popup-title">检查一下</div>
+                    <div class="popup-desc" id="failDesc">数量不对哦</div>
+                    <button class="popup-btn btn-red" onclick="hideFeedback()">重试</button>
+                </div>
+                
+                <!-- 通关弹窗 -->
+                <div class="popup-card finish" id="popupFinish" style="display:none;">
+                    <div class="popup-title">恭喜通关!</div>
+                    <div class="popup-desc">你是最棒的披萨大厨！</div>
+                    <button class="popup-btn btn-gold" onclick="restartGame()">重新开张</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 资源配置 ==========
+        const INGREDIENTS = {
+            'pepperoni': {
+                name: '腊肠',
+                img: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/NUn4FhLL-99d2fe46-4923-4a96-86fb-675890eddf46.png'
+            },
+            'mushroom': {
+                name: '蘑菇',
+                img: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/e2Jtvqkq-d54513a9-eb38-4aee-a4b4-06535de6b1ae.png'
+            },
+            'pepper': {
+                name: '青椒',
+                img: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/LBxZVYef-4fc00168-8db0-43ee-8ca8-31eb5bec5316.png'
+            }
+        };
+
+        const AUDIOS = {
+            welcome: 'https://iteachcdn.xdf.cn/audio/2e5dad5a06654b94a0aa77e4d46b4524.mp3',
+            orderIs: 'https://iteachcdn.xdf.cn/audio/e3a55bbcafc646199c30166ba4faf802.mp3',
+            success: 'https://iteachcdn.xdf.cn/audio/a68bc510c0d84c37a91422ee2ba4ecec.mp3',
+            wrongCount: 'https://iteachcdn.xdf.cn/audio/5b242c91d7a84ccd8d6d5d88101ee38c.mp3',
+            wrongType: 'https://iteachcdn.xdf.cn/audio/697116719efa4d2682a9509c56467e94.mp3',
+            finish: 'https://iteachcdn.xdf.cn/audio/e89c7159e42b4e25b25a3b1b9bd55f81.mp3'
+        };
+
+        const AUDIO_ICONS = {
+            on: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/AqgJ6Tsq-be1b47cc-cf4f-4e99-b21d-81495c7e8c61.png',
+            off: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/ZkIvKhMe-e411f250-9130-4cf3-98b4-ea8629b901f0.png'
+        };
+
+        // ========== 游戏状态 ==========
+        const TOTAL_LEVELS = 5;
+        const state = {
+            coins: 0,
+            level: 1,
+            targetNum: 3,
+            targetType: 'pepperoni',
+            currentType: 'pepperoni',
+            placedToppings: Array(8).fill(null),
+            isAnimating: false,
+            isMuted: false,
+            currentVoiceId: null,
+            hasStarted: false,
+            tutorialStep: 'ingredient',
+            tutorialDone: false
+        };
+
+        // ========== 音频管理器 ==========
+        const sounds = {};
+        let sfxAudioContext = null;
+        
+        function initAudio() {
+            // 语音资源
+            for (const [key, url] of Object.entries(AUDIOS)) {
+                sounds[key] = new Howl({ src: [url], volume: 1.0 });
+            }
+            initSfxContext();
+        }
+
+        function initSfxContext() {
+            if (!sfxAudioContext) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) sfxAudioContext = new AudioContextClass();
+            }
+            if (sfxAudioContext && sfxAudioContext.state === 'suspended') {
+                sfxAudioContext.resume();
+            }
+        }
+
+        function playVoice(key) {
+            if (state.isMuted) return;
+            Object.keys(AUDIOS).forEach(k => { if(sounds[k]) sounds[k].stop(); });
+            if (sounds[key]) state.currentVoiceId = sounds[key].play();
+        }
+
+        function playVoiceThen(key, onEnd) {
+            if (state.isMuted || !sounds[key]) {
+                if (typeof onEnd === 'function') onEnd();
+                return;
+            }
+            Object.keys(AUDIOS).forEach(k => { if(sounds[k]) sounds[k].stop(); });
+            sounds[key].once('end', () => {
+                if (typeof onEnd === 'function') onEnd();
+            });
+            state.currentVoiceId = sounds[key].play();
+        }
+
+        function playSFX(key) {
+            if (state.isMuted) return;
+            initSfxContext();
+            if (!sfxAudioContext) return;
+
+            const patterns = {
+                pop: [
+                    { freq: 520, duration: 0.055, type: 'sine', gain: 0.11 },
+                    { freq: 780, delay: 0.045, duration: 0.075, type: 'triangle', gain: 0.08 }
+                ],
+                remove: [
+                    { freq: 420, duration: 0.08, type: 'triangle', gain: 0.09 },
+                    { freq: 260, delay: 0.06, duration: 0.09, type: 'sine', gain: 0.06 }
+                ],
+                bell: [
+                    { freq: 880, duration: 0.16, type: 'sine', gain: 0.13 },
+                    { freq: 1320, delay: 0.07, duration: 0.18, type: 'sine', gain: 0.09 }
+                ],
+                coin: [
+                    { freq: 740, duration: 0.07, type: 'triangle', gain: 0.09 },
+                    { freq: 1040, delay: 0.06, duration: 0.09, type: 'triangle', gain: 0.09 },
+                    { freq: 1320, delay: 0.13, duration: 0.12, type: 'sine', gain: 0.08 }
+                ],
+                win: [
+                    { freq: 523, duration: 0.12, type: 'triangle', gain: 0.1 },
+                    { freq: 659, delay: 0.12, duration: 0.12, type: 'triangle', gain: 0.1 },
+                    { freq: 784, delay: 0.24, duration: 0.18, type: 'triangle', gain: 0.1 }
+                ]
+            };
+
+            (patterns[key] || patterns.pop).forEach(playTone);
+        }
+
+        function playTone({ freq, delay = 0, duration, type, gain }) {
+            const now = sfxAudioContext.currentTime + delay;
+            const oscillator = sfxAudioContext.createOscillator();
+            const gainNode = sfxAudioContext.createGain();
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(freq, now);
+            gainNode.gain.setValueAtTime(0.0001, now);
+            gainNode.gain.exponentialRampToValueAtTime(gain, now + 0.012);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            oscillator.connect(gainNode);
+            gainNode.connect(sfxAudioContext.destination);
+            oscillator.start(now);
+            oscillator.stop(now + duration + 0.03);
+        }
+
+        function toggleMute() {
+            state.isMuted = !state.isMuted;
+            Howler.mute(state.isMuted);
+            document.getElementById('audioIcon').src = state.isMuted ? AUDIO_ICONS.off : AUDIO_ICONS.on;
+        }
+
+        // ========== 初始化 SVG 交互层 ==========
+        function initInteractionLayer() {
+            const svg = document.getElementById('interactionLayer');
+            if (svg.dataset.ready === 'true') return;
+            svg.dataset.ready = 'true';
+            const cx = 350, cy = 350, r = 350;
+            const offsetAngle = -90; // 12点钟方向
+
+            for (let i = 0; i < 8; i++) {
+                const startAngle = (i * 45 + offsetAngle) * Math.PI / 180;
+                const endAngle = ((i + 1) * 45 + offsetAngle) * Math.PI / 180;
+
+                const x1 = cx + r * Math.cos(startAngle);
+                const y1 = cy + r * Math.sin(startAngle);
+                const x2 = cx + r * Math.cos(endAngle);
+                const y2 = cy + r * Math.sin(endAngle);
+
+                const d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", d);
+                path.setAttribute("class", "slice-path");
+                path.addEventListener("click", () => handleSliceClick(i));
+                svg.appendChild(path);
+            }
+        }
+
+        // ========== 核心玩法逻辑 ==========
+        function startGame() {
+            if (state.hasStarted) return;
+            state.hasStarted = true;
+            initAudio();
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            initInteractionLayer();
+            resetGameState();
+            playVoiceThen('welcome', generateOrder);
+        }
+
+        function restartGame() {
+            hideFeedback();
+            gsap.set(document.getElementById('pizzaPlate'), { x: 0, rotation: 0 });
+            resetGameState();
+            generateOrder();
+            playVoice('welcome');
+        }
+
+        function resetGameState() {
+            state.level = 1;
+            state.coins = 0;
+            document.getElementById('coinCount').innerText = "0";
+            updateLevelDisplay();
+        }
+
+        function updateLevelDisplay() {
+            document.getElementById('currentLevelDisplay').innerText = state.level;
+            document.getElementById('levelNum').innerText = state.level.toString().padStart(3, '0');
+        }
+
+        function selectIngredient(type, el) {
+            document.querySelectorAll('.ingredient-bowl').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            state.currentType = type;
+            playSFX('pop');
+            if (state.level === 1 && !state.tutorialDone && type === state.targetType) {
+                showTutorialStep('pizza');
+            }
+        }
+
+        function handleSliceClick(index) {
+            if (state.isAnimating) return;
+            if (state.placedToppings[index]) {
+                removeTopping(index);
+            } else {
+                addTopping(index, state.currentType);
+            }
+            updateTutorialAfterPizzaChange();
+        }
+
+        function addTopping(index, type) {
+            state.placedToppings[index] = type;
+            const container = document.getElementById('toppingsContainer');
+            const angle = (index * 45 + 22.5 - 90) * Math.PI / 180;
+            const dist = 220; 
+            const cx = 350, cy = 350;
+            const x = cx + dist * Math.cos(angle);
+            const y = cy + dist * Math.sin(angle);
+
+            const div = document.createElement('div');
+            div.className = 'topping-item';
+            div.id = `topping-${index}`;
+            div.style.backgroundImage = `url(${INGREDIENTS[type].img})`;
+            div.style.left = x + 'px';
+            div.style.top = y + 'px';
+            
+            const randRot = Math.random() * 30 - 15; 
+            div.style.transform = `translate(-50%, -50%) rotate(${randRot}deg) scale(0)`;
+            
+            container.appendChild(div);
+            gsap.to(div, { scale: 1, duration: 0.3, ease: "back.out(1.7)" });
+            playSFX('pop');
+        }
+
+        function removeTopping(index) {
+            state.placedToppings[index] = null;
+            const div = document.getElementById(`topping-${index}`);
+            if (div) {
+                gsap.to(div, { scale: 0, duration: 0.2, onComplete: () => div.remove() });
+                playSFX('remove');
+            }
+        }
+
+        function generateOrder() {
+            if (state.level > TOTAL_LEVELS) {
+                showFinish();
+                return;
+            }
+
+            state.isAnimating = true;
+            updateLevelDisplay();
+            
+            if (state.level === 1) {
+                state.targetNum = 1;
+                state.targetType = 'pepperoni';
+                state.currentType = 'pepperoni';
+                state.tutorialDone = false;
+                state.tutorialStep = 'ingredient';
+                const pepperoniBowl = document.querySelector('[data-ingredient-type="pepperoni"]');
+                if (pepperoniBowl) {
+                    document.querySelectorAll('.ingredient-bowl').forEach(b => b.classList.remove('active'));
+                    pepperoniBowl.classList.add('active');
+                }
+            } else {
+                let maxNum = state.level <= 2 ? 4 : 8; // 前两关简单点
+                let minNum = state.level <= 2 ? 1 : 3;
+                state.targetNum = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+                const types = Object.keys(INGREDIENTS);
+                state.targetType = types[Math.floor(Math.random() * types.length)];
+                hideTutorial();
+            }
+            
+            const ticket = document.getElementById('currentOrder');
+            
+            gsap.to(ticket, { y: -500, duration: 0.4, ease: "power2.in", onComplete: () => {
+                document.getElementById('targetNum').innerText = state.targetNum;
+                document.getElementById('orderIcon').style.backgroundImage = `url(${INGREDIENTS[state.targetType].img})`;
+                document.getElementById('orderName').innerText = INGREDIENTS[state.targetType].name;
+                
+                clearTable();
+                
+                gsap.to(ticket, { y: 0, duration: 0.5, ease: "back.out(1.2)", onComplete: () => {
+                    state.isAnimating = false;
+                    playVoice('orderIs');
+                    setTimeout(() => {
+                        updateChefSpeech(`订单来了：请放 ${state.targetNum} 块${INGREDIENTS[state.targetType].name}`);
+                        if (state.level === 1) {
+                            showTutorialStep('ingredient');
+                        }
+                    }, 500);
+                }});
+            }});
+        }
+
+        function clearTable() {
+            state.placedToppings.fill(null);
+            document.getElementById('toppingsContainer').innerHTML = '';
+        }
+
+        function submitOrder() {
+            // 点击按铃立即播放音效
+            playSFX('bell');
+            
+            if (state.isAnimating) return;
+            state.isAnimating = true;
+
+            const placedItems = state.placedToppings.filter(t => t !== null);
+            const count = placedItems.length;
+            const hasWrongType = placedItems.some(t => t !== state.targetType);
+
+            if (hasWrongType) {
+                handleError('type');
+            } else if (count !== state.targetNum) {
+                handleError('count', count);
+            } else {
+                if (state.level === 1 && !state.tutorialDone) {
+                    state.tutorialDone = true;
+                    hideTutorial();
+                }
+                handleSuccess();
+            }
+        }
+
+        function handleSuccess() {
+            const plate = document.getElementById('pizzaPlate');
+            gsap.to(plate, {
+                x: 1200, rotation: 45, duration: 1, ease: "power2.inOut",
+                onComplete: () => {
+                    animateCoins();
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    if (state.level >= TOTAL_LEVELS) {
+                        showFinish();
+                    } else {
+                        showPopup('success');
+                        playVoice('success');
+                    }
+                }
+            });
+        }
+
+        function nextLevel() {
+            if (state.level >= TOTAL_LEVELS) {
+                showFinish();
+                return;
+            }
+            hideFeedback();
+            const plate = document.getElementById('pizzaPlate');
+            gsap.set(plate, { x: -1200, rotation: -45 });
+            gsap.to(plate, { x: 0, rotation: 0, duration: 0.8, ease: "power2.out" });
+            state.level++;
+            generateOrder();
+        }
+
+        function showTutorialStep(step) {
+            if (state.level !== 1 || state.tutorialDone) return;
+            state.tutorialStep = step;
+            const overlay = document.getElementById('tutorialOverlay');
+            const bubble = document.getElementById('tutorialBubble');
+            if (!overlay || !bubble) return;
+
+            overlay.classList.add('active');
+            overlay.dataset.step = step;
+            document.querySelectorAll('.tutorial-target').forEach(el => el.classList.remove('tutorial-target'));
+
+            if (step === 'ingredient') {
+                bubble.innerText = `第 1 步：先选 ${INGREDIENTS[state.targetType].name}`;
+                const target = document.querySelector(`[data-ingredient-type="${state.targetType}"]`);
+                if (target) target.classList.add('tutorial-target');
+            } else if (step === 'pizza') {
+                bubble.innerText = '第 2 步：点披萨上的 1 块';
+                const target = document.querySelector('[data-tutorial-target="pizza"]');
+                if (target) target.classList.add('tutorial-target');
+            } else if (step === 'bell') {
+                bubble.innerText = '第 3 步：按铃提交订单';
+                const target = document.querySelector('[data-tutorial-target="bell"]');
+                if (target) target.classList.add('tutorial-target');
+            }
+        }
+
+        function updateTutorialAfterPizzaChange() {
+            if (state.level !== 1 || state.tutorialDone) return;
+            const validCount = state.placedToppings.filter(t => t === state.targetType).length;
+            if (validCount >= state.targetNum) {
+                showTutorialStep('bell');
+            } else {
+                showTutorialStep('pizza');
+            }
+        }
+
+        function hideTutorial() {
+            const overlay = document.getElementById('tutorialOverlay');
+            if (overlay) overlay.classList.remove('active');
+            document.querySelectorAll('.tutorial-target').forEach(el => el.classList.remove('tutorial-target'));
+        }
+
+        function handleError(reason, currentCount) {
+            const plate = document.getElementById('pizzaPlate');
+            gsap.fromTo(plate, { x: -20 }, { x: 20, duration: 0.08, repeat: 5, yoyo: true, onComplete: () => {
+                gsap.set(plate, { x: 0 });
+                state.isAnimating = false;
+            }});
+
+            const failDesc = document.getElementById('failDesc');
+            if (reason === 'type') {
+                failDesc.innerHTML = `<span class="fail-line-main">配料放错啦</span><span class="fail-line-sub">这张订单只要 ${INGREDIENTS[state.targetType].name}</span>`;
+                updateChefSpeech("哎呀！配料放错啦，我只要" + INGREDIENTS[state.targetType].name);
+                playVoice('wrongType');
+            } else {
+                failDesc.innerHTML = `<span class="fail-line-main">数量还没对齐</span><span class="fail-line-sub">订单需要 ${state.targetNum} 块，现在是 ${currentCount} 块</span>`;
+                updateChefSpeech(`数量不对哦！我要 ${state.targetNum} 块，现在是 ${currentCount} 块。`);
+                playVoice('wrongCount');
+            }
+            showPopup('fail');
+        }
+
+        function showFinish() {
+            state.isAnimating = true;
+            showPopup('finish');
+            playSFX('win');
+            playVoice('finish');
+            confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
+        }
+
+        function animateCoins() {
+            state.coins += 10;
+            const coinCountEl = document.getElementById('coinCount');
+            gsap.to(coinCountEl, { scale: 1.5, duration: 0.2, yoyo: true, repeat: 1 });
+            coinCountEl.innerText = state.coins;
+            playSFX('coin');
+        }
+
+        function showPopup(type) {
+            const overlay = document.getElementById('feedbackOverlay');
+            overlay.style.display = 'flex';
+            gsap.to(overlay, { opacity: 1, duration: 0.2 });
+
+            document.getElementById('popupSuccess').style.display = 'none';
+            document.getElementById('popupFail').style.display = 'none';
+            document.getElementById('popupFinish').style.display = 'none';
+
+            let popup;
+            if (type === 'success') popup = document.getElementById('popupSuccess');
+            else if (type === 'fail') popup = document.getElementById('popupFail');
+            else if (type === 'finish') popup = document.getElementById('popupFinish');
+
+            popup.style.display = 'flex';
+            gsap.fromTo(popup, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" });
+        }
+
+        function hideFeedback() {
+            const overlay = document.getElementById('feedbackOverlay');
+            gsap.to(overlay, { opacity: 0, duration: 0.2, onComplete: () => {
+                overlay.style.display = 'none';
+            }});
+        }
+
+        function updateChefSpeech(text) {
+            document.getElementById('chefSpeech').innerText = text;
+        }
+
+    </script>
+</body>
+</html>

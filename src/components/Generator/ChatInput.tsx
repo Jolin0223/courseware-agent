@@ -28,6 +28,17 @@ interface ChatInputProps {
   lockedAttachments?: UploadedAttachment[];
 }
 
+const HOMEPAGE_CONTENT_MAX_WIDTH = 1080;
+const HOMEPAGE_PLACEHOLDER_EXAMPLES = [
+  '例如：做一个一年级英语水果单词听音选择游戏',
+  '例如：把这份数学练习改成闯关式互动课件',
+  '例如：生成一个低龄学生可操作的图形拼搭小游戏',
+];
+const HOMEPAGE_PLACEHOLDER_LOOP = [
+  ...HOMEPAGE_PLACEHOLDER_EXAMPLES,
+  HOMEPAGE_PLACEHOLDER_EXAMPLES[0],
+];
+
 const LINE_HEIGHT = 22.5;
 const MAX_LINES = 5;
 const MAX_HEIGHT = LINE_HEIGHT * MAX_LINES;
@@ -356,6 +367,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [isDraftPromptOpen, setIsDraftPromptOpen] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [placeholderAnimating, setPlaceholderAnimating] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -374,6 +387,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const draftPromptPreview = appliedInspirationDraft
     ? appliedInspirationDraft.prompt
     : '';
+  const shouldShowHomepageExamples = Boolean(
+    centered
+    && !text
+    && attachedFiles.length === 0
+    && lockedAttachments.length === 0
+    && !appliedInspirationDraft
+  );
 
   const materialUsagePlaceholder = (() => {
     if (imageFiles.length > 0 && documentFiles.length > 0) {
@@ -400,6 +420,33 @@ const ChatInput: React.FC<ChatInputProps> = ({
   useEffect(() => {
     resizeTextarea();
   }, [text, resizeTextarea]);
+
+  useEffect(() => {
+    if (!shouldShowHomepageExamples) {
+      setPlaceholderAnimating(false);
+      setPlaceholderIndex(0);
+      return;
+    }
+    setPlaceholderAnimating(true);
+    const timer = window.setInterval(() => {
+      setPlaceholderIndex(prev => prev + 1);
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [shouldShowHomepageExamples]);
+
+  useEffect(() => {
+    if (!shouldShowHomepageExamples || placeholderIndex !== HOMEPAGE_PLACEHOLDER_EXAMPLES.length) return;
+
+    const resetTimer = window.setTimeout(() => {
+      setPlaceholderAnimating(false);
+      setPlaceholderIndex(0);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => setPlaceholderAnimating(true));
+      });
+    }, 380);
+
+    return () => window.clearTimeout(resetTimer);
+  }, [placeholderIndex, shouldShowHomepageExamples]);
 
   useEffect(() => {
     if (injectedTextVersion === undefined || injectedText === undefined) return;
@@ -877,22 +924,39 @@ const ChatInput: React.FC<ChatInputProps> = ({
           )}
 
           {!appliedInspirationDraft && (
-            <textarea
-              ref={textareaRef}
-              value={text}
-              onChange={(e) => {
-                setText(e.target.value);
-                onTextChange?.(e.target.value);
-              }}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder={materialUsagePlaceholder}
-              disabled={disabled}
-              rows={3}
-              style={styles.textarea}
-            />
+            <div style={styles.textareaWrap}>
+              {shouldShowHomepageExamples && (
+                <div style={styles.rotatingPlaceholder} aria-hidden="true">
+                  <div
+                    style={{
+                      ...styles.rotatingPlaceholderTrack,
+                      transform: `translateY(-${placeholderIndex * 24}px)`,
+                      transition: placeholderAnimating ? 'transform 0.36s ease' : 'none',
+                    }}
+                  >
+                    {HOMEPAGE_PLACEHOLDER_LOOP.map((example, index) => (
+                      <div key={`${example}-${index}`} style={styles.rotatingPlaceholderItem}>{example}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <textarea
+                ref={textareaRef}
+                value={text}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  onTextChange?.(e.target.value);
+                }}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder={shouldShowHomepageExamples ? '' : materialUsagePlaceholder}
+                disabled={disabled}
+                rows={3}
+                style={styles.textarea}
+              />
+            </div>
           )}
 
           {smartCompletion && !disabled && (
@@ -1081,7 +1145,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 const styles: Record<string, React.CSSProperties> = {
   wrapperCentered: {
     width: '100%',
-    maxWidth: 720,
+    maxWidth: HOMEPAGE_CONTENT_MAX_WIDTH,
     margin: '0 auto',
   },
   wrapperBottom: {
@@ -1246,6 +1310,34 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 2,
     pointerEvents: 'none',
   },
+  textareaWrap: {
+    position: 'relative',
+    width: '100%',
+  },
+  rotatingPlaceholder: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    right: 0,
+    height: 24,
+    overflow: 'hidden',
+    color: '#94A3B8',
+    fontSize: 15,
+    lineHeight: '24px',
+    pointerEvents: 'none',
+    zIndex: 1,
+  },
+  rotatingPlaceholderTrack: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  rotatingPlaceholderItem: {
+    height: 24,
+    lineHeight: '24px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
   textarea: {
     width: '100%',
     border: 'none',
@@ -1272,9 +1364,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 9,
     marginBottom: 10,
     padding: 14,
-    borderRadius: 16,
-    border: '1px solid rgba(0, 201, 167, 0.26)',
-    background: 'linear-gradient(135deg, rgba(232, 255, 249, 0.92), #FFFFFF 78%)',
+    borderRadius: 12,
+    border: '1px solid var(--agent-border)',
+    background: 'linear-gradient(135deg, var(--agent-soft-strong), #FFFFFF 78%)',
   },
   structuredDraftTop: {
     display: 'grid',
@@ -1286,7 +1378,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
     width: 'fit-content',
     padding: '4px 9px',
-    borderRadius: 999,
+    borderRadius: 10,
     background: '#FFFFFF',
     color: 'var(--agent-primary-text)',
     border: '1px solid var(--agent-border)',
@@ -1312,9 +1404,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   structuredRequired: {
     padding: '2px 7px',
-    borderRadius: 999,
-    background: '#FFF7ED',
-    color: '#EA580C',
+    borderRadius: 8,
+    background: 'var(--agent-action-soft)',
+    color: 'var(--agent-action-text)',
     fontSize: 11,
     fontWeight: 850,
   },
@@ -1322,8 +1414,8 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     minHeight: 92,
     padding: '12px 13px',
-    borderRadius: 12,
-    border: '1.5px solid rgba(15, 118, 110, 0.28)',
+    borderRadius: 10,
+    border: '1px solid var(--agent-border)',
     outline: 'none',
     background: '#FFFFFF',
     color: '#0F172A',
@@ -1334,7 +1426,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   appliedPlaywayCard: {
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 10,
     background: '#FFFFFF',
     border: '1px solid var(--agent-border)',
   },
@@ -1370,7 +1462,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 4,
     height: 28,
     padding: '0 9px',
-    borderRadius: 999,
+    borderRadius: 10,
     border: '1px solid var(--agent-border)',
     background: 'var(--agent-soft)',
     color: 'var(--agent-primary-text)',
@@ -1395,7 +1487,7 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.45,
   },
   promptPreviewBox: {
-    borderRadius: 12,
+    borderRadius: 10,
     border: '1px solid #E2E8F0',
     background: 'rgba(255,255,255,0.78)',
     overflow: 'hidden',
@@ -1630,7 +1722,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     width: 36,
     height: 36,
-    borderRadius: '50%',
+    borderRadius: 10,
     border: 'none',
     boxShadow: '0 8px 18px var(--agent-shadow)',
     transition: 'background 0.15s, transform 0.15s',

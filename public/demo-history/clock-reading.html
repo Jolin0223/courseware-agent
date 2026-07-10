@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>快乐学时钟 - 昼夜版</title>
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/gsap.min.js"></script>
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/howler.min.js"></script>
+    <script src="https://iteachcdn.xdf.cn/mmcw/plus/aijs/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #2c3e50;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 屏幕适配容器 - 1920x1080 */
+        .game-container {
+            width: 1920px;
+            height: 1080px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transform-origin: center center;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            /* 默认背景，会被JS覆盖 */
+            background-color: #87CEEB;
+            --cover-image: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/TMvevMXM-2600008999-AigcImage-3f6a6afce0544326859d3c8e807c82c6_0.png');
+            --score-badge-image: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/invoPQA3-bab5ac02-92db-4096-bbd8-97ce85141ec5.png');
+            --home-button-image: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/7pMUCFrI-7ce059a5-c711-4b09-bed6-30375feea47e.png');
+            --submit-button-image: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/V98vM3vd-3d14490a-944b-49bc-99db-73403ed0500b.png');
+            transition: background-color 1.5s ease;
+        }
+
+        /* 背景图片层 */
+        .bg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            z-index: 0;
+        }
+
+        .bg-layer.active {
+            opacity: 1;
+        }
+
+        /* 装饰元素容器 */
+        .decoration-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 太阳/月亮 */
+        .celestial-body {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            top: 70px;
+            object-fit: contain;
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sun {
+            right: 140px;
+            transform: translateY(-300px); /* 初始隐藏 */
+        }
+        .sun.visible {
+            transform: translateY(0);
+        }
+
+        .moon {
+            left: 140px;
+            transform: translateY(-300px); /* 初始隐藏 */
+        }
+        .moon.visible {
+            transform: translateY(0);
+        }
+        
+        /* 封面页 */
+        #coverPage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            display: flex;
+            background: var(--cover-image) center / cover no-repeat;
+            transition: opacity 0.5s;
+            cursor: pointer;
+            outline: none;
+        }
+
+        #coverPage:focus-visible {
+            box-shadow: inset 0 0 0 10px rgba(255, 217, 77, 0.9);
+        }
+
+        /* 游戏主界面 - 使用Flex布局优化遮挡问题 */
+        #gamePage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: none; /* 初始隐藏 */
+            opacity: 0;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 0;
+            box-sizing: border-box;
+        }
+
+        /* 顶部区域：包含分数、Home键和目标时间 */
+        .top-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 20;
+            height: 250px; /* 固定高度 */
+        }
+
+        .nav-bar {
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .score-board {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            width: 178px;
+            height: 76px;
+            box-sizing: border-box;
+            padding: 0 36px 4px 82px;
+            background: var(--score-badge-image) center / contain no-repeat;
+            border-radius: 0;
+            box-shadow: none;
+            position: relative;
+        }
+
+        .star-icon {
+            display: none;
+        }
+
+        .score-text {
+            font-size: 38px;
+            font-weight: bold;
+            color: #59606a;
+            line-height: 1;
+            min-width: 42px;
+            text-align: center;
+            text-shadow: 0 2px 0 rgba(255, 255, 255, 0.75);
+        }
+
+        .home-btn {
+            width: 76px;
+            height: 76px;
+            background: var(--home-button-image) center / contain no-repeat;
+            border-radius: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: none;
+            transition: transform 0.2s;
+        }
+        
+        .home-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .home-icon {
+            display: none;
+        }
+
+        .target-card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: -20px; /* 稍微向上拉一点 */
+        }
+
+        .target-card {
+            background: rgba(255, 253, 248, 0.94);
+            padding: 12px 42px 14px;
+            border-radius: 26px;
+            box-shadow: 0 14px 28px rgba(45, 75, 110, 0.18);
+            border: 4px solid rgba(95, 160, 232, 0.45);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            min-width: 260px;
+            margin-bottom: 15px;
+        }
+
+        .period-label {
+            font-size: 34px;
+            color: #3f6f95;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .target-time {
+            font-family: 'Fredoka One', monospace;
+            font-size: 70px;
+            color: #2F80D0;
+            letter-spacing: 3px;
+            text-shadow: 0 4px 0 rgba(117, 174, 225, 0.18);
+        }
+
+        .instruction-text {
+            font-size: 26px;
+            color: #2f3d4a;
+            font-weight: bold;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 14px rgba(45, 75, 110, 0.14);
+            white-space: nowrap;
+        }
+
+        /* 中间区域：时钟盘面 */
+        .middle-section {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 15;
+            /* 确保时钟有足够空间但不会溢出 */
+            min-height: 400px; 
+        }
+
+        .clock-container {
+            width: 580px; /* 稍微缩小一点 */
+            height: 580px;
+            position: relative;
+        }
+
+        /* SVG 时钟 */
+        #analogClock {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.18));
+            position: relative;
+            z-index: 2;
+        }
+
+        .clock-art {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.16;
+        }
+        
+        /* 交互区域 */
+        .hand-hit-area {
+            cursor: grab;
+        }
+        .hand-hit-area:active {
+            cursor: grabbing;
+        }
+
+        /* 底部区域：按钮 */
+        .bottom-section {
+            height: 150px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            position: relative;
+        }
+
+        .submit-btn {
+            width: 282px;
+            height: 120px;
+            padding: 0 0 8px;
+            font-size: 40px;
+            font-family: 'Fredoka One', cursive;
+            color: #fff;
+            background: var(--submit-button-image) center / contain no-repeat;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            box-shadow: none;
+            transition: all 0.2s;
+            text-shadow: 0 3px 0 rgba(49, 104, 157, 0.45);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+        .submit-btn:active {
+            transform: translateY(4px);
+            filter: brightness(0.96);
+        }
+        .submit-btn:disabled {
+            cursor: not-allowed;
+            transform: translateY(0);
+            filter: grayscale(0.55) brightness(0.96);
+        }
+
+        /* 反馈动画层 */
+        .feedback-overlay {
+            position: absolute;
+            top: 46%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 30;
+            min-width: 300px;
+            padding: 22px 44px 26px;
+            border-radius: 42px;
+            box-sizing: border-box;
+            font-family: 'Fredoka One', 'Nunito', sans-serif;
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-align: center;
+            opacity: 0;
+            white-space: nowrap;
+            border: 6px solid rgba(255, 255, 255, 0.95);
+            filter: drop-shadow(0 18px 28px rgba(34, 58, 86, 0.22));
+        }
+
+        .feedback-overlay::before,
+        .feedback-overlay::after {
+            content: "";
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .feedback-overlay.correct {
+            color: #2f7d42;
+            background: linear-gradient(180deg, #FFF8B7 0%, #FFE070 48%, #A8E87A 100%);
+            box-shadow: inset 0 -10px 0 rgba(96, 173, 75, 0.18), inset 0 8px 0 rgba(255, 255, 255, 0.45);
+            text-shadow: 0 4px 0 rgba(255, 255, 255, 0.65);
+        }
+
+        .feedback-overlay.correct::before {
+            width: 72px;
+            height: 72px;
+            left: -34px;
+            top: -28px;
+            background: #FFD84D;
+            clip-path: polygon(50% 0%, 61% 34%, 98% 34%, 68% 55%, 79% 90%, 50% 68%, 21% 90%, 32% 55%, 2% 34%, 39% 34%);
+            filter: drop-shadow(0 8px 0 rgba(210, 145, 32, 0.2));
+        }
+
+        .feedback-overlay.correct::after {
+            width: 38px;
+            height: 38px;
+            right: -18px;
+            bottom: 10px;
+            border-radius: 50%;
+            background: #7BDFF2;
+            box-shadow: -28px -64px 0 #F7A8C8, -62px -20px 0 #FFE070;
+        }
+
+        .feedback-overlay.wrong {
+            color: #D45C62;
+            background: linear-gradient(180deg, #FFF3F0 0%, #FFD7D0 100%);
+            box-shadow: inset 0 -10px 0 rgba(212, 92, 98, 0.12), inset 0 8px 0 rgba(255, 255, 255, 0.5);
+            text-shadow: 0 4px 0 rgba(255, 255, 255, 0.72);
+        }
+
+        .feedback-overlay.wrong::before {
+            width: 64px;
+            height: 64px;
+            left: -28px;
+            top: -22px;
+            border-radius: 50%;
+            background: #FFB4A8;
+            box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.55) inset;
+        }
+
+        .feedback-overlay.wrong::after {
+            width: 42px;
+            height: 42px;
+            right: -16px;
+            bottom: 8px;
+            border-radius: 50%;
+            background: #A8D8FF;
+            opacity: 0.9;
+        }
+
+        /* 昼夜主题特定样式 */
+        .instruction-text.night-mode {
+            color: #f8fbff;
+            background: rgba(29, 48, 82, 0.72);
+        }
+
+    </style>
+    <script>
+        // ========== 屏幕适配代码（必须放在script标签最前面） ==========
+        const DESIGN_WIDTH = 1920;
+        const DESIGN_HEIGHT = 1080;
+        function resizeGame() {
+            const container = document.getElementById('gameContainer');
+            if (!container) return;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const scaleX = windowWidth / DESIGN_WIDTH;
+            const scaleY = windowHeight / DESIGN_HEIGHT;
+            const scale = Math.min(scaleX, scaleY);
+            container.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
+        // 首屏加载时立即执行适配
+        document.addEventListener('DOMContentLoaded', resizeGame);
+        window.addEventListener('load', resizeGame);
+        window.addEventListener('resize', resizeGame);
+        // 立即尝试执行一次
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(resizeGame, 0);
+        }
+        // ========== 屏幕适配代码结束 ==========
+    </script>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        
+        <!-- 背景层：白天 -->
+        <div class="bg-layer" id="bgDay" style="background-image: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/foQjMfFq-2600008999-AigcImage-6a342a9d99e44c64a5c2557c8e5839d9_0.png');"></div>
+        <!-- 背景层：夜晚 -->
+        <div class="bg-layer" id="bgNight" style="background-image: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/l2hkUHyb-2600008999-AigcImage-a49db06795a049fcad23d2f7f5c6f47c_0.png');"></div>
+
+        <!-- 装饰层 -->
+        <div class="decoration-layer">
+            <!-- 太阳 -->
+            <img src="https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/hGqXXvtW-bddc5215-c20c-4488-801a-28d17017d45d.png" class="celestial-body sun" id="sunIcon" alt="">
+            <!-- 月亮 -->
+            <img src="https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/otbmWb7G-b2598506-332d-4afd-9d16-02215b98ec9b.png" class="celestial-body moon" id="moonIcon" alt="">
+        </div>
+
+        <!-- 封面页 -->
+        <div id="coverPage" role="button" tabindex="0" aria-label="快乐学时钟，点击开始挑战"></div>
+
+        <!-- 游戏主界面 (Flex布局) -->
+        <div id="gamePage">
+            <!-- 顶部区域 -->
+            <div class="top-section">
+                <div class="nav-bar">
+                    <div class="score-board">
+                        <svg class="star-icon" viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        <span class="score-text" id="scoreDisplay">0</span>
+                    </div>
+                    <div class="home-btn" onclick="goHome()">
+                        <svg class="home-icon" viewBox="0 0 24 24">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="target-card-container">
+                    <div class="target-card">
+                        <div class="period-label" id="periodLabel">上午</div>
+                        <div class="target-time" id="targetTimeDisplay">10:00</div>
+                    </div>
+                    <div class="instruction-text" id="instructionText">拖动分针设置时间，然后点击确定</div>
+                </div>
+            </div>
+
+            <!-- 中间时钟区域 -->
+            <div class="middle-section">
+                <div class="clock-container">
+                    <img class="clock-art" src="https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/ry9VNOJK-0ddb1350-6257-49f4-9e35-72a9b01fea13.png" alt="">
+                    <svg id="analogClock" viewBox="0 0 400 400">
+                        <!-- 表盘背景 -->
+                        <circle cx="200" cy="200" r="190" fill="#fff" stroke="#333" stroke-width="8" />
+                        
+                        <!-- 刻度 -->
+                        <g id="ticks"></g>
+                        
+                        <!-- 数字 -->
+                        <g id="numbers"></g>
+
+                        <!-- 指针组 -->
+                        <g id="handGroup">
+                            <!-- 时针 -->
+                            <line id="hourHand" x1="200" y1="200" x2="200" y2="120" stroke="#4A90E2" stroke-width="12" stroke-linecap="round" />
+                            
+                            <!-- 分针 (可交互) -->
+                            <g id="minuteHandGroup">
+                                <!-- 可视分针 -->
+                                <line x1="200" y1="200" x2="200" y2="60" stroke="#FF6B6B" stroke-width="8" stroke-linecap="round" />
+                                <!-- 针头装饰 -->
+                                <circle cx="200" cy="60" r="6" fill="#FF6B6B" />
+                                <!-- 交互热区 (透明大圆) -->
+                                <circle class="hand-hit-area" cx="200" cy="60" r="30" fill="transparent" />
+                                <path class="hand-hit-area" d="M185 60 L215 60 L200 180 Z" fill="transparent" />
+                            </g>
+
+                            <!-- 秒针 (装饰) -->
+                            <line id="secondHand" x1="200" y1="200" x2="200" y2="50" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" opacity="0.8" />
+                            
+                            <!-- 中心点 -->
+                            <circle cx="200" cy="200" r="10" fill="#333" />
+                            <circle cx="200" cy="200" r="4" fill="#666" />
+                        </g>
+                    </svg>
+                    
+                    <!-- 反馈层 -->
+                    <div class="feedback-overlay" id="feedbackText">太棒了!</div>
+                </div>
+            </div>
+
+            <!-- 底部按钮区域 -->
+            <div class="bottom-section">
+                <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">确 定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 音效系统
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, type, duration, volume = 0.08) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(volume, audioCtx.currentTime + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playClickSound() { playTone(760, 'sine', 0.055, 0.035); }
+        function playStartSound() {
+            playTone(523, 'sine', 0.12, 0.06);
+            setTimeout(() => playTone(659, 'sine', 0.14, 0.055), 90);
+            setTimeout(() => playTone(784, 'sine', 0.18, 0.05), 180);
+        }
+        function playQuestionSound() {
+            playTone(880, 'triangle', 0.08, 0.035);
+            setTimeout(() => playTone(1175, 'triangle', 0.12, 0.03), 85);
+        }
+        function playSubmitSound() {
+            playTone(392, 'triangle', 0.08, 0.045);
+            setTimeout(() => playTone(784, 'triangle', 0.12, 0.04), 75);
+        }
+        function playCorrectSound() { 
+            playTone(659, 'sine', 0.1, 0.06); 
+            setTimeout(() => playTone(880, 'sine', 0.12, 0.055), 100);
+            setTimeout(() => playTone(1319, 'sine', 0.28, 0.05), 210);
+        }
+        function playWrongSound() { 
+            playTone(330, 'triangle', 0.16, 0.055); 
+            setTimeout(() => playTone(247, 'triangle', 0.22, 0.045), 140);
+        }
+
+        // 游戏状态
+        let state = {
+            score: 0,
+            targetHour: 0,
+            targetMinute: 0,
+            isAM: true, // 上午/下午标记
+            currentMinuteAngle: 0, // 0-360
+            isDragging: false,
+            isGameStarted: false
+        };
+
+        let secondHandTimer = null; // 存储定时器ID
+
+        // DOM 元素
+        const minuteHandGroup = document.getElementById('minuteHandGroup');
+        const hourHand = document.getElementById('hourHand');
+        const secondHand = document.getElementById('secondHand');
+        const targetTimeDisplay = document.getElementById('targetTimeDisplay');
+        const periodLabel = document.getElementById('periodLabel');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const feedbackText = document.getElementById('feedbackText');
+        const submitBtn = document.getElementById('submitBtn');
+        const instructionText = document.getElementById('instructionText');
+        const coverPage = document.getElementById('coverPage');
+        const gameContainer = document.getElementById('gameContainer');
+        
+        // 背景元素
+        const bgDay = document.getElementById('bgDay');
+        const bgNight = document.getElementById('bgNight');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+
+        function getPeriodLabel(hour24) {
+            if (hour24 < 6) return "凌晨";
+            if (hour24 < 12) return "上午";
+            if (hour24 < 18) return "下午";
+            return "晚上";
+        }
+
+        // 初始化表盘
+        function initClockFace() {
+            const ticksGroup = document.getElementById('ticks');
+            const numbersGroup = document.getElementById('numbers');
+            
+            for (let i = 0; i < 60; i++) {
+                const angle = i * 6;
+                const isHour = i % 5 === 0;
+                
+                // 刻度
+                const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                const tickLen = isHour ? 15 : 8;
+                const tickWidth = isHour ? 4 : 2;
+                const r1 = 190;
+                const r2 = 190 - tickLen;
+                
+                const rad = (angle - 90) * Math.PI / 180;
+                const x1 = 200 + r1 * Math.cos(rad);
+                const y1 = 200 + r1 * Math.sin(rad);
+                const x2 = 200 + r2 * Math.cos(rad);
+                const y2 = 200 + r2 * Math.sin(rad);
+                
+                tick.setAttribute("x1", x1);
+                tick.setAttribute("y1", y1);
+                tick.setAttribute("x2", x2);
+                tick.setAttribute("y2", y2);
+                tick.setAttribute("stroke", isHour ? "#333" : "#999");
+                tick.setAttribute("stroke-width", tickWidth);
+                ticksGroup.appendChild(tick);
+                
+                // 数字
+                if (isHour) {
+                    let num = i / 5;
+                    if (num === 0) num = 12;
+                    
+                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    const numR = 155;
+                    const numX = 200 + numR * Math.cos(rad);
+                    const numY = 200 + numR * Math.sin(rad);
+                    
+                    text.setAttribute("x", numX);
+                    text.setAttribute("y", numY);
+                    text.setAttribute("text-anchor", "middle");
+                    text.setAttribute("dominant-baseline", "middle");
+                    text.setAttribute("fill", "#333");
+                    text.setAttribute("font-size", "28");
+                    text.setAttribute("font-family", "Nunito, sans-serif");
+                    text.setAttribute("font-weight", "bold");
+                    text.textContent = num;
+                    numbersGroup.appendChild(text);
+                }
+            }
+        }
+
+        // 生成新题目
+        function newQuestion() {
+            // 随机生成时间
+            // 为了模拟昼夜，我们生成 0-23 的小时数
+            const hour24 = Math.floor(Math.random() * 24);
+            state.targetHour = hour24; 
+            
+            // 分钟: 0, 5, 10 ... 55
+            state.targetMinute = Math.floor(Math.random() * 12) * 5; 
+            
+            // 转换为12小时制显示
+            let displayHour = hour24 % 12;
+            if (displayHour === 0) displayHour = 12;
+            
+            // 判断 AM/PM (用于背景切换)
+            state.isAM = hour24 < 12;
+            
+            const displayHourStr = displayHour < 10 ? '0' + displayHour : displayHour;
+            const displayMinuteStr = state.targetMinute < 10 ? '0' + state.targetMinute : state.targetMinute;
+            
+            targetTimeDisplay.textContent = `${displayHourStr}:${displayMinuteStr}`;
+            periodLabel.textContent = getPeriodLabel(hour24);
+            
+            // 根据时间更新场景
+            updateScene(hour24);
+            playQuestionSound();
+
+            // 保留上一次的指针位置，不再重置为0，提供更自然的体验
+            // 如果是第一题，state.currentMinuteAngle 默认为0
+            setClockHands(state.currentMinuteAngle); 
+            
+            submitBtn.disabled = false;
+        }
+
+        // 更新昼夜场景
+        function updateScene(hour24) {
+            // 定义白天范围：6点到18点 (不含18点)
+            const isDayTime = hour24 >= 6 && hour24 < 18;
+
+            if (isDayTime) {
+                // 白天
+                bgDay.classList.add('active');
+                bgNight.classList.remove('active');
+                
+                sunIcon.classList.add('visible');
+                moonIcon.classList.remove('visible');
+                
+                instructionText.classList.remove('night-mode');
+                
+                // 太阳旋转动画
+                gsap.to(sunIcon, {rotation: 360, duration: 20, repeat: -1, ease: "linear"});
+            } else {
+                // 夜晚
+                bgNight.classList.add('active');
+                bgDay.classList.remove('active');
+                
+                moonIcon.classList.add('visible');
+                sunIcon.classList.remove('visible');
+                
+                instructionText.classList.add('night-mode');
+                
+                // 月亮摇摆动画
+                gsap.to(moonIcon, {rotation: 15, duration: 3, yoyo: true, repeat: -1, ease: "sine.inOut"});
+            }
+        }
+
+        // 设置指针位置
+        function setClockHands(minuteAngle) {
+            state.currentMinuteAngle = minuteAngle;
+            
+            let normalizedMinuteAngle = minuteAngle % 360;
+            if (normalizedMinuteAngle < 0) normalizedMinuteAngle += 360;
+            
+            // 分针转动
+            minuteHandGroup.setAttribute("transform", `rotate(${normalizedMinuteAngle}, 200, 200)`);
+            
+            // 时针联动: 目标小时 + 分针偏移
+            // 注意：targetHour是24小时制，转为12小时角度
+            let hourBase = (state.targetHour % 12);
+            let hourAngle = hourBase * 30 + (normalizedMinuteAngle / 12);
+            
+            hourHand.setAttribute("transform", `rotate(${hourAngle}, 200, 200)`);
+        }
+
+        // 交互逻辑
+        function getAngle(event) {
+            const svg = document.getElementById('analogClock');
+            const pt = svg.createSVGPoint();
+            // 区分触摸和鼠标
+            if (event.type.startsWith('touch')) {
+                pt.x = event.touches[0].clientX;
+                pt.y = event.touches[0].clientY;
+            } else {
+                pt.x = event.clientX;
+                pt.y = event.clientY;
+            }
+            
+            const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+            const dx = svgP.x - 200;
+            const dy = svgP.y - 200;
+            
+            let rad = Math.atan2(dy, dx);
+            let deg = rad * 180 / Math.PI;
+            deg += 90; 
+            
+            if (deg < 0) deg += 360;
+            return deg;
+        }
+
+        function onDragStart(e) {
+            e.preventDefault();
+            state.isDragging = true;
+            let angle = getAngle(e);
+            updateHand(snapToMinuteStep(angle));
+        }
+
+        function onDragMove(e) {
+            if (!state.isDragging) return;
+            e.preventDefault();
+            let angle = getAngle(e);
+            const snappedAngle = snapToMinuteStep(angle);
+            
+            if(Math.abs(snappedAngle - state.currentMinuteAngle) > 0.1) playClickSound();
+            updateHand(snappedAngle);
+        }
+
+        function onDragEnd(e) {
+            state.isDragging = false;
+        }
+
+        function updateHand(angle) {
+            setClockHands(angle);
+        }
+
+        function snapToMinuteStep(angle) {
+            const snapGap = 30; // 每5分钟一个刻度，便于低龄学生稳定作答
+            return Math.round(angle / snapGap) * snapGap;
+        }
+
+        // 事件监听
+        const clockSvg = document.getElementById('analogClock');
+        
+        // 鼠标
+        clockSvg.addEventListener('mousedown', (e) => {
+            if(e.target.classList.contains('hand-hit-area')) onDragStart(e);
+        });
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+
+        // 触摸
+        clockSvg.addEventListener('touchstart', (e) => {
+             if(e.target.classList.contains('hand-hit-area')) onDragStart(e);
+        }, {passive: false});
+        window.addEventListener('touchmove', onDragMove, {passive: false});
+        window.addEventListener('touchend', onDragEnd);
+
+        coverPage.addEventListener('click', startGame);
+        coverPage.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                startGame();
+            }
+        });
+        gameContainer.addEventListener('click', (e) => {
+            if (getComputedStyle(coverPage).display !== 'none') startGame();
+        });
+
+        // 校验答案
+        function checkAnswer() {
+            playSubmitSound();
+            const targetAngle = state.targetMinute * 6;
+            let current = state.currentMinuteAngle % 360;
+            if(current < 0) current += 360;
+            
+            const diff = Math.abs(current - targetAngle);
+            const isCorrect = diff < 4 || Math.abs(diff - 360) < 4;
+
+            if (isCorrect) {
+                handleCorrect();
+            } else {
+                handleWrong();
+            }
+        }
+
+        function handleCorrect() {
+            playCorrectSound();
+            state.score += 10;
+            scoreDisplay.textContent = state.score;
+            
+            feedbackText.textContent = "太棒了!";
+            feedbackText.classList.remove("wrong");
+            feedbackText.classList.add("correct");
+            
+            gsap.set(feedbackText, {opacity: 0, scale: 0.58, rotation: -4, y: 20});
+            gsap.to(feedbackText, {opacity: 1, scale: 1, rotation: 0, y: 0, duration: 0.42, ease: "back.out(1.8)"});
+            gsap.to(feedbackText, {opacity: 0, scale: 0.82, y: -16, delay: 1.05, duration: 0.38, ease: "power2.in"});
+            
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            submitBtn.disabled = true;
+
+            setTimeout(() => {
+                newQuestion();
+                gsap.set(feedbackText, {scale: 0.82, opacity: 0, rotation: 0, y: 0});
+            }, 2000);
+        }
+
+        function handleWrong() {
+            playWrongSound();
+            feedbackText.textContent = "再试试!";
+            feedbackText.classList.remove("correct");
+            feedbackText.classList.add("wrong");
+            
+            gsap.fromTo(".clock-container", {x: 0, rotate: -2}, {x: 0, rotate: 2, duration: 0.1, repeat: 3, yoyo: true, onComplete: () => {
+                gsap.set(".clock-container", {x: 0, rotate: 0});
+            }});
+
+            gsap.set(feedbackText, {opacity: 0, scale: 0.72, rotation: 3, y: 18});
+            gsap.to(feedbackText, {opacity: 1, scale: 1, rotation: 0, y: 0, duration: 0.28, ease: "back.out(1.4)"});
+            gsap.to(feedbackText, {opacity: 0, scale: 0.88, y: -10, delay: 0.9, duration: 0.32, ease: "power2.in"});
+        }
+
+        // 页面控制
+        function startGame() {
+            if(state.isGameStarted) return;
+            state.isGameStarted = true;
+
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            playStartSound();
+            
+            // 清除可能存在的旧定时器
+            if(secondHandTimer) {
+                clearInterval(secondHandTimer);
+                secondHandTimer = null;
+            }
+
+            const cover = document.getElementById('coverPage');
+            const game = document.getElementById('gamePage');
+            
+            cover.style.opacity = 0;
+            setTimeout(() => {
+                cover.style.display = 'none';
+                game.style.display = 'flex';
+                
+                gsap.to(game, {opacity: 1, duration: 0.5});
+                gsap.from(".clock-container", {scale: 0, rotation: -180, duration: 1, ease: "back.out(1.7)"});
+                gsap.from(".target-card", {y: -100, opacity: 0, duration: 0.8, delay: 0.5, ease: "power2.out"});
+                
+                newQuestion();
+            }, 500);
+
+            startSecondHand();
+        }
+
+        function goHome() {
+            // 清除秒针定时器
+            if(secondHandTimer) {
+                clearInterval(secondHandTimer);
+                secondHandTimer = null;
+            }
+
+            const cover = document.getElementById('coverPage');
+            const game = document.getElementById('gamePage');
+            
+            gsap.to(game, {opacity: 0, duration: 0.5, onComplete: () => {
+                game.style.display = 'none';
+                cover.style.display = 'flex';
+                cover.style.opacity = 1;
+                state.isGameStarted = false;
+            }});
+        }
+
+        function startSecondHand() {
+            let s = 0;
+            secondHandTimer = setInterval(() => {
+                s += 6;
+                secondHand.setAttribute("transform", `rotate(${s}, 200, 200)`);
+            }, 1000);
+        }
+
+        // 初始化
+        initClockFace();
+
+    </script>
+</body>
+</html>

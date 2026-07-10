@@ -154,6 +154,7 @@ export default function InspirationSection({
   const subNavWrapRef = useRef<HTMLDivElement | null>(null);
   const tabRefs = useRef(new Map<InspirationTabId, HTMLButtonElement>());
   const [subNavPointerLeft, setSubNavPointerLeft] = useState(78);
+  const [hoveredFilterKey, setHoveredFilterKey] = useState<string | null>(null);
 
   const updateSubNavPointer = useCallback(() => {
     const activeTabElement = tabRefs.current.get(activeTab);
@@ -327,7 +328,13 @@ export default function InspirationSection({
                     tabRefs.current.delete(tab.id);
                   }
                 }}
-                style={{ ...styles.tab, ...(active ? styles.tabActive : {}) }}
+                style={{
+                  ...styles.tab,
+                  ...(hoveredFilterKey === `tab-${tab.id}` && !active ? styles.filterButtonHover : {}),
+                  ...(active ? styles.tabActive : {}),
+                }}
+                onMouseEnter={() => setHoveredFilterKey(`tab-${tab.id}`)}
+                onMouseLeave={() => setHoveredFilterKey(null)}
                 onMouseDown={event => event.preventDefault()}
                 onClick={() => handleTabChange(tab.id)}
               >
@@ -344,7 +351,13 @@ export default function InspirationSection({
             <div className="inspiration-scroll" style={styles.subNav}>
               <button
                 type="button"
-                style={{ ...styles.subNavPill, ...(activeSecondary === 'all' ? styles.subNavPillActive : {}) }}
+                style={{
+                  ...styles.subNavPill,
+                  ...(hoveredFilterKey === 'secondary-all' && activeSecondary !== 'all' ? styles.filterButtonHover : {}),
+                  ...(activeSecondary === 'all' ? styles.subNavPillActive : {}),
+                }}
+                onMouseEnter={() => setHoveredFilterKey('secondary-all')}
+                onMouseLeave={() => setHoveredFilterKey(null)}
                 onMouseDown={event => event.preventDefault()}
                 onClick={() => handleSecondaryChange('all')}
               >
@@ -356,7 +369,13 @@ export default function InspirationSection({
                   <button
                     key={option.id}
                     type="button"
-                    style={{ ...styles.subNavPill, ...(active ? styles.subNavPillActive : {}) }}
+                    style={{
+                      ...styles.subNavPill,
+                      ...(hoveredFilterKey === `secondary-${option.id}` && !active ? styles.filterButtonHover : {}),
+                      ...(active ? styles.subNavPillActive : {}),
+                    }}
+                    onMouseEnter={() => setHoveredFilterKey(`secondary-${option.id}`)}
+                    onMouseLeave={() => setHoveredFilterKey(null)}
                     onMouseDown={event => event.preventDefault()}
                     onClick={() => handleSecondaryChange(option.id)}
                   >
@@ -581,30 +600,40 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
     height: 32,
     padding: '0 12px',
-    borderRadius: 8,
-    border: '1px solid var(--agent-border)',
-    background: '#FFFFFF',
+    borderRadius: 10,
+    border: '1px solid #CBD5E1',
+    borderColor: '#CBD5E1',
+    background: '#F8FAFC',
     color: '#475569',
     fontSize: 13,
     fontWeight: 850,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     outline: 'none',
+    transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s',
+  },
+  filterButtonHover: {
+    background: '#F6FCFF',
+    borderColor: '#BFE9F5',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.08)',
   },
   tabActive: {
-    borderColor: 'var(--agent-primary)',
-    background: 'var(--agent-soft-strong)',
+    borderColor: '#BFE9F5',
+    background: '#F1FAFF',
     color: 'var(--agent-primary-text)',
+    fontWeight: 700,
+    boxShadow: 'none',
   },
   subNavWrap: {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
     minWidth: 0,
-    padding: '8px 10px',
-    borderRadius: 12,
-    background: 'rgba(255, 255, 255, 0.58)',
-    border: '1px solid rgba(125, 211, 197, 0.45)',
+    padding: 4,
+    borderRadius: 10,
+    background: 'rgba(255, 255, 255, 0.68)',
+    border: '1px solid var(--agent-border)',
     overflow: 'visible',
   },
   subNavPointer: {
@@ -614,14 +643,12 @@ const styles: Record<string, React.CSSProperties> = {
     width: 12,
     height: 12,
     transform: 'rotate(45deg)',
-    background: 'rgba(255, 255, 255, 0.8)',
-    borderLeft: '1px solid rgba(125, 211, 197, 0.45)',
-    borderTop: '1px solid rgba(125, 211, 197, 0.45)',
+    display: 'none',
   },
   subNav: {
     display: 'flex',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     minWidth: 0,
     overflowX: 'auto',
     position: 'relative',
@@ -632,22 +659,25 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: 28,
-    padding: '0 10px',
-    borderRadius: 999,
-    border: '1px solid transparent',
-    background: 'transparent',
-    color: '#64748B',
+    padding: '0 12px',
+    borderRadius: 10,
+    border: '1px solid #CBD5E1',
+    borderColor: '#CBD5E1',
+    background: '#F8FAFC',
+    color: '#475569',
     fontSize: 12,
     fontWeight: 850,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     outline: 'none',
+    transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s',
   },
   subNavPillActive: {
-    background: '#FFFFFF',
-    borderColor: 'var(--agent-primary)',
+    background: '#F1FAFF',
+    borderColor: '#BFE9F5',
     color: 'var(--agent-primary-text)',
-    boxShadow: '0 6px 14px rgba(34, 197, 190, 0.12)',
+    fontWeight: 700,
+    boxShadow: 'none',
   },
   templateGrid: {
     display: 'grid',
@@ -662,6 +692,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 0,
     borderRadius: 14,
     border: '1px solid var(--agent-border)',
+    borderColor: 'var(--agent-border)',
     background: '#FFFFFF',
     boxShadow: '0 10px 24px rgba(37, 74, 120, 0.07)',
     overflow: 'hidden',
@@ -721,7 +752,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 4,
     height: 22,
     padding: '0 8px',
-    borderRadius: 999,
+    borderRadius: 8,
     background: 'var(--agent-soft-strong)',
     color: 'var(--agent-primary-text)',
     fontSize: 11,
@@ -756,7 +787,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 5,
     height: 30,
     padding: '0 10px',
-    borderRadius: 8,
+    borderRadius: 10,
     border: '1px solid rgba(14, 165, 233, 0.34)',
     background: 'linear-gradient(180deg, rgba(240, 249, 255, 0.96), rgba(236, 253, 245, 0.92))',
     color: 'var(--agent-primary-text)',
@@ -772,7 +803,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     height: 30,
     padding: '0 12px',
-    borderRadius: 8,
+    borderRadius: 10,
     border: 'none',
     background: 'var(--agent-action-gradient)',
     color: '#FFFFFF',

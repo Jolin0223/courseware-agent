@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Download, CheckCircle2, Sparkles, Edit3, MessageSquareWarning, FileCode2, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, FileCode2, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Courseware, LearningDataRecoveryRequest, VisualStyleRegenerationRequest } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
@@ -40,6 +40,8 @@ const MOCK_AUDIOS: Array<
   { id: 'audio-3', label: '游戏背景音乐', type: 'bgm', status: 'completed', duration: 30.0 },
 ];
 
+const UI_RADIUS = 10;
+
 export default function CoursewareCard({
   courseware,
   version = 'v1.0',
@@ -47,16 +49,14 @@ export default function CoursewareCard({
   onOpenPreview,
   onLearningDataRecoveryRequest,
   onVisualStyleRegenerate,
-  onUndoResult,
   publishBadgeLabel,
 }: {
   courseware: Courseware;
   version?: string;
   isLatest?: boolean;
-  onOpenPreview?: (coursewareId: number) => void;
+  onOpenPreview?: (coursewareId: number, version?: string | null) => void;
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
-  onUndoResult?: () => void;
   publishBadgeLabel?: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -86,6 +86,9 @@ export default function CoursewareCard({
   const isEmbedded = appMode === 'embedded';
   const feedbackLocator = '2fc7b609481e45868a38a74b4490400a';
   const feedbackTime = '2026-06-05 14:30';
+  const versionNumberMatch = currentVersion.match(/第(\d+)版/);
+  const previewVersionKey = versionNumberMatch?.[1] ? `v${versionNumberMatch[1]}` : currentVersion;
+  const metaItems = ['刚刚生成', publishBadgeLabel].filter(Boolean);
   const feedbackText = `【AI互动课件问题反馈】
 课件名称：${courseware.title}
 当前版本：${currentVersion}
@@ -309,16 +312,15 @@ export default function CoursewareCard({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 4,
     minHeight: 34,
-    padding: '0 12px',
-    borderRadius: 9,
-    border: variant === 'primary'
-      ? '1px solid rgba(15, 118, 110, 0.22)'
-      : '1px solid #DDE7EE',
+    padding: '0 10px',
+    borderRadius: UI_RADIUS,
+    border: '1px solid #DDE7EE',
+    borderColor: '#DDE7EE',
     background: enabled
       ? variant === 'primary'
-        ? 'linear-gradient(180deg, #FFFFFF 0%, var(--agent-soft) 100%)'
+        ? '#F6FCFF'
         : '#FFFFFF'
       : '#F8FAFC',
     color: enabled
@@ -326,26 +328,25 @@ export default function CoursewareCard({
         ? 'var(--agent-primary-text)'
         : '#475569'
       : '#CBD5E1',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 750,
     cursor: enabled ? 'pointer' : 'not-allowed',
     opacity: enabled ? 1 : 0.68,
-    transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s',
+    transition: 'border-color 0.15s, color 0.15s, background 0.15s',
     outline: 'none',
     whiteSpace: 'nowrap',
+    boxShadow: 'none',
   });
 
   const handleActionEnter = (event: React.MouseEvent<HTMLButtonElement>, enabled = true) => {
     if (!enabled) return;
-    event.currentTarget.style.borderColor = 'rgba(15, 118, 110, 0.36)';
+    event.currentTarget.style.borderColor = 'var(--agent-primary)';
     event.currentTarget.style.color = 'var(--agent-primary-text)';
-    event.currentTarget.style.background = 'var(--agent-soft)';
-    event.currentTarget.style.boxShadow = '0 6px 16px rgba(15, 118, 110, 0.10)';
-    event.currentTarget.style.transform = 'translateY(-1px)';
+    event.currentTarget.style.background = '#FFFFFF';
   };
 
   const handleActionLeave = (
-    event: React.MouseEvent<HTMLButtonElement>,
+    event: React.MouseEvent<HTMLButtonElement> | React.FocusEvent<HTMLButtonElement>,
     variant: 'primary' | 'secondary' = 'secondary',
     enabled = true,
   ) => {
@@ -353,87 +354,107 @@ export default function CoursewareCard({
     event.currentTarget.style.borderColor = String(nextStyle.borderColor || '');
     event.currentTarget.style.color = String(nextStyle.color || '');
     event.currentTarget.style.background = String(nextStyle.background || '');
-    event.currentTarget.style.boxShadow = 'none';
-    event.currentTarget.style.transform = 'none';
   };
 
   return (
     <>
       <div style={{
         background: '#fff',
-        borderRadius: 14,
+        borderRadius: UI_RADIUS,
         border: '1px solid #E2E8F0',
-        overflow: 'hidden',
+        overflow: 'visible',
         width: '100%',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        boxShadow: '0 8px 24px rgba(37, 74, 120, 0.08)',
         cursor: onOpenPreview ? 'pointer' : 'default',
+        position: 'relative',
       }}
-        onClick={() => onOpenPreview?.(courseware.id)}
+        onClick={() => onOpenPreview?.(courseware.id, previewVersionKey)}
       >
         <div
-          onClick={() => onOpenPreview?.(courseware.id)}
+          onClick={() => onOpenPreview?.(courseware.id, previewVersionKey)}
           style={{
-          background: 'var(--agent-surface-gradient, var(--agent-gradient))',
+          background: 'var(--agent-courseware-header)',
           padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
           gap: 14,
           cursor: onOpenPreview ? 'pointer' : 'default',
+          borderRadius: `${UI_RADIUS}px ${UI_RADIUS}px 0 0`,
         }}
         >
           <div style={{
-            width: 44, height: 44, borderRadius: 12,
-            background: 'rgba(6, 72, 150, 0.22)', backdropFilter: 'blur(8px)',
+            width: 44, height: 44, borderRadius: UI_RADIUS,
+            background: 'var(--agent-gradient)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            color: '#FFFFFF', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.34), 0 8px 18px rgba(7, 89, 201, 0.12)',
+            color: '#FFFFFF',
+            boxShadow: '0 10px 22px var(--agent-shadow), inset 0 1px 0 rgba(255,255,255,0.28)',
           }}>
             <FileCode2 size={21} strokeWidth={2.2} />
             <span style={{ fontSize: 8, fontWeight: 900, lineHeight: 1, marginTop: 1 }}>HTML</span>
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px rgba(5, 35, 86, 0.18)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{courseware.title}</span>
-              {publishBadgeLabel && (
-                <span style={{
-                  flexShrink: 0,
-                  padding: '2px 7px',
-                  borderRadius: 999,
-                  background: 'rgba(255,255,255,0.22)',
-                  border: '1px solid rgba(255,255,255,0.34)',
-                  color: '#FFFFFF',
-                  fontSize: 11,
-                  fontWeight: 800,
-                  lineHeight: 1.4,
-                }}>
-                  {publishBadgeLabel}
-                </span>
-              )}
+              <span style={{ fontSize: 16, fontWeight: 760, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{courseware.title}</span>
             </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.86)', marginTop: 3, textShadow: '0 1px 2px rgba(5, 35, 86, 0.14)' }}>刚刚生成</div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              color: '#64748B',
+              marginTop: 3,
+              minWidth: 0,
+            }}>
+              {metaItems.map((item, index) => (
+                <span
+                  key={item}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    minWidth: 0,
+                    color: item === publishBadgeLabel ? 'var(--agent-primary-text)' : '#64748B',
+                    fontWeight: item === publishBadgeLabel ? 650 : 500,
+                  }}
+                >
+                  {index > 0 && <span style={{ width: 3, height: 3, borderRadius: 3, background: '#CBD5E1', flexShrink: 0 }} />}
+                  {item === publishBadgeLabel && <CheckCircle2 size={11} strokeWidth={2.1} />}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item}</span>
+                </span>
+              ))}
+            </div>
           </div>
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            background: 'rgba(255,255,255,0.26)', backdropFilter: 'blur(8px)',
-            padding: '6px 12px', borderRadius: 20, fontSize: 13, color: '#fff', fontWeight: 600,
-            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.24)',
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+            height: 22,
+            padding: '0 2px',
+            fontSize: 12,
+            color: '#64748B',
+            fontWeight: 650,
+            lineHeight: 1,
+            flexShrink: 0,
           }}>
-            <Sparkles size={14} />
             {currentVersion}
           </div>
         </div>
 
-        <div style={{ padding: '14px 20px', background: '#FAFBFC' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ padding: '14px 20px', background: '#FAFBFC', borderRadius: `0 0 ${UI_RADIUS}px ${UI_RADIUS}px`, position: 'relative', zIndex: 2 }} onClick={(e) => e.stopPropagation()}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
-            flexWrap: 'wrap',
+            gap: 6,
+            flexWrap: 'nowrap',
+            overflow: 'visible',
           }}>
           <button
             onClick={handleClone}
             style={getActionButtonStyle('primary')}
+            onMouseDown={e => e.preventDefault()}
             onMouseEnter={e => handleActionEnter(e)}
             onMouseLeave={e => handleActionLeave(e, 'primary')}
+            onBlur={e => handleActionLeave(e, 'primary')}
           >
             {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
             {copied ? '已带入' : '一键同款'}
@@ -445,8 +466,10 @@ export default function CoursewareCard({
             <button
               onClick={() => { if (isLatest) setShowEditModal(true); }}
               style={getActionButtonStyle('secondary', isLatest)}
+              onMouseDown={e => e.preventDefault()}
               onMouseEnter={e => handleActionEnter(e, isLatest)}
               onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest)}
+              onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
             >
               <Edit3 size={15} />
               编辑资源
@@ -454,8 +477,8 @@ export default function CoursewareCard({
             {editDisabledTooltip && !isLatest && (
               <div style={{
                 position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
-                marginBottom: 6, padding: '6px 10px', borderRadius: 6, background: '#1E293B', color: '#fff',
-                fontSize: 11, whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff',
+                fontSize: 11, whiteSpace: 'nowrap', zIndex: 40, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}>
                 当前为旧版，不支持编辑，请在最新版互动游戏上编辑资源哦~
               </div>
@@ -468,30 +491,34 @@ export default function CoursewareCard({
             <button
               onClick={() => { if (isLatest) setShowVisualStyleModal(true); }}
               style={getActionButtonStyle('secondary', isLatest)}
+              onMouseDown={e => e.preventDefault()}
               onMouseEnter={e => handleActionEnter(e, isLatest)}
               onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest)}
+              onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
             >
               <Palette size={15} />
-              调整画面风格
+              调整风格
             </button>
             {styleDisabledTooltip && !isLatest && (
               <div style={{
                 position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
-                marginBottom: 6, padding: '6px 10px', borderRadius: 6, background: '#1E293B', color: '#fff',
-                fontSize: 11, whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff',
+                fontSize: 11, whiteSpace: 'nowrap', zIndex: 40, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}>
-                当前为旧版，请在最新版课件上调整画面风格
+                当前为旧版，请在最新版课件上调整风格
               </div>
             )}
           </div>
           <button
             onClick={() => setShowLearningDataModal(true)}
             style={getActionButtonStyle('secondary')}
+            onMouseDown={e => e.preventDefault()}
             onMouseEnter={e => handleActionEnter(e)}
             onMouseLeave={e => handleActionLeave(e)}
+            onBlur={e => handleActionLeave(e)}
           >
             <BarChart3 size={15} />
-            预览报告展示
+            预览报告
           </button>
           {isEmbedded && (
             <button
@@ -509,7 +536,7 @@ export default function CoursewareCard({
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 13px',
                 minHeight: 34,
-                borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
+                borderRadius: UI_RADIUS, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
                 background: 'var(--agent-action-gradient)', color: '#fff',
                 transition: 'all 0.15s', outline: 'none',
               }}
@@ -548,24 +575,6 @@ export default function CoursewareCard({
           {feedbackCopied ? <CheckCircle2 size={13} /> : <MessageSquareWarning size={13} />}
           <span style={{ fontWeight: 600 }}>{feedbackCopied ? '已复制反馈信息' : '反馈问题'}</span>
         </button>
-        {onUndoResult && (
-          <button
-            onClick={onUndoResult}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 4, padding: 0,
-              border: 'none', background: 'transparent',
-              color: '#64748B',
-              cursor: 'pointer', outline: 'none', lineHeight: 1.2,
-              fontSize: 12, fontWeight: 650,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--agent-primary-text)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#64748B'; }}
-            title="撤回本次生成"
-          >
-            <RotateCcw size={13} />
-            <span>撤回</span>
-          </button>
-        )}
       </div>
 
       <ResourceEditModal
@@ -701,12 +710,14 @@ export default function CoursewareCard({
                           minHeight: 174,
                           padding: 10,
                           borderRadius: 14,
-                          border: selected ? '2px solid var(--agent-primary)' : '1px solid #E2E8F0',
-                          background: selected ? 'var(--agent-soft)' : '#FFFFFF',
+                          border: selected ? '1px solid #BFE9F5' : '1px solid #E2E8F0',
+                          borderColor: selected ? '#BFE9F5' : '#E2E8F0',
+                          background: selected ? '#F1FAFF' : '#FFFFFF',
                           cursor: 'pointer',
                           textAlign: 'left',
                           transition: 'all 0.15s',
-                          boxShadow: selected ? '0 10px 28px rgba(15, 118, 110, 0.12)' : 'none',
+                          boxShadow: selected ? '0 10px 24px rgba(14, 165, 233, 0.10)' : 'none',
+                          outline: 'none',
                         }}
                       >
                         <div style={{
@@ -858,11 +869,13 @@ export default function CoursewareCard({
                           minHeight: 92,
                           padding: 8,
                           borderRadius: 14,
-                          border: selected ? '1.5px solid rgba(15, 118, 110, 0.78)' : '1px solid #E2E8F0',
+                          border: selected ? '1px solid #BFE9F5' : '1px solid #E2E8F0',
+                          borderColor: selected ? '#BFE9F5' : '#E2E8F0',
                           background: selected ? '#FFFFFF' : 'rgba(255,255,255,0.82)',
                           cursor: 'pointer',
                           textAlign: 'left',
-                          boxShadow: selected ? '0 8px 18px rgba(15, 118, 110, 0.10)' : 'none',
+                          boxShadow: selected ? '0 8px 18px rgba(14, 165, 233, 0.10)' : 'none',
+                          outline: 'none',
                         }}
                       >
                         {previewImage && (

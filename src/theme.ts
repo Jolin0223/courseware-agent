@@ -71,7 +71,7 @@ export const AGENT_THEMES: AgentThemeOption[] = [
 ];
 
 const THEME_STORAGE_KEY = 'courseware-agent-theme';
-const DEFAULT_THEME_ID: AgentThemeId = 'green';
+const DEFAULT_THEME_ID: AgentThemeId = 'iteach';
 
 const aliases: Record<string, AgentThemeId> = {
   default: 'green',
@@ -100,7 +100,7 @@ export function getAgentTheme(id?: string | null) {
 export function getStoredThemeId(): AgentThemeId {
   if (typeof window === 'undefined') return DEFAULT_THEME_ID;
   const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-  return getAgentTheme(stored).id;
+  return stored ? getAgentTheme(stored).id : DEFAULT_THEME_ID;
 }
 
 export function applyAgentTheme(id: AgentThemeId, persist = true) {

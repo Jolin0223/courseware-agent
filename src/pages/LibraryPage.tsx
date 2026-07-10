@@ -40,11 +40,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tabs: {
     display: 'flex',
-    gap: 4,
-    padding: '4px',
-    background: 'var(--agent-soft)',
-    border: '1px solid var(--agent-border)',
-    borderRadius: 10,
+    gap: 7,
     width: 'fit-content',
   },
   tabsSearchRow: {
@@ -55,20 +51,31 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 24,
   },
   tab: {
-    padding: '10px 24px',
-    borderRadius: 8,
+    height: 34,
+    minWidth: 88,
+    padding: '0 16px',
+    borderRadius: 10,
     fontSize: 14,
-    fontWeight: 500,
-    border: 'none',
-    background: 'transparent',
-    color: '#64748B',
+    fontWeight: 700,
+    border: '1px solid #CBD5E1',
+    borderColor: '#CBD5E1',
+    background: '#F8FAFC',
+    color: '#475569',
     cursor: 'pointer',
-    transition: 'all 0.15s',
+    transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s',
+    outline: 'none',
+  },
+  tabHover: {
+    background: '#F6FCFF',
+    borderColor: '#BFE9F5',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.08)',
   },
   tabActive: {
-    background: '#FFFFFF',
+    background: '#F1FAFF',
+    borderColor: '#BFE9F5',
     color: 'var(--agent-primary-text)',
-    boxShadow: '0 1px 3px rgba(37, 74, 120, 0.08)',
+    boxShadow: 'none',
   },
   emptyState: {
     textAlign: 'center',
@@ -119,6 +126,7 @@ const styles: Record<string, React.CSSProperties> = {
 
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('all');
+  const [hoveredTab, setHoveredTab] = useState<TabKey | null>(null);
   const [keyword, setKeyword] = useState('');
   const {
     coursewares,
@@ -223,8 +231,12 @@ export default function LibraryPage() {
               key={tab.key}
               style={{
                 ...styles.tab,
+                ...(hoveredTab === tab.key && activeTab !== tab.key ? styles.tabHover : {}),
                 ...(activeTab === tab.key ? styles.tabActive : {}),
               }}
+              onMouseEnter={() => setHoveredTab(tab.key)}
+              onMouseLeave={() => setHoveredTab(null)}
+              onMouseDown={event => event.preventDefault()}
               onClick={() => setActiveTab(tab.key)}
             >
               {tab.label}

@@ -9,6 +9,7 @@ import toast from '../../utils/toast';
 
 interface PreviewPanelProps {
   coursewareId: number | null;
+  initialVersion?: string | null;
   onClose: () => void;
 }
 
@@ -50,7 +51,18 @@ interface PublishedGameTarget {
   subject?: string;
 }
 
-const REAL_CASE_TITLES = ['近义词大挑战', '单词神枪手', '比绳子长短'];
+const REAL_CASE_TITLES = [
+  '近义词大挑战',
+  '单词神枪手',
+  '比绳子长短',
+  '孙悟空换装搭配挑战',
+  '战舰逻辑挑战-行列推理',
+  '转一转找答案-时钟认读',
+  '分数披萨店-分数配餐',
+  '对话连连看-问答连线',
+  'Make-a-Word果冻拼词',
+  '汉字拼图Rush-部件拼字',
+];
 
 const isRealCaseCourseware = (title?: string) => {
   return REAL_CASE_TITLES.some(caseTitle => title?.includes(caseTitle));
@@ -141,7 +153,7 @@ const buildPublishedTargets = (courseware?: { title?: string; subject?: string }
   ];
 };
 
-export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProps) {
+export default function PreviewPanel({ coursewareId, initialVersion, onClose }: PreviewPanelProps) {
   const { coursewares, updateCourseware } = useCoursewareStore();
   const { appMode, insertCourseware } = useUIStore();
   const isEmbedded = appMode === 'embedded';
@@ -167,13 +179,19 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
 
   const [publishedTargets, setPublishedTargets] = useState<PublishedGameTarget[]>(() => buildPublishedTargets(versionSourceCourseware));
 
-  const [selectedVersion, setSelectedVersion] = useState(() => buildSessionVersions(versionSourceCourseware).at(-1)?.version || 'v1');
+  const [selectedVersion, setSelectedVersion] = useState(() => {
+    const initialVersions = buildSessionVersions(versionSourceCourseware);
+    return (initialVersion && initialVersions.some(version => version.version === initialVersion))
+      ? initialVersion
+      : initialVersions.at(-1)?.version || 'v1';
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
   const [selectedUpdateTargetId, setSelectedUpdateTargetId] = useState<string | null>('game-b');
   const [publishMode, setPublishMode] = useState<PublishMode | null>(null);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('default');
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [hoveredHeaderButton, setHoveredHeaderButton] = useState<string | null>(null);
   const publishBtnRef = useRef<HTMLDivElement>(null);
   const versionScrollRef = useRef<HTMLDivElement>(null);
 
@@ -181,12 +199,16 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
     const nextVersions = buildSessionVersions(versionSourceCourseware);
     setVersions(nextVersions);
     setPublishedTargets(buildPublishedTargets(versionSourceCourseware));
-    setSelectedVersion(nextVersions.at(-1)?.version || 'v1');
+    setSelectedVersion(
+      (initialVersion && nextVersions.some(version => version.version === initialVersion))
+        ? initialVersion
+        : nextVersions.at(-1)?.version || 'v1'
+    );
     setSelectedUpdateTargetId('game-b');
     setIsEditing(false);
     setEditContent('');
     setFullscreenOpen(false);
-  }, [coursewareId, versionSourceCourseware?.htmlContent, versionSourceCourseware?.title]);
+  }, [coursewareId, initialVersion, versionSourceCourseware?.htmlContent, versionSourceCourseware?.title]);
 
   useEffect(() => {
     if (!fullscreenOpen) return;
@@ -311,7 +333,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
   };
 
   const getVersionMainLabel = (version: SessionHtmlVersion) => {
-    const prefix = `会话第${version.sessionNumber}版`;
+    const prefix = `第${version.sessionNumber}版`;
     return hasMultiplePublishedGames ? `${prefix} · ${version.title}` : prefix;
   };
 
@@ -339,6 +361,21 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
         ? '已发布(历史版本)'
         : '发布';
   const publishBtnDisabled = (currentVersion?.isCurrentPublished || currentVersion?.isHistoricalPublished || currentVersion?.isRemoved) && !canUpdateCurrentDraft;
+  const getActionButtonStyle = (
+    key: string,
+    variant: 'primary' | 'warning' | 'disabled',
+  ): React.CSSProperties => ({
+    ...panelStyle.actionBtn,
+    ...(variant === 'primary' ? panelStyle.actionBtnPrimary : {}),
+    ...(variant === 'warning' ? panelStyle.actionBtnWarning : {}),
+    ...(variant === 'disabled' ? panelStyle.actionBtnDisabled : {}),
+    ...(hoveredHeaderButton === key && variant !== 'disabled' ? panelStyle.actionBtnHover : {}),
+  });
+  const getIconButtonStyle = (key: string, disabled = false): React.CSSProperties => ({
+    ...panelStyle.iconBtn,
+    ...(hoveredHeaderButton === key && !disabled ? panelStyle.iconBtnHover : {}),
+    ...(disabled ? panelStyle.iconBtnDisabled : {}),
+  });
   const renderPublishActions = (options?: { exitFullscreenFirst?: boolean }) => {
     const exitFullscreenFirst = options?.exitFullscreenFirst;
     const runOutsideFullscreen = (action: () => void) => {
@@ -346,13 +383,17 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
       action();
     };
 
+    if (publishBtnDisabled) return null;
+
     return (
       <div ref={exitFullscreenFirst ? undefined : publishBtnRef} style={{ position: 'relative', display: 'flex', gap: 6 }}>
         {canUpdateCurrentDraft ? (
           <>
             <button
               onClick={() => runOutsideFullscreen(handleUpdatePublishClick)}
-              style={{ ...panelStyle.actionBtn, background: 'var(--agent-gradient)', color: '#fff' }}
+              onMouseEnter={() => setHoveredHeaderButton('replace')}
+              onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'replace' ? null : prev)}
+              style={getActionButtonStyle('replace', 'primary')}
               title="替换"
             >
               <RefreshCw size={14} />
@@ -360,7 +401,9 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
             </button>
             <button
               onClick={() => runOutsideFullscreen(() => setPublishMode('new-game'))}
-              style={{ ...panelStyle.actionBtn, background: '#F59E0B', color: '#fff' }}
+              onMouseEnter={() => setHoveredHeaderButton('new-game')}
+              onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'new-game' ? null : prev)}
+              style={getActionButtonStyle('new-game', 'warning')}
               title="发布"
             >
               <Send size={14} />
@@ -368,18 +411,14 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
             </button>
           </>
         ) : (
-          <button
-            onClick={() => runOutsideFullscreen(handlePublish)}
-            disabled={!!publishBtnDisabled}
-            style={{
-              ...panelStyle.actionBtn,
-              background: publishBtnDisabled ? '#F1F5F9' : 'var(--agent-gradient)',
-              color: publishBtnDisabled ? '#94A3B8' : '#fff',
-              cursor: publishBtnDisabled ? 'default' : 'pointer',
-            }}
-            title={publishBtnText}
-          >
-            <Send size={14} />
+            <button
+              onClick={() => runOutsideFullscreen(handlePublish)}
+              onMouseEnter={() => setHoveredHeaderButton('publish')}
+              onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'publish' ? null : prev)}
+              style={getActionButtonStyle('publish', 'primary')}
+              title={publishBtnText}
+            >
+              <Send size={14} />
             {publishBtnText}
           </button>
         )}
@@ -399,7 +438,7 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
         <div style={panelStyle.headerLeft}>
           <div style={panelStyle.titleStack}>
             <span style={panelStyle.title}>{currentTitle}</span>
-            <span style={panelStyle.subTitle}>会话第 {currentVersion?.sessionNumber || 1} 版 · {currentVersion ? getVersionPublishLabel(currentVersion) : '未发布草稿'}</span>
+            <span style={panelStyle.subTitle}>第{currentVersion?.sessionNumber || 1}版 · {currentVersion ? getVersionPublishLabel(currentVersion) : '未发布草稿'}</span>
           </div>
         </div>
         <div style={panelStyle.headerRight}>
@@ -418,32 +457,41 @@ export default function PreviewPanel({ coursewareId, onClose }: PreviewPanelProp
                 toast(`"${courseware.title}" 已插入课件`);
                 onClose();
               }}
-              style={{
-                ...panelStyle.actionBtn,
-                background: '#F59E0B',
-                color: '#fff',
-              }}
+              onMouseEnter={() => setHoveredHeaderButton('insert')}
+              onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'insert' ? null : prev)}
+              style={getActionButtonStyle('insert', 'warning')}
               title="插入课件"
             >
               <Download size={14} />
               插入课件
             </button>
           )}
-          <button onClick={handleFullscreen} style={panelStyle.iconBtn} title="全屏">
+          <button
+            onClick={handleFullscreen}
+            onMouseEnter={() => setHoveredHeaderButton('fullscreen')}
+            onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'fullscreen' ? null : prev)}
+            style={getIconButtonStyle('fullscreen')}
+            title="全屏"
+          >
             <Maximize2 size={15} />
           </button>
           <button
             onClick={handleEdit}
             disabled={isRemovedVersion}
-            style={{
-              ...panelStyle.iconBtn,
-              ...(isRemovedVersion ? { color: '#CBD5E1', cursor: 'default', background: '#F8FAFC' } : {}),
-            }}
+            onMouseEnter={() => !isRemovedVersion && setHoveredHeaderButton('edit')}
+            onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'edit' ? null : prev)}
+            style={getIconButtonStyle('edit', isRemovedVersion)}
             title={isRemovedVersion ? '已下架资源不可编辑' : '编辑'}
           >
             <Edit3 size={15} />
           </button>
-          <button onClick={onClose} style={panelStyle.iconBtn} title="关闭">
+          <button
+            onClick={onClose}
+            onMouseEnter={() => setHoveredHeaderButton('close')}
+            onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'close' ? null : prev)}
+            style={getIconButtonStyle('close')}
+            title="关闭"
+          >
             <X size={15} />
           </button>
         </div>
@@ -673,14 +721,33 @@ const panelStyle: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: 4,
-    padding: '5px 12px',
-    borderRadius: 6,
+    minHeight: 30,
+    padding: '0 12px',
+    borderRadius: 10,
     border: 'none',
     fontSize: 13,
-    fontWeight: 500,
+    fontWeight: 700,
     outline: 'none',
-    transition: 'all 0.15s',
+    cursor: 'pointer',
+    transition: 'background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s',
     whiteSpace: 'nowrap',
+  },
+  actionBtnPrimary: {
+    background: 'var(--agent-gradient)',
+    color: '#FFFFFF',
+  },
+  actionBtnWarning: {
+    background: 'var(--agent-action-gradient)',
+    color: '#FFFFFF',
+  },
+  actionBtnDisabled: {
+    background: '#F1F5F9',
+    color: '#94A3B8',
+    cursor: 'default',
+  },
+  actionBtnHover: {
+    transform: 'translateY(-1px)',
+    boxShadow: '0 6px 16px rgba(14, 165, 233, 0.14)',
   },
   stylePanel: {
     position: 'absolute',
@@ -748,8 +815,9 @@ const panelStyle: Record<string, React.CSSProperties> = {
   iconBtn: {
     width: 30,
     height: 30,
-    borderRadius: 6,
+    borderRadius: 10,
     border: '1px solid #E2E8F0',
+    borderColor: '#E2E8F0',
     background: '#fff',
     color: '#64748B',
     display: 'flex',
@@ -757,7 +825,20 @@ const panelStyle: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     cursor: 'pointer',
     outline: 'none',
-    transition: 'all 0.15s',
+    transition: 'background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s',
+  },
+  iconBtnHover: {
+    borderColor: '#BFE9F5',
+    background: '#F6FCFF',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 6px 16px rgba(14, 165, 233, 0.10)',
+    transform: 'translateY(-1px)',
+  },
+  iconBtnDisabled: {
+    color: '#CBD5E1',
+    cursor: 'default',
+    background: '#F8FAFC',
+    borderColor: '#E2E8F0',
   },
   fullscreenMask: {
     position: 'fixed',
@@ -1032,6 +1113,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     padding: '0 9px',
     borderRadius: 6,
     border: '1px solid #D8F3EF',
+    borderColor: '#D8F3EF',
     background: '#FFFFFF',
     color: '#0F766E',
     fontSize: 12,

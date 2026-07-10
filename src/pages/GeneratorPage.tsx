@@ -1,6 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, type UIEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Headphones, Info, Mic, Sparkles } from 'lucide-react';
+import { ArrowUp, ChevronDown, ChevronUp, Headphones, Info, Mic, RotateCcw, Sparkles } from 'lucide-react';
 import ChatInput from '../components/Generator/ChatInput';
 // ChatHistory moved to Sidebar
 import RequirementCard from '../components/Generator/RequirementCard';
@@ -251,6 +251,10 @@ const buildVoiceCapabilityAppendix = (selection: VoiceCapabilitySelection) => {
   return lines.join('\n');
 };
 
+const CHAT_CONTENT_MAX_WITH_PREVIEW = 720;
+const CHAT_CONTENT_MAX_FULL = 864;
+const DEFAULT_CHAT_WIDTH_WITH_PREVIEW = 52;
+
 const isUserMaterialMessage = (content: ConversationMessage['content']): content is UserMaterialMessage => (
   typeof content === 'object'
   && content !== null
@@ -272,9 +276,12 @@ const styles: Record<string, React.CSSProperties> = {
   chatArea: {
     flex: 1,
     overflowY: 'auto',
-    padding: '24px 24px 24px 48px',
+    padding: '28px 48px 24px',
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
+    alignItems: 'center',
+    scrollbarGutter: 'stable',
   },
   messagesContainer: {
     flex: 1,
@@ -282,11 +289,16 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     gap: 16,
     width: '100%',
+    maxWidth: 'var(--chat-content-max, 864px)',
+    margin: '0 auto',
     transition: 'padding-right 0.3s ease',
   },
   inputArea: {
-    padding: '16px 24px 24px',
+    padding: '16px 48px 24px',
     width: '100%',
+    boxSizing: 'border-box',
+    display: 'flex',
+    justifyContent: 'center',
     transition: 'padding-right 0.3s ease',
   },
   welcomeSection: {
@@ -298,6 +310,27 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: 0,
     overflowY: 'auto',
     padding: '36px 24px 48px',
+  },
+  backToInputButton: {
+    position: 'fixed',
+    right: 36,
+    bottom: 98,
+    zIndex: 80,
+    width: 42,
+    height: 42,
+    padding: 0,
+    borderRadius: 12,
+    border: '1px solid var(--agent-border)',
+    background: '#FFFFFF',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 10px 28px rgba(15, 118, 110, 0.15)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: 'pointer',
   },
   welcomeTitle: {
     fontSize: 34,
@@ -365,25 +398,33 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
   },
   userBubble: {
-    background: 'var(--agent-gradient)',
-    color: '#FFFFFF',
+    background: '#EAF6FF',
+    color: '#0F2F57',
     padding: '12px 16px',
-    borderRadius: '16px 16px 4px 16px',
+    borderRadius: 10,
     maxWidth: '100%',
     fontSize: 15,
     lineHeight: 1.5,
+    border: '1px solid #CFEAF7',
+    boxShadow: '0 6px 18px rgba(37, 74, 120, 0.06)',
   },
   messageAssistant: {
     display: 'flex',
-    justifyContent: 'flex-start',
-    gap: 10,
+    justifyContent: 'center',
+    gap: 0,
+    width: '100%',
+  },
+  assistantContent: {
+    width: '100%',
+    maxWidth: 'var(--chat-content-max, 864px)',
+    minWidth: 0,
   },
   assistantBubble: {
     background: '#FFFFFF',
     color: '#1E293B',
     padding: '12px 16px',
-    borderRadius: '16px 16px 16px 4px',
-    maxWidth: '80%',
+    borderRadius: 10,
+    maxWidth: 'var(--chat-content-max, 864px)',
     fontSize: 15,
     lineHeight: 1.5,
     border: '1px solid #E2E8F0',
@@ -397,7 +438,9 @@ const intentCardStyles: Record<string, React.CSSProperties> = {
     borderRadius: 12,
     boxShadow: '0 8px 28px rgba(14, 165, 233, 0.08)',
     padding: 16,
-    maxWidth: 720,
+    width: '100%',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
   },
   header: {
     display: 'flex',
@@ -568,7 +611,9 @@ const voiceCardStyles: Record<string, React.CSSProperties> = {
     borderRadius: 12,
     boxShadow: '0 12px 32px rgba(14, 165, 233, 0.1)',
     padding: 16,
-    maxWidth: 720,
+    width: '100%',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
   },
   header: {
     display: 'flex',
@@ -717,8 +762,8 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     alignItems: 'flex-end',
     gap: 8,
-    width: 'calc(100% - 42px)',
-    maxWidth: 760,
+    width: '100%',
+    maxWidth: 'var(--chat-content-max, 864px)',
   },
   textWrap: {
     display: 'flex',
@@ -739,16 +784,16 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     right: 0,
     bottom: 0,
     height: 54,
-    borderRadius: '0 0 4px 16px',
-    background: 'linear-gradient(180deg, rgba(14, 165, 233, 0), var(--agent-secondary) 78%)',
+    borderRadius: '0 0 10px 10px',
+    background: 'linear-gradient(180deg, rgba(234, 246, 255, 0), #EAF6FF 78%)',
     pointerEvents: 'none',
   },
   expandButton: {
     marginTop: 6,
     height: 26,
     padding: '0 10px',
-    borderRadius: 999,
-    border: '1px solid rgba(255, 255, 255, 0.78)',
+    borderRadius: 10,
+    border: '1px solid #CFEAF7',
     background: 'rgba(255, 255, 255, 0.92)',
     color: 'var(--agent-primary-text)',
     fontSize: 12,
@@ -980,9 +1025,31 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
   },
+  undoButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-end',
+    height: 24,
+    padding: '0 2px',
+    border: 'none',
+    background: 'transparent',
+    color: '#64748B',
+    cursor: 'pointer',
+    outline: 'none',
+    lineHeight: 1,
+    fontSize: 12,
+    fontWeight: 650,
+  },
 };
 
-function UserMessage({ content }: { content: string | UserMaterialMessage }) {
+function UserMessage({
+  content,
+  onUndoNextResult,
+}: {
+  content: string | UserMaterialMessage;
+  onUndoNextResult?: () => void;
+}) {
   const [previewImage, setPreviewImage] = useState<UploadedAttachment | null>(null);
   const [longTextExpanded, setLongTextExpanded] = useState(false);
   const [playwayPromptOpen, setPlaywayPromptOpen] = useState(false);
@@ -1113,6 +1180,19 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
               )}
             </div>
           )}
+
+          {onUndoNextResult && (
+            <button
+              type="button"
+              onClick={onUndoNextResult}
+              style={userMessageStyles.undoButton}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--agent-primary-text)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#64748B'; }}
+            >
+              <RotateCcw size={13} />
+              <span>撤回</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1131,11 +1211,7 @@ function UserMessage({ content }: { content: string | UserMaterialMessage }) {
   );
 }
 
-const AIAvatar: React.FC = () => (
-  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--agent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-    <span style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>AI</span>
-  </div>
-);
+const AIAvatar: React.FC = () => null;
 
 const SimpleStreamText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 25 }) => {
   const [displayed, setDisplayed] = useState('');
@@ -1457,35 +1533,19 @@ function AssistantMessage({
   onContinue?: (stageIndex: number) => void;
   onMaterialIntentConfirm?: (messageId: string, resolutions: MaterialIntentResolution[]) => void;
   onVoiceCapabilityConfirm?: (messageId: string, selection: VoiceCapabilitySelection) => void;
-  onOpenPreview?: (coursewareId: number) => void;
+  onOpenPreview?: (coursewareId: number, version?: string | null) => void;
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
 }) {
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
   const activeConversation = conversations.find(c => c.id === activeConversationId);
-  const handleUndoResult = (isPublished: boolean) => {
-    if (isPublished) {
-      toast('已发布的不能撤销，如需下架请在 iTeach 资源库操作～');
-      return;
-    }
-    if (!activeConversationId) return;
-    useConversationStore.setState(state => ({
-      conversations: state.conversations.map(conversation => (
-        conversation.id === activeConversationId
-          ? { ...conversation, messages: conversation.messages.filter(item => item.id !== message.id) }
-          : conversation
-      )),
-    }));
-    useUIStore.getState().closePreview();
-    toast('已撤销本次生成的 HTML');
-  };
 
   if (message.type === 'requirement-framework') {
     return (
       <div style={styles.messageAssistant}>
         <AIAvatar />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={styles.assistantContent}>
           <RequirementCard 
             framework={message.content as RequirementFramework}
             isStreaming={phase === 'framework' && !frameworkDone}
@@ -1520,7 +1580,7 @@ function AssistantMessage({
     return (
       <div style={styles.messageAssistant}>
         <AIAvatar />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={styles.assistantContent}>
           <ProgressPanel progress={message.content as GenerationProgress} onRetry={onRetry} onContinue={onContinue} />
         </div>
       </div>
@@ -1573,6 +1633,7 @@ function AssistantMessage({
     const allCoursewareMessages = activeConversation?.messages.filter(m => m.type === 'courseware-result') || [];
     const coursewareIndex = allCoursewareMessages.findIndex(m => m.id === message.id);
     const versionNum = coursewareIndex + 1;
+    const stableCoursewareId = result.coursewareId || activeConversation?.coursewareId || courseware.id;
     const isLatestVersion = coursewareIndex === allCoursewareMessages.length - 1;
     const linkedDemoVersion = activeConversation?.id === 'conv_1'
       ? demoSessionVersions[coursewareIndex] as {
@@ -1592,15 +1653,14 @@ function AssistantMessage({
     return (
       <div style={styles.messageAssistant}>
         <AIAvatar />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={styles.assistantContent}>
           <CoursewareCard
-            courseware={courseware}
-            version={`会话第${versionNum}版`}
+            courseware={{ ...courseware, id: stableCoursewareId }}
+            version={`第${versionNum}版`}
             isLatest={isLatestVersion}
             onOpenPreview={onOpenPreview}
             onLearningDataRecoveryRequest={onLearningDataRecoveryRequest}
             onVisualStyleRegenerate={onVisualStyleRegenerate}
-            onUndoResult={() => handleUndoResult(isPublishedResult)}
             publishBadgeLabel={publishBadgeLabel}
           />
         </div>
@@ -1612,7 +1672,7 @@ function AssistantMessage({
     return (
       <div style={styles.messageAssistant}>
         <AIAvatar />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={styles.assistantContent}>
           <MaterialIntentCard
             confirmation={message.content as MaterialIntentConfirmation}
             onConfirm={(resolutions) => onMaterialIntentConfirm?.(message.id, resolutions)}
@@ -1626,7 +1686,7 @@ function AssistantMessage({
     return (
       <div style={styles.messageAssistant}>
         <AIAvatar />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={styles.assistantContent}>
           <VoiceCapabilityCard
             confirmation={message.content as VoiceCapabilityConfirmation}
             onConfirm={(selection) => onVoiceCapabilityConfirm?.(message.id, selection)}
@@ -1658,17 +1718,18 @@ export default function GeneratorPage() {
     completeGeneration,
   } = useConversationStore();
   
-  const { previewPanelOpen, previewCoursewareId, openPreview, closePreview, setSidebarCollapsed } = useUIStore();
+  const { previewPanelOpen, previewCoursewareId, previewInitialVersion, openPreview, closePreview, setSidebarCollapsed } = useUIStore();
   const { addCourseware } = useCoursewareStore();
   
   const [phase, setPhase] = useState<GenerationPhase>('input');
-  const [chatWidth, setChatWidth] = useState(50);
+  const [chatWidth, setChatWidth] = useState(DEFAULT_CHAT_WIDTH_WITH_PREVIEW);
   const [isDragging, setIsDragging] = useState(false);
   const [frameworkDone, setFrameworkDone] = useState(false);
   const [draftPrompt, setDraftPrompt] = useState('');
   const [draftVersion, setDraftVersion] = useState(0);
   const [selectedInspiration, setSelectedInspiration] = useState<GameplayInspiration | null>(null);
   const [promptFly, setPromptFly] = useState<PromptFlyState | null>(null);
+  const [showBackToInput, setShowBackToInput] = useState(false);
   const frameworkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingFrameworkRef = useRef<string | null>(null);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -1677,6 +1738,8 @@ export default function GeneratorPage() {
   const failAtStageRef = useRef<number | undefined>(undefined);
   const centeredInputAnchorRef = useRef<HTMLDivElement>(null);
   const bottomInputAnchorRef = useRef<HTMLDivElement>(null);
+  const welcomeScrollRef = useRef<HTMLDivElement>(null);
+  const splitContainerRef = useRef<HTMLDivElement>(null);
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -1685,11 +1748,11 @@ export default function GeneratorPage() {
 
     const handleMove = (ev: MouseEvent) => {
       if (!dragRef.current) return;
-      const container = document.querySelector('[style*="flex: 1"]')?.parentElement;
+      const container = splitContainerRef.current;
       if (!container) return;
       const rect = container.getBoundingClientRect();
       const pct = ((ev.clientX - rect.left) / rect.width) * 100;
-      setChatWidth(Math.min(80, Math.max(30, pct)));
+      setChatWidth(Math.min(64, Math.max(44, pct)));
     };
 
     const handleUp = () => {
@@ -1711,6 +1774,62 @@ export default function GeneratorPage() {
   const hasMessages = activeConversation && activeConversation.messages.length > 0;
   const activeCloneDraft = !hasMessages ? activeConversation?.cloneDraft : undefined;
   const chatAreaRef = useRef<HTMLDivElement>(null);
+  const chatContentMaxWidth = previewPanelOpen ? CHAT_CONTENT_MAX_WITH_PREVIEW : CHAT_CONTENT_MAX_FULL;
+  const chatContentVars = { '--chat-content-max': `${chatContentMaxWidth}px` } as React.CSSProperties;
+  const chatAreaPadding = previewPanelOpen ? '28px 48px 24px 64px' : '28px 56px 24px';
+  const inputAreaPadding = previewPanelOpen ? '16px 48px 24px 64px' : '16px 56px 24px';
+
+  const getCoursewarePublishState = (message: ConversationMessage, coursewareIndex: number) => {
+    const result = message.content as CoursewareResult;
+    const matchedMockCourseware = mockCoursewares.find(c => c.title === result.title);
+    const linkedDemoVersion = activeConversation?.id === 'conv_1'
+      ? demoSessionVersions[coursewareIndex] as {
+          isCurrentPublished?: boolean;
+          isHistoricalPublished?: boolean;
+          isRemoved?: boolean;
+        } | undefined
+      : undefined;
+
+    return Boolean(
+      matchedMockCourseware?.isPublished
+      || linkedDemoVersion?.isCurrentPublished
+      || linkedDemoVersion?.isHistoricalPublished
+      || linkedDemoVersion?.isRemoved
+    );
+  };
+
+  const handleUndoCoursewareResult = useCallback((
+    userMessageId: string,
+    resultMessageId: string,
+    resultIndex: number,
+    isPublished: boolean,
+  ) => {
+    if (isPublished) {
+      toast('已发布的不能撤销，如需下架请在 iTeach 资源库操作～');
+      return;
+    }
+    if (!activeConversationId) return;
+    const fallbackPreviewCoursewareId = activeConversation?.coursewareId || previewCoursewareId;
+    const previousVersion = resultIndex > 0 ? `v${resultIndex}` : null;
+
+    useConversationStore.setState(state => ({
+      conversations: state.conversations.map(conversation => (
+        conversation.id === activeConversationId
+          ? {
+              ...conversation,
+              messages: conversation.messages.filter(item => (
+                item.id !== userMessageId && item.id !== resultMessageId
+              )),
+            }
+          : conversation
+      )),
+    }));
+
+    if (fallbackPreviewCoursewareId && previousVersion) {
+      openPreview(fallbackPreviewCoursewareId, previousVersion);
+    }
+    toast('已撤销本次生成的 HTML');
+  }, [activeConversation?.coursewareId, activeConversationId, openPreview, previewCoursewareId]);
 
   const injectPrompt = useCallback((nextText: string) => {
     setDraftPrompt(nextText);
@@ -1728,6 +1847,22 @@ export default function GeneratorPage() {
     if (!hasMessages && phase === 'input') return centeredInputAnchorRef.current;
     return bottomInputAnchorRef.current || centeredInputAnchorRef.current;
   }, [hasMessages, phase]);
+
+  const handleWelcomeScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
+    const inputAnchor = centeredInputAnchorRef.current;
+    if (!inputAnchor) {
+      setShowBackToInput(false);
+      return;
+    }
+    const inputRect = inputAnchor.getBoundingClientRect();
+    const containerRect = event.currentTarget.getBoundingClientRect();
+    setShowBackToInput(inputRect.bottom < containerRect.top + 12);
+  }, []);
+
+  const scrollToHomepageInput = useCallback(() => {
+    centeredInputAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.setTimeout(() => setShowBackToInput(false), 260);
+  }, []);
 
   const injectPromptWithApplyMotion = useCallback((
     item: GameplayInspiration,
@@ -1849,6 +1984,14 @@ export default function GeneratorPage() {
   }, [activeConversation?.messages.length, phase, previewPanelOpen]);
 
   useEffect(() => {
+    if (!activeConversationId) {
+      setPhase('input');
+      setFrameworkDone(false);
+      setSelectedInspiration(null);
+      setPromptFly(null);
+      return;
+    }
+
     if (!activeConversation) return;
     if (activeConversation.cloneDraft && activeConversation.messages.length === 0) {
       setDraftPrompt(activeConversation.cloneDraft.prompt);
@@ -2205,10 +2348,10 @@ export default function GeneratorPage() {
   const renderContent = () => {
     if (!activeConversationId || (!hasMessages && phase === 'input')) {
       return (
-        <div style={styles.welcomeSection}>
+        <div ref={welcomeScrollRef} onScroll={handleWelcomeScroll} style={styles.welcomeSection}>
           <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
-          <p style={styles.welcomeSubtitle}>输入你的课件需求，或先从灵感推荐区套用一个课堂互动模板。</p>
-          <div ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 720 }}>
+          <p style={styles.welcomeSubtitle}>输入你的课件需求，或先从灵感推荐区套用一个课堂互动模板，也可以跟灵感助手聊聊看。</p>
+          <div ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 1080 }}>
             <ChatInput
               onSend={handleSend}
               centered
@@ -2226,26 +2369,56 @@ export default function GeneratorPage() {
               onApplyInspiration={handleApplyInspiration}
             />
           </div>
+          {showBackToInput && (
+            <button
+              type="button"
+              aria-label="回到顶部"
+              onClick={scrollToHomepageInput}
+              style={styles.backToInputButton}
+            >
+              <ArrowUp size={15} />
+            </button>
+          )}
         </div>
       );
     }
     
     return (
       <>
-        <div ref={chatAreaRef} style={styles.chatArea}>
+        <div ref={chatAreaRef} style={{ ...styles.chatArea, ...chatContentVars, padding: chatAreaPadding }}>
           <div style={styles.messagesContainer}>
             <AnimatePresence mode="popLayout">
-              {activeConversation?.messages.map((msg) => (
-                <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {msg.role === 'user' ? (
-                    <UserMessage content={msg.content as string} />
-                  ) : (
+              {(activeConversation?.messages ?? []).map((msg, index) => {
+                const messages = activeConversation?.messages ?? [];
+                const nextMessage = messages[index + 1];
+                const nextCoursewareIndex = nextMessage?.type === 'courseware-result'
+                  ? messages
+                      .slice(0, index + 2)
+                      .filter(item => item.type === 'courseware-result').length - 1
+                  : -1;
+                const canUndoNextResult = msg.role === 'user' && nextMessage?.type === 'courseware-result';
+                const nextResultPublished = canUndoNextResult
+                  ? getCoursewarePublishState(nextMessage, nextCoursewareIndex)
+                  : false;
+
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {msg.role === 'user' ? (
+                      <UserMessage
+                        content={msg.content as string}
+                        onUndoNextResult={
+                          canUndoNextResult && nextMessage
+                            ? () => handleUndoCoursewareResult(msg.id, nextMessage.id, nextCoursewareIndex, nextResultPublished)
+                            : undefined
+                        }
+                      />
+                    ) : (
                     <>
                       <AssistantMessage 
                         message={msg} 
@@ -2257,9 +2430,8 @@ export default function GeneratorPage() {
                         onContinue={handleContinueStage}
                         onMaterialIntentConfirm={handleMaterialIntentConfirm}
                         onVoiceCapabilityConfirm={handleVoiceCapabilityConfirm}
-                        onOpenPreview={(coursewareId) => {
-                          setSidebarCollapsed(true);
-                          openPreview(coursewareId);
+                        onOpenPreview={(coursewareId, version) => {
+                          openPreview(coursewareId, version);
                         }}
                         onLearningDataRecoveryRequest={(request) => {
                           if (!activeConversationId) return;
@@ -2425,9 +2597,10 @@ export default function GeneratorPage() {
                         }}
                       />
                     </>
-                  )}
-                </motion.div>
-              ))}
+                    )}
+                  </motion.div>
+                );
+              })}
               
               {phase === 'analyzing' && (
                 <motion.div
@@ -2517,17 +2690,19 @@ export default function GeneratorPage() {
           </div>
         )}
 
-        <div ref={bottomInputAnchorRef} style={styles.inputArea}>
-          <ChatInput 
-            onSend={handleSend} 
-            disabled={false} 
-            isGenerating={phase !== 'input' && phase !== 'completed'}
-            onStop={handleStop}
-            injectedText={draftPrompt}
-            injectedTextVersion={draftVersion}
-            onTextChange={handleDraftPromptChange}
-            lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
-          />
+        <div ref={bottomInputAnchorRef} style={{ ...styles.inputArea, ...chatContentVars, padding: inputAreaPadding }}>
+          <div style={{ width: '100%', maxWidth: chatContentMaxWidth }}>
+            <ChatInput 
+              onSend={handleSend} 
+              disabled={false} 
+              isGenerating={phase !== 'input' && phase !== 'completed'}
+              onStop={handleStop}
+              injectedText={draftPrompt}
+              injectedTextVersion={draftVersion}
+              onTextChange={handleDraftPromptChange}
+              lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
+            />
+          </div>
         </div>
       </>
     );
@@ -2535,7 +2710,7 @@ export default function GeneratorPage() {
   
   return (
     <div style={styles.container}>
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div ref={splitContainerRef} style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Main Content */}
         <div style={{ ...styles.mainContent, flex: previewPanelOpen ? undefined : 1, width: previewPanelOpen ? `${chatWidth}%` : '100%' }}>
           {renderContent()}
@@ -2563,6 +2738,7 @@ export default function GeneratorPage() {
             <div style={{ width: `${100 - chatWidth}%`, flexShrink: 0, overflow: 'hidden' }}>
               <PreviewPanel 
                 coursewareId={previewCoursewareId} 
+                initialVersion={previewInitialVersion}
                 onClose={closePreview} 
               />
             </div>

@@ -21,6 +21,19 @@ function AppContent() {
   const coursewares = useCoursewareStore((s) => s.coursewares);
 
   useEffect(() => {
+    const clearPointerFocus = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const button = target.closest('button');
+      if (!button || button.dataset.keepFocus === 'true') return;
+      window.requestAnimationFrame(() => button.blur());
+    };
+
+    document.addEventListener('pointerup', clearPointerFocus, true);
+    return () => document.removeEventListener('pointerup', clearPointerFocus, true);
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const cloneCoursewareId = Number(params.get('cloneCoursewareId'));
     if (!cloneCoursewareId) return;

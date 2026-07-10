@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
   PlusCircle,
   FolderOpen,
-  Palette,
   Monitor,
   PanelRight,
 } from 'lucide-react';
@@ -48,14 +47,14 @@ const styles = {
     zIndex: 100,
   }),
 
-  logoArea: {
+  logoArea: (collapsed: boolean): React.CSSProperties => ({
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '16px',
+    justifyContent: collapsed ? 'center' : 'space-between',
+    padding: collapsed ? '16px 0 12px' : '16px',
     minHeight: 64,
     flexShrink: 0,
-  } as React.CSSProperties,
+  }),
 
   logoWrapper: {
     display: 'flex',
@@ -75,15 +74,15 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 28,
-    height: 28,
-    borderRadius: 6,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
     border: 'none',
     background: 'transparent',
     cursor: 'pointer',
-    color: '#94A3B8',
+    color: '#64748B',
     flexShrink: 0,
-    transition: 'background 0.15s ease, color 0.15s ease',
+    transition: 'background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease',
   } as React.CSSProperties,
 
   nav: {
@@ -112,7 +111,7 @@ const styles = {
     background: 'var(--agent-hero-gradient)',
     color: '#FFFFFF',
     border: 'none',
-    borderRadius: 8,
+    borderRadius: 10,
     cursor: 'pointer',
     fontSize: 14,
     fontWeight: 600,
@@ -128,12 +127,12 @@ const styles = {
     gap: 10,
     width: '100%',
     padding: collapsed ? '10px 0' : '10px 14px',
-    background: active ? 'rgba(255,255,255,0.86)' : 'transparent',
+    background: active ? '#FFFFFF' : 'transparent',
     color: active ? 'var(--agent-primary)' : '#475569',
-    border: 'none',
-    borderRadius: 8,
+    border: active ? '1px solid rgba(255, 255, 255, 0.82)' : '1px solid transparent',
+    borderRadius: 10,
     marginRight: 0,
-    borderLeft: active ? '3px solid var(--agent-primary)' : '3px solid transparent',
+    boxShadow: active ? '0 8px 20px rgba(37, 74, 120, 0.08)' : 'none',
     cursor: 'pointer',
     fontSize: 14,
     fontWeight: active ? 600 : 400,
@@ -155,25 +154,25 @@ const styles = {
 
   themeArea: {
     flexShrink: 0,
-    padding: '8px 12px',
-    borderTop: '1px solid #E2E8F0',
+    padding: 0,
   } as React.CSSProperties,
 
   themeMiniBtn: {
-    width: '100%',
     height: 30,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
+    justifyContent: 'center',
+    gap: 6,
     padding: '0 8px',
-    border: '1px solid rgba(148, 163, 184, 0.28)',
-    borderRadius: 7,
-    background: 'rgba(255,255,255,0.42)',
-    color: '#94A3B8',
-    fontSize: 11,
-    fontWeight: 700,
+    border: '1px solid transparent',
+    borderRadius: 10,
+    background: 'transparent',
+    color: '#8A9AAF',
+    fontSize: 12,
+    fontWeight: 600,
     cursor: 'pointer',
+    boxShadow: 'none',
+    outline: 'none',
     transition: 'background 0.15s ease, color 0.15s ease, border-color 0.15s ease',
   } as React.CSSProperties,
 
@@ -192,9 +191,28 @@ const styles = {
     fontWeight: 800,
   } as React.CSSProperties,
 
+  themeMiniDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 3,
+    flexShrink: 0,
+    opacity: 0.72,
+    border: 'none',
+  } as React.CSSProperties,
+
   themeButtons: {
+    position: 'absolute',
+    left: 12,
+    bottom: 54,
+    width: 188,
     display: 'grid',
     gap: 6,
+    padding: 8,
+    borderRadius: 12,
+    border: '1px solid var(--agent-border)',
+    background: '#FFFFFF',
+    boxShadow: '0 16px 32px rgba(37, 74, 120, 0.14)',
+    zIndex: 50,
   } as React.CSSProperties,
 
   themeBtn: {
@@ -203,8 +221,9 @@ const styles = {
     alignItems: 'center',
     gap: 8,
     padding: '0 10px',
-    borderRadius: 7,
+    borderRadius: 10,
     border: '1px solid transparent',
+    borderColor: 'transparent',
     background: 'rgba(255,255,255,0.44)',
     color: '#475569',
     fontSize: 12,
@@ -224,10 +243,57 @@ const styles = {
   themeDot: {
     width: 14,
     height: 14,
-    borderRadius: 4,
+    borderRadius: 5,
     flexShrink: 0,
     border: '1px solid rgba(15, 23, 42, 0.08)',
   } as React.CSSProperties,
+
+  modeSwitch: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: 4,
+    borderRadius: 12,
+    background: 'rgba(255,255,255,0.72)',
+    border: '1px solid rgba(148, 163, 184, 0.24)',
+    boxShadow: '0 4px 12px rgba(37, 74, 120, 0.06)',
+  } as React.CSSProperties,
+
+  bottomTools: {
+    position: 'relative',
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    padding: '10px 12px 14px',
+    borderTop: '1px solid #E2E8F0',
+    overflow: 'visible',
+  } as React.CSSProperties,
+
+  hiddenModeHotspot: {
+    width: 72,
+    height: 38,
+    border: 'none',
+    background: 'transparent',
+    padding: 0,
+    cursor: 'default',
+  } as React.CSSProperties,
+
+  modeIconBtn: (active: boolean): React.CSSProperties => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    border: active ? '1px solid var(--agent-primary)' : '1px solid transparent',
+    background: active ? 'var(--agent-primary)' : '#FFFFFF',
+    color: active ? '#FFFFFF' : '#64748B',
+    cursor: 'pointer',
+    transition: 'background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease',
+    boxShadow: active ? '0 6px 14px var(--agent-shadow)' : 'none',
+  }),
 
 } as const;
 
@@ -238,8 +304,36 @@ function Sidebar() {
   const { setActiveConversation } = useConversationStore();
 
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
-  const [themeId, setThemeId] = useState<AgentThemeId>(() => getStoredThemeId());
-  const [themePanelOpen, setThemePanelOpen] = useState(false);
+  const [themeExpanded, setThemeExpanded] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<AgentThemeId>(() => getStoredThemeId());
+  const [modeSwitchVisible, setModeSwitchVisible] = useState(false);
+  const hiddenModeClickCountRef = useRef(0);
+  const hiddenModeClickTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+
+  const handleThemeChange = (themeId: AgentThemeId) => {
+    setCurrentTheme(themeId);
+    applyAgentTheme(themeId);
+    setThemeExpanded(false);
+  };
+
+  const handleHiddenModeHotspotClick = () => {
+    if (modeSwitchVisible) return;
+    hiddenModeClickCountRef.current += 1;
+    if (hiddenModeClickTimerRef.current) {
+      window.clearTimeout(hiddenModeClickTimerRef.current);
+    }
+    hiddenModeClickTimerRef.current = window.setTimeout(() => {
+      hiddenModeClickCountRef.current = 0;
+    }, 1200);
+    if (hiddenModeClickCountRef.current >= 3) {
+      setModeSwitchVisible(true);
+      hiddenModeClickCountRef.current = 0;
+      if (hiddenModeClickTimerRef.current) {
+        window.clearTimeout(hiddenModeClickTimerRef.current);
+        hiddenModeClickTimerRef.current = null;
+      }
+    }
+  };
 
   const handleNavClick = (item: NavItem) => {
     if (item.key === 'new') {
@@ -260,32 +354,29 @@ function Sidebar() {
     return false;
   };
 
-  const switchTheme = (id: AgentThemeId) => {
-    setThemeId(id);
-    applyAgentTheme(id);
-  };
-
-  const currentTheme = AGENT_THEMES.find(theme => theme.id === themeId) || AGENT_THEMES[0];
-
   return (
     <aside style={styles.sidebar(sidebarCollapsed)}>
       {/* Logo */}
-      <div style={styles.logoArea}>
-        <div style={styles.logoWrapper}>
-          <Logo size={28} />
-          {!sidebarCollapsed && <span style={styles.logoText}>互动课件 AI Agent</span>}
-        </div>
+      <div style={styles.logoArea(sidebarCollapsed)}>
+        {!sidebarCollapsed && (
+          <div style={styles.logoWrapper}>
+            <Logo size={28} />
+            <span style={styles.logoText}>互动课件 AI Agent</span>
+          </div>
+        )}
         {!sidebarCollapsed && (
           <button
             style={styles.collapseBtn}
             onClick={toggleSidebar}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#F1F5F9';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.72)';
               e.currentTarget.style.color = '#475569';
+              e.currentTarget.style.boxShadow = '0 6px 14px rgba(37, 74, 120, 0.08)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#94A3B8';
+              e.currentTarget.style.color = '#64748B';
+              e.currentTarget.style.boxShadow = 'none';
             }}
             title="收起侧边栏"
           >
@@ -294,15 +385,21 @@ function Sidebar() {
         )}
         {sidebarCollapsed && (
           <button
-            style={styles.collapseBtn}
+            style={{
+              ...styles.collapseBtn,
+              background: 'rgba(255,255,255,0.54)',
+              border: '1px solid rgba(148, 163, 184, 0.22)',
+            }}
             onClick={toggleSidebar}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#F1F5F9';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.72)';
               e.currentTarget.style.color = '#475569';
+              e.currentTarget.style.boxShadow = '0 6px 14px rgba(37, 74, 120, 0.08)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#94A3B8';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.54)';
+              e.currentTarget.style.color = '#64748B';
+              e.currentTarget.style.boxShadow = 'none';
             }}
             title="展开侧边栏"
           >
@@ -363,88 +460,77 @@ function Sidebar() {
         </div>
       )}
 
-      {/* Mode Switch */}
-      {!sidebarCollapsed && (
-        <div
-          style={styles.themeArea}
-          title="仅供 demo 演示：正式产品不会展示配色方案选择器。"
-        >
+      <div style={styles.bottomTools}>
+        {!sidebarCollapsed && (
+          <div style={styles.themeArea}>
+            <button
+              type="button"
+              style={styles.themeMiniBtn}
+              onClick={() => setThemeExpanded(prev => !prev)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.32)';
+                e.currentTarget.style.color = '#64748B';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#8A9AAF';
+              }}
+            >
+              <span style={styles.themeMiniLeft}>
+                <span
+                  style={{
+                    ...styles.themeMiniDot,
+                    background: AGENT_THEMES.find(theme => theme.id === currentTheme)?.colors.primary || 'var(--agent-primary)',
+                  }}
+                />
+                演示配色
+              </span>
+            </button>
+
+            {themeExpanded && (
+              <div style={styles.themeButtons}>
+                {AGENT_THEMES.map(theme => {
+                  const active = currentTheme === theme.id;
+                  return (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      style={{
+                        ...styles.themeBtn,
+                        ...(active ? styles.themeBtnActive : {}),
+                      }}
+                      onClick={() => handleThemeChange(theme.id)}
+                    >
+                      <span style={{ ...styles.themeDot, background: theme.colors.primary }} />
+                      <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {theme.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!sidebarCollapsed && !modeSwitchVisible && (
           <button
             type="button"
-            onClick={() => setThemePanelOpen(open => !open)}
-            style={styles.themeMiniBtn}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.56)';
-              e.currentTarget.style.color = '#64748B';
-              e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.42)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.32)';
-              e.currentTarget.style.color = '#94A3B8';
-              e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.28)';
-            }}
-          >
-            <span style={styles.themeMiniLeft}>
-              <Palette size={13} />
-              <span>演示配色</span>
-            </span>
-            <span>{currentTheme.shortName}</span>
-          </button>
-          {themePanelOpen && (
-            <>
-              <div style={styles.themeTitle}>配色方案</div>
-              <div style={styles.themeButtons}>
-                {AGENT_THEMES.map(theme => (
-                  <button
-                    key={theme.id}
-                    type="button"
-                    title={theme.description}
-                    onClick={() => switchTheme(theme.id)}
-                    style={{
-                      ...styles.themeBtn,
-                      ...(themeId === theme.id ? styles.themeBtnActive : {}),
-                    }}
-                  >
-                    <span style={{
-                      ...styles.themeDot,
-                      background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
-                    }} />
-                    {theme.name}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
+            aria-label="隐藏模式入口"
+            style={styles.hiddenModeHotspot}
+            onClick={handleHiddenModeHotspotClick}
+          />
+        )}
 
-      <div style={{ ...styles.userArea(sidebarCollapsed), justifyContent: 'space-between' }}>
-        {!sidebarCollapsed && (
-          <div style={{ display: 'flex', gap: 2, marginLeft: 'auto' }}>
-            <ModeIconBtn
-              active={appMode === 'standalone'}
-              tooltip="独立模式"
-              onClick={() => setAppMode('standalone')}
-            >
+        {!sidebarCollapsed && modeSwitchVisible && (
+          <div style={styles.modeSwitch}>
+            <ModeIconBtn active={appMode === 'standalone'} label="独立模式" onClick={() => setAppMode('standalone')}>
               <Monitor size={15} />
             </ModeIconBtn>
-            <ModeIconBtn
-              active={appMode === 'embedded'}
-              tooltip="编辑器模式"
-              onClick={() => setAppMode('embedded')}
-            >
+            <ModeIconBtn active={appMode === 'embedded'} label="编辑器模式" onClick={() => setAppMode('embedded')}>
               <PanelRight size={15} />
             </ModeIconBtn>
           </div>
-        )}
-        {sidebarCollapsed && (
-          <ModeIconBtn
-            active={appMode === 'standalone'}
-            tooltip="独立模式"
-            onClick={() => setAppMode('standalone')}
-          >
-            <Monitor size={15} />
-          </ModeIconBtn>
         )}
       </div>
     </aside>
@@ -453,25 +539,31 @@ function Sidebar() {
 
 function ModeIconBtn({
   active,
-  tooltip,
+  label,
   onClick,
   children,
 }: {
   active: boolean;
-  tooltip: string;
+  label: string;
   onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
-      title={tooltip}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: 28, height: 28, borderRadius: 6, border: 'none',
-        background: active ? 'var(--agent-primary)' : 'transparent',
-        color: active ? '#fff' : '#94A3B8',
-        cursor: 'pointer', transition: 'all 0.15s',
+      aria-label={label}
+      style={styles.modeIconBtn(active)}
+      onMouseEnter={(event) => {
+        if (active) return;
+        event.currentTarget.style.background = 'var(--agent-soft)';
+        event.currentTarget.style.color = 'var(--agent-primary-text)';
+        event.currentTarget.style.borderColor = 'var(--agent-border)';
+      }}
+      onMouseLeave={(event) => {
+        if (active) return;
+        event.currentTarget.style.background = '#FFFFFF';
+        event.currentTarget.style.color = '#64748B';
+        event.currentTarget.style.borderColor = 'transparent';
       }}
     >
       {children}

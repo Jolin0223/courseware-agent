@@ -23,7 +23,7 @@ const getSections = (framework: RequirementFramework) => [
 ];
 
 const TOTAL_DURATION_MS = demoMs(15000);
-const READ_ONLY_COLLAPSED_HEIGHT = 180;
+const READ_ONLY_COLLAPSED_HEIGHT = 260;
 
 const sectionTitleStyle: React.CSSProperties = {
   fontSize: 15,

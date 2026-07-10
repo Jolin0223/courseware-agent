@@ -257,9 +257,31 @@ const listeningHTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
-const synonymChallengeHTML = '<iframe src="/case-games/synonym/index.html" style="width:100vw;height:100vh;border:0;display:block;background:#fff;" title="近义词大挑战"></iframe>';
-const wordShooterHTML = '<iframe src="/case-games/word-shooter/index.html" style="width:100vw;height:100vh;border:0;display:block;background:#fff;" title="单词神枪手"></iframe>';
-const ropeLengthHTML = '<iframe src="/case-games/rope-length/index.html" style="width:100vw;height:100vh;border:0;display:block;background:#fff;" title="比绳子长短"></iframe>';
+const embeddedCoursewareHTML = (src: string, title: string) => `<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <base href="/" />
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #fff; }
+    iframe { width: 100%; height: 100%; border: 0; display: block; background: #fff; }
+  </style>
+</head>
+<body>
+  <iframe src="${src}" title="${title}"></iframe>
+</body>
+</html>`;
+
+const synonymChallengeHTML = embeddedCoursewareHTML('/case-games/synonym/index.html', '近义词大挑战');
+const wordShooterHTML = embeddedCoursewareHTML('/case-games/word-shooter/index.html', '单词神枪手');
+const ropeLengthHTML = embeddedCoursewareHTML('/case-games/rope-length/index.html', '比绳子长短');
+const sunWukongDressupHTML = embeddedCoursewareHTML('/demo-history/sun-wukong-dressup/index.html', '孙悟空换装搭配挑战');
+const battleshipLogicHTML = embeddedCoursewareHTML('/demo-history/battleship-logic/index.html', '战舰逻辑挑战-行列推理');
+const clockReadingHTML = embeddedCoursewareHTML('/demo-history/clock-reading.html', '转一转找答案-时钟认读');
+const fractionPizzaHTML = embeddedCoursewareHTML('/demo-history/fraction-pizza.html', '分数披萨店-分数配餐');
+const dialogueLinkingHTML = embeddedCoursewareHTML('/demo-history/dialogue-linking/index.html', '对话连连看-问答连线');
+const makeAWordJellyHTML = embeddedCoursewareHTML('/demo-history/make-a-word-jelly/index.html', 'Make-a-Word果冻拼词');
+const hanziRushHTML = embeddedCoursewareHTML('/demo-history/hanzi-rush/index.html', '汉字拼图Rush-部件拼字');
 
 const learningDataFor = (title: string) => createLearningDataRecoverySummary(getRecoveryItemsForCourseware(title));
 
@@ -297,6 +319,125 @@ export const mockCoursewares: Courseware[] = [
     isPublished: true,
     showConversation: true,
     learningDataRecovery: learningDataFor('近义词大挑战'),
+  },
+  {
+    id: 20,
+    title: '孙悟空换装搭配挑战',
+    subject: '语文',
+    grade: '二年级',
+    type: '情境搭配',
+    author: 'Jolin',
+    publishTime: '2026-07-10',
+    views: 1280,
+    favorites: 96,
+    likes: 168,
+    htmlContent: sunWukongDressupHTML,
+    isOwn: true,
+    isPublished: false,
+    showConversation: true,
+    learningDataRecovery: learningDataFor('孙悟空换装搭配挑战'),
+  },
+  {
+    id: 21,
+    title: '战舰逻辑挑战-行列推理',
+    subject: '数学',
+    grade: '三年级',
+    type: '行列推理',
+    author: 'Jolin',
+    publishTime: '2026-07-09',
+    views: 1160,
+    favorites: 88,
+    likes: 153,
+    htmlContent: battleshipLogicHTML,
+    isOwn: true,
+    isPublished: true,
+    showConversation: true,
+    learningDataRecovery: learningDataFor('战舰逻辑挑战-行列推理'),
+  },
+  {
+    id: 22,
+    title: '转一转找答案-时钟认读',
+    subject: '数学',
+    grade: '一年级',
+    type: '时钟认读',
+    author: 'Jolin',
+    publishTime: '2026-07-08',
+    views: 1040,
+    favorites: 76,
+    likes: 141,
+    htmlContent: clockReadingHTML,
+    isOwn: true,
+    isPublished: true,
+    showConversation: true,
+    learningDataRecovery: learningDataFor('转一转找答案-时钟认读'),
+  },
+  {
+    id: 23,
+    title: '分数披萨店-分数配餐',
+    subject: '数学',
+    grade: '三年级',
+    type: '分数认知',
+    author: 'Jolin',
+    publishTime: '2026-07-07',
+    views: 1090,
+    favorites: 82,
+    likes: 149,
+    htmlContent: fractionPizzaHTML,
+    isOwn: true,
+    isPublished: true,
+    showConversation: true,
+    learningDataRecovery: learningDataFor('分数披萨店-分数配餐'),
+  },
+  {
+    id: 24,
+    title: '对话连连看-问答连线',
+    subject: '英语',
+    grade: '二年级',
+    type: '问答连线',
+    author: 'Jolin',
+    publishTime: '2026-07-06',
+    views: 980,
+    favorites: 71,
+    likes: 132,
+    htmlContent: dialogueLinkingHTML,
+    isOwn: true,
+    isPublished: true,
+    showConversation: true,
+    learningDataRecovery: learningDataFor('对话连连看-问答连线'),
+  },
+  {
+    id: 25,
+    title: 'Make-a-Word果冻拼词',
+    subject: '英语',
+    grade: '二年级',
+    type: '单词拼写',
+    author: 'Jolin',
+    publishTime: '2026-07-05',
+    views: 1210,
+    favorites: 94,
+    likes: 166,
+    htmlContent: makeAWordJellyHTML,
+    isOwn: true,
+    isPublished: true,
+    showConversation: true,
+    learningDataRecovery: learningDataFor('Make-a-Word果冻拼词'),
+  },
+  {
+    id: 26,
+    title: '汉字拼图Rush-部件拼字',
+    subject: '语文',
+    grade: '二年级',
+    type: '部件拼字',
+    author: 'Jolin',
+    publishTime: '2026-07-04',
+    views: 990,
+    favorites: 73,
+    likes: 136,
+    htmlContent: hanziRushHTML,
+    isOwn: true,
+    isPublished: true,
+    showConversation: true,
+    learningDataRecovery: learningDataFor('汉字拼图Rush-部件拼字'),
   },
   {
     id: 3,

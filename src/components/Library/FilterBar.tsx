@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface FilterBarProps {
   subjects?: string[];
@@ -43,25 +43,37 @@ const styles: Record<string, React.CSSProperties> = {
   filterTags: {
     display: 'flex',
     flexWrap: 'nowrap',
-    gap: 8,
-    overflow: 'hidden',
+    gap: 7,
+    overflowX: 'auto',
+    scrollbarWidth: 'none',
   },
   filterTag: {
-    padding: '4px 14px',
-    borderRadius: 16,
-    border: '1px solid #E2E8F0',
-    background: '#fff',
+    height: 32,
+    padding: '0 12px',
+    borderRadius: 10,
+    border: '1px solid #CBD5E1',
+    borderColor: '#CBD5E1',
+    background: '#F8FAFC',
     fontSize: 13,
+    fontWeight: 850,
     color: '#475569',
     cursor: 'pointer',
-    transition: 'all 0.15s',
+    transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s',
     whiteSpace: 'nowrap' as const,
     outline: 'none',
   },
+  filterTagHover: {
+    background: '#F6FCFF',
+    borderColor: '#BFE9F5',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.08)',
+  },
   filterTagActive: {
-    background: 'var(--agent-primary)',
-    borderColor: 'var(--agent-primary)',
-    color: '#fff',
+    background: '#F1FAFF',
+    borderColor: '#BFE9F5',
+    color: 'var(--agent-primary-text)',
+    fontWeight: 700,
+    boxShadow: 'none',
   },
   sortRow: {
     display: 'flex',
@@ -80,6 +92,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onFilterChange,
   onSortChange,
 }) => {
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const filters: { label: string; key: string; value: string; options: string[] }[] = [
     { label: '学科', key: 'subject', value: filterSubject, options: subjects },
     { label: '年级', key: 'grade', value: filterGrade, options: grades },
@@ -93,13 +106,20 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <div style={styles.filterTags}>
             {f.options.map((opt) => {
               const isActive = f.value === opt || (opt === '全部' && f.value === '全部');
+              const stateKey = `${f.key}-${opt}`;
+              const isHovered = hoveredKey === stateKey;
               return (
                 <button
                   key={opt}
+                  type="button"
                   style={{
                     ...styles.filterTag,
+                    ...(isHovered && !isActive ? styles.filterTagHover : {}),
                     ...(isActive ? styles.filterTagActive : {}),
                   }}
+                  onMouseEnter={() => setHoveredKey(stateKey)}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  onMouseDown={(event) => event.preventDefault()}
                   onClick={() => onFilterChange(f.key, opt)}
                 >
                   {opt}
@@ -114,19 +134,24 @@ const FilterBar: React.FC<FilterBarProps> = ({
         <div style={styles.sortRow}>
           {sortOptions.map((opt) => {
             const isActive = sortBy === opt;
+            const stateKey = `sort-${opt}`;
+            const isHovered = hoveredKey === stateKey;
             return (
               <button
                 key={opt}
+                type="button"
                 onClick={() => onSortChange(opt)}
+                onMouseEnter={() => setHoveredKey(stateKey)}
+                onMouseLeave={() => setHoveredKey(null)}
+                onMouseDown={(event) => event.preventDefault()}
                 style={{
-                  padding: '4px 14px',
-                  borderRadius: 16,
+                  ...styles.filterTag,
+                  height: 30,
+                  padding: '0 14px',
+                  borderRadius: 10,
                   fontSize: 13,
-                  cursor: 'pointer',
-                  transition: '0.15s',
-                  border: 'none',
-                  background: isActive ? '#0EA5E9' : '#F1F5F9',
-                  color: isActive ? '#fff' : '#64748B',
+                  ...(isHovered && !isActive ? styles.filterTagHover : {}),
+                  ...(isActive ? styles.filterTagActive : {}),
                 }}
               >
                 {opt}

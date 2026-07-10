@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>对话连连看 - 英语问答配对课件</title>
+    <style>
+      :root {
+        --cream: #fff8df;
+        --paper: rgba(255, 255, 255, 0.91);
+        --paper-strong: #ffffff;
+        --ink: #253247;
+        --muted: #667085;
+        --yellow: #ffcc00;
+        --sky: #4fc3f7;
+        --sky-soft: #dff5ff;
+        --green: #66cc33;
+        --red: #dc143c;
+        --blue: #1e90ff;
+        --wire-yellow: #ffd700;
+        --phone: #2f4f4f;
+        --orange: #ffa500;
+        --line: rgba(37, 50, 71, 0.14);
+        font-family: "Cooper Black", "Trebuchet MS", "Comic Sans MS", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #1b2937;
+        color: var(--ink);
+        user-select: none;
+      }
+
+      button {
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .stage {
+        position: relative;
+        width: min(100vw, 177.78vh);
+        aspect-ratio: 16 / 9;
+        margin: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        overflow: hidden;
+        background: #fff8df;
+        border-radius: 22px;
+        box-shadow: 0 24px 74px rgba(0, 0, 0, 0.34);
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+
+      .screen.active {
+        display: block;
+      }
+
+      .cover {
+        cursor: pointer;
+        background:
+          url("./assets/dialog_connect_cover.png") center / cover no-repeat,
+          radial-gradient(circle at 18% 18%, #fff7b0 0 10%, transparent 10.4%),
+          radial-gradient(circle at 82% 24%, #cfecff 0 12%, transparent 12.4%),
+          linear-gradient(145deg, #fff8df 0%, #dff5ff 48%, #e9ffd8 100%);
+      }
+
+      .cover::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.28) 1px, transparent 1px),
+          linear-gradient(rgba(255, 255, 255, 0.28) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+        pointer-events: none;
+      }
+
+      .game {
+        padding: 0;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.14)),
+          url("./assets/dialog_connect_question_board.png") center / cover no-repeat,
+          #fff8df;
+      }
+
+      .topbar {
+        position: absolute;
+        left: 8.6%;
+        right: 8.6%;
+        top: 7.3%;
+        z-index: 6;
+        height: 8.4%;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 18px;
+        align-items: center;
+      }
+
+      .game-title {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        color: #2f4f4f;
+        font-size: clamp(22px, 2.25vw, 40px);
+        font-weight: 1000;
+        white-space: nowrap;
+        grid-column: 2;
+      }
+
+      .status-cluster {
+        grid-column: 3;
+        justify-self: end;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .round-pill,
+      .timer,
+      .score {
+        min-width: clamp(78px, 7.2vw, 132px);
+        padding: 8px 15px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 3px solid rgba(255, 255, 255, 0.94);
+        color: #405169;
+        text-align: center;
+        font-family: "Trebuchet MS", "PingFang SC", sans-serif;
+        font-size: clamp(15px, 1.3vw, 24px);
+        font-weight: 1000;
+        box-shadow: 0 8px 18px rgba(37, 50, 71, 0.09);
+      }
+
+      .timer,
+      .score {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .status-icon {
+        width: clamp(22px, 2vw, 34px);
+        aspect-ratio: 1;
+        display: inline-grid;
+        place-items: center;
+        flex: 0 0 auto;
+        background: center / contain no-repeat;
+        filter: drop-shadow(0 4px 6px rgba(37, 50, 71, 0.12));
+      }
+
+      .timer-icon {
+        background-image: url("./assets/dialog_connect_icon_timer.png");
+      }
+
+      .score-icon {
+        background-image: url("./assets/dialog_connect_icon_score.png");
+      }
+
+      .timer-icon::before {
+        content: "⏱";
+        font-size: clamp(17px, 1.55vw, 27px);
+      }
+
+      .score-icon::before {
+        content: "★";
+        color: #ffa500;
+        font-size: clamp(18px, 1.65vw, 29px);
+      }
+
+      .timer.warning {
+        color: var(--red);
+        animation: pulse 0.7s ease-in-out infinite alternate;
+      }
+
+      @keyframes pulse {
+        from {
+          transform: scale(1);
+        }
+        to {
+          transform: scale(1.04);
+        }
+      }
+
+      .board {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        margin-top: 0;
+        border-radius: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        overflow: hidden;
+      }
+
+      .board::before {
+        content: none;
+      }
+
+      .instruction {
+        position: absolute;
+        left: 50%;
+        top: 16.5%;
+        transform: translateX(-50%);
+        z-index: 4;
+        min-width: 46%;
+        padding: 10px 22px;
+        border-radius: 999px;
+        background: #fff8d0;
+        color: #6c5200;
+        border: 3px solid rgba(255, 255, 255, 0.92);
+        text-align: center;
+        font-family: "Trebuchet MS", "PingFang SC", sans-serif;
+        font-size: clamp(14px, 1.28vw, 24px);
+        font-weight: 1000;
+      }
+
+      .match-area {
+        position: absolute;
+        inset: 24.8% 8.9% 25%;
+        display: grid;
+        grid-template-columns: minmax(0, 41.5%) minmax(120px, 17%) minmax(0, 41.5%);
+        gap: 1.4%;
+        align-items: stretch;
+      }
+
+      .column {
+        display: grid;
+        grid-template-rows: repeat(3, 1fr);
+        gap: 5.6%;
+      }
+
+      .column.left {
+        grid-template-rows: repeat(3, 1fr);
+        align-content: center;
+      }
+
+      .card {
+        position: relative;
+        min-width: 0;
+        border-radius: 22px;
+        background: var(--paper-strong);
+        border: 4px solid rgba(47, 79, 79, 0.1);
+        box-shadow: 0 10px 22px rgba(47, 79, 79, 0.08);
+        transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+      }
+
+      .question-card {
+        display: grid;
+        grid-template-columns: 29% minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px;
+      }
+
+      .answer-card {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px;
+      }
+
+      .card.active {
+        transform: translateY(-4px);
+        border-color: var(--blue);
+        box-shadow: 0 16px 30px rgba(30, 144, 255, 0.18);
+      }
+
+      .card.matched {
+        border-color: rgba(102, 204, 51, 0.7);
+      }
+
+      .card.wrong {
+        border-color: rgba(220, 20, 60, 0.78);
+        animation: shake 0.28s ease-in-out;
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        33% {
+          transform: translateX(-6px);
+        }
+        66% {
+          transform: translateX(6px);
+        }
+      }
+
+      .scene {
+        height: 100%;
+        min-height: 0;
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.7), transparent 25%),
+          linear-gradient(145deg, #dff5ff, #fff8df);
+        border: 3px solid rgba(79, 195, 247, 0.22);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      .scene-art {
+        position: relative;
+        width: 82%;
+        height: 82%;
+        display: grid;
+        place-items: center;
+      }
+
+      .scene-art img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: none;
+      }
+
+      .scene-art.has-image img {
+        display: block;
+      }
+
+      .scene-art.has-image .scene-fallback {
+        display: none;
+      }
+
+      .scene-fallback {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        font-size: clamp(32px, 4.4vw, 82px);
+      }
+
+      .q-text,
+      .a-text {
+        min-width: 0;
+        color: #1f2937;
+        font-family: "Comic Sans MS", "Trebuchet MS", "PingFang SC", sans-serif;
+        font-size: clamp(19px, 1.9vw, 34px);
+        font-weight: 1000;
+        line-height: 1.18;
+        overflow-wrap: anywhere;
+      }
+
+      .a-text {
+        font-size: clamp(18px, 1.6vw, 30px);
+      }
+
+      .tag {
+        display: grid;
+        place-items: center;
+        width: clamp(38px, 3.5vw, 64px);
+        aspect-ratio: 1;
+        border-radius: 18px;
+        color: #fff;
+        font-family: "Cooper Black", "Trebuchet MS", sans-serif;
+        font-size: clamp(18px, 1.75vw, 34px);
+        font-weight: 1000;
+        background: var(--blue);
+        box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+      }
+
+      .answer-card .tag {
+        background: var(--orange);
+      }
+
+      .node {
+        display: grid;
+        place-items: center;
+        width: clamp(34px, 3.2vw, 58px);
+        aspect-ratio: 1;
+        border-radius: 999px;
+        background: #fff;
+        border: 6px solid var(--blue);
+        box-shadow: 0 8px 14px rgba(30, 144, 255, 0.18);
+        color: var(--blue);
+        font-size: clamp(15px, 1.5vw, 28px);
+        font-weight: 1000;
+      }
+
+      .answer-card .node {
+        border-color: var(--orange);
+        color: var(--orange);
+      }
+
+      .card.matched .node {
+        border-color: var(--green);
+        color: var(--green);
+      }
+
+      .switchboard {
+        position: relative;
+        align-self: center;
+        height: 94%;
+        border-radius: 28px;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        overflow: hidden;
+      }
+
+      .switchboard::before {
+        content: none;
+      }
+
+      svg.wires {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        overflow: visible;
+      }
+
+      .wire {
+        fill: none;
+        stroke-width: 11;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 5px 4px rgba(47, 79, 79, 0.18));
+      }
+
+      .wire.pending {
+        stroke: var(--blue);
+        stroke-dasharray: 24 18;
+        animation: dash 0.72s linear infinite;
+      }
+
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -42;
+        }
+      }
+
+      .wire.ok {
+        stroke: var(--green);
+      }
+
+      .wire.bad {
+        stroke: var(--red);
+      }
+
+      .bottom-actions {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 12.6%;
+        z-index: 6;
+        height: 8.9%;
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+      }
+
+      .action-btn {
+        min-width: clamp(130px, 12vw, 230px);
+        height: clamp(48px, 5.2vw, 88px);
+        border-radius: 999px;
+        color: #fff;
+        font-size: clamp(18px, 1.75vw, 33px);
+        font-weight: 1000;
+        border: 4px solid #fff;
+        background:
+          radial-gradient(circle at 33% 23%, rgba(255, 255, 255, 0.66), transparent 25%),
+          linear-gradient(180deg, #76d8ff, #1e90ff);
+        box-shadow: 0 10px 0 #176ebf, 0 16px 26px rgba(30, 144, 255, 0.22);
+      }
+
+      .action-btn.secondary {
+        background:
+          radial-gradient(circle at 33% 23%, rgba(255, 255, 255, 0.7), transparent 25%),
+          linear-gradient(180deg, #ffdf5a, #ffa500);
+        box-shadow: 0 10px 0 #c87d00, 0 16px 26px rgba(255, 165, 0, 0.19);
+      }
+
+      .action-btn:disabled {
+        opacity: 0.52;
+        cursor: default;
+        filter: grayscale(0.35);
+      }
+
+      .modal {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 45%, rgba(255, 248, 223, 0.22), transparent 34%),
+          rgba(22, 36, 48, 0.42);
+        backdrop-filter: blur(5px) saturate(0.86);
+      }
+
+      .result-card {
+        position: relative;
+        width: min(780px, 63%);
+        min-height: 42%;
+        padding: 54px 58px 46px;
+        border-radius: 34px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 251, 232, 0.95)),
+          radial-gradient(circle at 14% 24%, rgba(118, 216, 255, 0.15), transparent 24%),
+          radial-gradient(circle at 88% 18%, rgba(255, 213, 79, 0.16), transparent 22%),
+          #ffffff;
+        border: 6px solid #ffd54f;
+        text-align: center;
+        box-shadow:
+          0 12px 0 #f0b92a,
+          0 30px 66px rgba(22, 36, 48, 0.25);
+        overflow: hidden;
+      }
+
+      .result-card::before,
+      .result-card::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+        opacity: 0.5;
+      }
+
+      .result-card::before {
+        inset: 14px;
+        border-radius: 26px;
+        border: 3px dashed rgba(79, 195, 247, 0.18);
+      }
+
+      .result-card::after {
+        right: 30px;
+        bottom: 22px;
+        width: 150px;
+        height: 82px;
+        border-radius: 999px;
+        background:
+          radial-gradient(circle at 26% 54%, rgba(255, 213, 79, 0.36) 0 15%, transparent 16%),
+          radial-gradient(circle at 50% 54%, rgba(79, 195, 247, 0.3) 0 15%, transparent 16%),
+          radial-gradient(circle at 74% 54%, rgba(102, 204, 51, 0.28) 0 15%, transparent 16%);
+      }
+
+      .result-badge {
+        position: relative;
+        z-index: 1;
+        width: clamp(62px, 6vw, 92px);
+        aspect-ratio: 1;
+        margin: 0 auto 16px;
+        border-radius: 28px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: clamp(30px, 3vw, 48px);
+        border: 5px solid #fff;
+        background:
+          radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.72), transparent 24%),
+          linear-gradient(180deg, #76d8ff, #1e90ff);
+        box-shadow: 0 8px 0 #176ebf, 0 16px 26px rgba(30, 144, 255, 0.22);
+      }
+
+      .result-title {
+        position: relative;
+        z-index: 1;
+        margin: 0 0 14px;
+        color: var(--phone);
+        font-size: clamp(34px, 3.5vw, 62px);
+        line-height: 1.05;
+        font-weight: 1000;
+      }
+
+      .result-copy {
+        position: relative;
+        z-index: 1;
+        width: fit-content;
+        max-width: 100%;
+        margin: 0 auto 30px;
+        padding: 14px 24px;
+        border-radius: 999px;
+        color: #405169;
+        background: #fff8d0;
+        border: 3px solid rgba(255, 255, 255, 0.96);
+        font-family: "Trebuchet MS", "PingFang SC", sans-serif;
+        font-size: clamp(18px, 1.7vw, 30px);
+        font-weight: 900;
+        line-height: 1.35;
+        box-shadow: 0 8px 18px rgba(37, 50, 71, 0.08);
+      }
+
+      .result-card .action-btn {
+        position: relative;
+        z-index: 1;
+        min-width: clamp(150px, 14vw, 250px);
+      }
+
+      .result-card.is-perfect .result-badge {
+        background:
+          radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.72), transparent 24%),
+          linear-gradient(180deg, #8ee45d, #66cc33);
+        box-shadow: 0 8px 0 #46a620, 0 16px 26px rgba(102, 204, 51, 0.22);
+      }
+
+      .result-card.is-review .result-badge {
+        background:
+          radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.72), transparent 24%),
+          linear-gradient(180deg, #ffdf5a, #ffa500);
+        box-shadow: 0 8px 0 #c87d00, 0 16px 26px rgba(255, 165, 0, 0.2);
+      }
+
+      @media (max-aspect-ratio: 4 / 3) {
+        .stage {
+          border-radius: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage" aria-label="对话连连看互动课件">
+      <section class="screen cover active" id="coverScreen" aria-label="封面，点击任意位置进入"></section>
+
+      <section class="screen game" id="gameScreen" aria-label="题目页">
+        <div class="board" id="board">
+          <div class="topbar">
+            <div class="game-title">☎ 对话连连看</div>
+            <div class="status-cluster">
+              <div class="round-pill" id="roundText">第 1 / 2 组</div>
+              <div class="timer"><span class="status-icon timer-icon" aria-hidden="true"></span><span id="timerText">40s</span></div>
+              <div class="score"><span class="status-icon score-icon" aria-hidden="true"></span><span id="scoreText">0 分</span></div>
+            </div>
+          </div>
+          <div class="instruction" id="instruction">先点左侧问句，再点右侧答句；也可以拖拽电话线连接。</div>
+          <svg class="wires" id="wireLayer" aria-hidden="true"></svg>
+          <div class="match-area">
+            <div class="column left" id="questions"></div>
+            <div class="switchboard" aria-hidden="true">
+            </div>
+            <div class="column right" id="answers"></div>
+          </div>
+
+          <div class="bottom-actions">
+            <button class="action-btn secondary" id="clearBtn" type="button">重连</button>
+            <button class="action-btn" id="submitBtn" type="button">提交</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="modal" id="resultModal" hidden>
+        <div class="result-card">
+          <div class="result-badge" id="resultBadge" aria-hidden="true">☎</div>
+          <h2 class="result-title" id="resultTitle">电话接通！</h2>
+          <p class="result-copy" id="resultCopy">本组得分 36 分</p>
+          <button class="action-btn" id="nextBtn" type="button">下一组</button>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const GROUPS = [
+        {
+          questions: [
+            { id: "q1", text: "What's your name?", scene: "school", emoji: "🏫", answer: "a", hasArt: true },
+            { id: "q2", text: "How are you?", scene: "home", emoji: "🏠", answer: "b", hasArt: true },
+            { id: "q3", text: "How old are you?", scene: "shop", emoji: "🎂", answer: "c", hasArt: true }
+          ],
+          answers: [
+            { id: "a", text: "My name is Tom." },
+            { id: "b", text: "I'm fine, thank you." },
+            { id: "c", text: "I'm seven years old." }
+          ]
+        },
+        {
+          questions: [
+            { id: "q1", text: "What color is it?", scene: "color", emoji: "🎨", answer: "a", hasArt: false },
+            { id: "q2", text: "Do you like apples?", scene: "apples", emoji: "🍎", answer: "b", hasArt: true },
+            { id: "q3", text: "What's this?", scene: "book", emoji: "📘", answer: "c", hasArt: true }
+          ],
+          answers: [
+            { id: "a", text: "It's red." },
+            { id: "b", text: "Yes, I do." },
+            { id: "c", text: "It's a book." }
+          ]
+        }
+      ];
+
+      const coverScreen = document.getElementById("coverScreen");
+      const gameScreen = document.getElementById("gameScreen");
+      const questionsEl = document.getElementById("questions");
+      const answersEl = document.getElementById("answers");
+      const wireLayer = document.getElementById("wireLayer");
+      const board = document.getElementById("board");
+      const timerText = document.getElementById("timerText");
+      const scoreText = document.getElementById("scoreText");
+      const roundText = document.getElementById("roundText");
+      const resultModal = document.getElementById("resultModal");
+      const resultCard = document.querySelector(".result-card");
+      const resultBadge = document.getElementById("resultBadge");
+      const resultTitle = document.getElementById("resultTitle");
+      const resultCopy = document.getElementById("resultCopy");
+      const nextBtn = document.getElementById("nextBtn");
+      const submitBtn = document.getElementById("submitBtn");
+
+      let groupIndex = 0;
+      let totalScore = 0;
+      let secondsLeft = 40;
+      let timerId = null;
+      let selectedQuestion = null;
+      let connections = new Map();
+      let isDragging = false;
+      let dragQuestion = null;
+      let pointerPath = null;
+      let statusText = "";
+      let hasPlayedIntroAudio = false;
+      let sfxContext = null;
+      const wireColors = ["#dc143c", "#1e90ff", "#ffd700", "#32cd32"];
+      const audioClips = {
+        welcome: new Audio("./assets/audio/voice_welcome_zh.mp3"),
+        instruction: new Audio("./assets/audio/voice_instruction_zh.mp3")
+      };
+      const resultSfxClips = {
+        success: new Audio("./assets/audio/sfx_right.mp3"),
+        review: new Audio("./assets/audio/sfx_wrong.mp3")
+      };
+      window.dialogConnectAudio = audioClips;
+      window.dialogConnectResultSfx = resultSfxClips;
+
+      Object.values(audioClips).forEach((audio) => {
+        audio.preload = "auto";
+        audio.volume = 0.95;
+      });
+      Object.values(resultSfxClips).forEach((audio) => {
+        audio.preload = "auto";
+        audio.volume = 0.82;
+      });
+
+      function playAudio(name, { interrupt = true } = {}) {
+        const audio = audioClips[name];
+        if (!audio) return Promise.resolve();
+        if (interrupt) {
+          Object.values(audioClips).forEach((clip) => {
+            if (clip !== audio) {
+              clip.pause();
+              clip.currentTime = 0;
+            }
+          });
+          audio.currentTime = 0;
+        }
+        return audio.play().catch(() => {});
+      }
+
+      function playResultSfx(name) {
+        const audio = resultSfxClips[name];
+        if (!audio) return;
+        Object.values(audioClips).forEach((clip) => clip.pause());
+        Object.values(resultSfxClips).forEach((clip) => {
+          clip.pause();
+          clip.currentTime = 0;
+        });
+        audio.play().catch(() => playSfx(name === "success" ? "successFallback" : "reviewFallback"));
+      }
+
+      function getSfxContext() {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return null;
+        if (!sfxContext) sfxContext = new AudioContextClass();
+        if (sfxContext.state === "suspended") {
+          sfxContext.resume().catch(() => {});
+        }
+        return sfxContext;
+      }
+
+      function playTone(frequency, delay = 0, duration = 0.08, options = {}) {
+        const context = getSfxContext();
+        if (!context) return;
+        const startAt = context.currentTime + delay;
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+        oscillator.type = options.type || "sine";
+        oscillator.frequency.setValueAtTime(frequency, startAt);
+        if (options.toFrequency) {
+          oscillator.frequency.exponentialRampToValueAtTime(options.toFrequency, startAt + duration);
+        }
+        gainNode.gain.setValueAtTime(0.0001, startAt);
+        gainNode.gain.linearRampToValueAtTime(options.volume || 0.055, startAt + 0.012);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+        oscillator.start(startAt);
+        oscillator.stop(startAt + duration + 0.02);
+      }
+
+      function playSfx(name) {
+        switch (name) {
+          case "select":
+            playTone(660, 0, 0.055, { type: "triangle", volume: 0.035 });
+            break;
+          case "connect":
+            playTone(420, 0, 0.045, { type: "triangle", volume: 0.018, toFrequency: 560 });
+            break;
+          case "submit":
+            playTone(880, 0, 0.1, { type: "sine", volume: 0.05 });
+            playTone(1320, 0.025, 0.12, { type: "sine", volume: 0.035 });
+            break;
+          case "clear":
+            playTone(560, 0, 0.16, { type: "sine", volume: 0.038, toFrequency: 260 });
+            break;
+          case "tick":
+            playTone(980, 0, 0.035, { type: "square", volume: 0.018 });
+            break;
+          case "success":
+          case "successFallback":
+            playTone(523.25, 0, 0.09, { type: "triangle", volume: 0.042 });
+            playTone(659.25, 0.08, 0.09, { type: "triangle", volume: 0.045 });
+            playTone(783.99, 0.16, 0.14, { type: "triangle", volume: 0.05 });
+            break;
+          case "review":
+          case "reviewFallback":
+            playTone(392, 0, 0.1, { type: "sine", volume: 0.035 });
+            playTone(330, 0.09, 0.13, { type: "sine", volume: 0.032 });
+            break;
+          case "next":
+            playTone(620, 0, 0.055, { type: "triangle", volume: 0.035 });
+            playTone(760, 0.045, 0.06, { type: "triangle", volume: 0.03 });
+            break;
+          case "incomplete":
+            playTone(300, 0, 0.08, { type: "sine", volume: 0.032 });
+            break;
+        }
+      }
+
+      function playIntroAudioOnce() {
+        if (hasPlayedIntroAudio) return;
+        hasPlayedIntroAudio = true;
+        playAudio("welcome").then(() => {
+          audioClips.welcome.onended = () => playAudio("instruction");
+        });
+      }
+
+      function startCourse() {
+        getSfxContext();
+        coverScreen.classList.remove("active");
+        gameScreen.classList.add("active");
+        groupIndex = 0;
+        totalScore = 0;
+        renderGroup();
+        playIntroAudioOnce();
+      }
+
+      function renderGroup() {
+        clearInterval(timerId);
+        secondsLeft = 40;
+        selectedQuestion = null;
+        connections = new Map();
+        questionsEl.innerHTML = "";
+        answersEl.innerHTML = "";
+        wireLayer.innerHTML = "";
+        resultModal.hidden = true;
+        roundText.textContent = `第 ${groupIndex + 1} / ${GROUPS.length} 组`;
+        scoreText.textContent = `${totalScore} 分`;
+        statusText = "完成 3 条连线后提交。";
+        submitBtn.disabled = false;
+
+        const group = GROUPS[groupIndex];
+        group.questions.forEach((question, index) => {
+          const card = document.createElement("button");
+          card.className = "card question-card";
+          card.type = "button";
+          card.dataset.id = question.id;
+          const sceneImage = question.hasArt
+            ? `<img src="./assets/dialog_connect_scene_${question.scene}.png" alt="" onload="this.parentElement.classList.add('has-image')" onerror="this.remove()" />`
+            : "";
+          card.innerHTML = `
+            <div class="scene">
+              <div class="scene-art">
+                ${sceneImage}
+                <span class="scene-fallback">${question.emoji}</span>
+              </div>
+            </div>
+            <div class="q-text">${question.text}</div>
+            <div class="node" data-node="q" data-id="${question.id}">☎</div>
+          `;
+          card.addEventListener("click", () => selectQuestion(question.id));
+          card.addEventListener("pointerdown", (event) => beginDrag(event, question.id));
+          questionsEl.appendChild(card);
+        });
+
+        shuffleAnswers(group.answers).forEach((answer, index) => {
+          const card = document.createElement("button");
+          card.className = "card answer-card";
+          card.type = "button";
+          card.dataset.id = answer.id;
+          card.innerHTML = `
+            <div class="tag">${String.fromCharCode(65 + index)}</div>
+            <div class="a-text">${answer.text}</div>
+            <div class="node" data-node="a" data-id="${answer.id}">●</div>
+          `;
+          card.addEventListener("click", () => chooseAnswer(answer.id));
+          answersEl.appendChild(card);
+        });
+
+        window.requestAnimationFrame(redrawWires);
+        updateTimer();
+        timerId = setInterval(tick, 1000);
+      }
+
+      function tick() {
+        secondsLeft -= 1;
+        updateTimer();
+        if (secondsLeft > 0 && secondsLeft <= 5) {
+          playSfx("tick");
+        }
+        if (secondsLeft <= 0) {
+          clearInterval(timerId);
+          validateGroup(true);
+        }
+      }
+
+      function shuffleAnswers(answers) {
+        const order = groupIndex === 0 ? ["b", "c", "a"] : ["c", "a", "b"];
+        return [...answers].sort((left, right) => order.indexOf(left.id) - order.indexOf(right.id));
+      }
+
+      function updateTimer() {
+        timerText.textContent = `${Math.max(secondsLeft, 0)}s`;
+        timerText.classList.toggle("warning", secondsLeft <= 10);
+      }
+
+      function selectQuestion(id) {
+        if (resultModal.hidden === false) return;
+        selectedQuestion = id;
+        playSfx("select");
+        document.querySelectorAll(".question-card").forEach((card) => {
+          card.classList.toggle("active", card.dataset.id === id);
+        });
+        statusText = "选择右侧答句，接通电话线。";
+      }
+
+      function chooseAnswer(answerId) {
+        if (!selectedQuestion) {
+          statusText = "先选择左侧问句。";
+          return;
+        }
+        addConnection(selectedQuestion, answerId);
+        selectedQuestion = null;
+        document.querySelectorAll(".question-card").forEach((card) => card.classList.remove("active"));
+      }
+
+      function addConnection(questionId, answerId) {
+        for (const [qId, aId] of connections.entries()) {
+          if (aId === answerId && qId !== questionId) {
+            connections.delete(qId);
+          }
+        }
+        connections.set(questionId, answerId);
+        playSfx("connect");
+        markConnectedCards();
+        redrawWires();
+        const needed = GROUPS[groupIndex].questions.length;
+        statusText = connections.size >= needed ? "可以提交验证了。" : `还需要连接 ${needed - connections.size} 条电话线。`;
+      }
+
+      function markConnectedCards() {
+        document.querySelectorAll(".card").forEach((card) => {
+          card.classList.remove("matched", "wrong");
+        });
+        for (const [qId, aId] of connections.entries()) {
+          document.querySelector(`.question-card[data-id="${qId}"]`)?.classList.add("matched");
+          document.querySelector(`.answer-card[data-id="${aId}"]`)?.classList.add("matched");
+        }
+      }
+
+      function getNodeCenter(selector) {
+        const node = document.querySelector(selector);
+        const boardRect = board.getBoundingClientRect();
+        const rect = node.getBoundingClientRect();
+        return {
+          x: rect.left + rect.width / 2 - boardRect.left,
+          y: rect.top + rect.height / 2 - boardRect.top
+        };
+      }
+
+      function pathBetween(from, to) {
+        const mid = (from.x + to.x) / 2;
+        return `M ${from.x} ${from.y} C ${mid} ${from.y}, ${mid} ${to.y}, ${to.x} ${to.y}`;
+      }
+
+      function redrawWires(statusMap = new Map()) {
+        wireLayer.innerHTML = "";
+        wireLayer.setAttribute("viewBox", `0 0 ${board.clientWidth} ${board.clientHeight}`);
+        Array.from(connections.entries()).forEach(([qId, aId], index) => {
+          const from = getNodeCenter(`.question-card[data-id="${qId}"] [data-node="q"]`);
+          const to = getNodeCenter(`.answer-card[data-id="${aId}"] [data-node="a"]`);
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", pathBetween(from, to));
+          path.setAttribute("class", `wire ${statusMap.get(qId) || ""}`.trim());
+          path.setAttribute("stroke", statusMap.get(qId) ? "" : wireColors[index % wireColors.length]);
+          wireLayer.appendChild(path);
+        });
+      }
+
+      function beginDrag(event, questionId) {
+        if (event.button !== 0 && event.pointerType === "mouse") return;
+        event.preventDefault();
+        isDragging = true;
+        dragQuestion = questionId;
+        selectedQuestion = questionId;
+        selectQuestion(questionId);
+        wireLayer.setPointerCapture?.(event.pointerId);
+        pointerPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pointerPath.setAttribute("class", "wire pending");
+        wireLayer.appendChild(pointerPath);
+        moveDrag(event);
+        window.addEventListener("pointermove", moveDrag);
+        window.addEventListener("pointerup", endDrag, { once: true });
+      }
+
+      function moveDrag(event) {
+        if (!isDragging || !pointerPath) return;
+        const from = getNodeCenter(`.question-card[data-id="${dragQuestion}"] [data-node="q"]`);
+        const boardRect = board.getBoundingClientRect();
+        const to = {
+          x: event.clientX - boardRect.left,
+          y: event.clientY - boardRect.top
+        };
+        pointerPath.setAttribute("d", pathBetween(from, to));
+      }
+
+      function endDrag(event) {
+        window.removeEventListener("pointermove", moveDrag);
+        const target = document.elementFromPoint(event.clientX, event.clientY);
+        const answerCard = target?.closest?.(".answer-card");
+        pointerPath?.remove();
+        pointerPath = null;
+        isDragging = false;
+        if (answerCard && dragQuestion) {
+          addConnection(dragQuestion, answerCard.dataset.id);
+        }
+        dragQuestion = null;
+      }
+
+      function validateGroup(forced = false) {
+        const group = GROUPS[groupIndex];
+        if (!forced && connections.size < group.questions.length) {
+          statusText = "先把 3 条电话线都接好，再提交。";
+          playSfx("incomplete");
+          return;
+        }
+        if (!forced) playSfx("submit");
+        clearInterval(timerId);
+        submitBtn.disabled = true;
+        const statusMap = new Map();
+        let correct = 0;
+        group.questions.forEach((question) => {
+          const answerId = connections.get(question.id);
+          const ok = answerId === question.answer;
+          if (ok) correct += 1;
+          statusMap.set(question.id, ok ? "ok" : "bad");
+          const qCard = document.querySelector(`.question-card[data-id="${question.id}"]`);
+          const aCard = answerId ? document.querySelector(`.answer-card[data-id="${answerId}"]`) : null;
+          qCard?.classList.toggle("wrong", !ok);
+          aCard?.classList.toggle("wrong", !ok);
+        });
+        redrawWires(statusMap);
+        const timeBonus = correct === group.questions.length && secondsLeft > 0 ? 10 : 0;
+        const groupScore = correct * 12 + timeBonus;
+        totalScore += groupScore;
+        scoreText.textContent = `${totalScore} 分`;
+        const title = correct === group.questions.length ? "电话全部接通！" : "再检查一下线路";
+        const copy = correct === group.questions.length
+          ? `本组 ${correct}/3 正确，得 ${groupScore} 分。`
+          : `本组 ${correct}/3 正确，正确答案已经用绿线标出。`;
+        window.setTimeout(() => showResult(title, copy, correct, group.questions.length), 900);
+      }
+
+      function showResult(title, copy, correct, total) {
+        const isPerfect = correct === total;
+        resultCard.classList.toggle("is-perfect", isPerfect);
+        resultCard.classList.toggle("is-review", !isPerfect);
+        resultBadge.textContent = isPerfect ? "✓" : "!";
+        resultTitle.textContent = title;
+        resultCopy.textContent = copy;
+        nextBtn.textContent = groupIndex >= GROUPS.length - 1 ? "Try Again!" : "下一组";
+        resultModal.hidden = false;
+        playResultSfx(isPerfect ? "success" : "review");
+      }
+
+      coverScreen.addEventListener("click", startCourse);
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        playSfx("clear");
+        connections = new Map();
+        selectedQuestion = null;
+        document.querySelectorAll(".card").forEach((card) => card.classList.remove("matched", "wrong", "active"));
+        redrawWires();
+        statusText = "已清空线路，重新接线。";
+      });
+      submitBtn.addEventListener("click", () => validateGroup(false));
+      nextBtn.addEventListener("click", () => {
+        playSfx("next");
+        if (groupIndex >= GROUPS.length - 1) {
+          groupIndex = 0;
+          totalScore = 0;
+        } else {
+          groupIndex += 1;
+        }
+        renderGroup();
+      });
+      window.addEventListener("resize", () => window.requestAnimationFrame(redrawWires));
+    </script>
+  </body>
+</html>

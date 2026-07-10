@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>战舰逻辑挑战 - 海图指挥台</title>
+  <script>
+    const DESIGN_WIDTH = 1920;
+    const DESIGN_HEIGHT = 1080;
+
+    function resizeCourseware() {
+      const app = document.getElementById("app");
+      if (!app) return;
+      const scale = Math.min(window.innerWidth / DESIGN_WIDTH, window.innerHeight / DESIGN_HEIGHT);
+      app.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+
+    document.addEventListener("DOMContentLoaded", resizeCourseware);
+    window.addEventListener("load", resizeCourseware);
+    window.addEventListener("resize", resizeCourseware);
+  </script>
+  <style>
+    :root {
+      --ink: #213949;
+      --muted: #557084;
+      --paper: #fffaf0;
+      --paper-2: #f4fbff;
+      --sea: #8ed6e8;
+      --deep: #295b7d;
+      --ship: #3f4a54;
+      --water: #60b7dc;
+      --warn: #e6514f;
+      --ok: #26a96c;
+      --hint: #238be0;
+      --reset: #f7b40d;
+      --submit: #19c348;
+      --board-cell: 55px;
+      --board-gap: 5px;
+      --board-rail: 54px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #091926;
+      font-family: "Trebuchet MS", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    button {
+      font: inherit;
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      transform: translate(-50%, -50%);
+      transform-origin: center;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(246, 215, 129, .35), transparent 24%),
+        linear-gradient(145deg, #91dce8 0%, #c7edf0 43%, #ffe2b8 100%);
+      box-shadow: 0 22px 80px rgba(0, 0, 0, .42);
+    }
+
+    .hidden { display: none !important; }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .asset-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .asset-bg.ready { opacity: 1; }
+
+    .cover {
+      z-index: 20;
+      cursor: pointer;
+      background:
+        linear-gradient(90deg, rgba(255, 251, 238, .9) 0 43%, rgba(255,255,255,.15) 43% 100%),
+        radial-gradient(circle at 74% 48%, rgba(42, 119, 164, .22), transparent 29%),
+        linear-gradient(145deg, #e7fbff 0%, #aee7ec 58%, #ffe4af 100%);
+    }
+
+    .cover::before {
+      content: "";
+      position: absolute;
+      inset: 76px;
+      border: 10px solid rgba(255, 255, 255, .72);
+      border-radius: 42px;
+      box-shadow: inset 0 0 0 2px rgba(53, 98, 126, .14), 0 30px 70px rgba(36, 79, 100, .2);
+      pointer-events: none;
+    }
+
+    .cover-fallback {
+      position: absolute;
+      left: 136px;
+      top: 210px;
+      width: 720px;
+      z-index: 2;
+      transition: opacity .2s ease;
+    }
+
+    .cover.has-image .cover-fallback,
+    .cover.has-image .cover-ship {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      height: 52px;
+      padding: 0 28px;
+      border-radius: 999px;
+      background: rgba(35, 139, 224, .14);
+      color: #195c86;
+      font-size: 28px;
+      font-weight: 800;
+      border: 3px solid rgba(35, 139, 224, .2);
+    }
+
+    .cover h1 {
+      margin: 28px 0 0;
+      font-size: 112px;
+      line-height: 1.02;
+      letter-spacing: 0;
+      color: #173f5f;
+      text-shadow: 0 6px 0 rgba(255, 255, 255, .95);
+    }
+
+    .cover p {
+      margin: 28px 0 42px;
+      width: 640px;
+      font-size: 38px;
+      line-height: 1.35;
+      font-weight: 800;
+      color: #486b7f;
+    }
+
+    .cover-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 300px;
+      height: 92px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #22c96c, #119c52);
+      color: white;
+      font-size: 38px;
+      font-weight: 900;
+      box-shadow: 0 14px 0 #0b6d3d, 0 25px 35px rgba(11, 109, 61, .28);
+    }
+
+    .cover-ship {
+      position: absolute;
+      right: 210px;
+      top: 226px;
+      width: 710px;
+      height: 505px;
+      border-radius: 54px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.55), transparent 30% 70%, rgba(255,255,255,.35)),
+        repeating-linear-gradient(0deg, rgba(17, 76, 103, .18) 0 4px, transparent 4px 74px),
+        repeating-linear-gradient(90deg, rgba(17, 76, 103, .18) 0 4px, transparent 4px 74px),
+        linear-gradient(155deg, rgba(231, 253, 255, .92), rgba(137, 207, 218, .72));
+      border: 8px solid rgba(255, 255, 255, .8);
+      box-shadow: 0 35px 65px rgba(30, 82, 103, .23);
+    }
+
+    .cover-ship::before,
+    .cover-ship::after {
+      content: "";
+      position: absolute;
+      border-radius: 30px;
+      background: #40515c;
+      box-shadow: inset 0 -10px 0 rgba(0, 0, 0, .12);
+    }
+
+    .cover-ship::before {
+      width: 320px;
+      height: 74px;
+      left: 178px;
+      top: 210px;
+    }
+
+    .cover-ship::after {
+      width: 132px;
+      height: 74px;
+      left: 272px;
+      top: 132px;
+    }
+
+    .game {
+      background:
+        radial-gradient(circle at 6% 12%, rgba(255, 220, 140, .28), transparent 20%),
+        radial-gradient(circle at 93% 82%, rgba(92, 181, 205, .32), transparent 27%),
+        linear-gradient(150deg, #bdeff2, #fef5da 62%, #f2c884);
+    }
+
+    .stage-card {
+      position: absolute;
+      display: none;
+    }
+
+    .top-strip {
+      position: absolute;
+      left: 138px;
+      top: 86px;
+      width: 1644px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .title-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      text-align: center;
+      transform: translateX(6px);
+    }
+
+    .round-icon {
+      width: 86px;
+      height: 86px;
+      border-radius: 30px;
+      display: grid;
+      place-items: center;
+      background: #173f5f;
+      color: white;
+      font-size: 52px;
+      box-shadow: 0 9px 0 rgba(0, 0, 0, .12);
+      flex: 0 0 auto;
+    }
+
+    .title-text {
+      text-align: center;
+    }
+
+    .title-text h2 {
+      margin: 0;
+      font-size: 54px;
+      line-height: 1;
+      color: #173f5f;
+      text-shadow: 0 4px 0 rgba(255, 255, 255, .7);
+    }
+
+    .title-text span {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 23px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .status-pill {
+      position: absolute;
+      right: 92px;
+      top: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: 322px;
+      height: 58px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .88);
+      border: 2px solid rgba(41, 91, 125, .12);
+      color: #28526a;
+      font-size: 26px;
+      font-weight: 900;
+      box-shadow: 0 12px 28px rgba(48, 105, 130, .12);
+    }
+
+    .content {
+      position: absolute;
+      left: 136px;
+      top: 224px;
+      width: 1648px;
+      height: 572px;
+      display: grid;
+      grid-template-columns: 390px 1fr 290px;
+      gap: 56px;
+      z-index: 2;
+    }
+
+    .panel {
+      border-radius: 28px;
+      background: rgba(255, 255, 255, .72);
+      border: 3px solid rgba(41, 91, 125, .1);
+      box-shadow: 0 16px 36px rgba(35, 86, 109, .09);
+    }
+
+    .rules-panel {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 29px;
+      color: #173f5f;
+      line-height: 1.1;
+    }
+
+    .rules {
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 18px;
+      list-style: none;
+      color: #375b6d;
+      font-size: 21px;
+      line-height: 1.42;
+      font-weight: 800;
+    }
+
+    .rules li {
+      padding-left: 34px;
+      position: relative;
+    }
+
+    .rules li::before {
+      content: attr(data-no);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: #dff3f8;
+      color: #1c658c;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .fleet-list {
+      display: grid;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .ship-row {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-radius: 14px;
+      background: #f3fbfd;
+      border: 2px solid rgba(41, 91, 125, .1);
+      font-size: 17px;
+      font-weight: 900;
+      color: #34566a;
+    }
+
+    .ship-row.done {
+      color: #207e58;
+      background: #e9f9ef;
+      border-color: rgba(38, 169, 108, .28);
+    }
+
+    .ship-shape {
+      display: inline-grid;
+      grid-auto-flow: column;
+      gap: 5px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .ship-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 6px;
+      background: #3f4a54 url("assets/battleships_ship_icon.png") center / 16px 16px no-repeat;
+    }
+
+    .board-panel {
+      padding: 18px 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      background:
+        linear-gradient(rgba(255,255,255,.78), rgba(255,255,255,.84)),
+        repeating-linear-gradient(0deg, rgba(114, 175, 196, .12) 0 3px, transparent 3px 78px),
+        repeating-linear-gradient(90deg, rgba(114, 175, 196, .12) 0 3px, transparent 3px 78px);
+    }
+
+    .board-wrap {
+      display: grid;
+      grid-template-columns: var(--board-rail) calc(var(--board-cell) * 10 + var(--board-gap) * 9);
+      grid-template-rows: var(--board-rail) calc(var(--board-cell) * 10 + var(--board-gap) * 9);
+      gap: 8px;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .corner-note {
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: transparent;
+      color: #376a82;
+      font-size: 18px;
+      font-weight: 900;
+      border: 0;
+    }
+
+    .col-hints,
+    .row-hints {
+      display: grid;
+      gap: var(--board-gap);
+    }
+
+    .col-hints {
+      grid-template-columns: repeat(10, 1fr);
+    }
+
+    .row-hints {
+      grid-template-rows: repeat(10, 1fr);
+    }
+
+    .hint-num {
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: #fef1cd;
+      color: #35576a;
+      font-size: 25px;
+      font-weight: 900;
+      border: 3px solid rgba(164, 113, 30, .15);
+    }
+
+    .hint-num.bad {
+      background: #ffe1df;
+      color: #bd2d2d;
+      animation: badPulse .45s ease-in-out 3;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, var(--board-cell));
+      grid-template-rows: repeat(10, var(--board-cell));
+      gap: var(--board-gap);
+      padding: 0;
+      border-radius: 22px;
+      background: #d7eef4;
+      border: 0;
+      outline: 0;
+      box-shadow:
+        0 0 0 5px #315f78,
+        0 0 0 10px rgba(255, 255, 255, .55);
+      touch-action: manipulation;
+    }
+
+    .cell {
+      position: relative;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: #f9fdfd;
+      border: 2px solid rgba(48, 92, 114, .18);
+      transition: transform .08s ease, background .12s ease, border-color .12s ease;
+    }
+
+    .cell:active { transform: scale(.94); }
+
+    .cell.ship {
+      background: linear-gradient(180deg, #63717b, #34414a);
+      border-color: #202b33;
+      box-shadow: inset 0 9px 0 rgba(255, 255, 255, .12);
+    }
+
+    .cell.ship::before {
+      content: "";
+      width: 38px;
+      height: 38px;
+      background: url("assets/battleships_ship_icon.png") center / contain no-repeat;
+      filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .18));
+    }
+
+    .cell.water {
+      background: #e4f8ff;
+      border-color: rgba(65, 151, 185, .42);
+    }
+
+    .cell.water::before {
+      content: "~";
+      width: 36px;
+      height: 36px;
+      color: transparent;
+      background: url("assets/battleships_water_icon.png") center / contain no-repeat;
+      display: block;
+      opacity: .88;
+    }
+
+    .cell.hint-flash {
+      animation: hintFlash 1s ease-in-out 3;
+    }
+
+    .cell.error {
+      outline: 6px solid rgba(230, 81, 79, .74);
+      animation: badPulse .45s ease-in-out 3;
+      z-index: 2;
+    }
+
+    .cell.answer {
+      background: linear-gradient(180deg, #66737d, #303b44);
+      border-color: #202b33;
+    }
+
+    .side-panel {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .counter-card {
+      padding: 20px;
+      border-radius: 22px;
+      background: #f3fbfd;
+      border: 3px solid rgba(41, 91, 125, .1);
+    }
+
+    .counter-label {
+      font-size: 18px;
+      font-weight: 900;
+      color: #5c7482;
+    }
+
+    .counter-value {
+      margin-top: 5px;
+      font-size: 38px;
+      font-weight: 900;
+      color: #173f5f;
+      line-height: 1.1;
+    }
+
+    .legend {
+      display: grid;
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 900;
+      color: #3d6276;
+    }
+
+    .legend-chip {
+      width: 38px;
+      height: 30px;
+      border-radius: 9px;
+      flex: 0 0 auto;
+      border: 2px solid rgba(48, 92, 114, .18);
+      background: #fff;
+    }
+
+    .legend-chip.ship-chip {
+      background: #3f4a54 url("assets/battleships_ship_icon.png") center / 28px 28px no-repeat;
+    }
+    .legend-chip.water-chip {
+      display: grid;
+      place-items: center;
+      background: #e4f8ff url("assets/battleships_water_icon.png") center / 28px 28px no-repeat;
+      color: transparent;
+    }
+
+    .message {
+      min-height: 128px;
+      padding: 20px;
+      border-radius: 22px;
+      background: #fff8e8;
+      border: 3px solid rgba(247, 180, 13, .24);
+      color: #5f4a19;
+      font-size: 20px;
+      line-height: 1.42;
+      font-weight: 900;
+    }
+
+    .message.ok {
+      color: #176845;
+      background: #eaf9ef;
+      border-color: rgba(38, 169, 108, .28);
+      animation: successGlow .72s ease-in-out 4;
+    }
+
+    .message.bad {
+      color: #ad2e2e;
+      background: #ffebe9;
+      border-color: rgba(230, 81, 79, .28);
+    }
+
+    .actions {
+      position: absolute;
+      left: 280px;
+      bottom: 68px;
+      width: 1360px;
+      height: 74px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 44px;
+      z-index: 3;
+    }
+
+    .action-btn {
+      position: relative;
+      height: 66px;
+      border-radius: 22px;
+      color: white;
+      font-size: 25px;
+      font-weight: 900;
+      padding: 0 28px;
+      border: 3px solid rgba(255, 255, 255, .78);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: cover;
+      box-shadow:
+        inset 0 4px 0 rgba(255, 255, 255, .52),
+        inset 0 -6px 0 rgba(0, 0, 0, .16),
+        0 7px 0 rgba(70, 112, 130, .18),
+        0 13px 20px rgba(30, 80, 105, .13);
+      transition: transform .08s ease, filter .12s ease;
+      overflow: hidden;
+      text-shadow: 0 2px 2px rgba(0, 0, 0, .24), 0 0 8px rgba(255, 255, 255, .38);
+    }
+
+    .action-btn::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 5px;
+      height: 24px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
+    .action-btn:active {
+      transform: translateY(7px) scale(.99);
+      box-shadow:
+        inset 0 3px 0 rgba(255, 255, 255, .36),
+        inset 0 -4px 0 rgba(0, 0, 0, .14),
+        0 5px 12px rgba(30, 80, 105, .12);
+    }
+    .action-btn:disabled {
+      background: #9aa7ad !important;
+      cursor: not-allowed;
+      filter: grayscale(.3);
+    }
+
+    .hint-btn {
+      background:
+        radial-gradient(circle at 18% 35%, rgba(255,255,255,.38), transparent 20%),
+        linear-gradient(180deg, #5dc2ff 0%, #2194e6 58%, #1375bd 100%);
+    }
+
+    .reset-btn {
+      background:
+        radial-gradient(circle at 18% 35%, rgba(255,255,255,.42), transparent 20%),
+        linear-gradient(180deg, #ffe07a 0%, #f6b717 58%, #dc9300 100%);
+      color: #4c3500;
+      text-shadow: 0 2px 1px rgba(255, 255, 255, .45);
+    }
+
+    .submit-btn {
+      background:
+        radial-gradient(circle at 18% 35%, rgba(255,255,255,.4), transparent 20%),
+        linear-gradient(180deg, #73e69f 0%, #22c55e 58%, #0e9f45 100%);
+      color: #ffffff;
+      text-shadow: 0 2px 1px rgba(255, 255, 255, .46);
+    }
+
+    .modal {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      background: rgba(9, 25, 38, .38);
+    }
+
+    .modal-card {
+      position: relative;
+      width: 860px;
+      min-height: 460px;
+      padding: 58px 64px 52px;
+      border-radius: 38px;
+      background:
+        linear-gradient(rgba(255,255,255,.82), rgba(255,255,255,.88)),
+        linear-gradient(135deg, #e4fbff, #fff2c8);
+      border: 7px solid rgba(255, 255, 255, .88);
+      box-shadow: 0 36px 90px rgba(0, 0, 0, .25);
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .modal-card .asset-bg {
+      opacity: .22;
+    }
+
+    .modal-card h3,
+    .modal-card p,
+    .modal-card button {
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-card h3 {
+      margin: 0;
+      font-size: 58px;
+      color: #173f5f;
+      line-height: 1.08;
+    }
+
+    .modal-card p {
+      margin: 28px auto 36px;
+      width: 660px;
+      font-size: 29px;
+      line-height: 1.42;
+      font-weight: 900;
+      color: #496d80;
+    }
+
+    .modal-card button {
+      width: 260px;
+      height: 78px;
+      border-radius: 26px;
+      background: linear-gradient(180deg, #32d96c, #19c348);
+      color: white;
+      font-size: 28px;
+      font-weight: 900;
+      box-shadow: 0 11px 0 rgba(0,0,0,.15);
+    }
+
+    @keyframes hintFlash {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(35,139,224,0); }
+      50% { box-shadow: 0 0 0 12px rgba(35,139,224,.36); background: #dff1ff; }
+    }
+
+    @keyframes badPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    @keyframes successGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(38,169,108,0); }
+      50% { box-shadow: 0 0 0 8px rgba(38,169,108,.18); }
+    }
+  </style>
+</head>
+<body>
+  <main id="app" class="app" aria-label="战舰逻辑挑战课件">
+    <section id="coverScreen" class="screen cover" aria-label="封面，点击任意位置开始">
+      <img id="coverAsset" class="asset-bg" alt="">
+      <div class="cover-fallback">
+        <div class="eyebrow">10x10 逻辑推理棋盘</div>
+        <h1>战舰<br>逻辑挑战</h1>
+        <p>根据行列数字，找出隐藏舰队。点击任意位置进入题目。</p>
+        <div class="cover-button">进入挑战</div>
+      </div>
+      <div class="cover-ship" aria-hidden="true"></div>
+    </section>
+
+    <section id="gameScreen" class="screen game hidden" aria-label="战舰游戏题目">
+      <img id="gameBgAsset" class="asset-bg" alt="">
+      <div class="stage-card"></div>
+
+      <header class="top-strip">
+        <div class="title-block">
+          <div class="round-icon">✦</div>
+          <div class="title-text">
+            <h2>战舰逻辑挑战</h2>
+            <span>看行列数字，推理隐藏舰队。</span>
+          </div>
+        </div>
+        <div id="statusPill" class="status-pill">已标记战舰 0 / 20 格</div>
+      </header>
+
+      <div class="content">
+        <aside class="panel rules-panel">
+          <h3 class="panel-title">任务规则</h3>
+          <ul class="rules">
+            <li data-no="1">数字表示这一行/列有多少个战舰格。</li>
+            <li data-no="2">战舰只能横放或竖放，不能斜着放。</li>
+            <li data-no="3">不同战舰不能相邻，斜角也不行。</li>
+          </ul>
+
+          <div id="fleetList" class="fleet-list" aria-label="战舰清单"></div>
+        </aside>
+
+        <section class="panel board-panel">
+          <div class="board-wrap">
+            <div class="corner-note" aria-hidden="true"></div>
+            <div id="colHints" class="col-hints"></div>
+            <div id="rowHints" class="row-hints"></div>
+            <div id="grid" class="grid" aria-label="10乘10战舰棋盘"></div>
+          </div>
+        </section>
+
+        <aside class="panel side-panel">
+          <h3 class="panel-title">作答状态</h3>
+          <div class="counter-card">
+            <div class="counter-label">已定位完整战舰</div>
+            <div id="shipCounter" class="counter-value">0 / 10</div>
+          </div>
+          <div class="counter-card">
+            <div class="counter-label">行列提示完成度</div>
+            <div id="lineCounter" class="counter-value">0 / 20</div>
+          </div>
+          <div class="legend" aria-label="操作说明">
+            <div class="legend-item"><span class="legend-chip ship-chip"></span>单击：战舰</div>
+            <div class="legend-item"><span class="legend-chip water-chip">~</span>长按/右键：水域</div>
+          </div>
+          <div id="message" class="message">先看 0 行/列，再找大数字。</div>
+        </aside>
+      </div>
+
+      <div class="actions">
+        <button id="hintBtn" class="action-btn hint-btn">获取提示(3)</button>
+        <button id="submitBtn" class="action-btn submit-btn">提交答案</button>
+        <button id="resetBtn" class="action-btn reset-btn">重置游戏</button>
+      </div>
+    </section>
+
+    <section id="successModal" class="modal hidden" aria-label="通关结果">
+      <div class="modal-card">
+        <img id="victoryAsset" class="asset-bg" alt="">
+        <h3>恭喜通关！</h3>
+        <p>隐藏舰队全部找到了，行列提示也完全匹配。</p>
+        <button id="continueBtn">继续查看</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const ASSETS = {
+      coverBg: "assets/battleships_cover.png",
+      gameBg: "assets/battleships_game_bg.png",
+      victoryBg: "assets/battleships_victory_bg.png",
+      audio: {
+        intro: "assets/audio/voice_intro.mp3",
+        hint: "assets/audio/voice_hint.mp3",
+        reset: "assets/audio/voice_reset.mp3",
+        submitWrong: "assets/audio/voice_submit_wrong.mp3",
+        submitSuccess: "assets/audio/voice_submit_success.mp3",
+        sfxButton: "assets/audio/sfx_button.mp3",
+        sfxCell: "assets/audio/sfx_cell.mp3",
+        sfxWater: "assets/audio/sfx_water.mp3",
+        sfxHint: "assets/audio/sfx_hint.mp3"
+      }
+    };
+
+    const puzzle = {
+      size: 10,
+      rowHints: [1, 2, 4, 0, 2, 2, 1, 2, 3, 3],
+      colHints: [2, 2, 1, 3, 0, 1, 3, 2, 2, 4],
+      fleet: [
+        { name: "母舰", size: 4, count: 1 },
+        { name: "战舰", size: 3, count: 2 },
+        { name: "驱逐舰", size: 2, count: 3 },
+        { name: "潜艇", size: 1, count: 4 }
+      ],
+      ships: [
+        [[2,0], [2,1], [2,2], [2,3]],
+        [[5,9], [6,9], [7,9]],
+        [[9,7], [9,8], [9,9]],
+        [[8,0], [8,1]],
+        [[0,6], [1,6]],
+        [[4,6], [4,7]],
+        [[1,8]],
+        [[8,5]],
+        [[7,3]],
+        [[5,3]]
+      ]
+    };
+
+    const totalShipCells = puzzle.ships.flat().length;
+    const answerSet = new Set(puzzle.ships.flat().map(([r, c]) => keyOf(r, c)));
+    const state = {
+      marks: Array.from({ length: puzzle.size }, () => Array(puzzle.size).fill("empty")),
+      revealedHints: new Set(),
+      hintsUsed: 0,
+      hintLimit: 3,
+      started: false
+    };
+
+    const gridEl = document.getElementById("grid");
+    const rowHintsEl = document.getElementById("rowHints");
+    const colHintsEl = document.getElementById("colHints");
+    const fleetListEl = document.getElementById("fleetList");
+    const messageEl = document.getElementById("message");
+    const statusPillEl = document.getElementById("statusPill");
+    const shipCounterEl = document.getElementById("shipCounter");
+    const lineCounterEl = document.getElementById("lineCounter");
+    const hintBtn = document.getElementById("hintBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const modal = document.getElementById("successModal");
+    const audioState = {
+      enabled: false,
+      current: null,
+      clips: {}
+    };
+
+    function keyOf(row, col) {
+      return `${row},${col}`;
+    }
+
+    function setupAudio() {
+      Object.entries(ASSETS.audio).forEach(([name, src]) => {
+        const audio = new Audio(src);
+        audio.preload = "auto";
+        audio.volume = name.startsWith("sfx") ? 0.32 : name === "intro" ? 0.62 : 0.72;
+        audioState.clips[name] = audio;
+      });
+    }
+
+    function unlockAudio() {
+      audioState.enabled = true;
+    }
+
+    function playVoice(name) {
+      if (!audioState.enabled) return;
+      const clip = audioState.clips[name];
+      if (!clip) return;
+      if (audioState.current && audioState.current !== clip) {
+        audioState.current.pause();
+        audioState.current.currentTime = 0;
+      }
+      clip.currentTime = 0;
+      audioState.current = clip;
+      clip.play().catch(() => {});
+    }
+
+    function playSfx(name) {
+      if (!audioState.enabled) return;
+      const clip = audioState.clips[name];
+      if (!clip) return;
+      clip.currentTime = 0;
+      clip.play().catch(() => {});
+    }
+
+    function loadAsset(imgId, src, onReady) {
+      const img = document.getElementById(imgId);
+      if (!img || !src) return;
+      const probe = new Image();
+      probe.onload = () => {
+        img.src = src;
+        img.classList.add("ready");
+        if (onReady) onReady();
+      };
+      probe.src = src;
+    }
+
+    function buildBoard() {
+      puzzle.colHints.forEach((num, index) => {
+        const div = document.createElement("div");
+        div.className = "hint-num";
+        div.dataset.col = index;
+        div.textContent = num;
+        colHintsEl.appendChild(div);
+      });
+
+      puzzle.rowHints.forEach((num, index) => {
+        const div = document.createElement("div");
+        div.className = "hint-num";
+        div.dataset.row = index;
+        div.textContent = num;
+        rowHintsEl.appendChild(div);
+      });
+
+      for (let row = 0; row < puzzle.size; row += 1) {
+        for (let col = 0; col < puzzle.size; col += 1) {
+          const cell = document.createElement("button");
+          cell.className = "cell";
+          cell.type = "button";
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          cell.setAttribute("aria-label", `第${row + 1}行第${col + 1}列`);
+          bindCellEvents(cell, row, col);
+          gridEl.appendChild(cell);
+        }
+      }
+
+      renderFleet();
+      updateBoard();
+    }
+
+    function bindCellEvents(cell, row, col) {
+      let pressTimer = null;
+      let longPressed = false;
+      let waterHandled = false;
+
+      const startPress = (event) => {
+        longPressed = false;
+        waterHandled = event.button === 2;
+        clearTimeout(pressTimer);
+        if (event.button === 2) {
+          event.preventDefault();
+          return;
+        }
+        pressTimer = setTimeout(() => {
+          longPressed = true;
+          waterHandled = true;
+          toggleWater(row, col);
+        }, 520);
+        event.preventDefault();
+      };
+
+      const endPress = (event) => {
+        clearTimeout(pressTimer);
+        if (!longPressed && !waterHandled && event.type !== "mouseleave") {
+          toggleShip(row, col);
+        }
+        waterHandled = false;
+        event.preventDefault();
+      };
+
+      cell.addEventListener("pointerdown", startPress);
+      cell.addEventListener("pointerup", endPress);
+      cell.addEventListener("pointerleave", () => clearTimeout(pressTimer));
+      cell.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        clearTimeout(pressTimer);
+        waterHandled = true;
+        toggleWater(row, col);
+      });
+    }
+
+    function toggleShip(row, col) {
+      state.marks[row][col] = state.marks[row][col] === "ship" ? "empty" : "ship";
+      updateBoard();
+      setMessage("已更新战舰标记。对不确定的格子可以先留空，避免误判。");
+      playSfx("sfxCell");
+    }
+
+    function toggleWater(row, col) {
+      state.marks[row][col] = state.marks[row][col] === "water" ? "empty" : "water";
+      updateBoard();
+      setMessage("已更新水域标记。水域标记不会计入战舰数量。");
+      playSfx("sfxWater");
+    }
+
+    function setMessage(text, type = "") {
+      messageEl.className = `message ${type}`;
+      messageEl.textContent = text;
+    }
+
+    function renderFleet(foundGroups = []) {
+      const counts = {};
+      foundGroups.forEach(group => {
+        counts[group.length] = (counts[group.length] || 0) + 1;
+      });
+
+      fleetListEl.innerHTML = "";
+      puzzle.fleet.forEach(item => {
+        const found = Math.min(counts[item.size] || 0, item.count);
+        const row = document.createElement("div");
+        row.className = `ship-row ${found === item.count ? "done" : ""}`;
+
+        const shape = document.createElement("span");
+        shape.className = "ship-shape";
+        for (let i = 0; i < item.size; i += 1) {
+          const dot = document.createElement("span");
+          dot.className = "ship-dot";
+          shape.appendChild(dot);
+        }
+
+        const left = document.createElement("span");
+        left.appendChild(shape);
+        left.append(`${item.name} ${item.size}格`);
+        const right = document.createElement("span");
+        right.textContent = `${found}/${item.count}`;
+        row.append(left, right);
+        fleetListEl.appendChild(row);
+      });
+    }
+
+    function updateBoard() {
+      document.querySelectorAll(".cell").forEach(cell => {
+        const row = Number(cell.dataset.row);
+        const col = Number(cell.dataset.col);
+        cell.className = `cell ${state.marks[row][col]}`;
+      });
+
+      const shipCount = countMarkedShips();
+      statusPillEl.textContent = `已标记战舰 ${shipCount} / ${totalShipCells} 格`;
+
+      const groups = getShipGroups();
+      renderFleet(groups.filter(isStraightGroup));
+      shipCounterEl.textContent = `${groups.filter(group => isValidShipGroup(group)).length} / 10`;
+
+      const completedLines = getCompletedLineCount();
+      lineCounterEl.textContent = `${completedLines} / 20`;
+
+      hintBtn.textContent = `获取提示(${state.hintLimit - state.hintsUsed})`;
+      hintBtn.disabled = state.hintsUsed >= state.hintLimit;
+    }
+
+    function countMarkedShips() {
+      return state.marks.flat().filter(value => value === "ship").length;
+    }
+
+    function getCompletedLineCount() {
+      let count = 0;
+      for (let row = 0; row < puzzle.size; row += 1) {
+        const rowCount = state.marks[row].filter(value => value === "ship").length;
+        if (rowCount === puzzle.rowHints[row]) count += 1;
+      }
+      for (let col = 0; col < puzzle.size; col += 1) {
+        let colCount = 0;
+        for (let row = 0; row < puzzle.size; row += 1) {
+          if (state.marks[row][col] === "ship") colCount += 1;
+        }
+        if (colCount === puzzle.colHints[col]) count += 1;
+      }
+      return count;
+    }
+
+    function getShipGroups() {
+      const seen = new Set();
+      const groups = [];
+      for (let row = 0; row < puzzle.size; row += 1) {
+        for (let col = 0; col < puzzle.size; col += 1) {
+          if (state.marks[row][col] !== "ship" || seen.has(keyOf(row, col))) continue;
+          const group = [];
+          const stack = [[row, col]];
+          seen.add(keyOf(row, col));
+          while (stack.length) {
+            const [r, c] = stack.pop();
+            group.push([r, c]);
+            [[1,0], [-1,0], [0,1], [0,-1]].forEach(([dr, dc]) => {
+              const nr = r + dr;
+              const nc = c + dc;
+              const key = keyOf(nr, nc);
+              if (nr < 0 || nc < 0 || nr >= puzzle.size || nc >= puzzle.size) return;
+              if (seen.has(key) || state.marks[nr][nc] !== "ship") return;
+              seen.add(key);
+              stack.push([nr, nc]);
+            });
+          }
+          groups.push(group);
+        }
+      }
+      return groups;
+    }
+
+    function isStraightGroup(group) {
+      const rows = new Set(group.map(([row]) => row));
+      const cols = new Set(group.map(([, col]) => col));
+      if (group.length === 1) return true;
+      if (rows.size === 1) {
+        const sorted = group.map(([, col]) => col).sort((a, b) => a - b);
+        return sorted.every((col, index) => index === 0 || col === sorted[index - 1] + 1);
+      }
+      if (cols.size === 1) {
+        const sorted = group.map(([row]) => row).sort((a, b) => a - b);
+        return sorted.every((row, index) => index === 0 || row === sorted[index - 1] + 1);
+      }
+      return false;
+    }
+
+    function isValidShipGroup(group) {
+      return isStraightGroup(group) && [1, 2, 3, 4].includes(group.length);
+    }
+
+    function clearErrors() {
+      document.querySelectorAll(".error, .answer").forEach(el => el.classList.remove("error", "answer"));
+      document.querySelectorAll(".hint-num.bad").forEach(el => el.classList.remove("bad"));
+    }
+
+    function markCells(cells, className = "error") {
+      cells.forEach(([row, col]) => {
+        const cell = gridEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        if (cell) cell.classList.add(className);
+      });
+    }
+
+    function validate() {
+      clearErrors();
+      playSfx("sfxButton");
+      const marked = countMarkedShips();
+      if (marked === 0) return fail("请先标记战舰位置。");
+      if (marked !== totalShipCells) {
+        return fail(`战舰数量不正确：当前 ${marked} 格，需要 ${totalShipCells} 格。`);
+      }
+
+      const lineErrors = [];
+      for (let row = 0; row < puzzle.size; row += 1) {
+        const count = state.marks[row].filter(value => value === "ship").length;
+        if (count !== puzzle.rowHints[row]) {
+          rowHintsEl.querySelector(`[data-row="${row}"]`).classList.add("bad");
+          lineErrors.push(["row", row]);
+        }
+      }
+      for (let col = 0; col < puzzle.size; col += 1) {
+        let count = 0;
+        for (let row = 0; row < puzzle.size; row += 1) {
+          if (state.marks[row][col] === "ship") count += 1;
+        }
+        if (count !== puzzle.colHints[col]) {
+          colHintsEl.querySelector(`[data-col="${col}"]`).classList.add("bad");
+          lineErrors.push(["col", col]);
+        }
+      }
+      if (lineErrors.length) return fail("行列提示不匹配，红色数字对应的行或列需要重新检查。");
+
+      const groups = getShipGroups();
+      const shapeErrors = groups.filter(group => !isValidShipGroup(group));
+      if (shapeErrors.length) {
+        shapeErrors.forEach(group => markCells(group));
+        return fail("战舰形状错误：战舰必须是连续横线或竖线，长度只能是 1-4 格。");
+      }
+
+      const adjacencyErrors = findAdjacencyErrors(groups);
+      if (adjacencyErrors.length) {
+        markCells(adjacencyErrors);
+        return fail("战舰相邻了：不同战舰之间不能横、竖、斜角接触。");
+      }
+
+      const fleetOk = checkFleet(groups);
+      if (!fleetOk) return fail("战舰清单不匹配，请检查 4格、3格、2格、1格战舰数量。");
+
+      const wrongCells = [];
+      for (let row = 0; row < puzzle.size; row += 1) {
+        for (let col = 0; col < puzzle.size; col += 1) {
+          const markedShip = state.marks[row][col] === "ship";
+          const answerShip = answerSet.has(keyOf(row, col));
+          if (markedShip !== answerShip) wrongCells.push([row, col]);
+        }
+      }
+      if (wrongCells.length) {
+        markCells(wrongCells);
+        return fail("还没有找到真正的隐藏舰队。红色区域是需要复盘的位置。");
+      }
+
+      setMessage("恭喜通关！所有战舰已找出！", "ok");
+      playVoice("submitSuccess");
+      modal.classList.remove("hidden");
+      return true;
+    }
+
+    function fail(text) {
+      setMessage(text, "bad");
+      playVoice("submitWrong");
+      return false;
+    }
+
+    function findAdjacencyErrors(groups) {
+      const groupIndex = new Map();
+      groups.forEach((group, index) => {
+        group.forEach(([row, col]) => groupIndex.set(keyOf(row, col), index));
+      });
+      const errors = new Set();
+      groups.forEach((group, index) => {
+        group.forEach(([row, col]) => {
+          for (let dr = -1; dr <= 1; dr += 1) {
+            for (let dc = -1; dc <= 1; dc += 1) {
+              if (dr === 0 && dc === 0) continue;
+              const nr = row + dr;
+              const nc = col + dc;
+              const neighborKey = keyOf(nr, nc);
+              if (!groupIndex.has(neighborKey)) continue;
+              if (groupIndex.get(neighborKey) !== index) {
+                errors.add(keyOf(row, col));
+                errors.add(neighborKey);
+              }
+            }
+          }
+        });
+      });
+      return Array.from(errors).map(item => item.split(",").map(Number));
+    }
+
+    function checkFleet(groups) {
+      const expected = new Map(puzzle.fleet.map(item => [item.size, item.count]));
+      const actual = new Map();
+      groups.forEach(group => actual.set(group.length, (actual.get(group.length) || 0) + 1));
+      for (const [size, count] of expected.entries()) {
+        if ((actual.get(size) || 0) !== count) return false;
+      }
+      return true;
+    }
+
+    function revealHint() {
+      if (state.hintsUsed >= state.hintLimit) return;
+      const candidates = puzzle.ships
+        .flat()
+        .filter(([row, col]) => state.marks[row][col] !== "ship" && !state.revealedHints.has(keyOf(row, col)));
+      if (!candidates.length) {
+        candidates.push(...puzzle.ships
+          .flat()
+          .filter(([row, col]) => state.marks[row][col] !== "ship"));
+      }
+      if (!candidates.length) {
+        setMessage("所有正确战舰格都已经被你标出来了，可以提交答案。", "ok");
+        return;
+      }
+      const [row, col] = candidates[0];
+      state.revealedHints.add(keyOf(row, col));
+      const cell = gridEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+      cell.classList.add("hint-flash");
+      setTimeout(() => cell.classList.remove("hint-flash"), 3200);
+      state.hintsUsed += 1;
+      updateBoard();
+      setMessage(`提示：第 ${row + 1} 行、第 ${col + 1} 列是战舰格。提示次数不会因重置恢复。`);
+      playSfx("sfxHint");
+      playVoice("hint");
+    }
+
+    function resetGame() {
+      playSfx("sfxButton");
+      state.marks = Array.from({ length: puzzle.size }, () => Array(puzzle.size).fill("empty"));
+      clearErrors();
+      updateBoard();
+      setMessage(`棋盘已清空。剩余提示次数：${state.hintLimit - state.hintsUsed}。`);
+      playVoice("reset");
+    }
+
+    function startGame() {
+      unlockAudio();
+      document.getElementById("coverScreen").classList.add("hidden");
+      document.getElementById("gameScreen").classList.remove("hidden");
+      state.started = true;
+      resizeCourseware();
+      playVoice("intro");
+    }
+
+    document.getElementById("coverScreen").addEventListener("click", startGame);
+    hintBtn.addEventListener("click", revealHint);
+    resetBtn.addEventListener("click", resetGame);
+    submitBtn.addEventListener("click", validate);
+    document.getElementById("continueBtn").addEventListener("click", () => modal.classList.add("hidden"));
+
+    loadAsset("coverAsset", ASSETS.coverBg, () => document.getElementById("coverScreen").classList.add("has-image"));
+    loadAsset("gameBgAsset", ASSETS.gameBg);
+    loadAsset("victoryAsset", ASSETS.victoryBg);
+    setupAudio();
+    buildBoard();
+  </script>
+</body>
+</html>

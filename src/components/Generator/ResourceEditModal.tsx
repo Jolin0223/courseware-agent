@@ -163,11 +163,12 @@ const ImageEditCard: React.FC<{
               <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
                 {([['text', '文生图', ImagePlus], ['image', '图生图', Wand2], ['upload', '本地上传', Upload], ['transparent', '图片透明化', Globe]] as const).map(([key, label, Icon]) => (
                   <button key={key} onClick={() => setActiveTab(key as 'text' | 'image' | 'upload' | 'transparent')} style={{
-                    padding: '6px 14px', borderRadius: 6, border: '1px solid ' + (activeTab === key ? 'var(--agent-primary)' : '#E2E8F0'),
+                    padding: '6px 14px', borderRadius: 6, border: '1px solid ' + (activeTab === key ? '#BFE9F5' : '#E2E8F0'),
+                    borderColor: activeTab === key ? '#BFE9F5' : '#E2E8F0',
                     fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    background: activeTab === key ? 'var(--agent-soft)' : '#fff',
+                    background: activeTab === key ? '#F1FAFF' : '#fff',
                     color: activeTab === key ? 'var(--agent-primary)' : '#94A3B8',
-                    transition: '0.15s', display: 'flex', alignItems: 'center', gap: 4,
+                    transition: '0.15s', display: 'flex', alignItems: 'center', gap: 4, outline: 'none',
                   }}>
                     <Icon size={13} /> {label}
                   </button>
@@ -601,11 +602,12 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
         {/* Tab - 精致胶囊风格（绿色主题） */}
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9', flexShrink: 0, display: 'flex', gap: 10 }}>
           <button onClick={() => setActiveTab('images')} style={{
-            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1px solid ' + (activeTab === 'images' ? 'var(--agent-primary)' : '#E2E8F0'),
-            cursor: 'pointer', fontSize: 12, fontWeight: 600, background: activeTab === 'images' ? 'var(--agent-soft)' : '#fff',
+            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1px solid ' + (activeTab === 'images' ? '#BFE9F5' : '#E2E8F0'),
+            borderColor: activeTab === 'images' ? '#BFE9F5' : '#E2E8F0',
+            cursor: 'pointer', fontSize: 12, fontWeight: 600, background: activeTab === 'images' ? '#F1FAFF' : '#fff',
             color: activeTab === 'images' ? 'var(--agent-primary)' : '#64748B',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            transition: 'all 0.2s ease',
+            transition: 'all 0.2s ease', outline: 'none',
           }}>
             <ImageIcon size={14} /> 图片资源
             <span style={{
@@ -616,11 +618,12 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
             }}>{images.length}</span>
           </button>
           <button onClick={() => setActiveTab('audios')} style={{
-            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1px solid ' + (activeTab === 'audios' ? 'var(--agent-primary)' : '#E2E8F0'),
-            cursor: 'pointer', fontSize: 12, fontWeight: 600, background: activeTab === 'audios' ? 'var(--agent-soft)' : '#fff',
+            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1px solid ' + (activeTab === 'audios' ? '#BFE9F5' : '#E2E8F0'),
+            borderColor: activeTab === 'audios' ? '#BFE9F5' : '#E2E8F0',
+            cursor: 'pointer', fontSize: 12, fontWeight: 600, background: activeTab === 'audios' ? '#F1FAFF' : '#fff',
             color: activeTab === 'audios' ? 'var(--agent-primary)' : '#64748B',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            transition: 'all 0.2s ease',
+            transition: 'all 0.2s ease', outline: 'none',
           }}>
             <Music size={14} /> 音频资源
             <span style={{

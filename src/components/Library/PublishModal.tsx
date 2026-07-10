@@ -25,8 +25,6 @@ const publishScopes = [
   { key: 'personal', label: '个人资源库', hint: '仅自己可见' },
 ] as const;
 
-const SHELL_URL = (import.meta.env.VITE_SHELL_URL || 'http://localhost:5174').replace(/\/$/, '');
-
 const schools = ['北京学校', '上海学校', '广州学校', '武汉学校', '天津学校', '西安学校', '南京学校', '深圳学校'];
 
 type PublishMode = 'publish' | 'update' | 'new-game';
@@ -281,6 +279,12 @@ export default function PublishModal({
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
   const [schoolDropdownOpen, setSchoolDropdownOpen] = useState(false);
   const [updateTargetDropdownOpen, setUpdateTargetDropdownOpen] = useState(false);
+  const [hoveredScope, setHoveredScope] = useState<PublishScope | null>(null);
+  const [hoveredSubject, setHoveredSubject] = useState<string | null>(null);
+  const [hoveredGrade, setHoveredGrade] = useState<string | null>(null);
+  const [schoolSelectHovered, setSchoolSelectHovered] = useState(false);
+  const [updateTargetHovered, setUpdateTargetHovered] = useState(false);
+  const [tagSelectorHovered, setTagSelectorHovered] = useState(false);
   const isUpdateMode = mode === 'update';
   const shouldDemoInvalidTag = useMemo(() => {
     try {
@@ -628,6 +632,18 @@ export default function PublishModal({
   const shouldShowResourceTags = effectivePublishScope !== 'personal';
   const resourceTagLabel = effectivePublishScope === 'school' ? '校本标签' : '知识点标签';
   const resourceTagPlaceholder = effectivePublishScope === 'school' ? '点击选择校本标签...' : '点击选择知识点标签...';
+  const getScopeCardStyle = (active: boolean, hovered: boolean): React.CSSProperties => ({
+    ...styles.scopeCard,
+    ...(hovered && !active ? styles.choiceHover : {}),
+    ...(active ? styles.scopeCardActive : {}),
+    ...(hovered && active ? styles.choiceActiveHover : {}),
+  });
+  const getChipStyle = (active: boolean, hovered: boolean): React.CSSProperties => ({
+    ...styles.chip,
+    ...(hovered && !active ? styles.chipHover : {}),
+    ...(active ? styles.chipActive : {}),
+    ...(hovered && active ? styles.chipActiveHover : {}),
+  });
   const getScopeLabel = (scope?: PublishScope) => publishScopes.find(item => item.key === scope)?.label || '资源库';
   const getUpdateTargetMeta = (target?: UpdateTargetOption) => {
     if (!target) return '';
@@ -701,9 +717,6 @@ export default function PublishModal({
     }
   };
 
-  const openSchoolTagManager = () => {
-    window.open(`${SHELL_URL}/?scene=tagAdmin&scope=school`, '_blank', 'noopener,noreferrer');
-  };
   const handleUpdateTargetSelect = (target: UpdateTargetOption) => {
     onUpdateTargetChange?.(target.id);
     if (target.resourceScope) {
@@ -762,10 +775,10 @@ export default function PublishModal({
                       key={item.key}
                       type="button"
                       onClick={() => setPublishScope(item.key)}
-                      style={{
-                        ...styles.scopeCard,
-                        ...(active ? styles.scopeCardActive : {}),
-                      }}
+                      onMouseEnter={() => setHoveredScope(item.key)}
+                      onMouseLeave={() => setHoveredScope(prev => prev === item.key ? null : prev)}
+                      onMouseDown={event => event.preventDefault()}
+                      style={getScopeCardStyle(active, hoveredScope === item.key)}
                     >
                       <span style={styles.scopeLabelRow}>
                         <span style={styles.radioDotOuter}>
@@ -789,9 +802,13 @@ export default function PublishModal({
               <button
                 type="button"
                 onClick={() => setSchoolDropdownOpen(open => !open)}
+                onMouseEnter={() => setSchoolSelectHovered(true)}
+                onMouseLeave={() => setSchoolSelectHovered(false)}
                 style={{
                   ...styles.schoolSelect,
+                  ...(schoolSelectHovered && !schoolDropdownOpen ? styles.choiceHover : {}),
                   ...(schoolDropdownOpen ? styles.schoolSelectActive : {}),
+                  ...(schoolSelectHovered && schoolDropdownOpen ? styles.choiceActiveHover : {}),
                 }}
               >
                 <span style={styles.schoolSelectValue}>{selectedSchool || '请选择学校'}</span>
@@ -875,9 +892,13 @@ export default function PublishModal({
               <button
                 type="button"
                 onClick={() => setUpdateTargetDropdownOpen(open => !open)}
+                onMouseEnter={() => setUpdateTargetHovered(true)}
+                onMouseLeave={() => setUpdateTargetHovered(false)}
                 style={{
                   ...styles.updateTargetSelect,
+                  ...(updateTargetHovered && !updateTargetDropdownOpen ? styles.choiceHover : {}),
                   ...(updateTargetDropdownOpen ? styles.updateTargetSelectActive : {}),
+                  ...(updateTargetHovered && updateTargetDropdownOpen ? styles.choiceActiveHover : {}),
                 }}
               >
                 <span style={styles.updateTargetSelected}>
@@ -886,7 +907,7 @@ export default function PublishModal({
                     <span style={styles.updateTargetMetaStrong}>{getUpdateTargetMeta(selectedUpdateTarget)}</span>
                   </span>
                   <span style={styles.updateTargetMeta}>
-                    当前课件中使用：会话第 {selectedUpdateTarget.currentSessionNumber || '-'} 版；更新后替换为：会话第 {selectedUpdateTarget.nextSessionNumber || '-'} 版，原链接不变
+                    当前课件中使用：第 {selectedUpdateTarget.currentSessionNumber || '-'} 版；更新后替换为：第 {selectedUpdateTarget.nextSessionNumber || '-'} 版，原链接不变
                   </span>
                 </span>
                 <ChevronDown
@@ -919,7 +940,7 @@ export default function PublishModal({
                           <span style={styles.updateTargetMetaStrong}>{getUpdateTargetMeta(target)}</span>
                           {selected && <Check size={15} color="#00A67D" strokeWidth={2.5} />}
                         </span>
-                        <span style={styles.updateTargetMeta}>当前课件中使用：会话第 {target.currentSessionNumber || '-'} 版；更新后替换为：会话第 {target.nextSessionNumber || '-'} 版，原链接不变</span>
+                        <span style={styles.updateTargetMeta}>当前课件中使用：第 {target.currentSessionNumber || '-'} 版；更新后替换为：第 {target.nextSessionNumber || '-'} 版，原链接不变</span>
                       </button>
                     );
                   })}
@@ -937,10 +958,10 @@ export default function PublishModal({
                   <button
                     key={s}
                     onClick={() => setSubject(s)}
-                    style={{
-                      ...styles.chip,
-                      ...(subject === s ? styles.chipActive : {}),
-                    }}
+                    onMouseEnter={() => setHoveredSubject(s)}
+                    onMouseLeave={() => setHoveredSubject(prev => prev === s ? null : prev)}
+                    onMouseDown={event => event.preventDefault()}
+                    style={getChipStyle(subject === s, hoveredSubject === s)}
                   >
                     {s}
                   </button>
@@ -957,10 +978,10 @@ export default function PublishModal({
                 <button
                   key={g}
                   onClick={() => setGrade(g)}
-                  style={{
-                    ...styles.chip,
-                    ...(grade === g ? styles.chipActive : {}),
-                  }}
+                  onMouseEnter={() => setHoveredGrade(g)}
+                  onMouseLeave={() => setHoveredGrade(prev => prev === g ? null : prev)}
+                  onMouseDown={event => event.preventDefault()}
+                  style={getChipStyle(grade === g, hoveredGrade === g)}
                 >
                   {g}
                 </button>
@@ -1002,19 +1023,18 @@ export default function PublishModal({
                         {resourceAutoTagStatus === 'loading' ? 'AI智能打标中' : 'AI智能打标'}
                       </button>
                     </span>
-                    {publishScope === 'school' && (
-                      <button type="button" style={styles.tagManageBtn} onClick={openSchoolTagManager}>
-                        编辑校本标签
-                      </button>
-                    )}
                   </div>
                 </div>
                 
                 <div
                   onClick={() => setTagDropdownOpen(true)}
+                  onMouseEnter={() => setTagSelectorHovered(true)}
+                  onMouseLeave={() => setTagSelectorHovered(false)}
                   style={{
                     ...styles.tagSelector,
+                    ...(tagSelectorHovered && !tagDropdownOpen ? styles.choiceHover : {}),
                     ...(tagDropdownOpen ? styles.tagSelectorActive : {}),
+                    ...(tagSelectorHovered && tagDropdownOpen ? styles.choiceActiveHover : {}),
                   }}
                 >
                   {selectedTags.length === 0 && (
@@ -1351,6 +1371,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '9px 12px',
     borderRadius: 8,
     border: '1px solid #E2E8F0',
+    borderColor: '#E2E8F0',
     background: '#FFFFFF',
     display: 'flex',
     alignItems: 'center',
@@ -1359,10 +1380,21 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     textAlign: 'left',
     transition: 'all 0.15s',
+    outline: 'none',
   },
   updateTargetSelectActive: {
-    borderColor: 'var(--agent-primary)',
-    boxShadow: '0 0 0 3px var(--agent-focus-ring)',
+    borderColor: '#BFE9F5',
+    boxShadow: '0 8px 20px rgba(14, 165, 233, 0.08)',
+  },
+  choiceHover: {
+    background: '#F6FCFF',
+    borderColor: '#BFE9F5',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.08)',
+  },
+  choiceActiveHover: {
+    borderColor: '#8DDFF2',
+    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.08)',
   },
   updateTargetSelected: {
     display: 'flex',
@@ -1404,6 +1436,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: 4,
     background: '#FFFFFF',
     border: '1px solid #E2E8F0',
+    borderColor: '#E2E8F0',
     borderRadius: 10,
     boxShadow: '0 12px 28px rgba(15, 23, 42, 0.14)',
     zIndex: 30,
@@ -1424,9 +1457,10 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     textAlign: 'left',
     transition: 'background 0.12s',
+    outline: 'none',
   },
   updateTargetOptionActive: {
-    background: 'var(--agent-soft)',
+    background: '#F1FAFF',
   },
   updateTargetOptionTop: {
     display: 'flex',
@@ -1437,6 +1471,7 @@ const styles: Record<string, React.CSSProperties> = {
   inputWrap: {
     width: '100%',
     border: '1px solid #E2E8F0',
+    borderColor: '#E2E8F0',
     borderRadius: 6,
     display: 'flex',
     alignItems: 'center',
@@ -1467,27 +1502,41 @@ const styles: Record<string, React.CSSProperties> = {
   },
   chip: {
     minWidth: 52,
-    height: 34,
+    height: 30,
     padding: '0 16px',
-    borderRadius: 999,
+    borderRadius: 10,
     border: '1px solid #CBD5E1',
+    borderColor: '#CBD5E1',
     background: '#F8FAFC',
     color: '#334155',
     fontSize: 14,
     cursor: 'pointer',
     transition: 'all 0.15s',
+    outline: 'none',
   },
   chipActive: {
-    borderColor: 'var(--agent-primary)',
-    background: 'var(--agent-soft-strong)',
+    borderColor: '#BFE9F5',
+    background: '#F1FAFF',
     color: 'var(--agent-primary-text)',
     fontWeight: 700,
+  },
+  chipHover: {
+    borderColor: '#BFE9F5',
+    background: '#F6FCFF',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.08)',
+  },
+  chipActiveHover: {
+    borderColor: '#8DDFF2',
+    background: '#EAF9FF',
+    boxShadow: '0 6px 14px rgba(14, 165, 233, 0.10)',
   },
   schoolSelect: {
     width: '100%',
     height: 42,
     borderRadius: 8,
     border: '1px solid #D8E2EF',
+    borderColor: '#D8E2EF',
     background: '#FFFFFF',
     padding: '0 12px',
     display: 'flex',
@@ -1496,10 +1545,11 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 12,
     cursor: 'pointer',
     transition: 'all 0.15s',
+    outline: 'none',
   },
   schoolSelectActive: {
-    borderColor: 'var(--agent-primary)',
-    boxShadow: '0 0 0 3px var(--agent-focus-ring)',
+    borderColor: '#BFE9F5',
+    boxShadow: '0 8px 20px rgba(14, 165, 233, 0.08)',
   },
   schoolSelectValue: {
     fontSize: 14,
@@ -1513,6 +1563,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: 6,
     borderRadius: 10,
     border: '1px solid #D8E5EF',
+    borderColor: '#D8E5EF',
     background: '#FFFFFF',
     boxShadow: '0 12px 30px rgba(15, 23, 42, 0.14)',
     padding: 8,
@@ -1526,6 +1577,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0 10px',
     borderRadius: 8,
     border: '1px solid #E2E8F0',
+    borderColor: '#E2E8F0',
     background: '#F8FAFE',
     marginBottom: 6,
   },
@@ -1557,9 +1609,10 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     textAlign: 'left',
+    outline: 'none',
   },
   schoolOptionActive: {
-    background: '#ECFDF5',
+    background: '#F1FAFF',
     color: 'var(--agent-primary-text)',
     fontWeight: 700,
   },
@@ -1578,16 +1631,18 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: 68,
     borderRadius: 10,
     border: '1px solid #D8E2EF',
+    borderColor: '#D8E2EF',
     background: '#FFFFFF',
     padding: '12px 14px',
     cursor: 'pointer',
     textAlign: 'left',
     transition: 'all 0.15s',
+    outline: 'none',
   },
   scopeCardActive: {
-    background: 'var(--agent-soft)',
-    borderColor: 'var(--agent-primary)',
-    boxShadow: '0 0 0 3px var(--agent-focus-ring)',
+    background: '#F1FAFF',
+    borderColor: '#BFE9F5',
+    boxShadow: 'none',
   },
   scopeLabelRow: {
     display: 'flex',
@@ -1658,15 +1713,16 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '7px 10px',
     minHeight: 40,
     border: '1px solid #E2E8F0',
+    borderColor: '#E2E8F0',
     borderRadius: 8,
     background: '#FAFBFC',
     cursor: 'pointer',
     transition: 'all 0.15s',
   },
   tagSelectorActive: {
-    borderColor: 'var(--agent-primary)',
+    borderColor: '#BFE9F5',
     background: '#FFFFFF',
-    boxShadow: '0 0 0 3px var(--agent-focus-ring)',
+    boxShadow: '0 8px 20px rgba(14, 165, 233, 0.08)',
   },
   selectedTag: {
     display: 'inline-flex',
@@ -1675,7 +1731,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '2px 8px 2px 10px',
     background: '#E0FBF4',
     color: 'var(--agent-primary-text)',
-    borderRadius: 999,
+    borderRadius: 8,
     fontSize: 12,
     fontWeight: 600,
     lineHeight: '22px',
@@ -1683,12 +1739,13 @@ const styles: Record<string, React.CSSProperties> = {
   selectedTagInvalid: {
     background: '#F1F5F9',
     border: '1px solid #CBD5E1',
+    borderColor: '#CBD5E1',
     color: '#64748B',
   },
   invalidTagBadge: {
     marginLeft: 2,
     padding: '0 5px',
-    borderRadius: 999,
+    borderRadius: 6,
     background: '#E2E8F0',
     color: '#64748B',
     fontSize: 11,
@@ -1704,6 +1761,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '8px 10px',
     borderRadius: 8,
     border: '1px solid #E2E8F0',
+    borderColor: '#E2E8F0',
     background: '#FAFBFC',
   },
   contentTag: {
@@ -1712,9 +1770,10 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 4,
     maxWidth: '100%',
     padding: '3px 7px 3px 10px',
-    borderRadius: 999,
+    borderRadius: 8,
     background: '#E0FBF4',
     border: '1px solid #BFEFE4',
+    borderColor: '#BFEFE4',
     color: 'var(--agent-primary-text)',
     fontSize: 12,
     fontWeight: 600,
@@ -1754,19 +1813,21 @@ const styles: Record<string, React.CSSProperties> = {
     width: 132,
     height: 28,
     padding: '0 9px',
-    borderRadius: 999,
-    border: '1px solid var(--agent-primary)',
+    borderRadius: 8,
+    border: '1px solid #BFE9F5',
+    borderColor: '#BFE9F5',
     outline: 'none',
     background: '#FFFFFF',
     color: '#1E293B',
     fontSize: 12,
     fontWeight: 600,
-    boxShadow: '0 0 0 3px var(--agent-focus-ring-strong)',
+    boxShadow: '0 8px 20px rgba(14, 165, 233, 0.08)',
   },
   tagDropdown: {
     marginTop: 6,
     background: '#fff',
     border: '1px solid #D8E5EF',
+    borderColor: '#D8E5EF',
     borderRadius: 10,
     boxShadow: '0 8px 22px rgba(15, 23, 42, 0.10)',
     maxHeight: 230,
@@ -1789,6 +1850,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#F8FAFE',
     borderRadius: 7,
     border: '1px solid #E2E8F0',
+    borderColor: '#E2E8F0',
     flex: 1,
   },
   tagSearchInput: {
@@ -1802,7 +1864,7 @@ const styles: Record<string, React.CSSProperties> = {
   tagSelectedCount: {
     color: '#00A67D',
     background: '#ECFDF5',
-    borderRadius: 999,
+    borderRadius: 8,
     padding: '4px 9px',
     fontSize: 12,
     fontWeight: 700,
@@ -1854,10 +1916,11 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#FFFFFF',
   },
   btn: {
-    padding: '12px 24px',
-    borderRadius: 8,
+    height: 38,
+    padding: '0 18px',
+    borderRadius: 10,
     fontSize: 14,
-    fontWeight: 500,
+    fontWeight: 700,
     cursor: 'pointer',
     border: 'none',
     transition: 'all 0.15s',
@@ -1913,9 +1976,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 10,
   },
   confirmBtn: {
-    height: 36,
+    height: 34,
     padding: '0 16px',
-    borderRadius: 8,
+    borderRadius: 10,
     fontSize: 14,
     fontWeight: 600,
     cursor: 'pointer',

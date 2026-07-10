@@ -48,6 +48,101 @@ const getCaseResult = (title: string, version: string): CoursewareResult => {
   };
 };
 
+const createDemoHistoryConversation = ({
+  id,
+  title,
+  createdAt,
+  prompt,
+  coursewareId,
+}: {
+  id: string;
+  title: string;
+  createdAt: string;
+  prompt: string;
+  coursewareId: number;
+}): Conversation => {
+  const baseTime = createdAt.replace(' ', 'T');
+  const resultTime = new Date(baseTime);
+  resultTime.setMinutes(resultTime.getMinutes() + 4);
+
+  return {
+    id,
+    title,
+    createdAt,
+    messages: [
+      {
+        id: generateId(),
+        role: 'user',
+        content: prompt,
+        type: 'text',
+        timestamp: new Date(baseTime),
+      },
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: getCaseResult(title, 'v1.0'),
+        type: 'courseware-result',
+        timestamp: resultTime,
+      },
+    ],
+    isPinned: false,
+    isGenerating: false,
+    coursewareId,
+  };
+};
+
+const recentDemoConversations: Conversation[] = [
+  createDemoHistoryConversation({
+    id: 'conv_recent_1',
+    title: '孙悟空换装搭配挑战',
+    createdAt: '2026-07-10 17:20',
+    prompt: '生成一个孙悟空换装搭配挑战',
+    coursewareId: 20,
+  }),
+  createDemoHistoryConversation({
+    id: 'conv_recent_2',
+    title: '战舰逻辑挑战-行列推理',
+    createdAt: '2026-07-09 16:10',
+    prompt: '生成一个战舰行列推理互动游戏',
+    coursewareId: 21,
+  }),
+  createDemoHistoryConversation({
+    id: 'conv_recent_3',
+    title: '转一转找答案-时钟认读',
+    createdAt: '2026-07-08 15:30',
+    prompt: '生成一个时钟认读转盘互动课件',
+    coursewareId: 22,
+  }),
+  createDemoHistoryConversation({
+    id: 'conv_recent_4',
+    title: '分数披萨店-分数配餐',
+    createdAt: '2026-07-07 14:40',
+    prompt: '生成一个分数披萨配餐互动游戏',
+    coursewareId: 23,
+  }),
+  createDemoHistoryConversation({
+    id: 'conv_recent_5',
+    title: '对话连连看-问答连线',
+    createdAt: '2026-07-06 13:50',
+    prompt: '生成一个英语问答连线互动课件',
+    coursewareId: 24,
+  }),
+  createDemoHistoryConversation({
+    id: 'conv_recent_6',
+    title: 'Make-a-Word果冻拼词',
+    createdAt: '2026-07-05 12:30',
+    prompt: '生成一个果冻风格单词拼写游戏',
+    coursewareId: 25,
+  }),
+  createDemoHistoryConversation({
+    id: 'conv_recent_7',
+    title: '汉字拼图Rush-部件拼字',
+    createdAt: '2026-07-04 11:20',
+    prompt: '生成一个汉字部件拼字互动游戏',
+    coursewareId: 26,
+  }),
+];
+
 export const mockConversations: Conversation[] = [
   {
     id: 'conv_1',
@@ -150,6 +245,7 @@ export const mockConversations: Conversation[] = [
     isGenerating: false,
     coursewareId: 1,
   },
+  ...recentDemoConversations,
   {
     id: 'conv_2',
     title: '近义词大挑战',

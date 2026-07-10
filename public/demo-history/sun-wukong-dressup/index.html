@@ -1,0 +1,1316 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>孙悟空换装搭配挑战</title>
+  <link rel="icon" href="data:," />
+  <style>
+    :root {
+      --cream: #fff3cf;
+      --cream-2: #ffe7ad;
+      --ink: #4d3423;
+      --brown: #a96f3c;
+      --orange: #ff9f43;
+      --coral: #ff715b;
+      --green: #52b788;
+      --blue: #4d96ff;
+      --shadow: 0 16px 32px rgba(108, 66, 31, .18);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #f8dc9c;
+      color: var(--ink);
+      font-family: "Arial Rounded MT Bold", "Microsoft YaHei", "PingFang SC", sans-serif;
+      user-select: none;
+    }
+
+    button {
+      font: inherit;
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .viewport {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 12% 20%, rgba(255,255,255,.55), transparent 24%),
+        radial-gradient(circle at 84% 74%, rgba(255,183,128,.45), transparent 24%),
+        #f4c879;
+    }
+
+    .stage {
+      position: relative;
+      width: min(100vw, 177.7778vh);
+      aspect-ratio: 16 / 9;
+      max-height: 100vh;
+      overflow: hidden;
+      background: var(--cream);
+      box-shadow: 0 18px 50px rgba(78, 45, 16, .24);
+    }
+
+    .cover,
+    .game {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .cover {
+      z-index: 20;
+      background-image: url("assets/images/cover-bg.webp");
+      transition: opacity .35s ease, transform .35s ease;
+      cursor: pointer;
+    }
+
+    .cover.is-hidden {
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(1.02);
+    }
+
+    .primary-btn {
+      min-width: 220px;
+      min-height: 72px;
+      padding: 0 34px;
+      border-radius: 999px;
+      color: #fff9dc;
+      background: linear-gradient(180deg, #ffb454, #ee703e);
+      border: 5px solid #fff2b7;
+      box-shadow: 0 12px 0 #bc562e, 0 20px 28px rgba(148, 73, 31, .25);
+      font-size: clamp(24px, 2vw, 34px);
+      font-weight: 900;
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+
+    .primary-btn:active {
+      transform: translateY(7px) scale(.98);
+      box-shadow: 0 5px 0 #bc562e, 0 12px 18px rgba(148, 73, 31, .2);
+    }
+
+    .game {
+      background-image: url("assets/images/game-bg.webp");
+      padding: 1.4% 1.7%;
+    }
+
+    .topbar {
+      position: absolute;
+      left: 4.2%;
+      right: 4.2%;
+      top: 3%;
+      height: 11.5%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) clamp(58px, 5.6vw, 74px) clamp(164px, 15.5vw, 220px);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .question {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 22px;
+      border-radius: 28px;
+      background: rgba(255, 248, 226, .88);
+      border: 3px solid rgba(255, 218, 142, .9);
+      box-shadow: 0 10px 22px rgba(108, 66, 31, .12);
+      font-size: clamp(19px, 1.55vw, 28px);
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .question-badge {
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ffe984, #ffb24d);
+      border: 4px solid #fff8cb;
+      color: #8b471f;
+      box-shadow: inset 0 -8px 0 rgba(157, 93, 40, .13);
+      font-size: 26px;
+    }
+
+    .progress-meter {
+      height: 78%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      align-content: center;
+      gap: 6px;
+      padding: 9px 15px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255, 251, 232, .95), rgba(255, 238, 184, .94));
+      border: 3px solid rgba(255, 216, 132, .9);
+      box-shadow: 0 10px 22px rgba(108, 66, 31, .12);
+      font-weight: 900;
+      color: #a65422;
+    }
+
+    .progress-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: clamp(11px, .82vw, 14px);
+      line-height: 1;
+      color: #8b6335;
+    }
+
+    .progress-head strong {
+      color: #a65422;
+      font-size: clamp(15px, 1.2vw, 20px);
+    }
+
+    .progress-track {
+      position: relative;
+      overflow: hidden;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(214, 181, 126, .34);
+      box-shadow: inset 0 2px 4px rgba(116, 72, 30, .12);
+    }
+
+    .progress-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ffad4b, #ffdf74);
+      box-shadow: 0 2px 5px rgba(194, 100, 38, .18);
+      transition: width .25s ease;
+    }
+
+    #progressText {
+      white-space: nowrap;
+    }
+
+    .sound-toggle {
+      width: 100%;
+      height: 78%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255, 251, 232, .95), rgba(255, 238, 184, .94));
+      border: 3px solid rgba(255, 216, 132, .9);
+      box-shadow: 0 10px 22px rgba(108, 66, 31, .12);
+      color: #865326;
+      font-size: clamp(15px, 1.05vw, 19px);
+      font-weight: 900;
+    }
+
+    .sound-toggle img {
+      width: clamp(34px, 3.3vw, 50px);
+      height: clamp(34px, 3.3vw, 50px);
+      object-fit: contain;
+      flex: 0 0 auto;
+      pointer-events: none;
+    }
+
+    .sound-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .wukong-area {
+      position: absolute;
+      left: 5.2%;
+      top: 18.4%;
+      width: 38%;
+      height: 55%;
+      border-radius: 42px;
+      display: grid;
+      place-items: center;
+    }
+
+    .drop-ring {
+      position: absolute;
+      inset: 4% 9% 0 9%;
+      border-radius: 46% 46% 40% 40%;
+      border: 7px dashed rgba(255, 174, 66, .28);
+      background: radial-gradient(circle at 50% 78%, rgba(255,255,255,.42), transparent 48%);
+      opacity: 0;
+      transform: scale(.94);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .wukong-area.is-drag-over .drop-ring {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .wukong-stack {
+      position: relative;
+      width: min(81%, 46vh);
+      aspect-ratio: 1;
+      filter: drop-shadow(0 24px 22px rgba(96, 58, 26, .2));
+      transform: translateY(-1%);
+      transition: transform .2s ease;
+    }
+
+    .wukong-stack.pop {
+      animation: dressPop .38s cubic-bezier(.2, 1.7, .42, 1);
+    }
+
+    .wukong-stack img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .wukong-base {
+      transition: opacity .16s ease;
+    }
+
+    .combo-look {
+      opacity: 0;
+      transform: scale(1);
+      transition: opacity .16s ease, transform .2s ease;
+    }
+
+    .combo-look.is-on {
+      opacity: 1;
+    }
+
+    .wukong-stack.has-full-look .wukong-base {
+      opacity: 0;
+    }
+
+    .wardrobe {
+      position: absolute;
+      right: 4.3%;
+      top: 18.3%;
+      width: 33.6%;
+      height: 51.5%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 1.2fr);
+      gap: 8px;
+      padding: 13px 14px 15px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(255, 249, 221, .74), rgba(255, 238, 196, .66));
+      border: 3px solid rgba(255, 218, 142, .68);
+      box-shadow: 0 12px 26px rgba(108, 66, 31, .14), inset 0 1px 0 rgba(255,255,255,.62);
+      backdrop-filter: blur(1px);
+    }
+
+    .section-title {
+      align-self: end;
+      position: static;
+      margin: 0;
+      font-size: clamp(17px, 1.22vw, 22px);
+      line-height: 1;
+      font-weight: 900;
+      color: #805025;
+      text-shadow: 0 2px 0 rgba(255, 235, 190, .75);
+    }
+
+    .item-grid {
+      display: grid;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .section-title.top-label,
+    .section-title.bottom-label { padding-left: 12px; }
+
+    .tops {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .bottoms {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .cloth-card {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      border-radius: 22px;
+      background: rgba(255, 250, 224, .62);
+      border: 3px solid rgba(255, 218, 139, .68);
+      box-shadow: 0 5px 0 rgba(209, 147, 72, .1), 0 8px 13px rgba(125, 77, 32, .07);
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) 25px;
+      align-items: center;
+      justify-items: center;
+      padding: 6px 8px 8px;
+      touch-action: none;
+      cursor: grab;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .cloth-card:active,
+    .cloth-card.is-dragging {
+      transform: scale(.96);
+    }
+
+    .cloth-card.is-selected {
+      border-color: #ff875b;
+      background: rgba(255, 245, 208, .76);
+      box-shadow: 0 0 0 4px rgba(255, 138, 74, .14), 0 5px 0 rgba(209, 147, 72, .12);
+    }
+
+    .cloth-card img {
+      align-self: end;
+      width: 82%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      filter: drop-shadow(0 8px 8px rgba(121, 73, 27, .14));
+    }
+
+    .tops .cloth-card img {
+      width: 84%;
+      height: 100%;
+    }
+
+    .bottoms .cloth-card img {
+      width: 80%;
+      height: 88%;
+    }
+
+    .cloth-card span {
+      align-self: end;
+      min-height: 21px;
+      padding: 1px 7px 2px;
+      border-radius: 999px;
+      background: rgba(255, 244, 209, .74);
+      font-size: clamp(11px, .82vw, 14px);
+      line-height: 1.15;
+      font-weight: 900;
+      color: #6f4522;
+      white-space: nowrap;
+      text-shadow: 0 2px 0 rgba(255, 245, 210, .8);
+    }
+
+    .combo-board {
+      position: absolute;
+      left: 6.6%;
+      right: 3.1%;
+      bottom: .3%;
+      height: 26.2%;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 11px;
+      align-items: stretch;
+      padding: 9px 18px;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 14% 16%, rgba(255,255,255,.82), transparent 34%),
+        linear-gradient(180deg, rgba(255, 250, 230, .98), rgba(255, 228, 190, .96));
+      border: 5px solid rgba(255, 211, 148, .96);
+      box-shadow:
+        0 14px 0 rgba(188, 126, 68, .14),
+        0 18px 30px rgba(116, 70, 32, .18),
+        inset 0 3px 0 rgba(255,255,255,.84),
+        inset 0 -8px 18px rgba(225, 154, 90, .12);
+    }
+
+    .summary-card,
+    .combo-slot {
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 28% 16%, rgba(255,255,255,.86), transparent 34%),
+        linear-gradient(180deg, rgba(255, 254, 242, .98), rgba(255, 242, 206, .95));
+      border: 3px solid rgba(230, 193, 139, .72);
+      box-shadow:
+        inset 0 0 0 2px rgba(255,255,255,.72),
+        inset 0 -7px 12px rgba(221, 166, 91, .08),
+        0 7px 12px rgba(125, 77, 32, .1);
+    }
+
+    .summary-card {
+      display: none;
+    }
+
+    .summary-main {
+      font-size: clamp(20px, 1.6vw, 30px);
+      color: #bd5b28;
+    }
+
+    .summary-sub {
+      margin-top: 4px;
+      font-size: clamp(14px, 1.05vw, 18px);
+      color: #7d542f;
+    }
+
+    .combo-slot {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      padding: 9px;
+      box-sizing: border-box;
+    }
+
+    .combo-slot::before {
+      content: "";
+      position: absolute;
+      inset: 14%;
+      border-radius: 18px;
+      display: none;
+    }
+
+    .combo-slot.is-filled::before {
+      border-style: solid;
+      background: linear-gradient(180deg, #fff8d6, #ffe4a6);
+    }
+
+    .combo-slot.is-filled {
+      place-items: stretch;
+      padding: 7px 8px 8px;
+    }
+
+    .slot-inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      box-sizing: border-box;
+      text-align: center;
+      font-weight: 900;
+      font-size: clamp(11px, .78vw, 14px);
+      line-height: 1.15;
+      color: #8d5728;
+    }
+
+    .combo-slot.is-filled .slot-inner {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) clamp(36px, 3.8vh, 46px);
+      gap: 2px;
+      position: relative;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .combo-thumb-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .combo-slot.is-filled .combo-thumb-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .combo-thumb {
+      width: auto;
+      height: 100%;
+      max-height: 76%;
+      max-width: 96%;
+      object-fit: contain;
+      object-position: center top;
+      filter: drop-shadow(0 7px 7px rgba(112, 70, 32, .14));
+      animation: thumbPop .3s cubic-bezier(.2, 1.5, .35, 1);
+    }
+
+    .combo-slot.is-filled .combo-thumb {
+      width: auto;
+      height: 100%;
+      max-height: 100%;
+      max-width: 100%;
+      object-position: center;
+      flex: none;
+      animation: none;
+      transform: none;
+    }
+
+    .combo-name {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: 0;
+      padding: 2px 6px 3px;
+      border-radius: 10px;
+      background: rgba(255, 248, 225, .94);
+      border: 1px solid rgba(229, 190, 139, .42);
+      font-size: clamp(13px, 1vw, 18px);
+      line-height: 1.05;
+      font-weight: 900;
+      color: #8a5528;
+      white-space: normal;
+      text-shadow: 0 1px 0 rgba(255, 245, 210, .9);
+    }
+
+    .combo-slot.is-filled .combo-name {
+      position: relative;
+      width: 100%;
+      min-height: 0;
+      padding: 3px 5px 4px;
+      font-size: clamp(13px, 1vw, 18px);
+      line-height: 1.08;
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 17.2%;
+      z-index: 12;
+      transform: translate(-50%, -12px);
+      min-width: 360px;
+      max-width: 58%;
+      padding: 18px 28px;
+      border-radius: 999px;
+      background: rgba(255, 249, 222, .98);
+      border: 4px solid #ffd888;
+      box-shadow: var(--shadow);
+      text-align: center;
+      font-size: clamp(20px, 1.5vw, 28px);
+      font-weight: 900;
+      color: #a75528;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .toast.is-show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .drag-ghost {
+      position: fixed;
+      z-index: 99;
+      width: 130px;
+      height: 130px;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(1.04);
+      filter: drop-shadow(0 18px 18px rgba(80, 48, 18, .25));
+    }
+
+    .modal {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      place-items: center;
+      background: rgba(84, 54, 30, .28);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal.is-show { display: grid; }
+
+    .modal-card {
+      position: relative;
+      width: min(54%, 760px);
+      min-height: 42%;
+      display: grid;
+      place-items: center;
+      padding: 4.4% 5%;
+      border-radius: 34px;
+      overflow: hidden;
+      box-shadow: 0 22px 50px rgba(86, 46, 18, .24);
+      background: rgba(255, 248, 226, .96);
+      border: 5px solid rgba(255, 220, 142, .92);
+    }
+
+    .modal-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: clamp(30px, 3vw, 52px);
+      line-height: 1.1;
+      color: #cf5a2d;
+      text-shadow: 0 3px 0 rgba(255, 239, 188, .9);
+    }
+
+    .modal-text {
+      margin: 18px auto 24px;
+      font-size: clamp(20px, 1.65vw, 30px);
+      line-height: 1.35;
+      font-weight: 900;
+      color: #684520;
+    }
+
+    @keyframes dressPop {
+      0% { transform: translateY(-1%) scale(.96); }
+      55% { transform: translateY(-1%) scale(1.045); }
+      100% { transform: translateY(-1%) scale(1); }
+    }
+
+    @keyframes thumbPop {
+      0% { transform: scale(.6); opacity: .3; }
+      72% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    @media (max-aspect-ratio: 13 / 9) {
+      .question {
+        padding: 0 18px;
+      }
+
+      .question-badge {
+        width: 62px;
+        height: 62px;
+        font-size: 24px;
+      }
+
+      .wardrobe {
+        width: 36%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="viewport">
+    <section class="stage" aria-label="孙悟空换装搭配挑战" data-template="dressup-combination-v1">
+      <div class="game">
+        <header class="topbar">
+          <div class="question">
+            <div class="question-badge">搭</div>
+            <div>帮小孙悟空选择 <strong>1 件上装</strong> 和 <strong>1 件下装</strong>。一共有几种不同搭配？</div>
+          </div>
+          <button class="sound-toggle" id="muteBtn" type="button" aria-pressed="false" aria-label="关闭声音">
+            <img id="muteIcon" src="assets/images/sound-on.webp" alt="" draggable="false" />
+          </button>
+          <div class="progress-meter" aria-label="搭配进度">
+            <div class="progress-head"><span>搭配</span><strong id="progressText">0 / 6</strong></div>
+            <div class="progress-track"><span class="progress-fill" id="progressFill"></span></div>
+          </div>
+        </header>
+
+        <section class="wukong-area" id="dropZone" aria-label="孙悟空试衣区">
+          <div class="drop-ring"></div>
+          <div class="wukong-stack" id="wukongStack">
+            <img class="wukong-base" src="assets/images/wukong-base.webp" alt="幼年小孙悟空" draggable="false" />
+            <img class="combo-look" id="comboLook" alt="" draggable="false" />
+          </div>
+        </section>
+
+        <aside class="wardrobe" aria-label="衣服选择区">
+          <h2 class="section-title top-label">上装区</h2>
+          <div class="item-grid tops">
+            <button class="cloth-card" data-kind="top" data-id="red" aria-label="红金小战袍">
+              <img src="assets/images/item-top-red.webp" alt="" draggable="false" />
+              <span>红金战袍</span>
+            </button>
+            <button class="cloth-card" data-kind="top" data-id="green" aria-label="青绿云纹褂">
+              <img src="assets/images/item-top-green.webp" alt="" draggable="false" />
+              <span>云纹短褂</span>
+            </button>
+          </div>
+
+          <h2 class="section-title bottom-label">下装区</h2>
+          <div class="item-grid bottoms">
+            <button class="cloth-card" data-kind="bottom" data-id="tiger" aria-label="虎纹小裙裤">
+              <img src="assets/images/item-bottom-tiger.webp" alt="" draggable="false" />
+              <span>虎纹裙裤</span>
+            </button>
+            <button class="cloth-card" data-kind="bottom" data-id="gold" aria-label="金边南瓜裤">
+              <img src="assets/images/item-bottom-gold.webp" alt="" draggable="false" />
+              <span>金边裤</span>
+            </button>
+            <button class="cloth-card" data-kind="bottom" data-id="blue" aria-label="靛蓝练功裤">
+              <img src="assets/images/item-bottom-blue.webp" alt="" draggable="false" />
+              <span>练功裤</span>
+            </button>
+          </div>
+        </aside>
+
+        <section class="combo-board" aria-label="搭配收集板">
+          <div class="summary-card">
+            <div class="summary-main">找到所有搭配</div>
+            <div class="summary-sub">2 件上装 × 3 件下装 = ?</div>
+          </div>
+          <div class="combo-slot"><div class="slot-inner">搭配 1</div></div>
+          <div class="combo-slot"><div class="slot-inner">搭配 2</div></div>
+          <div class="combo-slot"><div class="slot-inner">搭配 3</div></div>
+          <div class="combo-slot"><div class="slot-inner">搭配 4</div></div>
+          <div class="combo-slot"><div class="slot-inner">搭配 5</div></div>
+          <div class="combo-slot"><div class="slot-inner">搭配 6</div></div>
+        </section>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+        <section class="modal" id="victoryModal" aria-hidden="true">
+          <div class="modal-card">
+            <div class="modal-content">
+              <h2 class="modal-title">全部搭配完成！</h2>
+              <p class="modal-text">2 件上装，每件都能搭配 3 件下装。<br />所以一共有 <strong>2 × 3 = 6</strong> 种搭配。</p>
+              <button class="primary-btn" id="restartBtn">再玩一次</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="cover" id="cover" role="button" tabindex="0" aria-label="点击任意位置进入游戏"></section>
+
+      <audio id="audioStart" src="assets/audio/start.ogg" preload="auto"></audio>
+      <audio id="audioSelect" src="assets/audio/select.ogg" preload="auto"></audio>
+      <audio id="audioSuccess" src="assets/audio/success.ogg" preload="auto"></audio>
+      <audio id="audioRepeat" src="assets/audio/repeat.ogg" preload="auto"></audio>
+      <audio id="audioVictory" src="assets/audio/victory.ogg" preload="auto"></audio>
+      <audio id="voiceIntro" src="assets/audio/voice-intro.mp3" preload="auto"></audio>
+      <audio id="voiceGuideStart" src="assets/audio/voice-guide-start.mp3" preload="auto"></audio>
+      <audio id="voiceNeedTop" src="assets/audio/voice-need-top.mp3" preload="auto"></audio>
+      <audio id="voiceNeedBottom" src="assets/audio/voice-need-bottom.mp3" preload="auto"></audio>
+      <audio id="voiceNewCombo" src="assets/audio/voice-new-combo.mp3" preload="auto"></audio>
+      <audio id="voiceRepeat" src="assets/audio/voice-repeat.mp3" preload="auto"></audio>
+      <audio id="voiceVictory" src="assets/audio/voice-victory.mp3" preload="auto"></audio>
+    </section>
+  </main>
+
+  <!--
+    COURSEWARE_TEMPLATE_SPEC_START
+    {
+      "templateId": "dressup-combination-v1",
+      "templateName": "换装搭配收集挑战",
+      "coreLearningGoal": "学习乘法原理/有序枚举：上装数量 × 下装数量 = 不同搭配总数",
+      "currentRule": {
+        "topCount": 2,
+        "bottomCount": 3,
+        "chooseTop": 1,
+        "chooseBottom": 1,
+        "totalCombinations": 6
+      },
+      "mustKeepInteraction": [
+        "学生拖拽 1 件上装和 1 件下装到角色对应身体区域；点击衣服卡片不直接换装",
+        "只选上装或只选下装时，主角色必须显示对应的完整穿着状态图",
+        "选齐上下装时，主角色必须切换为完整搭配图，不要用上衣/裤子透明层临时贴图",
+        "每个新搭配只记录一次，重复搭配给重复提示",
+        "底部收集板按发现顺序展示已发现搭配，显示完整角色缩略图和文字标签",
+        "进度从 0/6 到 6/6，全部完成后展示总结弹窗"
+      ],
+      "assetContract": {
+        "assetRoot": "assets",
+        "baseCharacter": "{assetRoot}/images/wukong-base.webp",
+        "topItemIcons": "{assetRoot}/images/item-top-{topId}.webp",
+        "bottomItemIcons": "{assetRoot}/images/item-bottom-{bottomId}.webp",
+        "topOnlyLooks": "{assetRoot}/images/wear-top-{topId}-source.webp",
+        "bottomOnlyLooks": "{assetRoot}/images/wear-bottom-{bottomId}-source.webp",
+        "fullComboLooks": "{assetRoot}/images/combo-{topId}-{bottomId}.webp",
+        "comboBoardThumbnails": "{assetRoot}/images/slot-combo-{topId}-{bottomId}.webp",
+        "audio": "{assetRoot}/audio/*.ogg and {assetRoot}/audio/voice-*.mp3"
+      },
+      "assetQualityRules": [
+        "fullComboLooks 必须是角色真实穿好整套服装的完整图，禁止简单把衣服图贴到角色身上",
+        "topOnlyLooks / bottomOnlyLooks / fullComboLooks 必须保持同一角色、同一年龄、同一体型、同一朝向、同一光影和同一画风",
+        "comboBoardThumbnails 必须从 fullComboLooks 裁紧透明边界生成，不能直接缩 2048 大画布",
+        "衣服选择区可以用带衣架图，但穿上后的主角色图必须用完整穿着图",
+        "如果换成其他角色或主题，也要保持 16:9 儿童课件、3D 卡通、柔和可爱风格"
+      ],
+      "codeSlotsToUpdateWhenCloning": [
+        "question 文案；封面只使用整张封面图，点击任意位置进入，不叠加 HTML 标题或按钮文字",
+        "tops / bottoms 数据对象",
+        "comboThumbs / comboLooks / topOnlyLooks / bottomOnlyLooks 资产映射",
+        "右侧衣柜 button 的 data-kind、data-id、文案和图片",
+        "底部 combo-slot 数量必须等于 topCount * bottomCount",
+        "progressText、progressFill、victory modal 中的总数和公式",
+        "语音文件可替换，但静音按钮和播放队列逻辑要保留"
+      ],
+      "layoutRules": [
+        "主舞台角色不能被底部收集板遮住脚",
+        "底部收集板不要过高，当前高度约为舞台 26%",
+        "收集格内缩略图和文字必须上下分区，文字不能盖住角色图",
+        "衣柜区需要整体底框承托，避免和背景图原框视觉重叠"
+      ],
+      "doNotDo": [
+        "不要用随机 AI 重绘 6 张不同角色导致换人",
+        "不要用单独上衣/裤子 PNG 叠加冒充真实穿着",
+        "不要给主舞台穿着图层预设某个组合图 src；换装状态图必须加载完成后再显示。若已有穿着状态，加载期间保持旧穿着状态，避免网络慢时闪过错误搭配或退回基础角色",
+        "不要删除 data-kind、data-id，它们是拖拽换装逻辑的关键",
+        "不要把动态题干、进度、反馈文字烘焙进背景图",
+        "不要使用浏览器原生 alert/confirm/prompt"
+      ]
+    }
+    COURSEWARE_TEMPLATE_SPEC_END
+  -->
+
+  <script>
+    // Template data contract:
+    // 1. tops and bottoms define the mathematical option sets.
+    // 2. comboLooks must contain every top-bottom pair as a complete dressed character image.
+    // 3. comboThumbs must contain matching tight-cropped thumbnails for the collection board.
+    // 4. topOnlyLooks and bottomOnlyLooks are complete single-item dressed states, not clothing overlays.
+    // 5. comboLook starts without a default src and only becomes visible after the requested image loads.
+    // 6. If an agent changes item counts, it must update the DOM combo-slot count and all progress/victory copy.
+    const tops = {
+      red: { label: "红金战袍" },
+      green: { label: "云纹短褂" }
+    };
+
+    const bottoms = {
+      tiger: { label: "虎纹裙裤" },
+      gold: { label: "金边裤" },
+      blue: { label: "练功裤" }
+    };
+
+    const comboThumbs = {
+      "red-tiger": "assets/images/slot-combo-red-tiger.webp",
+      "red-gold": "assets/images/slot-combo-red-gold.webp",
+      "red-blue": "assets/images/slot-combo-red-blue.webp",
+      "green-tiger": "assets/images/slot-combo-green-tiger.webp",
+      "green-gold": "assets/images/slot-combo-green-gold.webp",
+      "green-blue": "assets/images/slot-combo-green-blue.webp"
+    };
+
+    const comboLooks = {
+      "red-tiger": "assets/images/combo-red-tiger.webp",
+      "red-gold": "assets/images/combo-red-gold.webp",
+      "red-blue": "assets/images/combo-red-blue.webp",
+      "green-tiger": "assets/images/combo-green-tiger.webp",
+      "green-gold": "assets/images/combo-green-gold.webp",
+      "green-blue": "assets/images/combo-green-blue.webp"
+    };
+
+    const topOnlyLooks = {
+      red: "assets/images/wear-top-red-source.webp",
+      green: "assets/images/wear-top-green-source.webp"
+    };
+
+    const bottomOnlyLooks = {
+      tiger: "assets/images/wear-bottom-tiger-source.webp",
+      gold: "assets/images/wear-bottom-gold-source.webp",
+      blue: "assets/images/wear-bottom-blue-source.webp"
+    };
+
+    const state = {
+      top: null,
+      bottom: null,
+      combos: new Set(),
+      toastTimer: null,
+      drag: null,
+      suppressClickUntil: 0,
+      muted: false,
+      lastGuidance: "",
+      lastGuidanceAt: 0,
+      lookRequestId: 0
+    };
+
+    const cover = document.getElementById("cover");
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+    const muteBtn = document.getElementById("muteBtn");
+    const muteIcon = document.getElementById("muteIcon");
+    const dropZone = document.getElementById("dropZone");
+    const wukongStack = document.getElementById("wukongStack");
+    const comboLook = document.getElementById("comboLook");
+    const toast = document.getElementById("toast");
+    const comboSlots = [...document.querySelectorAll(".combo-slot")];
+    const clothCards = [...document.querySelectorAll(".cloth-card")];
+    const victoryModal = document.getElementById("victoryModal");
+    const restartBtn = document.getElementById("restartBtn");
+    const sounds = {
+      start: document.getElementById("audioStart"),
+      select: document.getElementById("audioSelect"),
+      success: document.getElementById("audioSuccess"),
+      repeat: document.getElementById("audioRepeat"),
+      victory: document.getElementById("audioVictory")
+    };
+    const voices = {
+      intro: document.getElementById("voiceIntro"),
+      guideStart: document.getElementById("voiceGuideStart"),
+      needTop: document.getElementById("voiceNeedTop"),
+      needBottom: document.getElementById("voiceNeedBottom"),
+      newCombo: document.getElementById("voiceNewCombo"),
+      repeat: document.getElementById("voiceRepeat"),
+      victory: document.getElementById("voiceVictory")
+    };
+    const allAudio = [...Object.values(sounds), ...Object.values(voices)];
+    let currentVoice = null;
+    let voiceQueue = [];
+
+    function enterGame() {
+      if (cover.classList.contains("is-hidden")) return;
+      cover.classList.add("is-hidden");
+      playSound("start");
+      playVoiceSequence(["intro", "guideStart"]);
+      showToast("先选一件上装，再选一件下装");
+    }
+
+    cover.addEventListener("click", enterGame);
+    cover.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        enterGame();
+      }
+    });
+
+    restartBtn.addEventListener("click", resetGame);
+    muteBtn.addEventListener("click", toggleMute);
+
+    clothCards.forEach(card => {
+      card.draggable = true;
+      card.addEventListener("pointerdown", event => beginDrag(event, card));
+      card.addEventListener("dragstart", event => {
+        event.dataTransfer.setData("text/plain", `${card.dataset.kind}:${card.dataset.id}`);
+        event.dataTransfer.effectAllowed = "copy";
+        card.classList.add("is-dragging");
+      });
+      card.addEventListener("dragend", () => {
+        card.classList.remove("is-dragging");
+        dropZone.classList.remove("is-drag-over");
+      });
+    });
+
+    dropZone.addEventListener("dragover", event => {
+      event.preventDefault();
+      const kind = state.drag?.card?.dataset.kind;
+      dropZone.classList.toggle("is-drag-over", kind ? isValidDressPoint(kind, event.clientX, event.clientY) : false);
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("is-drag-over");
+    });
+
+    dropZone.addEventListener("drop", event => {
+      event.preventDefault();
+      const [kind, id] = event.dataTransfer.getData("text/plain").split(":");
+      dropZone.classList.remove("is-drag-over");
+      if ((kind === "top" || kind === "bottom") && id && isValidDressPoint(kind, event.clientX, event.clientY)) {
+        chooseCloth(kind, id);
+      } else if (kind === "top" || kind === "bottom") {
+        showToast(kind === "top" ? "把上装拖到身体中间" : "把下装拖到腿部位置");
+      }
+    });
+
+    function beginDrag(event, card) {
+      if (event.button !== undefined && event.button !== 0) return;
+      event.preventDefault();
+
+      state.drag = {
+        card,
+        ghost: null,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false
+      };
+
+      window.addEventListener("pointermove", handleDragMove);
+      window.addEventListener("pointerup", handleDragEnd, { once: true });
+      window.addEventListener("pointercancel", cancelDrag, { once: true });
+    }
+
+    function handleDragMove(event) {
+      if (!state.drag) return;
+      const distance = Math.hypot(event.clientX - state.drag.startX, event.clientY - state.drag.startY);
+      if (distance > 8 && !state.drag.moved) {
+        state.drag.moved = true;
+        const img = state.drag.card.querySelector("img");
+        const ghost = img.cloneNode();
+        ghost.className = "drag-ghost";
+        document.body.appendChild(ghost);
+        state.drag.ghost = ghost;
+        state.drag.card.classList.add("is-dragging");
+      }
+      if (!state.drag.moved) return;
+      moveGhost(event.clientX, event.clientY);
+      updateDropHover(event.clientX, event.clientY);
+    }
+
+    function handleDragEnd(event) {
+      if (!state.drag) return;
+      const { card } = state.drag;
+      const validDrop = isValidDressPoint(card.dataset.kind, event.clientX, event.clientY);
+      if (state.drag.moved && validDrop) {
+        chooseCloth(card.dataset.kind, card.dataset.id);
+        state.suppressClickUntil = Date.now() + 350;
+      } else if (state.drag.moved) {
+        showToast(card.dataset.kind === "top" ? "把上装拖到身体中间" : "把下装拖到腿部位置");
+      }
+      cleanupDrag(card);
+    }
+
+    function cancelDrag() {
+      if (state.drag) cleanupDrag(state.drag.card);
+    }
+
+    function cleanupDrag(card) {
+      window.removeEventListener("pointermove", handleDragMove);
+      card.classList.remove("is-dragging");
+      dropZone.classList.remove("is-drag-over");
+      if (state.drag?.ghost) state.drag.ghost.remove();
+      state.drag = null;
+    }
+
+    function moveGhost(x, y) {
+      state.drag.ghost.style.left = `${x}px`;
+      state.drag.ghost.style.top = `${y}px`;
+    }
+
+    function updateDropHover(x, y) {
+      const kind = state.drag?.card?.dataset.kind;
+      dropZone.classList.toggle("is-drag-over", kind ? isValidDressPoint(kind, x, y) : false);
+    }
+
+    function isPointInside(rect, x, y) {
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }
+
+    function isValidDressPoint(kind, x, y) {
+      const rect = wukongStack.getBoundingClientRect();
+      if (!isPointInside(rect, x, y)) return false;
+      const nx = (x - rect.left) / rect.width;
+      const ny = (y - rect.top) / rect.height;
+      if (kind === "top") return nx >= .23 && nx <= .78 && ny >= .35 && ny <= .67;
+      if (kind === "bottom") return nx >= .27 && nx <= .74 && ny >= .58 && ny <= .9;
+      return false;
+    }
+
+    function chooseCloth(kind, id) {
+      playSound("select");
+      if (kind === "top") {
+        state.top = id;
+      } else {
+        state.bottom = id;
+      }
+
+      updateWukongLook();
+      updateSelectedCards();
+      popWukong();
+
+      if (!state.top || !state.bottom) {
+        showToast(kind === "top" ? "还需要选一件下装" : "还需要选一件上装");
+        playGuidance(kind === "top" ? "needBottom" : "needTop");
+        return;
+      }
+
+      recordCombo();
+    }
+
+    function updateWukongLook() {
+      const comboKey = state.top && state.bottom ? `${state.top}-${state.bottom}` : "";
+      if (comboLooks[comboKey]) {
+        showCharacterLook(comboLooks[comboKey], `${tops[state.top].label}搭配${bottoms[state.bottom].label}的小孙悟空`);
+        return;
+      }
+
+      if (state.top && topOnlyLooks[state.top]) {
+        showCharacterLook(topOnlyLooks[state.top], `穿着${tops[state.top].label}的小孙悟空`);
+        return;
+      }
+
+      if (state.bottom && bottomOnlyLooks[state.bottom]) {
+        showCharacterLook(bottomOnlyLooks[state.bottom], `穿着${bottoms[state.bottom].label}的小孙悟空`);
+        return;
+      }
+
+      state.lookRequestId += 1;
+      wukongStack.classList.remove("has-full-look");
+      comboLook.classList.remove("is-on");
+      comboLook.removeAttribute("src");
+      comboLook.alt = "";
+    }
+
+    function showCharacterLook(src, alt) {
+      const requestId = state.lookRequestId + 1;
+      state.lookRequestId = requestId;
+      const hasVisibleLook = comboLook.classList.contains("is-on") && comboLook.getAttribute("src");
+      if (!hasVisibleLook) {
+        wukongStack.classList.remove("has-full-look");
+        comboLook.classList.remove("is-on");
+        comboLook.removeAttribute("src");
+        comboLook.alt = "";
+      }
+
+      const image = new Image();
+      image.onload = () => {
+        if (requestId !== state.lookRequestId) return;
+        comboLook.src = src;
+        comboLook.alt = alt;
+        wukongStack.classList.add("has-full-look");
+        window.requestAnimationFrame(() => {
+          if (requestId === state.lookRequestId) comboLook.classList.add("is-on");
+        });
+      };
+      image.src = src;
+    }
+
+    function updateSelectedCards() {
+      clothCards.forEach(card => {
+        const current = card.dataset.kind === "top" ? state.top : state.bottom;
+        card.classList.toggle("is-selected", card.dataset.id === current);
+      });
+    }
+
+    function popWukong() {
+      wukongStack.classList.remove("pop");
+      void wukongStack.offsetWidth;
+      wukongStack.classList.add("pop");
+    }
+
+    function recordCombo() {
+      const key = `${state.top}-${state.bottom}`;
+      if (state.combos.has(key)) {
+        playSound("repeat");
+        playVoice("repeat");
+        showToast("这个搭配已经试过啦，换一件再看看");
+        return;
+      }
+
+      state.combos.add(key);
+      playSound("success");
+      playVoice("newCombo");
+      const slot = comboSlots[state.combos.size - 1];
+      slot.classList.add("is-filled");
+      slot.setAttribute("aria-label", `${tops[state.top].label}搭配${bottoms[state.bottom].label}`);
+      slot.querySelector(".slot-inner").innerHTML = `
+        <span class="combo-thumb-wrap"><img class="combo-thumb" src="${comboThumbs[key]}" alt="" draggable="false" /></span>
+        <span class="combo-name">${tops[state.top].label}<br>${bottoms[state.bottom].label}</span>
+      `;
+      updateProgress();
+      showToast(`发现新搭配：${tops[state.top].label} + ${bottoms[state.bottom].label}`);
+
+      if (state.combos.size === 6) {
+        window.setTimeout(() => {
+          playSound("victory");
+          playVoice("victory");
+          victoryModal.classList.add("is-show");
+          victoryModal.setAttribute("aria-hidden", "false");
+        }, 650);
+      }
+    }
+
+    function showToast(message) {
+      window.clearTimeout(state.toastTimer);
+      toast.textContent = message;
+      toast.classList.add("is-show");
+      state.toastTimer = window.setTimeout(() => toast.classList.remove("is-show"), 1800);
+    }
+
+    function updateProgress() {
+      const found = state.combos.size;
+      progressText.textContent = `${found} / 6`;
+      progressFill.style.width = `${Math.round((found / 6) * 100)}%`;
+    }
+
+    function resetGame() {
+      state.top = null;
+      state.bottom = null;
+      state.combos.clear();
+      updateProgress();
+      victoryModal.classList.remove("is-show");
+      victoryModal.setAttribute("aria-hidden", "true");
+      updateWukongLook();
+      clothCards.forEach(card => card.classList.remove("is-selected"));
+      comboSlots.forEach((slot, index) => {
+        slot.classList.remove("is-filled");
+        slot.removeAttribute("aria-label");
+        slot.querySelector(".slot-inner").textContent = `搭配 ${index + 1}`;
+      });
+      showToast("重新开始，先选一件上装");
+      playVoice("guideStart");
+    }
+
+    function playSound(name) {
+      if (state.muted) return;
+      const sound = sounds[name];
+      if (!sound) return;
+      sound.currentTime = 0;
+      sound.volume = name === "victory" ? 0.55 : 0.42;
+      sound.play().catch(() => {});
+    }
+
+    function playGuidance(name) {
+      const now = Date.now();
+      if (state.lastGuidance === name && now - state.lastGuidanceAt < 1800) return;
+      state.lastGuidance = name;
+      state.lastGuidanceAt = now;
+      playVoice(name);
+    }
+
+    function playVoiceSequence(names) {
+      stopVoice();
+      voiceQueue = names.filter(name => voices[name]);
+      playNextVoice();
+    }
+
+    function playNextVoice() {
+      if (state.muted || voiceQueue.length === 0) return;
+      playVoice(voiceQueue.shift(), { keepQueue: true });
+    }
+
+    function playVoice(name, options = {}) {
+      if (state.muted) return;
+      const voice = voices[name];
+      if (!voice) return;
+      if (!options.keepQueue) voiceQueue = [];
+      stopVoice({ keepQueue: options.keepQueue });
+      currentVoice = voice;
+      voice.currentTime = 0;
+      voice.volume = name === "victory" ? 0.9 : 0.86;
+      voice.onended = () => {
+        if (currentVoice === voice) currentVoice = null;
+        playNextVoice();
+      };
+      voice.play().catch(() => {
+        if (currentVoice === voice) currentVoice = null;
+        playNextVoice();
+      });
+    }
+
+    function stopVoice(options = {}) {
+      if (!options.keepQueue) voiceQueue = [];
+      Object.values(voices).forEach(voice => {
+        voice.pause();
+        voice.currentTime = 0;
+        voice.onended = null;
+      });
+      currentVoice = null;
+    }
+
+    function toggleMute() {
+      state.muted = !state.muted;
+      if (state.muted) stopVoice();
+      allAudio.forEach(audio => {
+        audio.muted = state.muted;
+        if (state.muted) audio.pause();
+      });
+      updateSoundButton();
+    }
+
+    function updateSoundButton() {
+      muteIcon.src = state.muted ? "assets/images/sound-off.webp" : "assets/images/sound-on.webp";
+      muteBtn.setAttribute("aria-pressed", String(state.muted));
+      muteBtn.setAttribute("aria-label", state.muted ? "打开声音" : "关闭声音");
+    }
+
+    if (new URLSearchParams(window.location.search).has("autostart")) {
+      cover.classList.add("is-hidden");
+    }
+    updateSoundButton();
+  </script>
+</body>
+</html>

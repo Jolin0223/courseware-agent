@@ -8,13 +8,14 @@ interface UIState {
   sidebarCollapsed: boolean;
   previewPanelOpen: boolean;
   previewCoursewareId: number | null;
+  previewInitialVersion: string | null;
   publishModalOpen: boolean;
   publishCoursewareId: number | null;
   editorDrawerOpen: boolean;
   insertedCoursewares: InsertedCourseware[];
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  openPreview: (coursewareId: number) => void;
+  openPreview: (coursewareId: number, initialVersion?: string | null) => void;
   closePreview: () => void;
   openPublishModal: (coursewareId: number) => void;
   closePublishModal: () => void;
@@ -46,6 +47,7 @@ export const useUIStore = create<UIState>((set) => ({
   sidebarCollapsed: false,
   previewPanelOpen: false,
   previewCoursewareId: null,
+  previewInitialVersion: null,
   publishModalOpen: false,
   publishCoursewareId: null,
   editorDrawerOpen: false,
@@ -53,8 +55,8 @@ export const useUIStore = create<UIState>((set) => ({
   
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
-  openPreview: (coursewareId) => set({ previewPanelOpen: true, previewCoursewareId: coursewareId }),
-  closePreview: () => set({ previewPanelOpen: false, previewCoursewareId: null }),
+  openPreview: (coursewareId, initialVersion = null) => set({ previewPanelOpen: true, previewCoursewareId: coursewareId, previewInitialVersion: initialVersion }),
+  closePreview: () => set({ previewPanelOpen: false, previewCoursewareId: null, previewInitialVersion: null }),
   openPublishModal: (coursewareId) => set({ publishModalOpen: true, publishCoursewareId: coursewareId }),
   closePublishModal: () => set({ publishModalOpen: false, publishCoursewareId: null }),
   openEditorDrawer: () => set({ editorDrawerOpen: true }),

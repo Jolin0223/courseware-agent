@@ -100,9 +100,10 @@ const CoursewareCard: React.FC<CardProps> = ({
   };
 
   const actionBtnStyle: React.CSSProperties = {
-    padding: '6px 12px',
+    height: 30,
+    padding: '0 12px',
     background: 'rgba(255,255,255,0.95)',
-    borderRadius: 7,
+    borderRadius: 10,
     fontSize: 12,
     color: '#334155',
     display: 'flex',
@@ -171,7 +172,7 @@ const CoursewareCard: React.FC<CardProps> = ({
               alignItems: 'center',
               gap: 5,
               padding: '0 9px',
-              borderRadius: 8,
+              borderRadius: 10,
               background: 'rgba(255,255,255,0.94)',
               color: courseware.isPublished ? 'var(--agent-primary-text)' : '#B45309',
               fontSize: 12,
@@ -293,7 +294,7 @@ const CoursewareCard: React.FC<CardProps> = ({
             onClick={handleInsert}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-              width: '100%', padding: '7px 0', borderRadius: 6, border: 'none',
+              width: '100%', height: 34, padding: '0 12px', borderRadius: 10, border: 'none',
               background: 'var(--agent-action-gradient)',
               color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
               marginTop: 10,

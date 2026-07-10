@@ -44,6 +44,10 @@ const MAX_LINES = 5;
 const MAX_HEIGHT = LINE_HEIGHT * MAX_LINES;
 const MAX_IMAGE_COUNT = 10;
 const MAX_DOCUMENT_COUNT = 10;
+const MAX_IMAGE_FILE_SIZE_MB = 5;
+const MAX_DOCUMENT_FILE_SIZE_MB = 10;
+const BYTES_PER_MB = 1024 * 1024;
+const SUPPORTED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif'];
 const SUPPORTED_DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'md'];
 
 const HOVER_CSS = `
@@ -369,6 +373,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [isDraftPromptOpen, setIsDraftPromptOpen] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [placeholderAnimating, setPlaceholderAnimating] = useState(true);
+  const [activeUploadTooltip, setActiveUploadTooltip] = useState<'image' | 'document' | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -487,9 +492,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
     fileInputRef.current?.click();
   };
 
+  const getFileExtension = (file: File) => file.name.split('.').pop()?.toLowerCase() || '';
+
+  const isSupportedImage = (file: File) => {
+    const ext = getFileExtension(file);
+    return SUPPORTED_IMAGE_EXTENSIONS.includes(ext) || ['image/png', 'image/jpeg', 'image/gif'].includes(file.type);
+  };
+
   const isSupportedDocument = (file: File) => {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    return SUPPORTED_DOCUMENT_EXTENSIONS.includes(ext);
+    return SUPPORTED_DOCUMENT_EXTENSIONS.includes(getFileExtension(file));
   };
 
   const addImageFiles = (files: File[]) => {
@@ -499,12 +510,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
       toast(`最多可上传 ${MAX_IMAGE_COUNT} 张图片`);
       return;
     }
-    const validFiles = files.filter(file => file.type.startsWith('image/'));
+    const supportedFiles = files.filter(isSupportedImage);
+    if (supportedFiles.length < files.length) {
+      toast('图片仅支持 PNG、JPG、JPEG 和 GIF 格式');
+    }
+    const validFiles = supportedFiles.filter(file => file.size <= MAX_IMAGE_FILE_SIZE_MB * BYTES_PER_MB);
+    if (validFiles.length < supportedFiles.length) {
+      toast(`图片大小不能超过 ${MAX_IMAGE_FILE_SIZE_MB}MB`);
+    }
     if (validFiles.length > availableSlots) {
       toast(`最多可上传 ${MAX_IMAGE_COUNT} 张图片，本次仅添加前 ${availableSlots} 张`);
     }
     validFiles.slice(0, availableSlots).forEach(file => {
-      if (!file.type.startsWith('image/')) return;
       const id = Date.now().toString() + Math.random();
       setAttachedFiles(prev => [...prev, { id, type: 'image', name: file.name, loading: true }]);
       const url = URL.createObjectURL(file);
@@ -526,10 +543,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
     if (validFiles.length < files.length) {
       toast('附件仅支持 PDF、Word 和 MD 格式');
     }
-    if (validFiles.length > availableSlots) {
+    const sizeValidFiles = validFiles.filter(file => file.size <= MAX_DOCUMENT_FILE_SIZE_MB * BYTES_PER_MB);
+    if (sizeValidFiles.length < validFiles.length) {
+      toast(`文档大小不能超过 ${MAX_DOCUMENT_FILE_SIZE_MB}MB`);
+    }
+    if (sizeValidFiles.length > availableSlots) {
       toast(`最多可上传 ${MAX_DOCUMENT_COUNT} 个附件，本次仅添加前 ${availableSlots} 个`);
     }
-    validFiles.slice(0, availableSlots).forEach(file => {
+    sizeValidFiles.slice(0, availableSlots).forEach(file => {
       const id = Date.now().toString() + Math.random();
       setAttachedFiles(prev => [...prev, { id, type: 'document', name: file.name, loading: true }]);
       setTimeout(() => {
@@ -569,6 +590,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
       if (item.type.startsWith('image/')) {
         const file = item.getAsFile();
         if (file) {
+          if (!isSupportedImage(file)) {
+            toast('图片仅支持 PNG、JPG、JPEG 和 GIF 格式');
+            continue;
+          }
+          if (file.size > MAX_IMAGE_FILE_SIZE_MB * BYTES_PER_MB) {
+            toast(`图片大小不能超过 ${MAX_IMAGE_FILE_SIZE_MB}MB`);
+            continue;
+          }
           if (attachedFiles.filter(f => f.type === 'image').length >= MAX_IMAGE_COUNT) {
             toast(`最多可上传 ${MAX_IMAGE_COUNT} 张图片`);
             continue;
@@ -589,9 +618,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
       } else if (item.kind === 'file') {
         const file = item.getAsFile();
         if (file && !file.type.startsWith('image/')) {
-          const ext = file.name.split('.').pop()?.toLowerCase() || '';
-          if (!SUPPORTED_DOCUMENT_EXTENSIONS.includes(ext)) {
+          if (!isSupportedDocument(file)) {
             toast('附件仅支持 PDF、Word 和 MD 格式');
+            continue;
+          }
+          if (file.size > MAX_DOCUMENT_FILE_SIZE_MB * BYTES_PER_MB) {
+            toast(`文档大小不能超过 ${MAX_DOCUMENT_FILE_SIZE_MB}MB`);
             continue;
           }
           if (attachedFiles.filter(f => f.type === 'document').length >= MAX_DOCUMENT_COUNT) {
@@ -763,10 +795,29 @@ const ChatInput: React.FC<ChatInputProps> = ({
     })()
   );
 
+  const renderUploadTooltip = (type: 'image' | 'document') => (
+    <div style={styles.uploadTooltip} role="tooltip">
+      <div style={styles.uploadTooltipTitle}>{type === 'image' ? '上传图片' : '上传文档'}</div>
+      {type === 'image' ? (
+        <>
+          <div>图片数量：最多 {MAX_IMAGE_COUNT} 张</div>
+          <div>支持 png、jpg、jpeg、gif</div>
+          <div>大小不超过 {MAX_IMAGE_FILE_SIZE_MB}MB</div>
+        </>
+      ) : (
+        <>
+          <div>文档数量：最多 {MAX_DOCUMENT_COUNT} 个</div>
+          <div>支持 pdf、doc、docx、md</div>
+          <div>大小不超过 {MAX_DOCUMENT_FILE_SIZE_MB}MB</div>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <>
       <style>{HOVER_CSS}</style>
-      <input ref={imageInputRef} type="file" accept="image/*" multiple hidden onChange={handleImageSelect} />
+      <input ref={imageInputRef} type="file" accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" multiple hidden onChange={handleImageSelect} />
       <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" multiple hidden onChange={handleFileSelect} />
       <div style={centered ? styles.wrapperCentered : styles.wrapperBottom}>
         <div
@@ -977,23 +1028,41 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
           <div style={styles.toolbar}>
             <div style={styles.toolGroup}>
-              <button
-                className="ci-icon-btn"
-                style={styles.iconBtn}
-                onClick={handleImageUpload}
-                title="上传图片"
+              <div
+                style={styles.tooltipAnchor}
+                onMouseEnter={() => setActiveUploadTooltip('image')}
+                onMouseLeave={() => setActiveUploadTooltip(null)}
               >
-                <Image size={20} />
-              </button>
+                {activeUploadTooltip === 'image' && renderUploadTooltip('image')}
+                <button
+                  className="ci-icon-btn"
+                  style={styles.iconBtn}
+                  onClick={handleImageUpload}
+                  onFocus={() => setActiveUploadTooltip('image')}
+                  onBlur={() => setActiveUploadTooltip(null)}
+                  aria-label={`上传图片，最多 ${MAX_IMAGE_COUNT} 张，支持 png、jpg、jpeg、gif，大小不超过 ${MAX_IMAGE_FILE_SIZE_MB}MB`}
+                >
+                  <Image size={20} />
+                </button>
+              </div>
 
-              <button
-                className="ci-icon-btn"
-                style={styles.iconBtn}
-                onClick={handleFileUpload}
-                title="上传附件"
+              <div
+                style={styles.tooltipAnchor}
+                onMouseEnter={() => setActiveUploadTooltip('document')}
+                onMouseLeave={() => setActiveUploadTooltip(null)}
               >
-                <Paperclip size={20} />
-              </button>
+                {activeUploadTooltip === 'document' && renderUploadTooltip('document')}
+                <button
+                  className="ci-icon-btn"
+                  style={styles.iconBtn}
+                  onClick={handleFileUpload}
+                  onFocus={() => setActiveUploadTooltip('document')}
+                  onBlur={() => setActiveUploadTooltip(null)}
+                  aria-label={`上传文档，最多 ${MAX_DOCUMENT_COUNT} 个，支持 pdf、doc、docx、md，大小不超过 ${MAX_DOCUMENT_FILE_SIZE_MB}MB`}
+                >
+                  <Paperclip size={20} />
+                </button>
+              </div>
 
               {isEmbedded && (
                 <button
@@ -1702,6 +1771,35 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: 4,
+  },
+  tooltipAnchor: {
+    position: 'relative',
+    display: 'inline-flex',
+  },
+  uploadTooltip: {
+    position: 'absolute',
+    left: 0,
+    bottom: 38,
+    zIndex: 30,
+    width: 220,
+    padding: '10px 12px',
+    borderRadius: 10,
+    border: '1px solid rgba(15, 118, 110, 0.14)',
+    background: 'rgba(15, 23, 42, 0.92)',
+    color: '#FFFFFF',
+    boxShadow: '0 14px 34px rgba(15, 23, 42, 0.18)',
+    fontSize: 12,
+    fontWeight: 650,
+    lineHeight: 1.65,
+    pointerEvents: 'none',
+    whiteSpace: 'normal',
+  },
+  uploadTooltipTitle: {
+    marginBottom: 2,
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 850,
+    lineHeight: 1.35,
   },
   iconBtn: {
     display: 'flex',

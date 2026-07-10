@@ -410,7 +410,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   messageAssistant: {
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap: 0,
     width: '100%',
   },

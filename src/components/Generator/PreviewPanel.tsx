@@ -393,7 +393,7 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
               onClick={() => runOutsideFullscreen(handleUpdatePublishClick)}
               onMouseEnter={() => setHoveredHeaderButton('replace')}
               onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'replace' ? null : prev)}
-              style={getActionButtonStyle('replace', 'primary')}
+              style={getActionButtonStyle('replace', 'warning')}
               title="替换"
             >
               <RefreshCw size={14} />
@@ -403,7 +403,7 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
               onClick={() => runOutsideFullscreen(() => setPublishMode('new-game'))}
               onMouseEnter={() => setHoveredHeaderButton('new-game')}
               onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'new-game' ? null : prev)}
-              style={getActionButtonStyle('new-game', 'warning')}
+              style={getActionButtonStyle('new-game', 'primary')}
               title="发布"
             >
               <Send size={14} />

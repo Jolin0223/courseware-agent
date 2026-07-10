@@ -11,7 +11,7 @@ export default function Logo({ size = 32 }: { size?: number }) {
       }}
     >
       <img
-        src="/images/iteach-workbench-logo.png"
+        src="/images/iteach-workbench-logo.webp"
         alt=""
         aria-hidden="true"
         style={{

@@ -19,7 +19,7 @@ html, body {
     transform-origin: center center;
     visibility: hidden;
     overflow: hidden;
-    background-image: url('../images/bg.png');
+    background-image: url('../images/bg.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

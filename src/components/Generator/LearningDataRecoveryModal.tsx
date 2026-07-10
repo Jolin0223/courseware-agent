@@ -686,7 +686,7 @@ const styles: Record<string, React.CSSProperties> = {
   phoneScreenshot: {
     position: 'absolute',
     inset: 0,
-    backgroundImage: 'url("/images/single-lesson-learning-report-copy.png")',
+    backgroundImage: 'url("/images/single-lesson-learning-report-copy.webp")',
     backgroundSize: 'contain',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'top center',

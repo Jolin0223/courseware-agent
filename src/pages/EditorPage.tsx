@@ -19,8 +19,8 @@ export default function EditorPage() {
   const bgImage = !hasInserted
     ? '/editor-assets/editor-overview.png'
     : hasUpdate
-      ? '/editor-assets/inserted-style.png'
-      : '/editor-assets/editor-bg.png';
+      ? '/editor-assets/inserted-style.webp'
+      : '/editor-assets/editor-bg.webp';
 
   useEffect(() => {
     if (!hasInserted) return;

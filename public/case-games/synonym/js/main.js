@@ -16,40 +16,40 @@
             sentence: "人民英雄纪念碑___在天安门广场上。",
             correct: "屹立",
             options: ["屹立", "矗立", "耸立"],
-            initBg: "images/bg_default.png",
-            correctBg: "images/bg_yili.png",
+            initBg: "images/bg_default.webp",
+            correctBg: "images/bg_yili.webp",
             analysis: "<span class='highlight-word'>屹立</span>多指稳固不可动摇，常用于人、精神或纪念碑等；<span class='highlight-word'>矗立</span>多指高大且直；<span class='highlight-word'>耸立</span>多指高高地突起。"
         },
         {
             sentence: "一座座高楼大厦___在城市中心。",
             correct: "矗立",
             options: ["屹立", "矗立", "耸立"],
-            initBg: "images/bg_default.png",
-            correctBg: "images/bg_chuli.png",
+            initBg: "images/bg_default.webp",
+            correctBg: "images/bg_chuli.webp",
             analysis: "<span class='highlight-word'>矗立</span>多指高大且直，常用于高楼、建筑等；<span class='highlight-word'>屹立</span>多指稳固不可动摇；<span class='highlight-word'>耸立</span>多指高高地突起。"
         },
         {
             sentence: "陡峭的山峰___在云海之中。",
             correct: "耸立",
             options: ["屹立", "矗立", "耸立"],
-            initBg: "images/bg_default.png",
-            correctBg: "images/bg_songli.png",
+            initBg: "images/bg_default.webp",
+            correctBg: "images/bg_songli.webp",
             analysis: "<span class='highlight-word'>耸立</span>多指高高地突起，常用于山峰、高塔等自然或细长建筑；<span class='highlight-word'>矗立</span>多指高大且直；<span class='highlight-word'>屹立</span>多指稳固不可动摇。"
         },
         {
             sentence: "风停了，原本波浪翻滚的湖面恢复了___。",
             correct: "平静",
             options: ["安静", "平静"],
-            initBg: "images/bg_bolang.png",
-            correctBg: "images/bg_pingjing.png",
+            initBg: "images/bg_bolang.webp",
+            correctBg: "images/bg_pingjing.webp",
             analysis: "<span class='highlight-word'>平静</span>多指环境或心情没有波澜、动荡，常用于水面、心情等；<span class='highlight-word'>安静</span>多指没有声音、不吵闹。"
         },
         {
             sentence: "同学们都在认真看书，教室里非常___。",
             correct: "安静",
             options: ["安静", "平静"],
-            initBg: "images/bg_default.png",
-            correctBg: "images/bg_anjing.png",
+            initBg: "images/bg_default.webp",
+            correctBg: "images/bg_anjing.webp",
             analysis: "<span class='highlight-word'>安静</span>多指没有声音、不吵闹，常用于环境、人；<span class='highlight-word'>平静</span>多指没有波澜、动荡。"
         }
     ];

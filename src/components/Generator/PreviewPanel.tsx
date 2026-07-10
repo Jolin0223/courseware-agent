@@ -603,11 +603,11 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
               </div>
             ) : previewDevice === 'bigscreen' ? (
               <div style={panelStyle.bigscreenFrame}>
-                <img src="/images/bigscreen-preview.png" alt="大屏授课端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
+                <img src="/images/bigscreen-preview.webp" alt="大屏授课端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
               </div>
             ) : previewDevice === 'tablet' ? (
               <div style={panelStyle.tabletFrame}>
-                <img src="/images/tablet-preview.png" alt="学生小屏端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
+                <img src="/images/tablet-preview.webp" alt="学生小屏端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
               </div>
             ) : (
               <div style={panelStyle.comingSoon}>

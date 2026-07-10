@@ -797,20 +797,20 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const renderUploadTooltip = (type: 'image' | 'document') => (
     <div style={styles.uploadTooltip} role="tooltip">
-      <div style={styles.uploadTooltipTitle}>{type === 'image' ? '上传图片' : '上传文档'}</div>
       {type === 'image' ? (
         <>
-          <div>图片数量：最多 {MAX_IMAGE_COUNT} 张</div>
-          <div>支持 png、jpg、jpeg、gif</div>
-          <div>大小不超过 {MAX_IMAGE_FILE_SIZE_MB}MB</div>
+          <div>数量：最多 {MAX_IMAGE_COUNT} 张</div>
+          <div>格式：png、jpg、jpeg、gif</div>
+          <div>大小：不超过 {MAX_IMAGE_FILE_SIZE_MB}MB</div>
         </>
       ) : (
         <>
-          <div>文档数量：最多 {MAX_DOCUMENT_COUNT} 个</div>
-          <div>支持 pdf、doc、docx、md</div>
-          <div>大小不超过 {MAX_DOCUMENT_FILE_SIZE_MB}MB</div>
+          <div>数量：最多 {MAX_DOCUMENT_COUNT} 个</div>
+          <div>格式：pdf、doc、docx、md</div>
+          <div>大小：不超过 {MAX_DOCUMENT_FILE_SIZE_MB}MB</div>
         </>
       )}
+      <span style={styles.uploadTooltipArrow} />
     </div>
   );
 
@@ -1040,7 +1040,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   onClick={handleImageUpload}
                   onFocus={() => setActiveUploadTooltip('image')}
                   onBlur={() => setActiveUploadTooltip(null)}
-                  aria-label={`上传图片，最多 ${MAX_IMAGE_COUNT} 张，支持 png、jpg、jpeg、gif，大小不超过 ${MAX_IMAGE_FILE_SIZE_MB}MB`}
+                  aria-label="上传图片"
                 >
                   <Image size={20} />
                 </button>
@@ -1058,7 +1058,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   onClick={handleFileUpload}
                   onFocus={() => setActiveUploadTooltip('document')}
                   onBlur={() => setActiveUploadTooltip(null)}
-                  aria-label={`上传文档，最多 ${MAX_DOCUMENT_COUNT} 个，支持 pdf、doc、docx、md，大小不超过 ${MAX_DOCUMENT_FILE_SIZE_MB}MB`}
+                  aria-label="上传文档"
                 >
                   <Paperclip size={20} />
                 </button>
@@ -1779,27 +1779,32 @@ const styles: Record<string, React.CSSProperties> = {
   uploadTooltip: {
     position: 'absolute',
     left: 0,
-    bottom: 38,
+    bottom: 40,
     zIndex: 30,
-    width: 220,
-    padding: '10px 12px',
-    borderRadius: 10,
-    border: '1px solid rgba(15, 118, 110, 0.14)',
-    background: 'rgba(15, 23, 42, 0.92)',
+    width: 190,
+    padding: '9px 11px',
+    borderRadius: 9,
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    background: 'rgba(15, 23, 42, 0.94)',
     color: '#FFFFFF',
-    boxShadow: '0 14px 34px rgba(15, 23, 42, 0.18)',
+    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.18)',
+    backdropFilter: 'blur(10px)',
     fontSize: 12,
-    fontWeight: 650,
-    lineHeight: 1.65,
+    fontWeight: 700,
+    lineHeight: 1.7,
     pointerEvents: 'none',
     whiteSpace: 'normal',
   },
-  uploadTooltipTitle: {
-    marginBottom: 2,
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: 850,
-    lineHeight: 1.35,
+  uploadTooltipArrow: {
+    position: 'absolute',
+    left: 16,
+    bottom: -5,
+    width: 10,
+    height: 10,
+    background: 'rgba(15, 23, 42, 0.94)',
+    transform: 'rotate(45deg)',
+    borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
   },
   iconBtn: {
     display: 'flex',

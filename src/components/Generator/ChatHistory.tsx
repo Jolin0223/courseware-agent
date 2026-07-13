@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Search, Pin, Trash2, Edit3, MoreHorizontal, Loader2, History, ChevronDown, ChevronRight } from 'lucide-react';
 import { useConversationStore } from '../../store/conversationStore';
@@ -24,6 +25,7 @@ const ChatHistory: React.FC = () => {
   const [renameValue, setRenameValue] = useState('');
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [historyCollapsed, setHistoryCollapsed] = useState(false);
+  const [pendingDeleteConversation, setPendingDeleteConversation] = useState<Conversation | null>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -69,6 +71,12 @@ const ChatHistory: React.FC = () => {
       openPreview(coursewareId);
     }
     navigate('/');
+  };
+
+  const handleConfirmDelete = () => {
+    if (!pendingDeleteConversation) return;
+    deleteConversation(pendingDeleteConversation.id);
+    setPendingDeleteConversation(null);
   };
 
   const renderConversation = (conv: Conversation) => {
@@ -232,8 +240,8 @@ const ChatHistory: React.FC = () => {
             </button>
             <button
               onClick={() => {
-                deleteConversation(conv.id);
                 setExpandedMenuId(null);
+                setPendingDeleteConversation(conv);
               }}
               style={{ ...menuItemStyle, color: '#EF4444' }}
               onMouseEnter={(e) => (e.currentTarget.style.background = '#FEF2F2')}
@@ -249,6 +257,7 @@ const ChatHistory: React.FC = () => {
   };
 
   return (
+    <>
     <div
       className="chat-history-shell"
       style={{
@@ -450,6 +459,49 @@ const ChatHistory: React.FC = () => {
         }
       `}</style>
     </div>
+
+    {pendingDeleteConversation && createPortal(
+      <div
+        style={deleteConfirmStyles.mask}
+        onClick={() => setPendingDeleteConversation(null)}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-conversation-title"
+          style={deleteConfirmStyles.dialog}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div style={deleteConfirmStyles.iconWrap}>
+            <Trash2 size={18} />
+          </div>
+          <div style={deleteConfirmStyles.content}>
+            <h3 id="delete-conversation-title" style={deleteConfirmStyles.title}>删除会话</h3>
+            <p style={deleteConfirmStyles.desc}>
+              确认删除“{pendingDeleteConversation.title}”吗？删除后该会话记录将不可恢复。
+            </p>
+          </div>
+          <div style={deleteConfirmStyles.actions}>
+            <button
+              type="button"
+              style={deleteConfirmStyles.cancelBtn}
+              onClick={() => setPendingDeleteConversation(null)}
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              style={deleteConfirmStyles.deleteBtn}
+              onClick={handleConfirmDelete}
+            >
+              删除
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
+    </>
   );
 };
 
@@ -480,6 +532,86 @@ const sectionToggleStyle: React.CSSProperties = {
   outline: 'none',
   font: 'inherit',
   textAlign: 'left',
+};
+
+const deleteConfirmStyles: Record<string, React.CSSProperties> = {
+  mask: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 3000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    background: 'rgba(15, 23, 42, 0.28)',
+  },
+  dialog: {
+    width: 340,
+    maxWidth: 'calc(100vw - 48px)',
+    padding: 20,
+    borderRadius: 14,
+    background: '#FFFFFF',
+    border: '1px solid rgba(226, 232, 240, 0.95)',
+    boxShadow: '0 24px 64px rgba(15, 23, 42, 0.22)',
+    display: 'grid',
+    gridTemplateColumns: '40px 1fr',
+    gap: 12,
+  },
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    background: '#FEF2F2',
+    color: '#EF4444',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    minWidth: 0,
+  },
+  title: {
+    margin: 0,
+    color: '#17233B',
+    fontSize: 17,
+    lineHeight: 1.35,
+    fontWeight: 800,
+  },
+  desc: {
+    margin: '6px 0 0',
+    color: '#64748B',
+    fontSize: 13,
+    lineHeight: 1.55,
+  },
+  actions: {
+    gridColumn: '1 / -1',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: 8,
+    paddingTop: 4,
+  },
+  cancelBtn: {
+    height: 34,
+    padding: '0 14px',
+    borderRadius: 9,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  deleteBtn: {
+    height: 34,
+    padding: '0 14px',
+    borderRadius: 9,
+    border: 'none',
+    background: '#EF4444',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
 };
 
 export default ChatHistory;

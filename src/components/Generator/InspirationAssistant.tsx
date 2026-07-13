@@ -15,6 +15,7 @@ import toast from '../../utils/toast';
 interface InspirationAssistantProps {
   onApplyPrompt: (prompt: string) => void;
   isHomePage?: boolean;
+  preferExpandedLauncher?: boolean;
 }
 
 type FloatingPosition = {
@@ -136,7 +137,11 @@ const buildReply = (question: string, attachments: AttachedFile[] = []): Assista
   };
 };
 
-export default function InspirationAssistant({ onApplyPrompt, isHomePage = false }: InspirationAssistantProps) {
+export default function InspirationAssistant({
+  onApplyPrompt,
+  isHomePage = false,
+  preferExpandedLauncher = false,
+}: InspirationAssistantProps) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [advancedMode, setAdvancedMode] = useState(false);
@@ -173,7 +178,7 @@ export default function InspirationAssistant({ onApplyPrompt, isHomePage = false
   const latestReply = useMemo(() => [...messages].reverse().find(item => item.reply)?.reply, [messages]);
   const canSend = input.trim().length > 0 || attachedFiles.some(file => !file.loading);
 
-  const compactLauncher = !(isHomePage && isHomeFirstScreen);
+  const compactLauncher = !(preferExpandedLauncher && isHomeFirstScreen);
   const currentLauncherWidth = compactLauncher ? compactLauncherWidth : expandedLauncherWidth;
   const currentLauncherHeight = compactLauncher ? launcherHeight : expandedLauncherHeight;
   const panelHeight = Math.min(defaultPanelHeight, getViewportSize().height - viewportMargin * 2);

@@ -21,6 +21,7 @@ function AppContent() {
   const location = useLocation();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
   const openPublishedConversation = useConversationStore((s) => s.openPublishedConversation);
+  const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const coursewares = useCoursewareStore((s) => s.coursewares);
 
   useEffect(() => {
@@ -104,6 +105,7 @@ function AppContent() {
     <InspirationAssistant
       onApplyPrompt={handleApplyAssistantPrompt}
       isHomePage={location.pathname === '/'}
+      preferExpandedLauncher={location.pathname === '/' && activeConversationId === null}
     />
   );
 

@@ -220,7 +220,7 @@ export default function LibraryPage() {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>我的作品</h1>
+        <h1 style={styles.title}>我的创作</h1>
         <p style={styles.subtitle}>管理你创建的互动课件</p>
       </div>
 

@@ -8,7 +8,7 @@ import ProgressPanel from '../components/Generator/ProgressPanel';
 import PreviewPanel from '../components/Generator/PreviewPanel';
 import CoursewareCard from '../components/Generator/CoursewareCard';
 import InspirationSection, { buildStructuredInspirationPrompt, type GameplayInspiration } from '../components/Generator/InspirationSection';
-import InspirationAssistant from '../components/Generator/InspirationAssistant';
+import HtmlTypeBadge from '../components/common/HtmlTypeBadge';
 import { useConversationStore, simulateGeneration } from '../store/conversationStore';
 import { useUIStore } from '../store/uiStore';
 import { useCoursewareStore } from '../store/coursewareStore';
@@ -254,6 +254,7 @@ const buildVoiceCapabilityAppendix = (selection: VoiceCapabilitySelection) => {
 const CHAT_CONTENT_MAX_WITH_PREVIEW = 720;
 const CHAT_CONTENT_MAX_FULL = 864;
 const DEFAULT_CHAT_WIDTH_WITH_PREVIEW = 52;
+const HOMEPAGE_ROBOT_URL = 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/Hnz6NTtZ-25a4e308-7fe5-47dc-a146-093190a3f378.png';
 
 const isUserMaterialMessage = (content: ConversationMessage['content']): content is UserMaterialMessage => (
   typeof content === 'object'
@@ -309,13 +310,39 @@ const styles: Record<string, React.CSSProperties> = {
     flex: 1,
     minHeight: 0,
     overflowY: 'auto',
-    padding: '36px 24px 48px',
+    padding: '28px 30px 52px 50px',
+  },
+  welcomeHeroPanel: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 1080,
+    minHeight: 386,
+    padding: '42px 58px 22px',
+    borderRadius: 16,
+    background: 'var(--agent-home-hero-bg)',
+    overflow: 'hidden',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.76)',
+  },
+  welcomeHeroContent: {
+    position: 'relative',
+    zIndex: 2,
+    width: '100%',
+    maxWidth: 980,
+  },
+  welcomeHeroCopy: {
+    marginBottom: 26,
+  },
+  welcomeRobot: {
+    position: 'absolute',
+    right: 76,
+    top: 4,
+    width: 156,
+    maxWidth: '17vw',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    zIndex: 1,
   },
   backToInputButton: {
-    position: 'fixed',
-    right: 36,
-    bottom: 98,
-    zIndex: 80,
     width: 42,
     height: 42,
     padding: 0,
@@ -332,18 +359,55 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     cursor: 'pointer',
   },
+  backToInputWrap: {
+    position: 'fixed',
+    right: 36,
+    bottom: 148,
+    zIndex: 80,
+  },
+  backToInputTooltip: {
+    position: 'absolute',
+    right: 0,
+    bottom: 50,
+    height: 28,
+    padding: '0 10px',
+    borderRadius: 8,
+    background: '#0F172A',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 800,
+    lineHeight: '28px',
+    whiteSpace: 'nowrap',
+    boxShadow: '0 10px 24px rgba(15, 23, 42, 0.16)',
+    pointerEvents: 'none',
+    opacity: 0,
+    transform: 'translateY(3px)',
+    transition: 'opacity 0.14s ease, transform 0.14s ease',
+  },
+  backToInputTooltipArrow: {
+    position: 'absolute',
+    right: 15,
+    bottom: -4,
+    width: 8,
+    height: 8,
+    background: '#0F172A',
+    transform: 'rotate(45deg)',
+  },
   welcomeTitle: {
     fontSize: 34,
-    fontWeight: 700,
+    fontWeight: 950,
     color: '#1E293B',
-    marginBottom: 10,
-    textAlign: 'center',
+    margin: '0 0 10px',
+    textAlign: 'left',
+    lineHeight: 1.16,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: '#64748B',
-    marginBottom: 28,
-    textAlign: 'center',
+    color: '#697B91',
+    margin: 0,
+    textAlign: 'left',
+    fontWeight: 400,
+    lineHeight: 1.65,
   },
   promptFlyCard: {
     position: 'fixed',
@@ -972,14 +1036,15 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     width: 30,
     height: 30,
     borderRadius: 8,
-    background: 'var(--agent-soft-strong)',
-    color: 'var(--agent-primary-text)',
+    background: 'var(--agent-action-gradient)',
+    color: '#FFFFFF',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: 11,
     fontWeight: 900,
     flexShrink: 0,
+    boxShadow: '0 8px 16px rgba(255, 138, 0, 0.18)',
   },
   previewMask: {
     position: 'fixed',
@@ -1101,7 +1166,7 @@ function UserMessage({
             <div style={userMessageStyles.documentList}>
               {htmlAttachments.map(file => (
                 <div key={file.id} style={userMessageStyles.htmlCard}>
-                  <span style={userMessageStyles.htmlIcon}>HTML</span>
+                  <HtmlTypeBadge size="small" />
                   <div style={{ minWidth: 0 }}>
                     <div style={userMessageStyles.documentName}>{file.name}</div>
                     <div style={userMessageStyles.documentMeta}>同款参考附件 · 不可打开 · 不可下载</div>
@@ -1119,12 +1184,12 @@ function UserMessage({
                   whiteSpace: 'pre-wrap',
                 }}
               >
-                {appliedPlaywayMessage.demand || '基于这个玩法生成互动课件'}
+                {appliedPlaywayMessage.demand || '基于这个模板生成互动课件'}
               </div>
               <div style={userMessageStyles.appliedPromptCard}>
                 <div style={userMessageStyles.appliedPromptSection}>
                   <div style={userMessageStyles.appliedPromptHeader}>
-                    <span style={userMessageStyles.appliedPromptLabel}>已套用玩法</span>
+                    <span style={userMessageStyles.appliedPromptLabel}>已套用模板</span>
                     <span style={userMessageStyles.appliedPromptBadge}>
                       {[appliedPlaywayMessage.playwayType, appliedPlaywayMessage.ageRange].filter(Boolean).join(' · ')}
                     </span>
@@ -1143,7 +1208,7 @@ function UserMessage({
                         style={userMessageStyles.appliedPromptPreviewToggle}
                         onClick={() => setPlaywayPromptOpen(prev => !prev)}
                       >
-                        <span>玩法说明模板</span>
+                        <span>模板说明</span>
                         {playwayPromptOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </button>
                       {playwayPromptOpen && (
@@ -1718,7 +1783,16 @@ export default function GeneratorPage() {
     completeGeneration,
   } = useConversationStore();
   
-  const { previewPanelOpen, previewCoursewareId, previewInitialVersion, openPreview, closePreview, setSidebarCollapsed } = useUIStore();
+  const {
+    previewPanelOpen,
+    previewCoursewareId,
+    previewInitialVersion,
+    openPreview,
+    closePreview,
+    setSidebarCollapsed,
+    pendingAssistantPrompt,
+    clearPendingAssistantPrompt,
+  } = useUIStore();
   const { addCourseware } = useCoursewareStore();
   
   const [phase, setPhase] = useState<GenerationPhase>('input');
@@ -1730,6 +1804,7 @@ export default function GeneratorPage() {
   const [selectedInspiration, setSelectedInspiration] = useState<GameplayInspiration | null>(null);
   const [promptFly, setPromptFly] = useState<PromptFlyState | null>(null);
   const [showBackToInput, setShowBackToInput] = useState(false);
+  const [welcomeHeroMinHeight, setWelcomeHeroMinHeight] = useState(386);
   const frameworkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingFrameworkRef = useRef<string | null>(null);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -1738,6 +1813,7 @@ export default function GeneratorPage() {
   const failAtStageRef = useRef<number | undefined>(undefined);
   const centeredInputAnchorRef = useRef<HTMLDivElement>(null);
   const bottomInputAnchorRef = useRef<HTMLDivElement>(null);
+  const welcomeHeroPanelRef = useRef<HTMLDivElement>(null);
   const welcomeScrollRef = useRef<HTMLDivElement>(null);
   const splitContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1836,6 +1912,12 @@ export default function GeneratorPage() {
     setDraftVersion(prev => prev + 1);
   }, []);
 
+  useEffect(() => {
+    if (!pendingAssistantPrompt) return;
+    injectPrompt(pendingAssistantPrompt.prompt);
+    clearPendingAssistantPrompt(pendingAssistantPrompt.id);
+  }, [clearPendingAssistantPrompt, injectPrompt, pendingAssistantPrompt]);
+
   const handleDraftPromptChange = useCallback((nextText: string) => {
     setDraftPrompt(nextText);
     if (!nextText.includes('<已套用玩法>')) {
@@ -1863,6 +1945,34 @@ export default function GeneratorPage() {
     centeredInputAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     window.setTimeout(() => setShowBackToInput(false), 260);
   }, []);
+
+  useEffect(() => {
+    if (hasMessages || phase !== 'input') {
+      setWelcomeHeroMinHeight(386);
+      return;
+    }
+
+    const inputAnchor = centeredInputAnchorRef.current;
+    const panel = welcomeHeroPanelRef.current;
+    if (!inputAnchor || !panel) return;
+
+    const measureHeroHeight = () => {
+      const panelRect = panel.getBoundingClientRect();
+      const inputRect = inputAnchor.getBoundingClientRect();
+      const nextHeight = Math.max(386, Math.ceil(inputRect.bottom - panelRect.top + 24));
+      setWelcomeHeroMinHeight(prev => (Math.abs(prev - nextHeight) > 1 ? nextHeight : prev));
+    };
+
+    measureHeroHeight();
+    const resizeObserver = new ResizeObserver(measureHeroHeight);
+    resizeObserver.observe(inputAnchor);
+    window.addEventListener('resize', measureHeroHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', measureHeroHeight);
+    };
+  }, [hasMessages, phase]);
 
   const injectPromptWithApplyMotion = useCallback((
     item: GameplayInspiration,
@@ -1898,10 +2008,6 @@ export default function GeneratorPage() {
     const next = buildStructuredInspirationPrompt(item, draftPrompt);
     injectPromptWithApplyMotion(item, next, sourceElement);
   }, [draftPrompt, injectPromptWithApplyMotion]);
-
-  const handleApplyAssistantPrompt = useCallback((prompt: string) => {
-    injectPrompt(prompt);
-  }, [injectPrompt]);
 
   const startRequirementFlow = useCallback((convId: string, promptForFramework: string) => {
     setPhase('analyzing');
@@ -2348,20 +2454,39 @@ export default function GeneratorPage() {
   const renderContent = () => {
     if (!activeConversationId || (!hasMessages && phase === 'input')) {
       return (
-        <div ref={welcomeScrollRef} onScroll={handleWelcomeScroll} style={styles.welcomeSection}>
-          <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
-          <p style={styles.welcomeSubtitle}>输入你的课件需求，或先从灵感推荐区套用一个课堂互动模板，也可以跟灵感助手聊聊看。</p>
-          <div ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 1080 }}>
-            <ChatInput
-              onSend={handleSend}
-              centered
-              disabled={isGenerating}
-              placeholder="例如：做一个颜色单词游戏，或者上传材料后描述你想怎么用"
-              injectedText={draftPrompt}
-              injectedTextVersion={draftVersion}
-              onTextChange={handleDraftPromptChange}
-              lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
-            />
+        <div
+          ref={welcomeScrollRef}
+          data-welcome-scroll="true"
+          data-app-scroll-container="true"
+          onScroll={handleWelcomeScroll}
+          style={styles.welcomeSection}
+        >
+          <div
+            ref={welcomeHeroPanelRef}
+            style={{
+              ...styles.welcomeHeroPanel,
+              minHeight: welcomeHeroMinHeight,
+            }}
+          >
+            <img src={HOMEPAGE_ROBOT_URL} alt="" style={styles.welcomeRobot} />
+            <div style={styles.welcomeHeroContent}>
+              <div style={styles.welcomeHeroCopy}>
+                <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
+                <p style={styles.welcomeSubtitle}>AI智能生成多种互动游戏、互动讲解与教学活动，快速插入课件，提升课堂参与度与教学效果。</p>
+              </div>
+              <div ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 980 }}>
+                <ChatInput
+                  onSend={handleSend}
+                  centered
+                  disabled={isGenerating}
+                  placeholder="例如：做一个颜色单词游戏，或者上传材料后描述你想怎么用"
+                  injectedText={draftPrompt}
+                  injectedTextVersion={draftVersion}
+                  onTextChange={handleDraftPromptChange}
+                  lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
+                />
+              </div>
+            </div>
           </div>
           <div style={{ width: '100%', marginTop: 24 }}>
             <InspirationSection
@@ -2370,14 +2495,23 @@ export default function GeneratorPage() {
             />
           </div>
           {showBackToInput && (
-            <button
-              type="button"
-              aria-label="回到顶部"
-              onClick={scrollToHomepageInput}
-              style={styles.backToInputButton}
+            <div
+              className="back-to-input-wrap"
+              style={styles.backToInputWrap}
             >
-              <ArrowUp size={15} />
-            </button>
+              <div className="back-to-input-tooltip" style={styles.backToInputTooltip}>
+                回到顶部
+                <span style={styles.backToInputTooltipArrow} />
+              </div>
+              <button
+                type="button"
+                aria-label="回到顶部"
+                onClick={scrollToHomepageInput}
+                style={styles.backToInputButton}
+              >
+                <ArrowUp size={15} />
+              </button>
+            </div>
           )}
         </div>
       );
@@ -2385,7 +2519,11 @@ export default function GeneratorPage() {
     
     return (
       <>
-        <div ref={chatAreaRef} style={{ ...styles.chatArea, ...chatContentVars, padding: chatAreaPadding }}>
+        <div
+          ref={chatAreaRef}
+          data-app-scroll-container="true"
+          style={{ ...styles.chatArea, ...chatContentVars, padding: chatAreaPadding }}
+        >
           <div style={styles.messagesContainer}>
             <AnimatePresence mode="popLayout">
               {(activeConversation?.messages ?? []).map((msg, index) => {
@@ -2746,10 +2884,6 @@ export default function GeneratorPage() {
         )}
       </div>
 
-      {phase === 'input' && (
-        <InspirationAssistant onApplyPrompt={handleApplyAssistantPrompt} />
-      )}
-
       <AnimatePresence>
         {promptFly && (
           <motion.div
@@ -2789,6 +2923,11 @@ export default function GeneratorPage() {
         @keyframes dotBounce {
           0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
           40% { transform: scale(1); opacity: 1; }
+        }
+        .back-to-input-wrap:hover .back-to-input-tooltip,
+        .back-to-input-wrap:focus-within .back-to-input-tooltip {
+          opacity: 1 !important;
+          transform: translateY(0) !important;
         }
       `}</style>
     </div>

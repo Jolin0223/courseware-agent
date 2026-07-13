@@ -5,8 +5,10 @@ import {
   Brain,
   Calculator,
   CheckCircle2,
+  Flame,
   PlayCircle,
   Puzzle,
+  Route,
   Sparkles,
   Shapes,
   X,
@@ -16,6 +18,7 @@ import {
   type InspirationPlayway,
   type InspirationTabId,
 } from '../../data/inspirationSeedData';
+import PageLoadingState from '../common/PageLoadingState';
 
 export interface GameplayInspiration {
   id: string;
@@ -38,7 +41,7 @@ interface InspirationSectionProps {
 }
 
 const tabIcons: Record<InspirationTabId, React.ElementType> = {
-  featured: Sparkles,
+  featured: Flame,
   recognition: BookOpenCheck,
   logic: Brain,
   spatial: Shapes,
@@ -148,6 +151,7 @@ export default function InspirationSection({
   const [activeSecondary, setActiveSecondary] = useState('all');
   const [visibleCount, setVisibleCount] = useState(cardsPerPage);
   const [examplePlaywayId, setExamplePlaywayId] = useState<string | null>(null);
+  const [examplePreviewLoaded, setExamplePreviewLoaded] = useState(false);
   const lastActionKeyRef = useRef('');
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -208,6 +212,10 @@ export default function InspirationSection({
     () => inspirationSeedData.playways.find(item => item.id === examplePlaywayId) || null,
     [examplePlaywayId],
   );
+
+  useEffect(() => {
+    setExamplePreviewLoaded(false);
+  }, [examplePlaywayId]);
 
   const handleTabChange = (tab: InspirationTabId) => {
     setActiveTab(tab);
@@ -282,7 +290,7 @@ export default function InspirationSection({
             align-items: flex-start !important;
           }
           .inspiration-hint {
-            text-align: left !important;
+            align-self: flex-start !important;
           }
           .inspiration-card-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -302,9 +310,6 @@ export default function InspirationSection({
         <div style={styles.eyebrow}>
           <Sparkles size={15} />
           灵感推荐区
-        </div>
-        <div className="inspiration-hint" style={styles.headerHint}>
-          不知道怎么设计互动课件时，可以来这找找灵感
         </div>
       </div>
 
@@ -338,8 +343,12 @@ export default function InspirationSection({
                 onMouseDown={event => event.preventDefault()}
                 onClick={() => handleTabChange(tab.id)}
               >
-                <Icon size={15} />
-                {tab.name}
+                {tab.id === 'featured' ? (
+                  <span style={styles.featuredTabIcon}>🔥</span>
+                ) : (
+                  <Icon size={15} />
+                )}
+                {tab.id === 'featured' ? '精选推荐' : tab.name}
               </button>
             );
           })}
@@ -408,15 +417,17 @@ export default function InspirationSection({
                   )}
                 </div>
 
-                <p style={styles.description}>
-                  <span style={styles.descriptionLabel}>课堂流程：</span>
+                <p style={styles.description} aria-label={`课堂流程：${playway.flowSteps.slice(0, 4).join('，')}`}>
+                  <span style={styles.descriptionIconBox} aria-hidden="true">
+                    <Route size={13} style={styles.descriptionIcon} />
+                  </span>
                   {playway.flowSteps.slice(0, 4).join(' → ')}
                 </p>
 
                 <div style={styles.cardActions}>
                   <button
                     style={styles.detailBtn}
-                    title="玩法效果示例"
+                    aria-label={`${playway.displayTitle}模板效果示例`}
                     data-playway-id={playway.id}
                     data-example-id={playway.exampleId}
                     onPointerUp={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
@@ -430,7 +441,7 @@ export default function InspirationSection({
                     onPointerUp={(event) => runOnce(`apply-${playway.id}`, () => handleApply(playway, event.currentTarget))}
                     onClick={(event) => runOnce(`apply-${playway.id}`, () => handleApply(playway, event.currentTarget))}
                   >
-                    套用玩法
+                    套用模板
                   </button>
                 </div>
               </div>
@@ -462,10 +473,10 @@ export default function InspirationSection({
           >
             <div style={styles.exampleHeader}>
               <div>
-                <div style={styles.exampleEyebrow}>玩法效果示例</div>
+                <div style={styles.exampleEyebrow}>模板效果示例</div>
                 <h3 style={styles.exampleTitle}>{examplePlayway.displayTitle}</h3>
                 <p style={styles.exampleSubtitle}>
-                  先看这个玩法在课堂上的呈现效果。套用后，AI 会按你填写的需求重新生成一节新课。
+                  先看这个模板在课堂上的呈现效果。套用后，AI 会按你填写的需求重新生成一节新课。
                 </p>
               </div>
               <button
@@ -480,20 +491,30 @@ export default function InspirationSection({
             <div className="inspiration-example-body" style={styles.exampleBody}>
               <div style={styles.examplePreviewShell}>
                 {examplePlayway.examplePreviewUrl ? (
-                  <iframe
-                    title={`${examplePlayway.displayTitle}玩法示例`}
-                    sandbox="allow-scripts allow-same-origin"
-                    src={examplePlayway.examplePreviewUrl}
-                    style={styles.exampleIframe}
-                  />
+                  <>
+                    <iframe
+                      title={`${examplePlayway.displayTitle}模板示例`}
+                      sandbox="allow-scripts allow-same-origin"
+                      src={examplePlayway.examplePreviewUrl}
+                      style={styles.exampleIframe}
+                      onLoad={() => setExamplePreviewLoaded(true)}
+                    />
+                    {!examplePreviewLoaded && (
+                      <PageLoadingState
+                        fill
+                        variant="dots"
+                        title="正在加载中"
+                      />
+                    )}
+                  </>
                 ) : (
-                  <div style={styles.exampleEmptyPreview}>该玩法题板预览暂未配置</div>
+                  <div style={styles.exampleEmptyPreview}>该模板示例暂未配置</div>
                 )}
               </div>
 
               <aside style={styles.exampleInfo}>
                 <div style={styles.exampleBlock}>
-                  <div style={styles.blockLabel}>这个玩法适合</div>
+                  <div style={styles.blockLabel}>这个模板适合</div>
                   <div style={styles.tagRow}>
                     {getVisibleSuitableTags(examplePlayway).map(item => <span key={item} style={styles.tag}>{item}</span>)}
                   </div>
@@ -522,7 +543,7 @@ export default function InspirationSection({
                     setExamplePlaywayId(null);
                   }}
                 >
-                  套用这个玩法
+                  套用这个模板
                 </button>
               </aside>
             </div>
@@ -542,8 +563,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 16,
     borderRadius: 16,
     background: 'var(--agent-panel-gradient)',
-    border: '1px solid var(--agent-border)',
-    boxShadow: '0 14px 36px var(--agent-shadow), inset 0 1px 0 rgba(255,255,255,0.9)',
+    border: 'none',
+    boxShadow: 'none',
     overflow: 'hidden',
   },
   header: {
@@ -552,15 +573,15 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 16,
-    marginBottom: 10,
+    marginBottom: 14,
     padding: '2px 2px 0',
   },
   eyebrow: {
     display: 'flex',
     alignItems: 'center',
-    gap: 7,
+    gap: 8,
     color: 'var(--agent-primary-text)',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 900,
     marginBottom: 0,
   },
@@ -575,14 +596,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900,
     lineHeight: '22px',
   },
-  headerHint: {
-    color: '#64748B',
-    fontSize: 13,
-    lineHeight: 1.35,
-    textAlign: 'right',
-    whiteSpace: 'nowrap',
-  },
   filterPanel: {
+    position: 'relative',
+    zIndex: 2,
     display: 'grid',
     gap: 8,
     marginBottom: 14,
@@ -611,6 +627,14 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap',
     outline: 'none',
     transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s',
+  },
+  featuredTabIcon: {
+    fontSize: 15,
+    lineHeight: 1,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 15,
   },
   filterButtonHover: {
     background: '#F6FCFF',
@@ -765,12 +789,28 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#334155',
     fontSize: 12,
     lineHeight: 1.4,
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 6,
     minHeight: 34,
     maxHeight: 34,
     overflow: 'hidden',
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical',
+  },
+  descriptionIcon: {
+    color: 'var(--agent-primary-text)',
+  },
+  descriptionIconBox: {
+    width: 18,
+    height: 18,
+    borderRadius: 6,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 1,
+    background: '#F1FAFF',
+    border: '1px solid #BFE9F5',
+    boxShadow: '0 3px 8px rgba(14, 165, 233, 0.08)',
   },
   cardActions: {
     display: 'flex',
@@ -891,6 +931,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 14,
   },
   examplePreviewShell: {
+    position: 'relative',
     minWidth: 0,
     aspectRatio: '16 / 9',
     borderRadius: 14,
@@ -953,7 +994,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 950,
     cursor: 'pointer',
-    boxShadow: '0 10px 22px var(--agent-action-shadow)',
+    boxShadow: '0 10px 22px rgba(255, 138, 0, 0.18)',
   },
   blockLabel: {
     color: '#64748B',
@@ -1027,9 +1068,5 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 950,
     marginBottom: 6,
-  },
-  descriptionLabel: {
-    color: 'var(--agent-primary-text)',
-    fontWeight: 900,
   },
 };

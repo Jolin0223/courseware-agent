@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap } from 'lucide-react';
+import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, MousePointer2, Highlighter, CheckCircle2 } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
@@ -49,6 +49,13 @@ interface PublishedGameTarget {
   resourceScope?: 'group' | 'school' | 'personal';
   schoolName?: string;
   subject?: string;
+}
+
+interface PreviewAnnotation {
+  id: number;
+  x: number;
+  y: number;
+  text: string;
 }
 
 const REAL_CASE_TITLES = [
@@ -191,6 +198,10 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
   const [publishMode, setPublishMode] = useState<PublishMode | null>(null);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('default');
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [annotationModeOpen, setAnnotationModeOpen] = useState(false);
+  const [annotations, setAnnotations] = useState<PreviewAnnotation[]>([]);
+  const [draftAnnotation, setDraftAnnotation] = useState<{ x: number; y: number; text: string } | null>(null);
+  const [activeAnnotationId, setActiveAnnotationId] = useState<number | null>(null);
   const [hoveredHeaderButton, setHoveredHeaderButton] = useState<string | null>(null);
   const publishBtnRef = useRef<HTMLDivElement>(null);
   const versionScrollRef = useRef<HTMLDivElement>(null);
@@ -208,18 +219,24 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     setIsEditing(false);
     setEditContent('');
     setFullscreenOpen(false);
+    setAnnotationModeOpen(false);
+    setAnnotations([]);
+    setDraftAnnotation(null);
+    setActiveAnnotationId(null);
   }, [coursewareId, initialVersion, versionSourceCourseware?.htmlContent, versionSourceCourseware?.title]);
 
   useEffect(() => {
-    if (!fullscreenOpen) return;
+    if (!fullscreenOpen && !annotationModeOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setFullscreenOpen(false);
+        setAnnotationModeOpen(false);
+        setDraftAnnotation(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [fullscreenOpen]);
+  }, [fullscreenOpen, annotationModeOpen]);
 
   const currentVersion = versions.find(v => v.version === selectedVersion);
   const latestVersion = versions[versions.length - 1];
@@ -238,9 +255,10 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
   };
 
   const handleEdit = () => {
-    // TODO: 历史版本编辑能力后续再处理；6月11日版本仍沿用仅最新版本可编辑的产品约束。
-    setEditContent(currentVersion?.htmlContent || '');
-    setIsEditing(true);
+    if (isRemovedVersion) return;
+    setFullscreenOpen(false);
+    setAnnotationModeOpen(true);
+    setDraftAnnotation(null);
   };
 
   const handleSaveEdit = () => {
@@ -376,10 +394,12 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     ...(hoveredHeaderButton === key && !disabled ? panelStyle.iconBtnHover : {}),
     ...(disabled ? panelStyle.iconBtnDisabled : {}),
   });
-  const renderPublishActions = (options?: { exitFullscreenFirst?: boolean }) => {
+  const renderPublishActions = (options?: { exitFullscreenFirst?: boolean; exitAnnotationFirst?: boolean }) => {
     const exitFullscreenFirst = options?.exitFullscreenFirst;
+    const exitAnnotationFirst = options?.exitAnnotationFirst;
     const runOutsideFullscreen = (action: () => void) => {
       if (exitFullscreenFirst) setFullscreenOpen(false);
+      if (exitAnnotationFirst) setAnnotationModeOpen(false);
       action();
     };
 
@@ -429,6 +449,34 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
   const handleFullscreenEdit = () => {
     setFullscreenOpen(false);
     handleEdit();
+  };
+
+  const handleAnnotationSurfaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    setDraftAnnotation({
+      x: Math.max(3, Math.min(97, x)),
+      y: Math.max(3, Math.min(97, y)),
+      text: '',
+    });
+    setActiveAnnotationId(null);
+  };
+
+  const handleSaveAnnotation = () => {
+    const text = draftAnnotation?.text.trim();
+    if (!draftAnnotation || !text) return;
+    const id = annotations.length ? Math.max(...annotations.map(item => item.id)) + 1 : 1;
+    setAnnotations(prev => [...prev, { id, x: draftAnnotation.x, y: draftAnnotation.y, text }]);
+    setActiveAnnotationId(id);
+    setDraftAnnotation(null);
+  };
+
+  const handleFinishAnnotation = () => {
+    setAnnotationModeOpen(false);
+    setDraftAnnotation(null);
+    toast(annotations.length ? `已保存 ${annotations.length} 条页面批注` : '已退出页面批注');
   };
 
   return (
@@ -507,6 +555,158 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
           selectedUpdateTargetId={selectedUpdateTargetId}
           onUpdateTargetChange={setSelectedUpdateTargetId}
         />
+      )}
+
+      {annotationModeOpen && (
+        <div style={panelStyle.annotationMask}>
+          <div style={panelStyle.annotationHeader}>
+            <div style={panelStyle.annotationTitleBlock}>
+              <span style={panelStyle.annotationTitle}>{currentTitle}</span>
+              <span style={panelStyle.annotationSubtitle}>第{currentVersion?.sessionNumber || 1}版 · 页面批注编辑</span>
+            </div>
+            <div style={panelStyle.annotationHeaderActions}>
+              {renderPublishActions({ exitFullscreenFirst: true, exitAnnotationFirst: true })}
+              <button type="button" onClick={handleFinishAnnotation} style={panelStyle.annotationHeaderBtn}>
+                <X size={16} />
+                退出全屏
+              </button>
+              <button type="button" onClick={handleFinishAnnotation} style={panelStyle.annotationHeaderBtn}>
+                <Edit3 size={16} />
+                退出编辑
+              </button>
+              <button type="button" style={{ ...panelStyle.annotationHeaderBtn, ...panelStyle.annotationHeaderBtnMuted }}>
+                编辑资源
+              </button>
+            </div>
+          </div>
+
+          <div style={panelStyle.annotationWorkspace}>
+            <main style={panelStyle.annotationStage}>
+              <div style={panelStyle.annotationCanvas}>
+                <iframe
+                  srcDoc={srcDoc}
+                  title={`${currentTitle} 批注编辑预览`}
+                  sandbox="allow-scripts allow-same-origin"
+                  style={panelStyle.annotationIframe}
+                />
+                <div style={panelStyle.annotationLayer} onClick={handleAnnotationSurfaceClick}>
+                  {annotations.map(annotation => {
+                    const active = annotation.id === activeAnnotationId;
+                    return (
+                      <button
+                        key={annotation.id}
+                        type="button"
+                        style={{
+                          ...panelStyle.annotationPin,
+                          left: `${annotation.x}%`,
+                          top: `${annotation.y}%`,
+                          ...(active ? panelStyle.annotationPinActive : {}),
+                        }}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setActiveAnnotationId(annotation.id);
+                        }}
+                        aria-label={`批注 ${annotation.id}`}
+                      >
+                        {annotation.id}
+                      </button>
+                    );
+                  })}
+
+                  {draftAnnotation && (
+                    <div
+                      style={{
+                        ...panelStyle.annotationDraft,
+                        left: `${draftAnnotation.x}%`,
+                        top: `${draftAnnotation.y}%`,
+                      }}
+                      onClick={event => event.stopPropagation()}
+                    >
+                      <div style={panelStyle.annotationDraftHeader}>
+                        <span style={panelStyle.annotationDraftBadge}>{annotations.length + 1}</span>
+                        <span>添加批注</span>
+                      </div>
+                      <textarea
+                        value={draftAnnotation.text}
+                        onChange={event => setDraftAnnotation(prev => prev ? { ...prev, text: event.target.value } : prev)}
+                        placeholder="描述这里希望怎么改，例如：按钮文案更短一点，背景不要遮住主体。"
+                        style={panelStyle.annotationTextarea}
+                        autoFocus
+                      />
+                      <div style={panelStyle.annotationDraftActions}>
+                        <button type="button" onClick={() => setDraftAnnotation(null)} style={panelStyle.annotationCancelBtn}>取消</button>
+                        <button
+                          type="button"
+                          onClick={handleSaveAnnotation}
+                          disabled={!draftAnnotation.text.trim()}
+                          style={{
+                            ...panelStyle.annotationSaveBtn,
+                            ...(!draftAnnotation.text.trim() ? panelStyle.annotationSaveBtnDisabled : {}),
+                          }}
+                        >
+                          保存批注
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </main>
+
+            <aside style={panelStyle.annotationSidePanel}>
+              <div style={panelStyle.annotationToolHeader}>
+                <div>
+                  <div style={panelStyle.annotationPanelTitle}>页面批注</div>
+                  <div style={panelStyle.annotationPanelDesc}>点击课件画面，标出要调整的位置</div>
+                </div>
+                <span style={panelStyle.annotationCount}>{annotations.length}</span>
+              </div>
+
+              <div style={panelStyle.annotationTools}>
+                <button type="button" style={{ ...panelStyle.annotationToolBtn, ...panelStyle.annotationToolBtnActive }}>
+                  <MessageSquarePlus size={15} />
+                  批注
+                </button>
+                <button type="button" style={panelStyle.annotationToolBtn}>
+                  <MousePointer2 size={15} />
+                  选择
+                </button>
+                <button type="button" style={panelStyle.annotationToolBtn}>
+                  <Highlighter size={15} />
+                  标记
+                </button>
+              </div>
+
+              <div style={panelStyle.annotationList}>
+                {annotations.length === 0 ? (
+                  <div style={panelStyle.annotationEmpty}>
+                    <MessageSquarePlus size={24} />
+                    <span>还没有批注</span>
+                    <small>点击左侧预览画面开始添加</small>
+                  </div>
+                ) : annotations.map(annotation => (
+                  <button
+                    key={annotation.id}
+                    type="button"
+                    onClick={() => setActiveAnnotationId(annotation.id)}
+                    style={{
+                      ...panelStyle.annotationListItem,
+                      ...(activeAnnotationId === annotation.id ? panelStyle.annotationListItemActive : {}),
+                    }}
+                  >
+                    <span style={panelStyle.annotationListIndex}>{annotation.id}</span>
+                    <span style={panelStyle.annotationListText}>{annotation.text}</span>
+                  </button>
+                ))}
+              </div>
+
+              <button type="button" onClick={handleFinishAnnotation} style={panelStyle.annotationDoneBtn}>
+                <CheckCircle2 size={16} />
+                完成批注
+              </button>
+            </aside>
+          </div>
+        </div>
       )}
 
       {fullscreenOpen && (
@@ -909,6 +1109,345 @@ const panelStyle: Record<string, React.CSSProperties> = {
     width: '100%',
     border: 'none',
     background: '#FFFFFF',
+  },
+  annotationMask: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 10000,
+    background: '#F4F8FC',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  annotationHeader: {
+    height: 56,
+    padding: '0 18px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+    borderBottom: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    flexShrink: 0,
+  },
+  annotationTitleBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 3,
+    minWidth: 0,
+  },
+  annotationTitle: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: 850,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  annotationSubtitle: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 650,
+  },
+  annotationHeaderActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
+  annotationHeaderBtn: {
+    height: 34,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    padding: '0 12px',
+    borderRadius: 9,
+    border: '1px solid #DCE7F2',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: 750,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  annotationHeaderBtnMuted: {
+    color: '#64748B',
+    background: '#F8FAFC',
+  },
+  annotationWorkspace: {
+    flex: 1,
+    minHeight: 0,
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 320px',
+    gap: 0,
+  },
+  annotationStage: {
+    minWidth: 0,
+    minHeight: 0,
+    overflow: 'auto',
+    padding: '28px 32px 40px',
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    background: '#EEF4FA',
+  },
+  annotationCanvas: {
+    position: 'relative',
+    width: 'min(100%, 1180px)',
+    aspectRatio: '16 / 9',
+    minHeight: 520,
+    background: '#FFFFFF',
+    border: '1px solid #DCE7F2',
+    boxShadow: '0 18px 48px rgba(15, 23, 42, 0.12)',
+    overflow: 'hidden',
+  },
+  annotationIframe: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    border: 'none',
+    background: '#FFFFFF',
+    pointerEvents: 'none',
+  },
+  annotationLayer: {
+    position: 'absolute',
+    inset: 0,
+    cursor: 'crosshair',
+    background: 'rgba(255,255,255,0.01)',
+  },
+  annotationPin: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    transform: 'translate(-50%, -50%)',
+    borderRadius: 999,
+    border: '2px solid #FFFFFF',
+    background: '#0274FC',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: 'pointer',
+    boxShadow: '0 8px 20px rgba(2, 116, 252, 0.28)',
+    zIndex: 3,
+  },
+  annotationPinActive: {
+    background: '#FF8A00',
+    boxShadow: '0 8px 22px rgba(255, 138, 0, 0.30)',
+  },
+  annotationDraft: {
+    position: 'absolute',
+    width: 300,
+    transform: 'translate(14px, -18px)',
+    padding: 12,
+    borderRadius: 12,
+    border: '1px solid #BFE9F5',
+    background: '#FFFFFF',
+    boxShadow: '0 18px 42px rgba(15, 23, 42, 0.18)',
+    zIndex: 4,
+  },
+  annotationDraftHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: 850,
+    marginBottom: 8,
+  },
+  annotationDraftBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0274FC',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 900,
+  },
+  annotationTextarea: {
+    width: '100%',
+    minHeight: 86,
+    resize: 'none',
+    padding: 10,
+    borderRadius: 9,
+    border: '1px solid #DCE7F2',
+    outline: 'none',
+    color: '#0F172A',
+    fontSize: 13,
+    lineHeight: 1.55,
+    boxSizing: 'border-box',
+  },
+  annotationDraftActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 10,
+  },
+  annotationCancelBtn: {
+    height: 30,
+    padding: '0 12px',
+    borderRadius: 8,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 750,
+    cursor: 'pointer',
+  },
+  annotationSaveBtn: {
+    height: 30,
+    padding: '0 12px',
+    borderRadius: 8,
+    border: 'none',
+    background: 'var(--agent-action-gradient)',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 850,
+    cursor: 'pointer',
+  },
+  annotationSaveBtnDisabled: {
+    background: '#E2E8F0',
+    color: '#94A3B8',
+    cursor: 'default',
+  },
+  annotationSidePanel: {
+    minWidth: 0,
+    borderLeft: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: 14,
+    gap: 12,
+  },
+  annotationToolHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  annotationPanelTitle: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: 900,
+  },
+  annotationPanelDesc: {
+    marginTop: 3,
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 1.35,
+  },
+  annotationCount: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#F0FBFF',
+    color: '#0759C9',
+    border: '1px solid #BFE9F5',
+    fontSize: 12,
+    fontWeight: 900,
+  },
+  annotationTools: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 6,
+  },
+  annotationToolBtn: {
+    height: 34,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    borderRadius: 9,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 750,
+    cursor: 'pointer',
+  },
+  annotationToolBtnActive: {
+    background: '#F0FBFF',
+    color: '#0759C9',
+    borderColor: '#BFE9F5',
+  },
+  annotationList: {
+    flex: 1,
+    minHeight: 0,
+    overflowY: 'auto',
+    display: 'grid',
+    alignContent: 'start',
+    gap: 8,
+  },
+  annotationEmpty: {
+    minHeight: 160,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderRadius: 12,
+    border: '1px dashed #CBD5E1',
+    background: '#F8FAFC',
+    color: '#94A3B8',
+    fontSize: 13,
+    fontWeight: 750,
+    textAlign: 'center',
+  },
+  annotationListItem: {
+    display: 'grid',
+    gridTemplateColumns: '24px minmax(0, 1fr)',
+    gap: 8,
+    alignItems: 'start',
+    width: '100%',
+    padding: 10,
+    borderRadius: 10,
+    border: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+    color: '#334155',
+    textAlign: 'left',
+    cursor: 'pointer',
+  },
+  annotationListItemActive: {
+    borderColor: '#BFE9F5',
+    background: '#F0FBFF',
+  },
+  annotationListIndex: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0274FC',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 900,
+  },
+  annotationListText: {
+    minWidth: 0,
+    color: '#334155',
+    fontSize: 13,
+    lineHeight: 1.45,
+  },
+  annotationDoneBtn: {
+    height: 38,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    borderRadius: 10,
+    border: 'none',
+    background: 'var(--agent-gradient)',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: 'pointer',
   },
   previewArea: {
     flex: 1,

@@ -1,12 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  FileCode2,
   Image,
   Paperclip,
   Link,
   SendHorizontal,
   Sparkles,
   Square,
+  RotateCw,
   ChevronDown,
   ChevronUp,
   X,
@@ -14,6 +14,7 @@ import {
 import { useUIStore } from '../../store/uiStore';
 import type { UploadedAttachment } from '../../types';
 import { FRUIT_COURSEWARE_PROMPT, isFruitCoursewarePrompt } from '../../data/fruitCoursewarePrompt';
+import HtmlTypeBadge from '../common/HtmlTypeBadge';
 
 interface ChatInputProps {
   onSend: (text: string, attachments?: UploadedAttachment[]) => void;
@@ -29,19 +30,33 @@ interface ChatInputProps {
 }
 
 const HOMEPAGE_CONTENT_MAX_WIDTH = 1080;
+const HOMEPAGE_INPUT_PLACEHOLDER = '例如：做一个颜色单词游戏，或者上传材料后描述你想怎么用';
 const HOMEPAGE_PLACEHOLDER_EXAMPLES = [
-  '例如：做一个一年级英语水果单词听音选择游戏',
-  '例如：把这份数学练习改成闯关式互动课件',
-  '例如：生成一个低龄学生可操作的图形拼搭小游戏',
+  HOMEPAGE_INPUT_PLACEHOLDER,
 ];
 const HOMEPAGE_PLACEHOLDER_LOOP = [
   ...HOMEPAGE_PLACEHOLDER_EXAMPLES,
   HOMEPAGE_PLACEHOLDER_EXAMPLES[0],
 ];
+const HOMEPAGE_PROMPT_GROUPS = [
+  [
+    '生成一个10以内加减法互动游戏',
+    '生成一个讲解水果单词的互动课件',
+    '偏旁部首学一学',
+  ],
+  [
+    '做一个颜色单词听音选择游戏',
+    '生成一个古诗排序互动课件',
+    '认识钟表整点半点',
+  ],
+  [
+    '分数披萨店互动练习',
+    '动物英文单词配对游戏',
+    '图形分类闯关活动',
+  ],
+];
 
-const LINE_HEIGHT = 22.5;
-const MAX_LINES = 5;
-const MAX_HEIGHT = LINE_HEIGHT * MAX_LINES;
+const TEXTAREA_MAX_HEIGHT = 200;
 const MAX_IMAGE_COUNT = 10;
 const MAX_DOCUMENT_COUNT = 10;
 const MAX_IMAGE_FILE_SIZE_MB = 5;
@@ -373,6 +388,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [isDraftPromptOpen, setIsDraftPromptOpen] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [placeholderAnimating, setPlaceholderAnimating] = useState(true);
+  const [homepagePromptGroupIndex, setHomepagePromptGroupIndex] = useState(0);
   const [activeUploadTooltip, setActiveUploadTooltip] = useState<'image' | 'document' | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -392,10 +408,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const draftPromptPreview = appliedInspirationDraft
     ? appliedInspirationDraft.prompt
     : '';
+  const homepagePromptChips = HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length];
   const shouldShowHomepageExamples = Boolean(
-    centered
+    false
+    && centered
     && !text
     && attachedFiles.length === 0
+    && lockedAttachments.length === 0
+    && !appliedInspirationDraft
+  );
+  const shouldShowHomepagePromptChips = Boolean(
+    centered
     && lockedAttachments.length === 0
     && !appliedInspirationDraft
   );
@@ -417,10 +440,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    const maxHeight = appliedInspirationDraft ? 260 : MAX_HEIGHT;
-    el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
-    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
-  }, [appliedInspirationDraft]);
+    el.style.height = `${Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT)}px`;
+    el.style.overflowY = el.scrollHeight > TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden';
+  }, []);
 
   useEffect(() => {
     resizeTextarea();
@@ -476,6 +498,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
     onTextChange?.('');
     setAttachedFiles([]);
   }, [text, attachedFiles, lockedAttachments, disabled, onSend, onTextChange]);
+
+  const applyHomepagePromptChip = useCallback((value: string) => {
+    setText(value);
+    onTextChange?.(value);
+    window.requestAnimationFrame(() => {
+      resizeTextarea();
+      textareaRef.current?.focus();
+    });
+  }, [onTextChange, resizeTextarea]);
+
+  const switchHomepagePromptGroup = useCallback(() => {
+    setHomepagePromptGroupIndex(prev => (prev + 1) % HOMEPAGE_PROMPT_GROUPS.length);
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -846,6 +881,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           }}
           style={{
             ...styles.container,
+            ...(centered ? styles.containerCentered : {}),
             border: isDraggingFiles
               ? '2px dashed var(--agent-primary)'
               : isFocused ? '2px solid transparent' : '1px solid transparent',
@@ -866,7 +902,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <div style={styles.lockedAttachmentList}>
               {lockedAttachments.map(file => (
                 <div key={file.id} style={styles.lockedAttachmentItem} title="该 HTML 作为同款参考随需求发送，不可打开、不可下载">
-                  <span style={styles.lockedAttachmentIcon}><FileCode2 size={15} /></span>
+                  <HtmlTypeBadge size="mini" />
                   <span style={styles.lockedAttachmentBody}>
                     <span style={styles.lockedAttachmentName}>{file.name}</span>
                     <span style={styles.lockedAttachmentMeta}>原课件 HTML 参考 · 已锁定</span>
@@ -906,9 +942,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <div style={styles.structuredDraftTop}>
                 <div style={styles.structuredDraftLabel}>
                   <Sparkles size={14} />
-                  基于玩法生成
+                  基于模板生成
                 </div>
-                <div style={styles.structuredDraftHint}>先写清楚你的需求，已选玩法会自动带入；切换或移除玩法，都不会覆盖这里填写的内容和已上传材料。</div>
+                <div style={styles.structuredDraftHint}>先写清楚你的需求，已选模板会自动带入；切换或移除模板，都不会覆盖这里填写的内容和已上传材料。</div>
               </div>
               <div style={styles.structuredFieldLabel}>
                 <span style={styles.structuredFieldName}>你的需求</span>
@@ -922,9 +958,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   setText(next);
                   onTextChange?.(next);
                 }}
-                placeholder="例如：小学一年级英语水果单词，想做听音选择；也可以上传素材后说明怎么使用"
+                placeholder={HOMEPAGE_INPUT_PLACEHOLDER}
                 disabled={disabled}
-                rows={3}
+                rows={centered ? 2 : 3}
                 style={styles.teachingContentTextarea}
               />
               <div style={styles.appliedPlaywayCard}>
@@ -944,16 +980,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
                       onTextChange?.(next);
                     }}
                     style={styles.clearAppliedPlaywayButton}
-                    title="不套用这个玩法"
+                    aria-label="移除已套用模板"
                   >
-                    <X size={13} />
-                    不套用
+                    <X size={12} />
+                    移除模板
                   </button>
                 </div>
                 <div style={styles.appliedPlaywayBody}>
                   <div style={styles.appliedPlaywayFlow}>{formatDraftFlow(appliedInspirationDraft.flow)}</div>
                 </div>
-                <div style={styles.appliedPlaywayHint}>改编建议：{appliedInspirationDraft.adaptation}</div>
+                <div style={styles.appliedPlaywayHintRow}>
+                  <div style={styles.appliedPlaywayHint}>改编建议：{appliedInspirationDraft.adaptation}</div>
+                </div>
               </div>
               <div style={styles.promptPreviewBox}>
                 <button
@@ -961,8 +999,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   onClick={() => setIsDraftPromptOpen(prev => !prev)}
                   style={styles.promptPreviewToggle}
                 >
-                  <span>玩法模板说明</span>
-                  <span style={styles.promptPreviewMeta}>这是当前玩法的原始模板说明，生成时会结合你的需求自动改写成新课件</span>
+                  <span>模板说明</span>
+                  <span style={styles.promptPreviewMeta}>这是当前模板的原始说明，生成时会结合你的需求自动改写成新课件</span>
                   {isDraftPromptOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
                 {isDraftPromptOpen && (
@@ -1002,10 +1040,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 onPaste={handlePaste}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                placeholder={shouldShowHomepageExamples ? '' : materialUsagePlaceholder}
+                placeholder={materialUsagePlaceholder}
                 disabled={disabled}
                 rows={3}
-                style={styles.textarea}
+                style={{
+                  ...styles.textarea,
+                  ...(centered ? styles.textareaCentered : {}),
+                }}
               />
             </div>
           )}
@@ -1127,6 +1168,34 @@ const ChatInput: React.FC<ChatInputProps> = ({
             )}
           </div>
         </div>
+
+        {shouldShowHomepagePromptChips && (
+          <div style={styles.homepagePromptRow}>
+            <span style={styles.homepagePromptLabel}>试试这些</span>
+            <div style={styles.homepagePromptChips}>
+              {homepagePromptChips.map(item => (
+                <button
+                  key={item}
+                  type="button"
+                  disabled={disabled}
+                  style={styles.homepagePromptChip}
+                  onClick={() => applyHomepagePromptChip(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              disabled={disabled}
+              style={styles.homepagePromptRefresh}
+              onClick={switchHomepagePromptGroup}
+            >
+              <RotateCw size={16} />
+              换一换
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 关联课件回显 */}
@@ -1225,9 +1294,66 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 16,
     border: '1px solid #E2E8F0',
     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    padding: '18px 24px',
+    padding: '20px 24px 16px',
     minWidth: 320,
     transition: 'border 0.15s, background 0.15s, box-shadow 0.15s',
+  },
+  containerCentered: {
+    padding: '16px 24px 13px',
+  },
+  homepagePromptRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    marginTop: 19,
+  },
+  homepagePromptLabel: {
+    color: '#718096',
+    fontSize: 14,
+    fontWeight: 400,
+    whiteSpace: 'nowrap',
+  },
+  homepagePromptChips: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    flexWrap: 'wrap',
+    flex: '1 1 560px',
+    minWidth: 0,
+  },
+  homepagePromptChip: {
+    height: 36,
+    padding: '0 20px',
+    border: 'none',
+    borderRadius: 18,
+    background: 'rgba(15, 23, 42, 0.035)',
+    color: '#66768E',
+    fontSize: 14,
+    fontWeight: 400,
+    boxShadow: 'none',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    transition: 'background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
+  },
+  homepagePromptRefresh: {
+    height: 28,
+    marginLeft: 'auto',
+    padding: 0,
+    borderRadius: 999,
+    border: 'none',
+    background: 'transparent',
+    color: '#718096',
+    fontSize: 13,
+    fontWeight: 400,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    boxShadow: 'none',
+    flexShrink: 0,
+    transition: 'background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
   },
   dragHint: {
     display: 'flex',
@@ -1418,6 +1544,9 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#1E293B',
     overflowY: 'hidden',
   },
+  textareaCentered: {
+    minHeight: 56,
+  },
   textareaWithStructuredDraft: {
     marginTop: 10,
     padding: '10px 12px',
@@ -1511,6 +1640,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 8,
     minWidth: 0,
+    flex: 1,
     flexWrap: 'wrap' as const,
   },
   appliedPlaywayName: {
@@ -1529,16 +1659,17 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    height: 28,
+    height: 26,
     padding: '0 9px',
-    borderRadius: 10,
-    border: '1px solid var(--agent-border)',
-    background: 'var(--agent-soft)',
+    borderRadius: 9,
+    border: '1px solid #BFE9F5',
+    background: '#F1FAFF',
     color: 'var(--agent-primary-text)',
     fontSize: 12,
     fontWeight: 850,
     cursor: 'pointer',
     flexShrink: 0,
+    marginLeft: 'auto',
   },
   appliedPlaywayBody: {
     marginTop: 4,
@@ -1550,10 +1681,18 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.5,
   },
   appliedPlaywayHint: {
-    marginTop: 5,
+    minWidth: 0,
+    flex: 1,
     color: '#64748B',
     fontSize: 12,
     lineHeight: 1.45,
+  },
+  appliedPlaywayHintRow: {
+    marginTop: 5,
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10,
   },
   promptPreviewBox: {
     borderRadius: 10,
@@ -1586,8 +1725,8 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap' as const,
   },
   markdownPreviewText: {
-    maxHeight: 150,
-    overflowY: 'auto' as const,
+    maxHeight: 'none',
+    overflowY: 'visible' as const,
     padding: '10px 12px 12px',
     color: '#334155',
     fontSize: 12,
@@ -1596,6 +1735,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   promptTemplateContent: {
     borderTop: '1px solid #E2E8F0',
+    maxHeight: 260,
+    overflowY: 'auto' as const,
+    overflowX: 'hidden' as const,
   },
   markdownH1: {
     margin: '0 0 8px',

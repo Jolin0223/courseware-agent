@@ -2,6 +2,11 @@ import { create } from 'zustand';
 
 type AppMode = 'standalone' | 'embedded';
 
+interface AssistantPromptTransfer {
+  id: number;
+  prompt: string;
+}
+
 interface UIState {
   appMode: AppMode;
   setAppMode: (mode: AppMode) => void;
@@ -13,6 +18,7 @@ interface UIState {
   publishCoursewareId: number | null;
   editorDrawerOpen: boolean;
   insertedCoursewares: InsertedCourseware[];
+  pendingAssistantPrompt: AssistantPromptTransfer | null;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   openPreview: (coursewareId: number, initialVersion?: string | null) => void;
@@ -26,6 +32,8 @@ interface UIState {
   updateInsertedCourseware: (id: number, updates: Partial<InsertedCourseware>) => void;
   removeInsertedCourseware: (id: number) => void;
   markSourceDeleted: (id: number) => void;
+  setPendingAssistantPrompt: (prompt: string) => void;
+  clearPendingAssistantPrompt: (id: number) => void;
   linkedCoursewareCount: number;
   setLinkedCoursewareCount: (count: number) => void;
 }
@@ -52,6 +60,7 @@ export const useUIStore = create<UIState>((set) => ({
   publishCoursewareId: null,
   editorDrawerOpen: false,
   insertedCoursewares: [],
+  pendingAssistantPrompt: null,
   
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
@@ -83,6 +92,10 @@ export const useUIStore = create<UIState>((set) => ({
       c.id === id ? { ...c, isSourceDeleted: true, hasUpdate: false } : c
     ),
   })),
+  setPendingAssistantPrompt: (prompt) => set({ pendingAssistantPrompt: { id: Date.now(), prompt } }),
+  clearPendingAssistantPrompt: (id) => set((state) => (
+    state.pendingAssistantPrompt?.id === id ? { pendingAssistantPrompt: null } : {}
+  )),
   linkedCoursewareCount: 0,
   setLinkedCoursewareCount: (count) => set({ linkedCoursewareCount: count }),
 }));

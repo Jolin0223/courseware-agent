@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Pin, Trash2, Edit3, MoreHorizontal, Loader2, History } from 'lucide-react';
+import { Search, Pin, Trash2, Edit3, MoreHorizontal, Loader2, History, ChevronDown, ChevronRight } from 'lucide-react';
 import { useConversationStore } from '../../store/conversationStore';
 import { useUIStore } from '../../store/uiStore';
 import type { Conversation } from '../../types';
@@ -22,6 +22,8 @@ const ChatHistory: React.FC = () => {
   const [expandedMenuId, setExpandedMenuId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
+  const [historyCollapsed, setHistoryCollapsed] = useState(false);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -50,6 +52,8 @@ const ChatHistory: React.FC = () => {
   const pinned = filtered.filter((c) => c.isPinned);
   const unpinned = filtered.filter((c) => !c.isPinned);
   const sortedConversations = [...pinned, ...unpinned];
+  const topSectionIsPinned = pinned.length > 0;
+  const topSectionCollapsed = topSectionIsPinned ? pinnedCollapsed : historyCollapsed;
 
   const handleRenameSubmit = (id: string) => {
     if (renameValue.trim()) {
@@ -78,19 +82,19 @@ const ChatHistory: React.FC = () => {
         onClick={() => handleConversationClick(conv.id, conv.coursewareId)}
         style={{
           position: 'relative',
-          padding: '11px 10px',
-          border: isActive ? '1px solid rgba(255,255,255,0.86)' : '1px solid transparent',
-          background: isActive ? '#FFFFFF' : 'transparent',
+          padding: '9px 8px',
+          border: isActive ? '1px solid #FFFFFF' : '1px solid transparent',
+          background: isActive ? 'rgba(255,255,255,0.92)' : 'transparent',
           cursor: 'pointer',
           transition: 'all 0.15s',
           borderRadius: 10,
           marginBottom: 4,
-          boxShadow: isActive ? '0 8px 20px rgba(37, 74, 120, 0.08)' : 'none',
+          boxShadow: isActive ? '0 8px 22px rgba(37, 74, 120, 0.11), 0 1px 2px rgba(15, 23, 42, 0.035)' : 'none',
         }}
         onMouseEnter={(e) => {
           if (!isActive) {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.52)';
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.58)';
+            e.currentTarget.style.background = 'rgba(255,255,255,0.54)';
+            e.currentTarget.style.borderColor = 'rgba(213, 232, 249, 0.64)';
           }
         }}
         onMouseLeave={(e) => {
@@ -122,10 +126,12 @@ const ChatHistory: React.FC = () => {
                   fontSize: '14px',
                   fontWeight: 500,
                   color: '#1E293B',
-                  border: '2px solid var(--agent-primary)',
-                  borderRadius: '8px',
-                  padding: '2px 6px',
+                  border: '1px solid rgba(2, 116, 252, 0.34)',
+                  borderRadius: '7px',
+                  padding: '1px 6px',
                   outline: 'none',
+                  boxShadow: '0 0 0 2px rgba(2, 116, 252, 0.05)',
+                  lineHeight: '20px',
                 }}
               />
             ) : (
@@ -133,7 +139,7 @@ const ChatHistory: React.FC = () => {
                 style={{
                   fontSize: '14px',
                   fontWeight: 500,
-                  color: '#1E293B',
+                  color: '#17233B',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -142,7 +148,7 @@ const ChatHistory: React.FC = () => {
                 {conv.title}
               </div>
             )}
-            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: '#8EA1B8', marginTop: '4px', fontWeight: 400 }}>
               {conv.createdAt}
             </div>
           </div>
@@ -170,7 +176,7 @@ const ChatHistory: React.FC = () => {
                 background: 'transparent',
                 cursor: 'pointer',
                 borderRadius: '8px',
-                color: '#64748B',
+                color: '#718096',
                 padding: 0,
                 transition: 'background 0.15s',
               }}
@@ -244,15 +250,17 @@ const ChatHistory: React.FC = () => {
 
   return (
     <div
+      className="chat-history-shell"
       style={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         background: 'transparent',
+        overflow: 'hidden',
       }}
     >
       {/* Header with title and search */}
-      <div style={{ padding: '16px 16px 10px' }}>
+      <div style={{ padding: topSectionIsPinned ? '12px 22px 8px' : '12px 14px 8px' }}>
         {isSearchExpanded ? (
           // Expanded search mode
           <div
@@ -290,40 +298,69 @@ const ChatHistory: React.FC = () => {
           </div>
         ) : (
           // Normal mode - section title and search icon in one row
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              minHeight: 34,
+              padding: 0,
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 0,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                if (topSectionIsPinned) {
+                  setPinnedCollapsed(prev => !prev);
+                } else {
+                  setHistoryCollapsed(prev => !prev);
+                }
+              }}
+              style={sectionToggleStyle}
+            >
               {pinned.length > 0 ? (
-                <Pin size={17} style={{ color: '#64748B' }} />
+                <Pin size={15} style={{ color: '#7D8FA6' }} />
               ) : (
-                <History size={18} style={{ color: '#64748B' }} />
+                <History size={16} style={{ color: '#7D8FA6' }} />
               )}
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>
+              <span style={{ fontSize: '13px', fontWeight: 750, color: '#6F8199', letterSpacing: 0 }}>
                 {pinned.length > 0 ? '置顶任务' : '历史会话'}
               </span>
-            </div>
+              {topSectionCollapsed ? (
+                <ChevronRight size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
+              ) : (
+                <ChevronDown size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
+              )}
+            </button>
             <button
               onClick={() => setIsSearchExpanded(true)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 34,
-                height: 34,
-                background: 'rgba(255,255,255,0.5)',
+                width: 30,
+                height: 30,
+                background: 'rgba(255,255,255,0.42)',
                 border: 'none',
                 borderRadius: '10px',
                 cursor: 'pointer',
-                color: '#64748B',
-                transition: 'background 0.15s, color 0.15s',
+                color: '#8EA1B8',
+                transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
                 outline: 'none',
+                boxShadow: 'none',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--agent-soft)';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.68)';
                 e.currentTarget.style.color = 'var(--agent-primary-text)';
+                e.currentTarget.style.boxShadow = '0 6px 14px rgba(37, 74, 120, 0.045)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
-                e.currentTarget.style.color = '#64748B';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.42)';
+                e.currentTarget.style.color = '#8EA1B8';
+                e.currentTarget.style.boxShadow = 'none';
               }}
             >
               <Search size={15} />
@@ -333,27 +370,50 @@ const ChatHistory: React.FC = () => {
       </div>
 
       {/* Conversation list */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 10px 12px' }}>
-        {pinned.map(renderConversation)}
+      <div
+        className="chat-history-scroll"
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          padding: '0 14px 12px',
+        }}
+      >
+        {(!pinnedCollapsed || pinned.length === 0) && pinned.map(renderConversation)}
 
         {pinned.length > 0 && unpinned.length > 0 && (
-          <div
+          <button
+            type="button"
+            onClick={() => setHistoryCollapsed(prev => !prev)}
             style={{
+              ...sectionToggleStyle,
               display: 'flex',
               alignItems: 'center',
               gap: 7,
-              padding: '14px 6px 8px',
-              color: '#64748B',
+              width: 'calc(100% + 28px)',
+              margin: '14px -14px 10px',
+              padding: '0 24px',
+              minHeight: 48,
+              boxSizing: 'border-box',
+              background: 'var(--agent-history-divider-bg, rgba(225, 239, 252, 0.58))',
+              border: 'none',
+              borderRadius: 0,
+              color: 'var(--agent-history-divider-text, #6F8199)',
               fontSize: 13,
-              fontWeight: 700,
+              fontWeight: 750,
             }}
           >
             <History size={16} style={{ flexShrink: 0 }} />
             <span>历史会话</span>
-          </div>
+            {historyCollapsed ? (
+              <ChevronRight size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
+            ) : (
+              <ChevronDown size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
+            )}
+          </button>
         )}
 
-        {unpinned.map(renderConversation)}
+        {!historyCollapsed && unpinned.map(renderConversation)}
 
         {sortedConversations.length === 0 && (
           <div
@@ -375,6 +435,19 @@ const ChatHistory: React.FC = () => {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        .chat-history-shell,
+        .chat-history-scroll {
+          max-width: 100%;
+        }
+        .chat-history-scroll {
+          scrollbar-width: none;
+          overscroll-behavior: contain;
+        }
+        .chat-history-scroll::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+          display: none;
+        }
       `}</style>
     </div>
   );
@@ -392,6 +465,21 @@ const menuItemStyle: React.CSSProperties = {
   color: '#64748B',
   cursor: 'pointer',
   transition: 'background 0.15s',
+};
+
+const sectionToggleStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  minWidth: 0,
+  border: 'none',
+  background: 'transparent',
+  padding: 0,
+  margin: 0,
+  cursor: 'pointer',
+  outline: 'none',
+  font: 'inherit',
+  textAlign: 'left',
 };
 
 export default ChatHistory;

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animal Forest 动物森林大探险</title>
+  <style>
+    @import url('https://iteachcdn.xdf.cn/mmcw/font/fontVar.css');
+
+    :root {
+      --green: #62c765;
+      --leaf: #278b55;
+      --sun: #ffd166;
+      --coral: #ff7a7a;
+      --sky: #dff7ff;
+      --cream: #fff8dd;
+      --ink: #31543e;
+      --success: #22c55e;
+      --warn: #f97316;
+      --shadow: rgba(74, 111, 68, 0.24);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%; margin: 0; overflow: hidden;
+      background: #000; /* 纯黑背景留边 */
+      font-family: "Heinemann Roman", "方正准圆简体", "Arial Rounded MT Bold", sans-serif;
+      user-select: none; position: relative;
+    }
+
+    button { font-family: inherit; border: 0; cursor: pointer; }
+
+    .stage {
+      width: 1920px; height: 1080px; position: absolute;
+      left: 50%; top: 50%; overflow: hidden;
+      transform: translate(-50%, -50%); transform-origin: center center;
+      background: transparent;
+    }
+
+    .scene { position: absolute; inset: 0; display: none; overflow: hidden; }
+    .scene.active { display: block; }
+
+    /* 统一的内部纯净版底图，去掉 opacity 确保与封面亮度一致不闪烁 */
+    .forest-bg {
+      position: absolute; inset: 0;
+      background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/T4kzJjSP-2600008999-AigcImage-e2b16863d8e941489ea02d0e14a12347_0.png') center/cover no-repeat;
+    }
+
+    .soft-overlay {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.82), transparent 18%),
+                  linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 251, 225, 0.45));
+      pointer-events: none;
+    }
+
+    .top-nav {
+      position: absolute; top: 28px; left: 36px; right: 36px; height: 86px;
+      display: flex; align-items: center; justify-content: space-between; z-index: 50;
+    }
+
+    .brand-pill, .step-pill {
+      height: 72px; padding: 0 34px; display: flex; align-items: center; gap: 14px;
+      background: rgba(255, 255, 255, 0.92); border: 5px solid rgba(255, 255, 255, 0.95);
+      border-radius: 36px; box-shadow: 0 12px 0 rgba(67, 139, 65, 0.18), 0 18px 34px var(--shadow);
+      color: var(--leaf); font-size: 30px; font-weight: 800;
+    }
+
+    .step-pill { gap: 20px; padding: 0 24px; }
+
+    .step-dot {
+      min-width: 156px; height: 48px; border-radius: 24px; display: grid; place-items: center;
+      padding: 0 18px; color: rgba(49, 84, 62, 0.66); background: #eefbea; font-size: 23px;
+      box-shadow: inset 0 -4px 0 rgba(39, 139, 85, 0.1); cursor: pointer;
+      transition: transform 0.14s ease, filter 0.14s ease;
+    }
+
+    .step-dot:hover { filter: brightness(1.04); transform: translateY(-2px); }
+    .step-dot.on {
+      color: #fff; background: linear-gradient(180deg, #ff9b7b, #ff6f76);
+      box-shadow: inset 0 -5px 0 rgba(164, 58, 58, 0.18), 0 8px 18px rgba(255, 122, 122, 0.3);
+    }
+
+    .big-button, .small-button, .round-icon {
+      background: linear-gradient(180deg, #fff7a8, #ffc947); color: #7a4b0b;
+      border: 5px solid #fff; box-shadow: 0 10px 0 #d98d22, 0 16px 24px rgba(91, 78, 29, 0.28);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    }
+
+    .big-button:active, .small-button:active, .round-icon:active {
+      transform: translateY(7px); box-shadow: 0 3px 0 #d98d22, 0 8px 16px rgba(91, 78, 29, 0.22);
+    }
+    .big-button:hover, .small-button:hover, .round-icon:hover { filter: brightness(1.04); }
+
+    .big-button { min-width: 260px; height: 92px; border-radius: 46px; padding: 0 46px; font-size: 42px; font-weight: 900; }
+    .small-button { height: 64px; border-radius: 32px; padding: 0 28px; font-size: 28px; font-weight: 900; }
+
+    /* 封面设置为可点击 */
+    #coverScene { cursor: pointer; }
+    .cover-art { 
+      position: absolute; inset: 0; 
+      background: url('https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/DyBvhCXq-2600008999-AigcImage-74b365315b1a417682743d803ebcbf90_0.png') center/cover no-repeat; 
+    }
+
+    .lesson-panel {
+      position: absolute; left: 88px; right: 88px; top: 138px; bottom: 70px;
+      display: grid; grid-template-columns: 500px 1fr 340px; gap: 34px; z-index: 5;
+    }
+
+    .animal-list {
+      background: rgba(255, 255, 255, 0.72); border: 6px solid rgba(255, 255, 255, 0.95);
+      border-radius: 44px; padding: 28px; box-shadow: 0 20px 44px var(--shadow);
+      backdrop-filter: blur(14px); display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+      align-content: start; overflow: hidden;
+    }
+
+    .animal-tab {
+      height: 118px; min-width: 0; border-radius: 26px; background: #fff;
+      border: 4px solid transparent; box-shadow: 0 8px 0 rgba(0, 0, 0, 0.08), 0 10px 18px rgba(0, 0, 0, 0.08);
+      display: grid; grid-template-columns: 82px minmax(0, 1fr); align-items: center;
+      padding: 10px 12px; gap: 10px; color: var(--ink); font-size: 22px; font-weight: 900; text-align: left;
+    }
+    .animal-tab img { width: 82px; height: 82px; object-fit: contain; }
+    .animal-tab span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .animal-tab small { display: block; color: rgba(49, 84, 62, 0.68); font-size: 18px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .animal-tab.on { border-color: var(--coral); background: #fff6d8; transform: translateY(-3px); }
+
+    .feature-card {
+      position: relative; border-radius: 52px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 222, 0.94));
+      border: 7px solid rgba(255, 255, 255, 0.98); box-shadow: 0 22px 52px var(--shadow);
+      overflow: hidden; display: grid; place-items: center; padding: 44px;
+    }
+    .feature-card::before {
+      content: ""; position: absolute; inset: 28px; border-radius: 36px;
+      border: 5px dashed rgba(98, 199, 101, 0.25); pointer-events: none;
+    }
+
+    .animal-hero {
+      position: relative; z-index: 1; display: grid; grid-template-rows: 380px auto auto auto;
+      justify-items: center; align-items: center; width: 100%; height: 100%; text-align: center;
+    }
+    .animal-hero img {
+      max-width: 390px; max-height: 360px; object-fit: contain;
+      filter: drop-shadow(0 24px 26px rgba(50, 98, 49, 0.24));
+      animation: heroFloat 2.8s ease-in-out infinite;
+    }
+    @keyframes heroFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-14px) scale(1.03); } }
+
+    .word-big { font-size: 92px; color: var(--coral); font-weight: 900; line-height: 1; margin: 8px 0 0; }
+    .cn-big { color: var(--leaf); font-size: 46px; margin-top: 12px; font-weight: 900; }
+    .phonics { min-height: 54px; margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 12px; color: #8a6b24; font-size: 30px; font-weight: 900; }
+
+    .side-coach { display: grid; grid-template-rows: auto auto 1fr auto; gap: 18px; }
+    .ghost-button {
+      height: 72px; border-radius: 36px; padding: 0 30px; background: rgba(255, 255, 255, 0.88);
+      border: 5px solid rgba(255, 255, 255, 0.96); color: var(--leaf); font-size: 30px; font-weight: 900;
+      box-shadow: 0 8px 0 rgba(39, 139, 85, 0.16), 0 14px 22px rgba(74, 111, 68, 0.16);
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+    .ghost-button:hover { filter: brightness(1.04); }
+    .ghost-button:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(39, 139, 85, 0.16), 0 8px 16px rgba(74, 111, 68, 0.14); }
+
+    .coach-card, .progress-card {
+      background: rgba(255, 255, 255, 0.82); border: 6px solid rgba(255, 255, 255, 0.98);
+      border-radius: 38px; box-shadow: 0 16px 32px var(--shadow); padding: 24px; color: var(--ink);
+    }
+    .coach-card h2, .progress-card h2 { margin: 0 0 12px; font-size: 34px; color: var(--leaf); }
+    .coach-card p { margin: 0; line-height: 1.42; font-size: 25px; font-weight: 800; }
+
+    .star-row { display: flex; flex-wrap: wrap; gap: 8px; min-height: 72px; }
+    .star {
+      width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+      font-size: 32px; background: #fff; box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.06);
+      filter: grayscale(1); opacity: 0.45;
+    }
+    .star.got { filter: none; opacity: 1; background: #fff6c4; }
+
+    .read-layout {
+      position: absolute; left: 72px; right: 72px; top: 138px; bottom: 70px;
+      display: grid; place-items: center; z-index: 5; overflow: hidden;
+    }
+    .read-card {
+      width: 1120px; height: 850px; border-radius: 54px; border: 7px solid rgba(255, 255, 255, 0.98);
+      background: rgba(255, 255, 255, 0.9); box-shadow: 0 24px 56px var(--shadow);
+      padding: 42px 58px; display: grid; grid-template-rows: 88px 330px auto auto 130px;
+      place-items: center; text-align: center; overflow: visible; position: relative; z-index: 2;
+    }
+    .read-card img { max-width: 380px; max-height: 320px; object-fit: contain; filter: drop-shadow(0 24px 26px rgba(50, 98, 49, 0.24)); }
+    .read-word { color: var(--coral); font-weight: 900; font-size: 104px; line-height: 1; }
+    .read-cn { color: var(--leaf); font-size: 44px; font-weight: 900; }
+    .read-actions { display: flex; gap: 16px; align-items: center; justify-content: center; position: relative; }
+    
+    .read-result { width: 100%; min-height: 88px; display: grid; grid-template-columns: 320px 1fr; align-items: center; gap: 22px; color: var(--ink); }
+    .read-preview {
+      position: absolute; top: 50%; width: 250px; height: 360px; transform: translateY(-50%) scale(0.92);
+      border-radius: 42px; border: 6px solid rgba(255, 255, 255, 0.92); background: rgba(255, 255, 255, 0.66);
+      box-shadow: 0 18px 36px rgba(74, 111, 68, 0.18); display: grid; grid-template-rows: 220px auto;
+      justify-items: center; align-items: center; opacity: 0.82; cursor: pointer; z-index: 1;
+    }
+    .read-preview.prev { left: 52px; } .read-preview.next { right: 52px; }
+    .read-preview img { max-width: 180px; max-height: 190px; object-fit: contain; filter: drop-shadow(0 12px 16px rgba(50, 98, 49, 0.16)); }
+    .read-preview span { color: var(--leaf); font-size: 30px; font-weight: 900; max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .button-wave {
+      position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); height: 48px;
+      padding: 0 18px; border-radius: 24px; background: rgba(255, 255, 255, 0.88);
+      border: 4px solid rgba(255, 255, 255, 0.96); display: flex; align-items: center; justify-content: center;
+      gap: 8px; opacity: 0; visibility: hidden; pointer-events: none; box-shadow: 0 8px 18px rgba(74, 111, 68, 0.18);
+    }
+    .button-wave.listening { opacity: 1; visibility: visible; }
+    .bar { width: 12px; height: 24px; border-radius: 14px; background: var(--green); opacity: 0.72; }
+    .listening .bar { animation: wave 0.7s ease-in-out infinite; }
+    .listening .bar:nth-child(2) { animation-delay: 0.08s; } .listening .bar:nth-child(3) { animation-delay: 0.16s; }
+    .listening .bar:nth-child(4) { animation-delay: 0.24s; } .listening .bar:nth-child(5) { animation-delay: 0.32s; }
+    .listening .bar:nth-child(6) { animation-delay: 0.4s; }
+    @keyframes wave { 0%, 100% { height: 18px; } 50% { height: 42px; } }
+
+    .score-stars { height: 76px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+    .score-stars span {
+      width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+      background: rgba(255, 255, 255, 0.84); border: 3px solid rgba(255, 255, 255, 0.96);
+      box-shadow: inset 0 -5px 0 rgba(80, 114, 74, 0.08), 0 8px 14px rgba(74, 111, 68, 0.12);
+      color: #d6dece; font-size: 34px; filter: grayscale(1); opacity: 0.75;
+    }
+    .score-stars span.on {
+      color: #ffc928; background: linear-gradient(180deg, #fff8b8, #ffd35d); border-color: #fff;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8); box-shadow: inset 0 -6px 0 rgba(213, 143, 12, 0.18), 0 10px 18px rgba(255, 198, 59, 0.3);
+      filter: none; opacity: 1; animation: pop 0.25s ease-out;
+    }
+    @keyframes pop { from { transform: scale(0.2); } to { transform: scale(1); } }
+    .feedback { min-height: 74px; color: var(--ink); font-size: 27px; line-height: 1.35; font-weight: 900; text-align: center; display: grid; place-items: center; padding: 0 18px; background: rgba(255, 255, 255, 0.62); border: 4px solid rgba(255, 255, 255, 0.86); border-radius: 26px; }
+
+    .game-scene { position: absolute; inset: 0; display: none; }
+    .game-top { position: absolute; top: 118px; left: 40px; right: 40px; display: flex; justify-content: space-between; align-items: center; z-index: 40; pointer-events: none; }
+    .game-badge {
+      min-width: 210px; height: 70px; display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 28px; border-radius: 35px; background: rgba(255, 255, 255, 0.95); border: 5px solid #fff;
+      color: #ff8c00; box-shadow: 0 9px 0 rgba(0, 0, 0, 0.1), 0 16px 24px rgba(0, 0, 0, 0.14); font-size: 32px; font-weight: 900;
+    }
+    .game-badge.center { color: #ff4d2e; font-size: 42px; min-width: 250px; white-space: nowrap; }
+    #gameLevel { visibility: hidden; }
+
+    #gameArea { position: absolute; top: 154px; left: 50%; transform: translateX(-50%); width: 1600px; height: 610px; z-index: 8; }
+    .animal-card {
+      width: 160px; height: 160px; position: absolute; background: #fff; border-radius: 30px;
+      box-shadow: 0 6px 0 #ccc, 0 15px 20px rgba(0, 0, 0, 0.15); cursor: pointer; display: flex;
+      justify-content: center; align-items: center; border: 5px solid #fff; overflow: hidden;
+      transition: filter 0.2s, transform 0.12s;
+    }
+    .animal-card img { width: 90%; height: 90%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1)); }
+    .animal-card.card-word { font-size: 32px; color: #333; font-weight: 900; text-align: center; line-height: 1; padding: 5px; white-space: nowrap; }
+    .animal-card.card-word.long-word { font-size: 24px; }
+    .animal-card.card-cn { font-size: 48px; color: #333; font-weight: 900; white-space: nowrap; }
+    .animal-card.darkened { filter: brightness(0.58) grayscale(0.22); pointer-events: none; }
+    
+    .animal-card.in-slot {
+      box-shadow: none !important; border-radius: 22px; width: 100% !important; height: 100% !important;
+      left: 0 !important; top: 0 !important; transform: none !important; position: relative; margin: 0;
+      border: 3px solid rgba(255, 255, 255, 0.7); z-index: 10 !important;
+    }
+
+    .slot-container {
+      position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); width: 1250px; height: 180px;
+      background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(20px); border-radius: 35px;
+      border: 4px solid rgba(255, 255, 255, 0.7); box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.1), 0 20px 40px rgba(0, 0, 0, 0.25);
+      display: flex; justify-content: center; align-items: center; gap: 10px; padding: 0 20px; z-index: 30;
+    }
+    .slot {
+      width: 160px; height: 160px; border-radius: 25px; position: relative;
+      background: url('https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/stump.png') center/contain no-repeat;
+    }
+
+    .tools { position: absolute; bottom: 230px; right: 320px; z-index: 80; display: flex; gap: 18px; }
+    .tool-btn {
+      height: 68px; border-radius: 34px; padding: 0 22px; background: linear-gradient(180deg, #48dbfb, #0abde3);
+      border: 4px solid #fff; color: #fff; font-size: 22px; font-weight: 900; box-shadow: 0 7px 0 rgba(0, 0, 0, 0.22), 0 12px 18px rgba(0, 0, 0, 0.2);
+    }
+    .tool-btn.yellow { background: linear-gradient(180deg, #ffd93d, #f6c90e); color: #8b5b00; }
+    .tool-btn.green { background: linear-gradient(180deg, #1dd1a1, #10ac84); }
+    .tool-btn:disabled {
+      cursor: default; filter: grayscale(0.65); opacity: 0.62;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18), 0 8px 14px rgba(0, 0, 0, 0.14);
+    }
+
+    .modal { position: absolute; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: rgba(34, 66, 44, 0.72); backdrop-filter: blur(10px); }
+    .modal.show { display: flex; }
+    .modal-card {
+      width: 980px; min-height: 520px; border-radius: 52px; background: rgba(255, 255, 255, 0.96);
+      border: 8px solid #fff; box-shadow: 0 26px 76px rgba(20, 62, 42, 0.36); display: grid; place-items: center; text-align: center; padding: 60px; color: var(--ink);
+    }
+    .modal-card h2 { margin: 0 0 24px; font-size: 72px; color: var(--coral); }
+    .modal-card p { margin: 0 0 34px; font-size: 32px; line-height: 1.45; font-weight: 900; }
+  </style>
+</head>
+<body>
+  <main class="stage" id="stage">
+    
+    <!-- 封面场景：点击整个画面即可进入游戏 -->
+    <section class="scene active" id="coverScene">
+      <div class="cover-art"></div>
+    </section>
+
+    <section class="scene" id="learnScene">
+      <div class="forest-bg"></div><div class="soft-overlay"></div>
+      <nav class="top-nav">
+        <div class="brand-pill">🦁 Animal Forest</div>
+        <div class="step-pill">
+          <button class="step-dot on" data-go="learnScene">1 认一认</button>
+          <button class="step-dot" data-go="readScene">2 读一读</button>
+          <button class="step-dot" data-go="gameScene">3 玩一玩</button>
+        </div>
+      </nav>
+      <div class="lesson-panel">
+        <div class="animal-list" id="animalList"></div>
+        <div class="feature-card">
+          <div class="animal-hero">
+            <img id="learnAnimalImg" alt="">
+            <div class="word-big" id="learnWord">cat</div>
+            <div class="cn-big" id="learnCn">猫</div>
+            <div class="phonics" id="learnPhonics">c - a - t</div>
+          </div>
+        </div>
+        <aside class="side-coach">
+          <div class="coach-card">
+            <h2>认一认</h2>
+            <p id="learnTip">点击动物卡片，看图片、听发音、记住单词。</p>
+          </div>
+          <button class="ghost-button" id="speakLearnBtn">🔊 听一听</button>
+          <div class="progress-card">
+            <h2>我的星星</h2>
+            <div class="star-row" id="learnStars"></div>
+          </div>
+          <button class="big-button" id="toReadBtn">去读一读</button>
+        </aside>
+      </div>
+    </section>
+
+    <section class="scene" id="readScene">
+      <div class="forest-bg"></div><div class="soft-overlay"></div>
+      <nav class="top-nav">
+        <div class="brand-pill">🎙️ Read Aloud</div>
+        <div class="step-pill">
+          <button class="step-dot" data-go="learnScene">1 认一认</button>
+          <button class="step-dot on" data-go="readScene">2 读一读</button>
+          <button class="step-dot" data-go="gameScene">3 玩一玩</button>
+        </div>
+      </nav>
+      <div class="read-layout">
+        <div class="read-preview prev" id="readPrevPreview">
+          <img id="readPrevImg" alt=""><span id="readPrevWord">lion</span>
+        </div>
+        <div class="read-card">
+          <div class="read-result">
+            <div class="score-stars" id="scoreStars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+            <div class="feedback" id="readFeedback">听一听，再读一读。</div>
+          </div>
+          <img id="readAnimalImg" alt="">
+          <div class="read-word" id="readWord">cat</div>
+          <div class="read-cn" id="readCn">猫</div>
+          <div class="read-actions">
+            <button class="ghost-button" id="listenBtn">🔊 听一听</button>
+            <button class="big-button" id="recordBtn">🎙️ 我来读</button>
+            <div class="button-wave" id="buttonWave">
+              <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+          </div>
+        </div>
+        <div class="read-preview next" id="readNextPreview">
+          <img id="readNextImg" alt=""><span id="readNextWord">dog</span>
+        </div>
+        <button class="big-button" id="toGameBtn" style="position:absolute; right:28px; bottom:34px; z-index:4;">去玩一玩</button>
+      </div>
+    </section>
+
+    <section class="scene" id="gameScene">
+      <div class="forest-bg" id="gameBackdrop"></div>
+      <nav class="top-nav">
+        <div class="brand-pill">🐾 Animal Catch</div>
+        <div class="step-pill">
+          <button class="step-dot" data-go="learnScene">1 认一认</button>
+          <button class="step-dot" data-go="readScene">2 读一读</button>
+          <button class="step-dot on" data-go="gameScene">3 玩一玩</button>
+        </div>
+      </nav>
+      <div class="game-top">
+        <div class="game-badge" id="gameLevel">Level 1 / 3</div>
+        <div class="game-badge center"><span>⏱</span><span id="timeDisplay">30</span><span>s</span></div>
+        <div class="game-badge">Score: <span id="scoreDisplay">0</span></div>
+      </div>
+      <div id="gameArea"></div>
+      <div class="tools">
+        <button class="tool-btn yellow" id="undoBtn">Undo</button>
+        <button class="tool-btn green" id="hintBtn">Hint</button>
+        <button class="tool-btn" id="shuffleBtn">Shuffle</button>
+      </div>
+      <div class="slot-container" id="slotContainer">
+        <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+        <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+      </div>
+    </section>
+
+    <div class="modal" id="modal">
+      <div class="modal-card">
+        <h2 id="modalTitle">Great!</h2>
+        <p id="modalText">你完成了动物森林挑战。</p>
+        <button class="big-button" id="modalBtn">继续</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://iteachcdn.xdf.cn/mmcw/plus/gsap.min.js"></script>
+  <script src="https://iteachcdn.xdf.cn/mmcw/plus/aijs/confetti.browser.min.js"></script>
+  <script>
+    const DESIGN_WIDTH = 1920; const DESIGN_HEIGHT = 1080;
+
+    const ANIMAL_DATA = {
+      cat: { id: 'cat', img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/cat.png', audio: 'assets/audio/cat.mp3', word: 'cat', cn: '猫', phonics: 'c - a - t', color: '#FFB74D' },
+      dog: { id: 'dog', img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/dog.png', audio: 'assets/audio/dog.mp3', word: 'dog', cn: '狗', phonics: 'd - o - g', color: '#4FC3F7' },
+      rabbit: { id: 'rabbit', img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/rabbit.png', audio: 'assets/audio/rabbit.mp3', word: 'rabbit', cn: '兔子', phonics: 'rab - bit', color: '#FF8A65' },
+      monkey: { id: 'monkey', img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/monkey.png', audio: 'assets/audio/monkey.mp3', word: 'monkey', cn: '猴子', phonics: 'mon - key', color: '#A1887F' },
+      bear: { id: 'bear', img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/bear.png', audio: 'assets/audio/bear.mp3', word: 'bear', cn: '熊', phonics: 'b - e - a - r', color: '#8D6E63' },
+      elephant: { id: 'elephant', img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/elephant.png', audio: 'assets/audio/elephant.mp3', word: 'elephant', cn: '大象', phonics: 'e - le - phant', color: '#90A4AE' },
+      tiger: { id: 'tiger', img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/tiger.png', audio: 'assets/audio/tiger.mp3', word: 'tiger', cn: '老虎', phonics: 'ti - ger', color: '#FFB300' },
+      lion: { id: 'lion', img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/05-aIyPfP2ZRumFJLKuyvZQ0w/images/lion.png', audio: 'assets/audio/lion.mp3', word: 'lion', cn: '狮子', phonics: 'li - on', color: '#F6A500' }
+    };
+
+    const animalOrder = ['cat', 'dog', 'rabbit', 'monkey', 'bear', 'elephant', 'tiger', 'lion'];
+    const LEVELS = [
+      { id: 1, types: ['cat', 'dog', 'rabbit'], setsPerType: 1, time: 45 },
+      { id: 2, types: ['cat', 'dog', 'rabbit', 'monkey', 'bear'], setsPerType: 2, time: 90 },
+      { id: 3, types: animalOrder, setsPerType: 2, time: 120 }
+    ];
+
+    function resizeStage() {
+      const stage = document.getElementById('stage');
+      const scale = Math.min(window.innerWidth / DESIGN_WIDTH, window.innerHeight / DESIGN_HEIGHT);
+      stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+    window.addEventListener('resize', resizeStage); window.addEventListener('load', resizeStage);
+
+    const AudioManager = {
+      ctx: null, wordAudio: null,
+      init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); if (this.ctx.state === 'suspended') this.ctx.resume(); },
+      tone(freq, duration = 0.14, type = 'sine', vol = 0.16) {
+        this.init(); const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + duration);
+      },
+      click() { this.tone(880, 0.08, 'sine', 0.12); },
+      pop() { this.tone(420, 0.1, 'triangle', 0.16); setTimeout(() => this.tone(720, 0.12, 'sine', 0.12), 60); },
+      match() { this.tone(523, 0.18); setTimeout(() => this.tone(659, 0.18), 70); setTimeout(() => this.tone(784, 0.22), 140); },
+      sparkle() { this.tone(740, 0.11, 'sine', 0.13); setTimeout(() => this.tone(988, 0.13, 'sine', 0.13), 70); setTimeout(() => this.tone(1319, 0.18, 'triangle', 0.11), 145); setTimeout(() => this.tone(1760, 0.16, 'sine', 0.08), 230); },
+      error() { this.tone(150, 0.22, 'sawtooth', 0.12); },
+      speak(text) {
+        const key = String(text).toLowerCase();
+        const data = ANIMAL_DATA[key];
+        if (data?.audio) {
+          if (this.wordAudio) { this.wordAudio.pause(); this.wordAudio.currentTime = 0; }
+          if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+          this.wordAudio = new Audio(data.audio);
+          this.wordAudio.play().catch(() => {});
+          return;
+        }
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'en-US'; utterance.rate = 0.82; window.speechSynthesis.speak(utterance);
+      }
+    };
+
+    const Timer = {
+      interval: null,
+      start(seconds, onTick, onEnd) { this.stop(); let left = seconds; onTick(left); this.interval = setInterval(() => { left -= 1; onTick(left); if (left <= 0) { this.stop(); onEnd(); } }, 1000); },
+      stop() { if (this.interval) clearInterval(this.interval); this.interval = null; }
+    };
+
+    const App = {
+      currentAnimal: 'cat', readIndex: 0, learned: new Set(), readHoldActive: false,
+      init() { resizeStage(); this.buildAnimalList(); this.buildStars(); this.selectAnimal('cat'); this.setReadAnimal(0); this.bind(); Game.init(); },
+      bind() {
+        // 点击封面无缝进入环节
+        document.getElementById('coverScene').onclick = () => this.showScene('learnScene');
+        document.querySelectorAll('.step-dot[data-go]').forEach(button => { button.onclick = () => this.goStep(button.dataset.go); });
+        document.getElementById('speakLearnBtn').onclick = () => this.speakCurrent();
+        document.getElementById('toReadBtn').onclick = () => this.showScene('readScene');
+        document.getElementById('listenBtn').onclick = () => AudioManager.speak(ANIMAL_DATA[animalOrder[this.readIndex]].word);
+        this.bindRecordButton();
+        document.getElementById('readPrevPreview').onclick = () => this.setReadAnimal((this.readIndex - 1 + animalOrder.length) % animalOrder.length);
+        document.getElementById('readNextPreview').onclick = () => this.setReadAnimal((this.readIndex + 1) % animalOrder.length);
+        this.bindReadSwipe();
+        document.getElementById('toGameBtn').onclick = () => { this.showScene('gameScene'); Game.start(); };
+        document.getElementById('undoBtn').onclick = () => Game.useTool('undo');
+        document.getElementById('hintBtn').onclick = () => Game.useTool('hint');
+        document.getElementById('shuffleBtn').onclick = () => Game.useTool('shuffle');
+      },
+      bindRecordButton() {
+        const button = document.getElementById('recordBtn');
+        button.addEventListener('pointerdown', e => { e.preventDefault(); this.startReadHold(); });
+        button.addEventListener('pointerup', e => { e.preventDefault(); this.finishReadHold(); });
+        button.addEventListener('pointerleave', () => this.finishReadHold());
+      },
+      bindReadSwipe() {
+        const card = document.querySelector('#readScene .read-card'); let startX = 0; let startY = 0;
+        card.addEventListener('pointerdown', e => { startX = e.clientX; startY = e.clientY; });
+        card.addEventListener('pointerup', e => {
+          const dx = e.clientX - startX; const dy = e.clientY - startY;
+          if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.2) { this.setReadAnimal(dx < 0 ? (this.readIndex + 1) % animalOrder.length : (this.readIndex - 1 + animalOrder.length) % animalOrder.length); }
+        });
+      },
+      goStep(id) { this.showScene(id); if (id === 'gameScene') Game.start(); },
+      showScene(id) {
+        AudioManager.click(); Timer.stop(); document.getElementById('buttonWave').classList.remove('listening');
+        document.querySelectorAll('.scene').forEach(scene => scene.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if (id === 'gameScene') document.getElementById('gameBackdrop').style.display = 'block';
+      },
+      buildAnimalList() {
+        const list = document.getElementById('animalList'); list.innerHTML = '';
+        animalOrder.forEach(id => {
+          const data = ANIMAL_DATA[id]; const btn = document.createElement('button'); btn.className = 'animal-tab'; btn.dataset.id = id;
+          btn.innerHTML = `<img src="${data.img}" alt=""><span>${data.word}<small>${data.cn}</small></span>`;
+          btn.onclick = () => this.selectAnimal(id); list.appendChild(btn);
+        });
+      },
+      buildStars() {
+        const stars = document.getElementById('learnStars'); stars.innerHTML = '';
+        animalOrder.forEach(id => { const star = document.createElement('div'); star.className = 'star'; star.dataset.id = id; star.textContent = '⭐'; stars.appendChild(star); });
+      },
+      selectAnimal(id) {
+        this.currentAnimal = id; const data = ANIMAL_DATA[id];
+        document.getElementById('learnAnimalImg').src = data.img; document.getElementById('learnWord').textContent = data.word;
+        document.getElementById('learnCn').textContent = data.cn; document.getElementById('learnPhonics').textContent = data.phonics;
+        document.getElementById('learnTip').textContent = `This is ${data.word}. ${data.cn}。点击“听一听”，跟小动物一起认识它。`;
+        document.querySelectorAll('.animal-tab').forEach(tab => tab.classList.toggle('on', tab.dataset.id === id));
+        this.learned.add(id); document.querySelectorAll('.star').forEach(star => star.classList.toggle('got', this.learned.has(star.dataset.id)));
+        AudioManager.pop(); setTimeout(() => AudioManager.speak(data.word), 140);
+      },
+      speakCurrent() { const data = ANIMAL_DATA[this.currentAnimal]; AudioManager.click(); AudioManager.speak(data.word); gsap.fromTo('#learnAnimalImg', { scale: 1 }, { scale: 1.1, duration: 0.18, yoyo: true, repeat: 1 }); },
+      setReadAnimal(index) {
+        this.readIndex = index; const data = ANIMAL_DATA[animalOrder[index]];
+        const prevData = ANIMAL_DATA[animalOrder[(index - 1 + animalOrder.length) % animalOrder.length]];
+        const nextData = ANIMAL_DATA[animalOrder[(index + 1) % animalOrder.length]];
+        document.getElementById('readAnimalImg').src = data.img; document.getElementById('readWord').textContent = data.word; document.getElementById('readCn').textContent = data.cn;
+        document.getElementById('readPrevImg').src = prevData.img; document.getElementById('readPrevWord').textContent = prevData.word;
+        document.getElementById('readNextImg').src = nextData.img; document.getElementById('readNextWord').textContent = nextData.word;
+        this.setReadStars(0); document.getElementById('buttonWave').classList.remove('listening');
+        document.getElementById('readFeedback').textContent = `听一听，再读：${data.word}`;
+        AudioManager.speak(data.word); gsap.fromTo('#readAnimalImg', { x: 18, opacity: 0.2 }, { x: 0, opacity: 1, duration: 0.28, ease: 'power2.out' });
+      },
+      setReadStars(score) { document.querySelectorAll('#scoreStars span').forEach((star, index) => { star.classList.toggle('on', index < score); }); },
+      startReadHold() {
+        if (this.readHoldActive) return; const target = ANIMAL_DATA[animalOrder[this.readIndex]].word;
+        this.readHoldActive = true; AudioManager.click(); this.setReadStars(0);
+        document.getElementById('buttonWave').classList.add('listening'); document.getElementById('readFeedback').textContent = `按住读：${target}`;
+      },
+      finishReadHold() {
+        if (!this.readHoldActive) return; this.readHoldActive = false; const target = ANIMAL_DATA[animalOrder[this.readIndex]].word;
+        document.getElementById('buttonWave').classList.remove('listening'); this.mockSpeechScore(target);
+      },
+      mockSpeechScore(target) {
+        const wave = document.getElementById('buttonWave'); this.setReadStars(0); document.getElementById('readFeedback').textContent = '正在评测，星星马上来。';
+        setTimeout(() => {
+          wave.classList.remove('listening'); const score = 2 + (this.readIndex % 2); this.setReadStars(score);
+          if (score === 3) {
+            AudioManager.sparkle(); document.getElementById('readFeedback').textContent = `太棒啦！${target} 像小明星一样亮！`;
+            gsap.fromTo('#scoreStars span.on', { scale: 0.45, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.38, stagger: 0.05, ease: 'back.out(2.4)' });
+            confetti({ particleCount: 70, spread: 70, origin: { y: 0.7 } });
+          } else {
+            AudioManager.pop(); document.getElementById('readFeedback').textContent = `很棒！${target} 再清楚一点点更好。`;
+            gsap.fromTo('#scoreStars span.on', { scale: 0.55 }, { scale: 1, duration: 0.32, stagger: 0.04, ease: 'back.out(2)' });
+          }
+        }, 1300);
+      }
+    };
+
+    const Game = {
+      currentLevel: 0, score: 0, cards: [], slots: [], isProcessing: false, tools: { undo: 1, hint: 1, shuffle: 1 },
+      init() { this.slots = []; },
+      start() { this.score = 0; this.loadLevel(0); },
+      loadLevel(index) {
+        if (index >= LEVELS.length) { this.showGameModal('All Cleared!', '你完成了动物森林大挑战！', '再学一次', () => location.reload()); return; }
+        this.currentLevel = index; this.isProcessing = false; this.slots = []; this.tools = { undo: 1, hint: 1, shuffle: 1 };
+        const level = LEVELS[index]; document.getElementById('gameLevel').textContent = `Level ${level.id} / ${LEVELS.length}`;
+        document.getElementById('scoreDisplay').textContent = this.score; document.getElementById('gameArea').innerHTML = ''; document.querySelectorAll('.slot').forEach(s => s.innerHTML = '');
+        const deck = [];
+        level.types.forEach(type => { for (let i = 0; i < level.setsPerType; i++) { deck.push({ type, format: 'img' }, { type, format: 'word' }, { type, format: 'cn' }); } });
+        deck.sort(() => Math.random() - 0.5); this.cards = [];
+        deck.forEach((item, i) => {
+          const card = this.createCard(item.type, item.format);
+          card.style.left = `calc(50% + ${(Math.random() - 0.5) * 1200}px)`; card.style.top = `calc(50% + ${(Math.random() - 0.5) * 450}px)`;
+          card.style.transform = `translate(-50%, -50%) rotate(${(Math.random() - 0.5) * 60}deg)`; card.style.zIndex = i + 10;
+          card.onclick = () => this.onCard(card); document.getElementById('gameArea').appendChild(card);
+          this.cards.push({ el: card, type: item.type, format: item.format, inSlot: false, zIndex: i + 10 });
+        });
+        Timer.start(level.time, t => document.getElementById('timeDisplay').textContent = t, () => { this.showGameModal("Time's Up!", '再来一次，这次一定可以。', '重试', () => this.loadLevel(this.currentLevel)); });
+        setTimeout(() => { this.updateCardInteractivity(); this.updateToolState(); }, 100);
+      },
+      createCard(type, format) {
+        const data = ANIMAL_DATA[type]; const card = document.createElement('div'); card.className = 'animal-card'; card.style.borderColor = data.color;
+        if (format === 'img') { card.innerHTML = `<img src="${data.img}" alt="${data.word}">`; }
+        else if (format === 'word') { card.classList.add('card-word'); if (data.word.length > 7) card.classList.add('long-word'); card.textContent = data.word; }
+        else { card.classList.add('card-cn'); card.textContent = data.cn; }
+        return card;
+      },
+      onCard(cardEl) {
+        if (this.isProcessing || cardEl.classList.contains('darkened')) return;
+        if (this.slots.length >= 7) { AudioManager.error(); this.showGameModal('Oops!', '槽位满了，试试 Undo 或重来。', '重试', () => this.loadLevel(this.currentLevel)); return; }
+        this.isProcessing = true; AudioManager.pop(); const card = this.cards.find(c => c.el === cardEl); card.inSlot = true;
+        let insertIndex = this.slots.length;
+        for (let i = this.slots.length - 1; i >= 0; i--) { if (this.slots[i].type === card.type) { insertIndex = i + 1; break; } }
+        this.slots.splice(insertIndex, 0, card); this.animateSlots(); this.updateCardInteractivity();
+      },
+      animateSlots() {
+        const uiSlots = Array.from(document.querySelectorAll('.slot')); let pending = 0;
+        this.slots.forEach((card, index) => {
+          const target = uiSlots[index]; if (!target) return;
+          const targetRect = target.getBoundingClientRect(); const cardRect = card.el.getBoundingClientRect();
+          pending += 1; card.el.style.zIndex = 4000 + index;
+          gsap.to(card.el, {
+            x: `+=${targetRect.left - cardRect.left}`, y: `+=${targetRect.top - cardRect.top}`, rotation: 0, scale: 1, duration: 0.24, ease: 'power2.in',
+            onComplete: () => {
+              target.appendChild(card.el); card.el.classList.add('in-slot'); card.el.style.transform = 'none'; card.el.style.left = '0'; card.el.style.top = '0'; card.el.style.position = 'relative';
+              pending -= 1; if (pending === 0) this.checkMatch();
+            }
+          });
+        });
+        if (pending === 0) { this.isProcessing = false; this.updateToolState(); }
+      },
+      checkMatch() {
+        let start = -1;
+        for (let i = 0; i <= this.slots.length - 3; i++) { if (this.slots[i].type === this.slots[i + 1].type && this.slots[i].type === this.slots[i + 2].type) { start = i; break; } }
+        if (start >= 0) {
+          const type = this.slots[start].type; const matched = this.slots.slice(start, start + 3);
+          matched.forEach(card => gsap.to(card.el, { scale: 1.35, opacity: 0, duration: 0.28, onComplete: () => card.el.remove() }));
+          this.slots.splice(start, 3); this.score += 100; document.getElementById('scoreDisplay').textContent = this.score;
+          AudioManager.match(); AudioManager.speak(ANIMAL_DATA[type].word); confetti({ particleCount: 40, spread: 55, origin: { y: 0.82 } });
+          setTimeout(() => { this.animateSlots(); this.checkClear(); this.updateToolState(); }, 340);
+        } else { this.isProcessing = false; this.checkClear(); this.updateToolState(); }
+      },
+      checkClear() {
+        const left = this.cards.filter(c => !c.inSlot && c.el.parentNode).length;
+        if (left === 0 && this.slots.length === 0) { Timer.stop(); confetti({ particleCount: 130, spread: 90, origin: { y: 0.58 } }); this.showGameModal('Level Cleared!', '动物单词配对成功！', this.currentLevel >= LEVELS.length - 1 ? '完成' : '下一关', () => this.loadLevel(this.currentLevel + 1)); }
+      },
+      updateCardInteractivity() {
+        const active = this.cards.filter(c => !c.inSlot && c.el.parentNode); active.forEach(c => c.el.classList.remove('darkened'));
+        active.forEach(bottom => {
+          const b = bottom.el.getBoundingClientRect(); const center = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+          const covered = active.some(top => {
+            if (top === bottom || top.zIndex <= bottom.zIndex) return false; const t = top.el.getBoundingClientRect();
+            return center.x > t.left && center.x < t.right && center.y > t.top && center.y < t.bottom;
+          });
+          if (covered) bottom.el.classList.add('darkened');
+        });
+      },
+      getActiveCards() { return this.cards.filter(c => !c.inSlot && c.el.parentNode); },
+      getAvailableCards() { return this.getActiveCards().filter(c => !c.el.classList.contains('darkened')); },
+      getHintCards() {
+        const available = this.getAvailableCards();
+        if (!available.length) return [];
+        if (this.slots.length) {
+          const currentType = this.slots[this.slots.length - 1].type;
+          const currentMatches = available.filter(c => c.type === currentType);
+          if (currentMatches.length) return currentMatches.slice(0, 3);
+        }
+        const counts = available.reduce((map, card) => {
+          map[card.type] = (map[card.type] || 0) + 1;
+          return map;
+        }, {});
+        const targetType = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+        return available.filter(c => c.type === targetType).slice(0, 3);
+      },
+      useTool(name) {
+        if (this.isProcessing || this.tools[name] <= 0) return;
+        if (name === 'undo') {
+          const card = this.slots.pop();
+          if (!card) { AudioManager.error(); this.updateToolState(); return; }
+          this.tools[name] -= 1; this.isProcessing = true; this.updateToolState(); AudioManager.click();
+          card.inSlot = false; card.el.classList.remove('in-slot'); document.getElementById('gameArea').appendChild(card.el);
+          const maxZ = Math.max(...this.cards.map(c => c.zIndex || 0)) + 10; card.zIndex = maxZ; card.el.style.zIndex = maxZ; card.el.style.position = 'absolute';
+          gsap.to(card.el, { left: `calc(50% + ${(Math.random() - 0.5) * 800}px)`, top: `calc(50% + ${(Math.random() - 0.5) * 300}px)`, rotation: Math.random() * 30 - 15, duration: 0.45, onComplete: () => { this.updateCardInteractivity(); this.isProcessing = false; this.updateToolState(); } });
+          this.animateSlots();
+        }
+        if (name === 'shuffle') {
+          const active = this.getActiveCards();
+          if (!active.length) { AudioManager.error(); this.updateToolState(); return; }
+          this.tools[name] -= 1; this.isProcessing = true; this.updateToolState(); AudioManager.click();
+          active.forEach((card, index) => { card.zIndex = index + 100; card.el.style.zIndex = card.zIndex; gsap.to(card.el, { left: `calc(50% + ${(Math.random() - 0.5) * 1200}px)`, top: `calc(50% + ${(Math.random() - 0.5) * 450}px)`, rotation: (Math.random() - 0.5) * 60, duration: 0.56, ease: 'power2.inOut' }); });
+          setTimeout(() => { this.updateCardInteractivity(); this.isProcessing = false; this.updateToolState(); }, 620);
+        }
+        if (name === 'hint') {
+          const hintCards = this.getHintCards();
+          if (!hintCards.length) { AudioManager.error(); this.updateToolState(); return; }
+          this.tools[name] -= 1; this.updateToolState(); AudioManager.click();
+          hintCards.forEach(c => { gsap.fromTo(c.el, { scale: 1 }, { scale: 1.22, yoyo: true, repeat: 3, duration: 0.22 }); });
+        }
+      },
+      updateToolState() {
+        const undoBtn = document.getElementById('undoBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        undoBtn.textContent = `Undo ${this.tools.undo}`;
+        hintBtn.textContent = `Hint ${this.tools.hint}`;
+        shuffleBtn.textContent = `Shuffle ${this.tools.shuffle}`;
+        undoBtn.disabled = this.isProcessing || this.tools.undo <= 0 || this.slots.length === 0;
+        hintBtn.disabled = this.isProcessing || this.tools.hint <= 0 || this.getHintCards().length === 0;
+        shuffleBtn.disabled = this.isProcessing || this.tools.shuffle <= 0 || this.getActiveCards().length === 0;
+      },
+      showGameModal(title, text, btn, action) {
+        Timer.stop(); const modal = document.getElementById('modal'); document.getElementById('modalTitle').textContent = title; document.getElementById('modalText').textContent = text;
+        const modalBtn = document.getElementById('modalBtn'); modalBtn.textContent = btn; modalBtn.onclick = () => { modal.classList.remove('show'); action(); }; modal.classList.add('show');
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => App.init());
+  </script>
+</body>
+</html>

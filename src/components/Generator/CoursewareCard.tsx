@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, FileCode2, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Courseware, LearningDataRecoveryRequest, VisualStyleRegenerationRequest } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
 import LearningDataRecoveryModal from './LearningDataRecoveryModal';
+import HtmlTypeBadge from '../common/HtmlTypeBadge';
 import {
   baseVisualStylePresets,
   enhancementVisualStylePreviewImages,
@@ -366,7 +367,7 @@ export default function CoursewareCard({
         width: '100%',
         maxWidth: '100%',
         boxSizing: 'border-box',
-        boxShadow: '0 8px 24px rgba(37, 74, 120, 0.08)',
+        boxShadow: '0 3px 10px rgba(37, 74, 120, 0.04)',
         cursor: onOpenPreview ? 'pointer' : 'default',
         position: 'relative',
       }}
@@ -384,16 +385,7 @@ export default function CoursewareCard({
           borderRadius: `${UI_RADIUS}px ${UI_RADIUS}px 0 0`,
         }}
         >
-          <div style={{
-            width: 44, height: 44, borderRadius: UI_RADIUS,
-            background: 'var(--agent-gradient)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            color: '#FFFFFF',
-            boxShadow: '0 10px 22px var(--agent-shadow), inset 0 1px 0 rgba(255,255,255,0.28)',
-          }}>
-            <FileCode2 size={21} strokeWidth={2.2} />
-            <span style={{ fontSize: 8, fontWeight: 900, lineHeight: 1, marginTop: 1 }}>HTML</span>
-          </div>
+          <HtmlTypeBadge size="large" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <span style={{ fontSize: 16, fontWeight: 760, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{courseware.title}</span>

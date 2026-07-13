@@ -7,9 +7,9 @@ import {
   FolderOpen,
   Monitor,
   PanelRight,
+  ExternalLink,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
-import { useConversationStore } from '../../store/conversationStore';
 import Logo from './Logo';
 import ChatHistory from '../Generator/ChatHistory';
 import { AGENT_THEMES, applyAgentTheme, getStoredThemeId, type AgentThemeId } from '../../theme';
@@ -27,8 +27,8 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { key: 'new', label: '新建任务', icon: PlusCircle, route: '/', isPrimary: true },
-  { key: 'library', label: '我的作品', icon: FolderOpen, route: '/library' },
+  { key: 'new', label: '新建互动课件', icon: PlusCircle, route: '/', isPrimary: true },
+  { key: 'library', label: '我的创作', icon: FolderOpen, route: '/library' },
 ];
 
 const styles = {
@@ -38,8 +38,8 @@ const styles = {
     top: 0,
     height: '100vh',
     width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
-    background: 'var(--agent-sidebar)',
-    borderRight: '1px solid #E2E8F0',
+    background: 'var(--agent-sidebar-bg, var(--agent-sidebar))',
+    borderRight: '1px solid var(--agent-sidebar-border, #DCEAF7)',
     display: 'flex',
     flexDirection: 'column',
     transition: 'width 0.2s ease',
@@ -51,9 +51,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: collapsed ? 'center' : 'space-between',
-    padding: collapsed ? '16px 0 12px' : '16px',
-    minHeight: 64,
+    padding: collapsed ? '12px 0 8px' : '10px 18px',
+    minHeight: 52,
     flexShrink: 0,
+    borderBottom: 'none',
   }),
 
   logoWrapper: {
@@ -64,7 +65,7 @@ const styles = {
 
   logoText: {
     fontSize: 17,
-    fontWeight: 600,
+    fontWeight: 850,
     color: '#1E293B',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -89,16 +90,16 @@ const styles = {
     flexShrink: 0,
     display: 'flex',
     flexDirection: 'column',
-    gap: 8,
-    padding: '8px 12px',
+    gap: 4,
+    padding: '10px 12px 12px',
   } as React.CSSProperties,
 
   historySection: {
     flex: 1,
-    overflowY: 'auto',
+    overflowY: 'hidden',
     overflowX: 'hidden',
-    borderTop: '1px solid #E2E8F0',
-    marginTop: 8,
+    borderTop: '1px solid var(--agent-sidebar-border, #DCEAF7)',
+    marginTop: 0,
   } as React.CSSProperties,
 
   primaryBtn: (collapsed: boolean): React.CSSProperties => ({
@@ -117,8 +118,31 @@ const styles = {
     fontWeight: 600,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
-    transition: 'padding 0.2s ease, justify-content 0.2s ease, opacity 0.15s ease',
+    boxShadow: 'none',
+    transition: 'padding 0.2s ease, justify-content 0.2s ease, opacity 0.15s ease, transform 0.15s ease',
   }),
+
+  primaryLabel: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  } as React.CSSProperties,
+
+  primaryNewWindowBtn: {
+    marginLeft: 'auto',
+    width: 24,
+    height: 24,
+    borderRadius: 0,
+    border: 'none',
+    background: 'transparent',
+    color: '#FFFFFF',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+    opacity: 0.9,
+    flexShrink: 0,
+  } as React.CSSProperties,
 
   navItem: (active: boolean, collapsed: boolean): React.CSSProperties => ({
     display: 'flex',
@@ -127,12 +151,12 @@ const styles = {
     gap: 10,
     width: '100%',
     padding: collapsed ? '10px 0' : '10px 14px',
-    background: active ? '#FFFFFF' : 'transparent',
-    color: active ? 'var(--agent-primary)' : '#475569',
-    border: active ? '1px solid rgba(255, 255, 255, 0.82)' : '1px solid transparent',
+    background: active ? 'rgba(255,255,255,0.86)' : 'transparent',
+    color: active ? 'var(--agent-primary)' : '#42526A',
+    border: active ? '1px solid var(--agent-sidebar-active-border, rgba(220, 234, 247, 0.9))' : '1px solid transparent',
     borderRadius: 10,
     marginRight: 0,
-    boxShadow: active ? '0 8px 20px rgba(37, 74, 120, 0.08)' : 'none',
+    boxShadow: active ? '0 10px 22px rgba(37, 74, 120, 0.08)' : 'none',
     cursor: 'pointer',
     fontSize: 14,
     fontWeight: active ? 600 : 400,
@@ -267,13 +291,28 @@ const styles = {
     justifyContent: 'space-between',
     gap: 8,
     padding: '10px 12px 14px',
-    borderTop: '1px solid #E2E8F0',
+    borderTop: '1px solid var(--agent-sidebar-border, #DCEAF7)',
     overflow: 'visible',
   } as React.CSSProperties,
 
   hiddenModeHotspot: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
     width: 72,
     height: 38,
+    border: 'none',
+    background: 'transparent',
+    padding: 0,
+    cursor: 'default',
+  } as React.CSSProperties,
+
+  hiddenThemeHotspot: {
+    position: 'absolute',
+    left: 0,
+    bottom: 0,
+    width: 100,
+    height: 48,
     border: 'none',
     background: 'transparent',
     padding: 0,
@@ -300,13 +339,15 @@ const styles = {
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sidebarCollapsed, toggleSidebar, appMode, setAppMode, closePreview } = useUIStore();
-  const { setActiveConversation } = useConversationStore();
+  const { sidebarCollapsed, toggleSidebar, appMode, setAppMode } = useUIStore();
 
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [themeExpanded, setThemeExpanded] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<AgentThemeId>(() => getStoredThemeId());
+  const [themeSwitchVisible, setThemeSwitchVisible] = useState(false);
   const [modeSwitchVisible, setModeSwitchVisible] = useState(false);
+  const hiddenThemeClickCountRef = useRef(0);
+  const hiddenThemeClickTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const hiddenModeClickCountRef = useRef(0);
   const hiddenModeClickTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
@@ -335,17 +376,39 @@ function Sidebar() {
     }
   };
 
+  const handleHiddenThemeHotspotClick = () => {
+    if (themeSwitchVisible) return;
+    hiddenThemeClickCountRef.current += 1;
+    if (hiddenThemeClickTimerRef.current) {
+      window.clearTimeout(hiddenThemeClickTimerRef.current);
+    }
+    hiddenThemeClickTimerRef.current = window.setTimeout(() => {
+      hiddenThemeClickCountRef.current = 0;
+    }, 1200);
+    if (hiddenThemeClickCountRef.current >= 3) {
+      setThemeSwitchVisible(true);
+      hiddenThemeClickCountRef.current = 0;
+      if (hiddenThemeClickTimerRef.current) {
+        window.clearTimeout(hiddenThemeClickTimerRef.current);
+        hiddenThemeClickTimerRef.current = null;
+      }
+    }
+  };
+
   const handleNavClick = (item: NavItem) => {
     if (item.key === 'new') {
-      setActiveConversation(null);
-      closePreview();
-      navigate('/');
+      openCreationWindow();
       return;
     }
 
     if (item.route) {
       navigate(item.route);
     }
+  };
+
+  const openCreationWindow = () => {
+    const targetUrl = `${window.location.origin}/`;
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
   };
 
   const isActive = (item: NavItem) => {
@@ -360,7 +423,7 @@ function Sidebar() {
       <div style={styles.logoArea(sidebarCollapsed)}>
         {!sidebarCollapsed && (
           <div style={styles.logoWrapper}>
-            <Logo size={28} />
+            <Logo size={32} />
             <span style={styles.logoText}>互动课件 AI Agent</span>
           </div>
         )}
@@ -428,7 +491,18 @@ function Sidebar() {
                 title={sidebarCollapsed ? item.label : undefined}
               >
                 <Icon size={20} style={{ flexShrink: 0 }} />
-                {!sidebarCollapsed && <span>{item.label}</span>}
+                {!sidebarCollapsed && (
+                  <>
+                    <span style={styles.primaryLabel}>{item.label}</span>
+                    <span
+                      title="新窗口打开创作页"
+                      style={styles.primaryNewWindowBtn}
+                      aria-hidden="true"
+                    >
+                      <ExternalLink size={18} />
+                    </span>
+                  </>
+                )}
               </button>
             );
           }
@@ -461,7 +535,7 @@ function Sidebar() {
       )}
 
       <div style={styles.bottomTools}>
-        {!sidebarCollapsed && (
+        {!sidebarCollapsed && themeSwitchVisible && (
           <div style={styles.themeArea}>
             <button
               type="button"
@@ -511,6 +585,15 @@ function Sidebar() {
               </div>
             )}
           </div>
+        )}
+
+        {!sidebarCollapsed && !themeSwitchVisible && (
+          <button
+            type="button"
+            aria-label="隐藏配色入口"
+            style={styles.hiddenThemeHotspot}
+            onClick={handleHiddenThemeHotspotClick}
+          />
         )}
 
         {!sidebarCollapsed && !modeSwitchVisible && (

@@ -364,8 +364,8 @@ export function generateRequirementFromPrompt(prompt: string): RequirementFramew
     const playwayType = prompt.match(/玩法类型：([^\n]+)/)?.[1]?.trim();
     const ageRange = prompt.match(/适用年龄：([^\n]+)/)?.[1]?.trim();
     return withAppliedPlaywayTemplate({
-      generationSettings: `课件结构：基于已套用玩法模板生成横版 16:9 互动课件。\n提交方式：优先遵循玩法说明模板中的交互、校验、反馈和完成标准。\n生成原则：保留老师输入的需求内容，只替换为当前套用玩法的课堂互动结构。`,
-      userRequirement: `老师需求：${demand || '基于已套用玩法生成互动课件'}\n已套用玩法：${[playwayName, playwayType, ageRange].filter(Boolean).join(' · ')}`,
+      generationSettings: `课件结构：基于已套用模板生成横版 16:9 互动课件。\n提交方式：优先遵循模板说明中的交互、校验、反馈和完成标准。\n生成原则：保留老师输入的需求内容，只替换为当前模板的课堂互动结构。`,
+      userRequirement: `老师需求：${demand || '基于已套用模板生成互动课件'}\n已套用模板：${[playwayName, playwayType, ageRange].filter(Boolean).join(' · ')}`,
       featureDesign: appliedPlaywayPrompt,
       designStyle: `画面与反馈优先遵循玩法说明模板中的视觉框架、UI 风格、交互反馈和完成标准；如果老师另有画面风格要求，则在不破坏玩法结构和可读性的前提下融合。${materialStyle}`,
     });

@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from './components/Layout/MainLayout';
 import GeneratorPage from './pages/GeneratorPage';
 import LibraryPage from './pages/LibraryPage';
 import EditorPage from './pages/EditorPage';
 import EditorDrawer from './components/Layout/EditorDrawer';
+import InspirationAssistant from './components/Generator/InspirationAssistant';
 import { useUIStore } from './store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from './store/conversationStore';
 import { useCoursewareStore } from './store/coursewareStore';
@@ -15,7 +16,9 @@ function AppContent() {
   const closePreview = useUIStore((s) => s.closePreview);
   const openPreview = useUIStore((s) => s.openPreview);
   const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
+  const setPendingAssistantPrompt = useUIStore((s) => s.setPendingAssistantPrompt);
   const navigate = useNavigate();
+  const location = useLocation();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
   const openPublishedConversation = useConversationStore((s) => s.openPublishedConversation);
   const coursewares = useCoursewareStore((s) => s.coursewares);
@@ -88,6 +91,22 @@ function AppContent() {
     return () => window.removeEventListener('message', handler);
   }, [coursewares, createCloneConversation, closePreview, navigate]);
 
+  const handleApplyAssistantPrompt = useCallback((prompt: string) => {
+    setPendingAssistantPrompt(prompt);
+    if (location.pathname !== '/') {
+      closePreview();
+      navigate('/');
+    }
+    toast('已带回输入框，可继续修改后生成');
+  }, [closePreview, location.pathname, navigate, setPendingAssistantPrompt]);
+
+  const assistantNode = (
+    <InspirationAssistant
+      onApplyPrompt={handleApplyAssistantPrompt}
+      isHomePage={location.pathname === '/'}
+    />
+  );
+
   if (appMode === 'embedded') {
     return (
       <>
@@ -95,11 +114,17 @@ function AppContent() {
         <EditorDrawer>
           <MainLayout embedded />
         </EditorDrawer>
+        {assistantNode}
       </>
     );
   }
 
-  return <MainLayout />;
+  return (
+    <>
+      <MainLayout />
+      {assistantNode}
+    </>
+  );
 }
 
 function App() {

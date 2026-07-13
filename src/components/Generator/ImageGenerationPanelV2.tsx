@@ -26,7 +26,7 @@ const MOCK_IMAGES: EnhancedImageItem[] = [
   { id: 'img-1', label: '主界面背景', src: '/images/background.png', prompt: '色彩鲜艳的游戏主界面背景', status: 'completed' },
   { id: 'img-2', label: '动物角色', src: '/images/animal.png', prompt: '可爱的卡通小熊角色', status: 'completed' },
   { id: 'img-3', label: '奖励星星', src: '/images/star.png', prompt: '金色五角星', status: 'completed' },
-  { id: 'img-4', label: '道具图标', prompt: '游戏道具宝箱', status: 'pending' },
+  { id: 'img-4', label: '道具图标', src: '/case-games/word-shooter/images/equip_magic_wand.png', prompt: '游戏道具宝箱', status: 'completed' },
 ];
 
 const ImageCard: React.FC<{ image: EnhancedImageItem }> = ({ image }) => {

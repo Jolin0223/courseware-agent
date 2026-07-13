@@ -198,7 +198,7 @@ export const inspirationSeedData = {
       "ageText": "6-10岁",
       "shortDesc": "在披萨店情境中读取分数订单，选择正确配料并放到对应数量的披萨块上，用按铃提交完成分数识别与即时反馈。",
       "exampleId": "",
-      "examplePreviewUrl": "",
+      "examplePreviewUrl": "/demo-history/fraction-pizza.html",
       "coverUrl": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/tKaqXQLA-2600008999-AigcImage-dfa186ad6f7d49b1b8383397bdaa4ed6_0.png",
       "suitableTags": [
         "数量匹配",
@@ -309,7 +309,7 @@ export const inspirationSeedData = {
       "ageText": "8-12岁",
       "shortDesc": "在海图指挥台情境中，根据行列数字提示标记隐藏战舰位置，并用水域标记辅助排除，完成数量、形状、不相邻规则的综合逻辑推理。",
       "exampleId": "",
-      "examplePreviewUrl": "",
+      "examplePreviewUrl": "/demo-history/battleship-logic/index.html",
       "coverUrl": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/I2qdfO28-2600008999-AigcImage-63c35dd21e074f79909abbb045bba80a_0.png",
       "suitableTags": [
         "行列推理",
@@ -347,7 +347,7 @@ export const inspirationSeedData = {
       "ageText": "4-8岁",
       "shortDesc": "看图片、听发音，把打乱的字母拖进果冻槽里拼出英文单词；拼对后自动进入下一词，完成5个单词后获得通关反馈。",
       "exampleId": "",
-      "examplePreviewUrl": "",
+      "examplePreviewUrl": "/demo-history/make-a-word-jelly/index.html",
       "coverUrl": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/4QhsQwn5-2600008999-AigcImage-a038521cd7d34651985c771b1330441e_0.png",
       "suitableTags": [
         "看图识词",
@@ -421,7 +421,7 @@ export const inspirationSeedData = {
       "ageText": "6-10岁",
       "shortDesc": "通过旋转指针对齐环形答案刻度，用“看目标-转指针-点确定”的方式完成时钟、拼音、方位、月份或数字结果的认读练习。",
       "exampleId": "",
-      "examplePreviewUrl": "",
+      "examplePreviewUrl": "/demo-history/clock-reading.html",
       "coverUrl": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/TMvevMXM-2600008999-AigcImage-3f6a6afce0544326859d3c8e807c82c6_0.png",
       "suitableTags": [
         "时钟认读",
@@ -458,7 +458,7 @@ export const inspirationSeedData = {
       "ageText": "6-10岁",
       "shortDesc": "观察目标汉字和结构，把部件拖入对应槽位完成组字，拼满后自动判题，支持误放取回、即时反馈、倒计时和连击得分。",
       "exampleId": "",
-      "examplePreviewUrl": "",
+      "examplePreviewUrl": "/demo-history/hanzi-rush/index.html",
       "coverUrl": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/CsApNWEL-2600008999-AigcImage-a1f1ba4b373240acb32a0c2818e88002_0.png",
       "suitableTags": [
         "汉字结构",
@@ -492,7 +492,7 @@ export const inspirationSeedData = {
       "ageText": "5-8岁",
       "shortDesc": "通过看图认词、听音跟读和图片-英文-中文三卡配对，完成动物单词学习与闯关巩固",
       "exampleId": "",
-      "examplePreviewUrl": "",
+      "examplePreviewUrl": "/demo-history/animal-forest/index.html",
       "coverUrl": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/mdRmM1fT-2600008999-AigcImage-eb845ecb04b64fb1bb55438818678e86_0.png",
       "suitableTags": [
         "英语启蒙",
@@ -564,7 +564,7 @@ export const inspirationSeedData = {
       "ageText": "6-10岁",
       "shortDesc": "在电话接线员情境中阅读左侧问句和右侧答句，点击或拖拽电话线完成配对，提交后即时显示正确连线和得分反馈。",
       "exampleId": "",
-      "examplePreviewUrl": "",
+      "examplePreviewUrl": "/demo-history/dialogue-linking/index.html",
       "coverUrl": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/vgA4FNj5-2600008999-AigcImage-84822e8ab52d4e8d8db63b02f8def3a3_0.png",
       "suitableTags": [
         "英语问答",
@@ -635,7 +635,7 @@ export const inspirationSeedData = {
       "ageText": "6-10岁",
       "shortDesc": "在软萌侦探题板情境中阅读题干，翻开线索卡，把线索作为题目条件进行排除判断，选择 A/B/C 并通过选项内正误状态完成即时反馈。",
       "exampleId": "",
-      "examplePreviewUrl": "",
+      "examplePreviewUrl": "/demo-history/math-detective/index.html",
       "coverUrl": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/WJxbGtFL-2600008999-AigcImage-8d566981557e4e32af7be619e397ab65_0.png",
       "suitableTags": [
         "条件推理",

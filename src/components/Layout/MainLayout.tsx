@@ -5,8 +5,8 @@ import { useConversationStore } from '../../store/conversationStore';
 import { PlusCircle, FolderOpen } from 'lucide-react';
 
 const embeddedTabs = [
-  { key: '/', label: '新建任务', icon: PlusCircle },
-  { key: '/library', label: '我的作品', icon: FolderOpen },
+  { key: '/', label: '新建互动课件', icon: PlusCircle },
+  { key: '/library', label: '我的创作', icon: FolderOpen },
 ];
 
 const MainLayout = ({ embedded }: { embedded?: boolean }) => {
@@ -50,7 +50,7 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
             );
           })}
         </div>
-        <main style={{ flex: 1, overflowY: 'auto', background: 'var(--agent-page-bg)' }}>
+        <main data-app-scroll-container="true" style={{ flex: 1, overflowY: 'auto', background: 'var(--agent-page-bg)' }}>
           <Outlet />
         </main>
       </div>
@@ -61,6 +61,7 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
       <main
+        data-app-scroll-container="true"
         style={{
           marginLeft: sidebarCollapsed ? 64 : 260,
           height: '100vh',

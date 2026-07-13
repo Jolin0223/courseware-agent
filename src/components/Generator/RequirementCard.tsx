@@ -421,7 +421,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                 </div>
                 {isSectionDone && section.key === 'featureDesign' && framework.featureDesignFormat === 'markdown' ? (
                   <div style={markdownStyles.panel}>
-                    <div style={markdownStyles.panelHint}>已套用玩法说明模板，生成时会结合你的需求自动改写成新课件。</div>
+                    <div style={markdownStyles.panelHint}>已套用模板说明，生成时会结合你的需求自动改写成新课件。</div>
                     <MarkdownPromptPreview text={editText} />
                   </div>
                 ) : isSectionDone ? (

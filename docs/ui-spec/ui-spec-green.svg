@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="3200" viewBox="0 0 1600 3200">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00C9A7"/>
+      <stop offset="100%" stop-color="#00A8E8"/>
+    </linearGradient>
+    <linearGradient id="action" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00C9A7"/>
+      <stop offset="100%" stop-color="#22C55E"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="52%" stop-color="#F0FDF9"/>
+      <stop offset="100%" stop-color="#EFF6FF"/>
+    </linearGradient>
+    <linearGradient id="courseHeader" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E6FBF7"/>
+      <stop offset="58%" stop-color="#E7F8FF"/>
+      <stop offset="100%" stop-color="#F1FDF4"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0F766E" flood-opacity="0.13"/>
+    </filter>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#254A78" flood-opacity="0.08"/>
+    </filter>
+    <style>
+      .bg{fill:#F8FAFE}
+      .panel{fill:#fff;stroke:#E2E8F0;stroke-width:1}
+      .mutedPanel{fill:#F8FAFC;stroke:#E2E8F0;stroke-width:1}
+      .title{font:800 38px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#0F172A}
+      .h2{font:800 24px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#1E293B}
+      .h3{font:760 17px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#334155}
+      .body{font:500 14px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#475569}
+      .small{font:500 12px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#64748B}
+      .meta{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;fill:#94A3B8}
+      .code{font:650 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#334155}
+      .line{stroke:#E2E8F0;stroke-width:1}
+      .dash{stroke:#94A3B8;stroke-width:1;stroke-dasharray:6 7}
+      .chip{font:850 13px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="3200"/>
+  <text x="72" y="74" class="title">互动课件 AI Agent UI 规范 · 默认绿色</text>
+  <text x="72" y="110" class="body">按当前真实 Web Demo 反推：页面布局、控件尺寸、按钮状态、课件卡片、资源库和发布弹窗都可直接还原。</text>
+  <line x1="72" y1="144" x2="1528" y2="144" class="line"/>
+
+  <text x="72" y="206" class="h2">01 主题 token</text>
+  <g transform="translate(72 238)">
+    <rect width="1456" height="170" rx="16" class="panel"/>
+    <g transform="translate(24 24)">
+      <rect width="162" height="70" rx="12" fill="#00C9A7"/><text x="14" y="28" fill="#fff" font-size="14" font-weight="800">Primary</text><text x="14" y="52" fill="#fff" font-size="13" font-weight="700">#00C9A7</text>
+      <rect x="184" width="162" height="70" rx="12" fill="#00A8E8"/><text x="198" y="28" fill="#fff" font-size="14" font-weight="800">Secondary</text><text x="198" y="52" fill="#fff" font-size="13" font-weight="700">#00A8E8</text>
+      <rect x="368" width="162" height="70" rx="12" fill="#22C55E"/><text x="382" y="28" fill="#fff" font-size="14" font-weight="800">Accent</text><text x="382" y="52" fill="#fff" font-size="13" font-weight="700">#22C55E</text>
+      <rect x="552" width="162" height="70" rx="12" fill="#F0FDF9" stroke="#A7F3D0"/><text x="566" y="28" fill="#047857" font-size="14" font-weight="800">Soft</text><text x="566" y="52" fill="#047857" font-size="13" font-weight="700">#F0FDF9</text>
+      <rect x="736" width="162" height="70" rx="12" fill="#CCFBF1" stroke="#A7F3D0"/><text x="750" y="28" fill="#047857" font-size="14" font-weight="800">Selected</text><text x="750" y="52" fill="#047857" font-size="13" font-weight="700">#CCFBF1</text>
+      <rect x="920" width="162" height="70" rx="12" fill="#DFF6FF" stroke="#BAE6FD"/><text x="934" y="28" fill="#075985" font-size="14" font-weight="800">Sidebar</text><text x="934" y="52" fill="#075985" font-size="13" font-weight="700">#DFF6FF</text>
+      <rect x="1104" width="250" height="70" rx="12" fill="url(#brand)"/><text x="1118" y="28" fill="#fff" font-size="14" font-weight="800">Brand gradient</text><text x="1118" y="52" fill="#fff" font-size="12" font-weight="700">#00C9A7 → #00A8E8</text>
+      <rect y="94" width="250" height="44" rx="10" fill="url(#action)"/><text x="14" y="122" fill="#fff" font-size="13" font-weight="800">Action gradient：生成 / 套用 / 发送</text>
+      <rect x="274" y="94" width="250" height="44" rx="10" fill="url(#courseHeader)" stroke="#A7F3D0"/><text x="288" y="122" fill="#047857" font-size="13" font-weight="800">Courseware header：轻，不像置灰</text>
+      <text x="552" y="112" class="small">HTML 标识用 brand gradient；已发布用蓝色状态；第 N 版弱化为元信息。</text>
+    </g>
+  </g>
+
+  <text x="72" y="484" class="h2">02 真实布局尺寸</text>
+  <g transform="translate(72 518)">
+    <rect width="1456" height="410" rx="16" class="panel"/>
+    <text x="24" y="38" class="h3">1920 × 1080 首页</text>
+    <rect x="24" y="58" width="640" height="250" rx="12" fill="#F8FAFE" stroke="#CBD5E1"/>
+    <rect x="24" y="58" width="94" height="250" fill="#DFF6FF"/><text x="48" y="196" class="small" transform="rotate(-90 48 196)">Sidebar 280</text>
+    <rect x="210" y="94" width="360" height="74" rx="16" fill="#fff" stroke="#E2E8F0" filter="url(#cardShadow)"/><text x="302" y="136" class="body">输入区 max 1080</text>
+    <rect x="210" y="188" width="360" height="78" rx="16" fill="url(#panel)" stroke="#A7F3D0" filter="url(#shadow)"/><text x="292" y="232" class="body">灵感推荐区 max 1080</text>
+    <line x1="210" y1="325" x2="570" y2="325" class="dash"/><text x="284" y="352" class="small">输入区与灵感区必须等宽对齐</text>
+
+    <text x="724" y="38" class="h3">会话页：无预览 / 有预览</text>
+    <rect x="724" y="58" width="300" height="250" rx="12" fill="#F8FAFE" stroke="#CBD5E1"/>
+    <rect x="780" y="96" width="188" height="154" rx="10" fill="#fff" stroke="#A7F3D0"/><text x="812" y="178" class="body">内容列 864</text>
+    <rect x="1060" y="58" width="360" height="250" rx="12" fill="#F8FAFE" stroke="#CBD5E1"/>
+    <rect x="1092" y="96" width="156" height="154" rx="10" fill="#fff" stroke="#A7F3D0"/><text x="1126" y="178" class="body">聊天 720</text>
+    <rect x="1260" y="58" width="6" height="250" fill="#E2E8F0"/>
+    <rect x="1280" y="96" width="112" height="154" rx="10" fill="#F0FDF9" stroke="#A7F3D0"/><text x="1304" y="178" class="body">预览区</text>
+    <text x="724" y="352" class="small">右侧预览开启时默认 52% / 48%，拖拽范围 44%-64%，分割线 6px。</text>
+  </g>
+
+  <text x="72" y="1004" class="h2">03 字体、圆角、阴影</text>
+  <g transform="translate(72 1038)">
+    <rect width="700" height="330" rx="16" class="panel"/>
+    <text x="28" y="56" font-size="34" font-weight="700" fill="#1E293B">生成一节会互动的课</text>
+    <text x="28" y="92" class="small">首页 H1：34px / 700，居中，不做营销巨标题</text>
+    <text x="28" y="142" font-size="28" font-weight="700" fill="#1E293B">我的作品</text>
+    <text x="28" y="174" class="small">页面 H1：28px / 700</text>
+    <text x="28" y="222" font-size="18" font-weight="900" fill="#047857">灵感推荐区</text>
+    <text x="28" y="254" class="small">模块标题：18px / 900；卡片标题：16px / 900；正文：14-15px</text>
+    <text x="28" y="296" class="small">字体栈：-apple-system, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif</text>
+    <rect x="756" width="700" height="330" rx="16" class="panel"/>
+    <text x="784" y="48" class="h3">圆角层级</text>
+    <rect x="784" y="72" width="82" height="38" rx="6" fill="#fff" stroke="#CBD5E1"/><text x="888" y="96" class="body">6-8：小输入/关闭按钮</text>
+    <rect x="784" y="126" width="82" height="38" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/><text x="888" y="150" class="body">10：筛选项、导航、常规按钮、课件卡片</text>
+    <rect x="784" y="180" width="82" height="44" rx="16" fill="#fff" stroke="#E2E8F0" filter="url(#cardShadow)"/><text x="888" y="207" class="body">16：首页输入区、灵感推荐外壳</text>
+    <rect x="784" y="242" width="82" height="30" rx="999" fill="#F0FDF9" stroke="#A7F3D0"/><text x="888" y="262" class="body">999：仅状态 pill / 小标签 / 计数徽标</text>
+  </g>
+
+  <text x="72" y="1444" class="h2">04 按钮、筛选项、状态</text>
+  <g transform="translate(72 1478)">
+    <rect width="1456" height="310" rx="16" class="panel"/>
+    <text x="24" y="42" class="h3">筛选项真实三态：首页灵感推荐区 / 资源库 / 发布弹窗统一使用</text>
+    <text x="24" y="84" class="meta">DEFAULT</text>
+    <rect x="24" y="102" width="88" height="32" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/><text x="52" y="123" class="chip" fill="#475569">全部</text>
+    <text x="148" y="84" class="meta">HOVER</text>
+    <rect x="148" y="102" width="112" height="32" rx="10" fill="#F6FCFF" stroke="#BFE9F5" filter="url(#cardShadow)"/><text x="180" y="123" class="chip" fill="#047857">数学</text>
+    <text x="296" y="84" class="meta">SELECTED</text>
+    <rect x="296" y="102" width="122" height="32" rx="10" fill="#F1FAFF" stroke="#BFE9F5"/><text x="328" y="123" font-size="13" font-weight="700" fill="#047857">一年级</text>
+    <text x="454" y="84" class="meta">DISABLED</text>
+    <rect x="454" y="102" width="122" height="32" rx="10" fill="#F8FAFC" stroke="#E2E8F0"/><text x="480" y="123" font-size="13" font-weight="700" fill="#94A3B8">调整风格</text>
+    <text x="640" y="88" class="body">状态规则：hover 跟鼠标，selected 跟业务状态。鼠标移走或切换选择后必须恢复默认态。</text>
+    <text x="640" y="126" class="body">禁止：黑色描边残留、点击后未选中项仍像选中、紧凑按钮 hover 上移被裁切。</text>
+    <line x1="24" y1="164" x2="1432" y2="164" class="line"/>
+    <text x="24" y="206" class="h3">常用按钮</text>
+    <rect x="24" y="228" width="106" height="36" rx="10" fill="url(#action)" filter="url(#shadow)"/><text x="52" y="251" font-size="14" font-weight="800" fill="#fff">发送</text>
+    <rect x="150" y="228" width="110" height="34" rx="10" fill="#F6FCFF" stroke="#DDE7EE"/><text x="174" y="250" font-size="12" font-weight="750" fill="#047857">一键同款</text>
+    <rect x="280" y="228" width="110" height="34" rx="10" fill="#fff" stroke="#DDE7EE"/><text x="304" y="250" font-size="12" font-weight="750" fill="#475569">预览报告</text>
+    <rect x="410" y="228" width="110" height="34" rx="10" fill="#F8FAFC" stroke="#DDE7EE"/><text x="436" y="250" font-size="12" font-weight="750" fill="#CBD5E1">禁用态</text>
+    <rect x="548" y="228" width="32" height="32" rx="8" fill="none"/><text x="624" y="250" class="body">图标按钮 30-32px，radius 8-10，hover 浅底，不使用文字型大按钮替代熟悉图标。</text>
+  </g>
+
+  <text x="72" y="1864" class="h2">05 首页输入区与灵感推荐区</text>
+  <g transform="translate(72 1898)">
+    <rect width="700" height="460" rx="16" class="panel"/>
+    <text x="28" y="46" class="h3">输入区真实规格</text>
+    <rect x="28" y="78" width="620" height="128" rx="16" fill="#fff" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+    <text x="52" y="116" font-size="15" fill="#94A3B8">例如：做一个一年级英语水果单词听音选择游戏</text>
+    <rect x="52" y="156" width="32" height="32" rx="8" fill="transparent"/>
+    <text x="62" y="177" font-size="16" fill="#64748B">□</text>
+    <rect x="92" y="156" width="32" height="32" rx="8" fill="transparent"/>
+    <text x="102" y="177" font-size="16" fill="#64748B">↥</text>
+    <circle cx="604" cy="164" r="18" fill="url(#brand)" filter="url(#shadow)"/>
+    <text x="52" y="242" class="body">容器：max 1080，padding 18/24，radius 16，border #E2E8F0。</text>
+    <text x="52" y="274" class="body">textarea：15px，line-height 1.5，透明背景，无边框。</text>
+    <text x="52" y="306" class="body">左侧上传图标：32×32/r8；右侧发送：36×36/r10。</text>
+    <text x="52" y="338" class="body">placeholder 三条正向循环，每条 24px 高，不反向滚动。</text>
+    <rect x="52" y="370" width="420" height="44" rx="10" fill="#F0FDF9" stroke="#A7F3D0"/>
+    <text x="68" y="398" class="small">输入你的课件需求，或先从灵感推荐区套用模板，或跟灵感助手聊聊看。</text>
+
+    <rect x="756" width="700" height="460" rx="16" fill="url(#panel)" stroke="#A7F3D0" filter="url(#shadow)"/>
+    <text x="784" y="46" class="h3">灵感推荐区真实规格</text>
+    <text x="784" y="82" class="body">外壳：max 1080，padding 16，radius 16，panel gradient。</text>
+    <rect x="784" y="112" width="84" height="32" rx="10" fill="#F1FAFF" stroke="#BFE9F5"/><text x="812" y="133" font-size="13" font-weight="700" fill="#047857">精选</text>
+    <rect x="876" y="112" width="106" height="32" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/><text x="904" y="133" class="chip" fill="#475569">图形空间</text>
+    <rect x="990" y="112" width="106" height="32" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/><text x="1018" y="133" class="chip" fill="#475569">逻辑推理</text>
+    <rect x="784" y="174" width="148" height="210" rx="14" fill="#fff" stroke="#A7F3D0" filter="url(#cardShadow)"/>
+    <rect x="784" y="174" width="148" height="84" fill="#E0F2FE"/><text x="816" y="221" font-size="13" font-weight="900" fill="#047857">16:9 封面</text>
+    <text x="798" y="286" font-size="16" font-weight="900" fill="#0F172A">玩法卡片</text>
+    <text x="798" y="316" font-size="12" fill="#334155">描述最多两行...</text>
+    <rect x="798" y="338" width="78" height="30" rx="10" fill="url(#action)"/><text x="824" y="358" font-size="12" font-weight="900" fill="#fff">套用</text>
+    <text x="964" y="212" class="body">4 列网格，gap 12；卡片 min-height 244。</text>
+    <text x="964" y="244" class="body">标题 16px/900，描述 12px 两行。</text>
+    <text x="964" y="276" class="body">套用按钮 30px 高，radius 10。</text>
+  </g>
+
+  <text x="72" y="2434" class="h2">06 课件结果卡片、资源库、发布弹窗</text>
+  <g transform="translate(72 2468)">
+    <rect width="470" height="540" rx="16" class="panel"/>
+    <text x="24" y="44" class="h3">课件结果卡片</text>
+    <rect x="24" y="76" width="422" height="172" rx="10" fill="#fff" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+    <rect x="24" y="76" width="422" height="82" rx="10" fill="url(#courseHeader)"/>
+    <rect x="48" y="96" width="44" height="44" rx="10" fill="url(#brand)" filter="url(#shadow)"/><text x="59" y="122" font-size="8" font-weight="900" fill="#fff">HTML</text>
+    <text x="108" y="114" font-size="16" font-weight="760" fill="#0F172A">颜色单词认一认</text>
+    <text x="108" y="138" font-size="12" font-weight="500" fill="#64748B">刚刚生成 ·</text>
+    <text x="178" y="138" font-size="12" font-weight="650" fill="#047857">✓ 已发布</text>
+    <text x="386" y="122" font-size="12" font-weight="650" fill="#64748B">第4版</text>
+    <rect x="44" y="184" width="86" height="34" rx="10" fill="#F6FCFF" stroke="#DDE7EE"/><text x="62" y="206" font-size="12" font-weight="750" fill="#047857">一键同款</text>
+    <rect x="138" y="184" width="86" height="34" rx="10" fill="#fff" stroke="#DDE7EE"/><text x="156" y="206" font-size="12" font-weight="750" fill="#475569">编辑资源</text>
+    <text x="24" y="294" class="body">外层：width 100%，max-width 100%，由会话列控制宽度。</text>
+    <text x="24" y="326" class="body">头部：padding 20/24，HTML 图标 44×44。</text>
+    <text x="24" y="358" class="body">底部：padding 14/20，按钮不 hover 上移。</text>
+    <text x="24" y="390" class="body">点击卡片必须打开右侧预览，不允许空白。</text>
+
+    <rect x="493" width="470" height="540" rx="16" class="panel"/>
+    <text x="517" y="44" class="h3">我的作品 / 资源库</text>
+    <text x="517" y="78" class="body">页面 max 1400，padding 32/40。</text>
+    <rect x="517" y="110" width="88" height="34" rx="10" fill="#F1FAFF" stroke="#BFE9F5"/><text x="545" y="132" font-size="14" font-weight="700" fill="#047857">全部</text>
+    <rect x="613" y="110" width="88" height="34" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/><text x="634" y="132" font-size="14" font-weight="700" fill="#475569">已发布</text>
+    <rect x="517" y="176" width="188" height="150" rx="10" fill="#fff" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+    <rect x="517" y="176" width="188" height="106" fill="#E0F2FE"/><text x="570" y="234" font-size="13" font-weight="900" fill="#075985">16:9 iframe</text>
+    <text x="531" y="310" font-size="14" font-weight="600" fill="#1E293B">课件标题</text>
+    <text x="517" y="370" class="body">网格：minmax(280px,1fr)，gap 20。</text>
+    <text x="517" y="402" class="body">卡片 hover：边框主题色，shadow，允许 translateY(-1)。</text>
+    <text x="517" y="434" class="body">状态标签左上角 26px 高，radius 10，白底。</text>
+
+    <rect x="986" width="470" height="540" rx="16" class="panel"/>
+    <text x="1010" y="44" class="h3">发布/替换弹窗</text>
+    <rect x="1010" y="74" width="400" height="300" rx="12" fill="#fff" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+    <text x="1032" y="112" font-size="18" font-weight="600" fill="#1E293B">发布互动课件</text>
+    <rect x="1032" y="142" width="356" height="34" rx="6" fill="#fff" stroke="#E2E8F0"/><text x="1046" y="164" class="small">input radius 6，padding 9/12</text>
+    <rect x="1032" y="194" width="356" height="68" rx="10" fill="#F1FAFF" stroke="#BFE9F5"/><text x="1050" y="224" font-size="14" font-weight="700" fill="#1E293B">集团资源库</text><text x="1050" y="246" class="small">选择卡片 min-height 68</text>
+    <rect x="1032" y="282" width="78" height="30" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/><text x="1050" y="302" font-size="13" fill="#334155">数学</text>
+    <rect x="1120" y="282" width="78" height="30" rx="10" fill="#F1FAFF" stroke="#BFE9F5"/><text x="1138" y="302" font-size="13" font-weight="700" fill="#047857">英语</text>
+    <rect x="1212" y="326" width="78" height="38" rx="10" fill="#FFFFFF" stroke="#E2E8F0"/><text x="1238" y="350" font-size="14" font-weight="700" fill="#64748B">取消</text>
+    <rect x="1304" y="326" width="84" height="38" rx="10" fill="url(#brand)" filter="url(#shadow)"/><text x="1320" y="350" font-size="14" font-weight="800" fill="#fff">确认发布</text>
+    <text x="1010" y="420" class="body">主按钮用主题主渐变 var(--agent-gradient)，不是 action 色。</text>
+    <text x="1010" y="452" class="body">footer 按钮 38px 高，radius 10，右对齐 gap 12。</text>
+    <text x="1010" y="484" class="body">所有选择项复用筛选项三态，不另起状态。</text>
+  </g>
+
+  <text x="72" y="3132" class="small">检查基准：1920×1080 与 13/14 寸电脑；不使用原生 alert/confirm/prompt/title/select 作为正式交互。</text>
+</svg>

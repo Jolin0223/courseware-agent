@@ -1,0 +1,1502 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>数学小侦探 - 推理挑战</title>
+  <style>
+    :root {
+      --pink: #ffb7c5;
+      --pink-deep: #ff7fa4;
+      --mint: #98ffcc;
+      --mint-deep: #35cfa0;
+      --yellow: #fff44f;
+      --sky: #87ceeb;
+      --purple: #d8b5ff;
+      --orange: #ffa500;
+      --ink: #2f3341;
+      --soft-ink: #6b7180;
+      --paper: rgba(255,255,255,.93);
+      --line: rgba(47,51,65,.12);
+      --start-bg: none;
+      --game-bg: none;
+      --victory-bg: none;
+      --player-url: none;
+      --opponent-url: none;
+      --badge-url: none;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      background: #111827;
+      color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      user-select: none;
+    }
+
+    button {
+      font: inherit;
+      border: 0;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    #app {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: center center;
+      visibility: hidden;
+      overflow: hidden;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,244,79,.52), transparent 25%),
+        radial-gradient(circle at 86% 18%, rgba(216,181,255,.46), transparent 24%),
+        linear-gradient(145deg, #ffe4ed 0%, #fff4bb 44%, #ddf8ff 100%);
+      box-shadow: 0 30px 90px rgba(0,0,0,.35);
+    }
+
+    #app::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(120deg, rgba(255,255,255,.52) 0 2px, transparent 2px 84px),
+        radial-gradient(circle at 12% 84%, rgba(152,255,204,.34), transparent 26%),
+        radial-gradient(circle at 92% 80%, rgba(255,183,197,.35), transparent 28%);
+      opacity: .85;
+      pointer-events: none;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 1;
+    }
+
+    .screen.active { display: block; }
+
+    .start-screen {
+      background:
+        linear-gradient(rgba(255,248,238,.68), rgba(255,248,238,.74)),
+        var(--start-bg),
+        radial-gradient(circle at 18% 20%, #fff44f 0 8%, transparent 22%),
+        radial-gradient(circle at 82% 24%, #98ffcc 0 7%, transparent 22%),
+        linear-gradient(135deg, #ffd9e6 0%, #fff4bc 54%, #d9f7ff 100%);
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+    }
+
+    .start-screen.art-cover {
+      background: var(--start-bg), linear-gradient(135deg, #ffd9e6 0%, #fff4bc 54%, #d9f7ff 100%);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .start-screen.art-cover .start-card,
+    .start-screen.art-cover .start-scene {
+      display: none;
+    }
+
+    .start-card {
+      position: absolute;
+      left: 160px;
+      top: 150px;
+      width: 700px;
+      min-height: 620px;
+      padding: 58px 58px 48px;
+      border-radius: 42px;
+      background: rgba(255,255,255,.83);
+      border: 6px solid rgba(255,255,255,.92);
+      box-shadow: 0 28px 70px rgba(190,93,119,.22);
+      backdrop-filter: blur(10px);
+    }
+
+    .course-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: #fff4bd;
+      color: #7b5b00;
+      font-size: 30px;
+      font-weight: 800;
+      box-shadow: inset 0 -3px 0 rgba(255,165,0,.25);
+    }
+
+    h1 {
+      margin: 30px 0 18px;
+      font-size: 92px;
+      line-height: 1.03;
+      letter-spacing: 0;
+      color: #f05a8a;
+      text-shadow: 0 8px 0 rgba(255,255,255,.9), 0 16px 26px rgba(240,90,138,.18);
+    }
+
+    .subtitle {
+      margin: 0 0 34px;
+      font-size: 34px;
+      line-height: 1.45;
+      color: #4d5260;
+      font-weight: 700;
+    }
+
+    .start-actions {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      margin-top: 38px;
+    }
+
+    .primary-pill {
+      min-width: 260px;
+      height: 92px;
+      padding: 0 42px;
+      border-radius: 34px;
+      background: linear-gradient(135deg, #ff7fa4, #ffb7c5 62%, #ffd166);
+      color: #fff;
+      font-size: 38px;
+      font-weight: 900;
+      border: 4px solid #fff;
+      box-shadow: 0 16px 0 rgba(226,83,121,.32), 0 24px 42px rgba(226,83,121,.24);
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+
+    .primary-pill:active {
+      transform: translateY(8px) scale(.98);
+      box-shadow: 0 8px 0 rgba(226,83,121,.32), 0 16px 28px rgba(226,83,121,.18);
+    }
+
+    .ghost-pill {
+      width: 92px;
+      height: 92px;
+      border-radius: 32px;
+      background: #fff;
+      border: 4px solid #dff2ff;
+      color: #52738c;
+      font-size: 38px;
+      font-weight: 900;
+      box-shadow: 0 12px 24px rgba(82,115,140,.14);
+    }
+
+    .start-scene {
+      position: absolute;
+      right: 100px;
+      bottom: 60px;
+      width: 850px;
+      height: 840px;
+    }
+
+    .office-prop {
+      position: absolute;
+      border-radius: 44px;
+      background: rgba(255,255,255,.62);
+      border: 5px solid rgba(255,255,255,.75);
+      box-shadow: 0 22px 40px rgba(70,61,82,.14);
+    }
+
+    .shelf { right: 52px; top: 50px; width: 590px; height: 280px; }
+    .desk { right: 15px; bottom: 48px; width: 750px; height: 230px; background: #ffd486; }
+    .lamp {
+      right: 118px; top: 282px; width: 190px; height: 190px; border-radius: 50%;
+      background: radial-gradient(circle at 42% 35%, #fff9a6, #ffd166 58%, #ff9f60);
+    }
+
+    .egg-hero {
+      position: absolute;
+      left: 40px;
+      bottom: 118px;
+      width: 350px;
+      height: 420px;
+      animation: bob 3.2s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-18px) rotate(1deg); }
+    }
+
+    .egg {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .egg-img {
+      position: absolute;
+      inset: 0;
+      background-image: var(--player-url);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center bottom;
+      display: none;
+    }
+
+    .egg.use-img .egg-img { display: block; }
+    .egg.use-img .egg-body, .egg.use-img .hat, .egg.use-img .magnifier { display: none; }
+
+    .egg-body {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 255px;
+      height: 318px;
+      transform: translateX(-50%);
+      border-radius: 52% 52% 46% 46% / 44% 44% 56% 56%;
+      background: radial-gradient(circle at 40% 28%, #fff, #ffd5df 30%, #ff9bbb 68%, #f06b95);
+      border: 8px solid rgba(255,255,255,.95);
+      box-shadow: inset -20px -20px 0 rgba(237,84,127,.14), 0 26px 38px rgba(198,77,107,.2);
+    }
+
+    .egg-body::before, .egg-body::after {
+      content: "";
+      position: absolute;
+      top: 110px;
+      width: 34px;
+      height: 48px;
+      border-radius: 50%;
+      background: #303444;
+      box-shadow: inset 8px 8px 0 rgba(255,255,255,.45);
+    }
+
+    .egg-body::before { left: 76px; }
+    .egg-body::after { right: 76px; }
+
+    .mouth {
+      position: absolute;
+      left: 50%;
+      top: 178px;
+      width: 58px;
+      height: 30px;
+      transform: translateX(-50%);
+      border-radius: 0 0 50px 50px;
+      border-bottom: 8px solid #8d3d58;
+    }
+
+    .egg[data-mood="sad"] .mouth {
+      top: 195px;
+      border-bottom: 0;
+      border-top: 8px solid #8d3d58;
+      border-radius: 50px 50px 0 0;
+    }
+
+    .egg[data-mood="surprise"] .mouth {
+      top: 184px;
+      width: 42px;
+      height: 42px;
+      border: 7px solid #8d3d58;
+      border-radius: 50%;
+      background: #fff1f5;
+    }
+
+    .egg[data-mood="think"] .mouth {
+      width: 50px;
+      height: 10px;
+      border-bottom: 8px solid #8d3d58;
+      border-radius: 10px;
+    }
+
+    .hat {
+      position: absolute;
+      left: 80px;
+      top: 14px;
+      width: 190px;
+      height: 92px;
+      border-radius: 42px 42px 24px 24px;
+      background: linear-gradient(180deg, #ffb7c5, #ff7fa4);
+      border: 7px solid #fff;
+      transform: rotate(-7deg);
+      box-shadow: 0 12px 18px rgba(194,77,105,.18);
+    }
+
+    .hat::before {
+      content: "";
+      position: absolute;
+      left: -36px;
+      right: -36px;
+      bottom: -22px;
+      height: 36px;
+      border-radius: 999px;
+      background: #ff7fa4;
+      border: 7px solid #fff;
+    }
+
+    .magnifier {
+      position: absolute;
+      right: 0;
+      bottom: 66px;
+      width: 110px;
+      height: 110px;
+      border: 14px solid #76d8ff;
+      border-radius: 50%;
+      background: rgba(255,255,255,.36);
+      box-shadow: inset 0 0 22px rgba(255,255,255,.7);
+    }
+
+    .magnifier::after {
+      content: "";
+      position: absolute;
+      right: -48px;
+      bottom: -36px;
+      width: 88px;
+      height: 22px;
+      border-radius: 999px;
+      background: #ffa500;
+      transform: rotate(42deg);
+      transform-origin: left center;
+    }
+
+    .game-screen {
+      padding: 106px 178px 44px;
+      background:
+        var(--game-bg),
+        linear-gradient(145deg, #ffe4ed 0%, #fff6c8 48%, #dff8ff 100%);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .topbar {
+      position: absolute;
+      top: 102px;
+      right: 178px;
+      height: 62px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      align-items: center;
+      z-index: 4;
+    }
+
+    .icon-btn {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 28%, rgba(255,255,255,.96), transparent 31%),
+        linear-gradient(145deg, rgba(255,255,255,.97), rgba(209,241,255,.94));
+      border: 4px solid rgba(255,255,255,.9);
+      box-shadow: inset 0 -5px 0 rgba(116,175,210,.2), 0 10px 18px rgba(75,86,114,.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #35607e;
+      font-size: 36px;
+      font-weight: 900;
+    }
+
+    .title-line {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 20px;
+      min-width: 0;
+    }
+
+    .badge {
+      min-width: 150px;
+      height: 58px;
+      padding: 0 22px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,249,204,.96), rgba(255,223,149,.9));
+      border: 4px solid rgba(255,255,255,.88);
+      color: #6d5300;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 900;
+      box-shadow: inset 0 -5px 0 rgba(255,169,68,.18), 0 8px 16px rgba(108,83,0,.09);
+    }
+
+    .battle {
+      position: relative;
+      height: 626px;
+      margin-top: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      z-index: 3;
+    }
+
+    .case-board {
+      min-width: 0;
+      border-radius: 0;
+      padding: 10px 10px 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      display: grid;
+      grid-template-rows: 58px minmax(0, 1fr) 50px 136px;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .case-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 20px;
+      padding-right: 470px;
+      z-index: 1;
+    }
+
+    .round-chip {
+      min-width: 178px;
+      height: 56px;
+      padding: 0 24px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ffb932, #fff171);
+      color: #5e3900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 950;
+      border: 4px solid rgba(255,255,255,.88);
+      box-shadow: inset 0 -6px 0 rgba(220,134,0,.18), 0 9px 18px rgba(111,75,10,.1);
+    }
+
+    #knowledgeChip {
+      min-width: 166px;
+      background: linear-gradient(135deg, #99eec4, #fff08b);
+      color: #27523d;
+    }
+
+    .status-copy {
+      display: none;
+    }
+
+    .question-card {
+      z-index: 1;
+      border-radius: 30px;
+      padding: 30px 42px 26px;
+      background: linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,250,238,.42));
+      border: 4px solid rgba(255,255,255,.72);
+      box-shadow: inset 0 0 0 2px rgba(255,215,228,.18), 0 12px 26px rgba(99,70,30,.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .question-label {
+      margin-bottom: 16px;
+      color: #f05a8a;
+      font-size: 34px;
+      font-weight: 950;
+    }
+
+    .stem {
+      flex: 1;
+      min-height: 0;
+      white-space: pre-line;
+      color: #283142;
+      font-size: 41px;
+      line-height: 1.44;
+      font-weight: 850;
+      letter-spacing: 0;
+      overflow-y: auto;
+      padding-right: 12px;
+    }
+
+    .stem::-webkit-scrollbar { width: 10px; }
+    .stem::-webkit-scrollbar-thumb {
+      background: rgba(255,163,190,.62);
+      border-radius: 999px;
+    }
+
+    .clue-row {
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      min-height: 136px;
+    }
+
+    .clue-section-title {
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 2px 6px -4px;
+      color: #744900;
+      font-size: 31px;
+      font-weight: 950;
+    }
+
+    .clue-section-title span:last-child {
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,196,52,.96), rgba(255,246,139,.94));
+      font-size: 26px;
+      color: #6e4b00;
+      border: 3px solid rgba(255,255,255,.84);
+      box-shadow: inset 0 -4px 0 rgba(221,142,0,.14);
+    }
+
+    .clue-card {
+      position: relative;
+      height: 136px;
+      perspective: 1000px;
+    }
+
+    .clue-inner {
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      transform-style: preserve-3d;
+      transition: transform .32s ease;
+      box-shadow: 0 12px 26px rgba(81,92,120,.11);
+    }
+
+    .clue-card.revealed .clue-inner { transform: rotateY(180deg); }
+
+    .clue-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 24px;
+      border: 4px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .clue-front {
+      background: linear-gradient(135deg, #fff4bd, #ffd7e4);
+      color: #8a5b00;
+      font-size: 36px;
+      font-weight: 950;
+    }
+
+    .clue-back {
+      transform: rotateY(180deg);
+      background: rgba(255,255,255,.97);
+      color: #3e4658;
+      font-size: 27px;
+      line-height: 1.34;
+      font-weight: 800;
+    }
+
+    .answer-zone {
+      position: relative;
+      z-index: 4;
+      height: 146px;
+      margin-top: 16px;
+      border-radius: 0;
+      padding: 6px 10px 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      display: grid;
+      grid-template-rows: 40px 1fr;
+      gap: 12px;
+    }
+
+    .answer-zone.need-choice .options {
+      animation: shake .36s ease;
+    }
+
+    .answer-head {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .prompt-title {
+      font-size: 34px;
+      font-weight: 950;
+      color: #36405a;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      min-width: 0;
+    }
+
+    .option {
+      min-width: 0;
+      border-radius: 30px;
+      background: rgba(255,255,255,.9);
+      border: 4px solid rgba(211,224,239,.9);
+      box-shadow: 0 8px 0 rgba(207,218,232,.45), 0 14px 24px rgba(82,99,130,.08);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 16px;
+      font-size: 37px;
+      font-weight: 950;
+      color: #293244;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      overflow-wrap: anywhere;
+      text-align: center;
+    }
+
+    .option:active { transform: translateY(5px); }
+
+    .option.selected {
+      background: linear-gradient(135deg, #ffe4ec, #ffb7c5);
+      border-color: #ff7fa4;
+      box-shadow: 0 10px 0 rgba(255,127,164,.36), 0 18px 28px rgba(255,127,164,.14);
+    }
+
+    .option.correct {
+      background: linear-gradient(135deg, #e4fff2, #98ffcc);
+      border-color: #35cfa0;
+    }
+
+    .option.wrong {
+      background: linear-gradient(135deg, #ffe8e8, #ffb1b1);
+      border-color: #ff5f73;
+    }
+
+    .option-letter {
+      flex: 0 0 58px;
+      width: 58px;
+      height: 58px;
+      border-radius: 20px;
+      background: #f3f6fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #637086;
+    }
+
+    .option-text {
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+    }
+
+    .option-mark {
+      display: none;
+      flex: 0 0 auto;
+      min-width: 96px;
+      height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,.78);
+      border: 3px solid rgba(255,255,255,.88);
+      color: #526071;
+      font-size: 22px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .option.correct .option-mark,
+    .option.wrong .option-mark {
+      display: inline-flex;
+    }
+
+    .option.correct .option-mark {
+      color: #177b55;
+    }
+
+    .option.wrong .option-mark {
+      color: #b72b43;
+    }
+
+    .bottom-actions {
+      position: relative;
+      z-index: 4;
+      height: 104px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 18px 20px 4px;
+    }
+
+    .confirm-btn {
+      width: 350px;
+      height: 74px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #ff7fa4, #ffb7c5 58%, #ffd166);
+      color: #fff;
+      border: 5px solid #fff;
+      box-shadow: 0 12px 0 rgba(226,83,121,.28), 0 20px 34px rgba(226,83,121,.18);
+      font-size: 38px;
+      font-weight: 950;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .confirm-btn:active {
+      transform: translateY(7px) scale(.98);
+      box-shadow: 0 5px 0 rgba(64,79,106,.14), 0 12px 20px rgba(64,79,106,.1);
+    }
+
+    .confirm-btn:disabled {
+      opacity: .46;
+      cursor: default;
+      filter: grayscale(.2);
+    }
+
+    .rules-modal, .end-modal {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(62,67,85,.28);
+      backdrop-filter: blur(8px);
+    }
+
+    .rules-modal.show, .end-modal.show { display: flex; }
+
+    .modal-card {
+      width: 1100px;
+      max-height: 860px;
+      padding: 42px 46px 38px;
+      border-radius: 42px;
+      background: rgba(255,255,255,.95);
+      border: 7px solid #fff;
+      box-shadow: 0 30px 80px rgba(42,48,69,.24);
+      overflow: hidden;
+    }
+
+    .modal-card h2 {
+      margin: 0 0 22px;
+      font-size: 48px;
+      color: #f05a8a;
+    }
+
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 0 0 28px;
+    }
+
+    .rules-modal .primary-pill {
+      display: flex;
+      margin: 24px auto 0;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .rule-item {
+      min-height: 84px;
+      padding: 18px 20px;
+      border-radius: 24px;
+      background: #f7fbff;
+      border: 3px solid #e8f2ff;
+      color: #3d4556;
+      font-size: 24px;
+      line-height: 1.35;
+      font-weight: 760;
+    }
+
+    .end-card {
+      width: 1040px;
+      min-height: 680px;
+      text-align: center;
+      background:
+        linear-gradient(rgba(255,255,255,.86), rgba(255,255,255,.91)),
+        var(--victory-bg),
+        linear-gradient(135deg, #fff4bd, #ffe5ee 52%, #dff8ff);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .end-badge {
+      width: 170px;
+      height: 170px;
+      margin: 4px auto 24px;
+      border-radius: 50%;
+      background:
+        var(--badge-url),
+        radial-gradient(circle at 38% 32%, #fff, #fff44f 42%, #ffa500);
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      border: 7px solid #fff;
+      box-shadow: 0 16px 32px rgba(255,165,0,.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 78px;
+    }
+
+    .end-title {
+      margin: 0 0 18px;
+      font-size: 64px;
+      color: #f05a8a;
+      font-weight: 950;
+    }
+
+    .end-copy {
+      margin: 0 auto 28px;
+      max-width: 780px;
+      font-size: 30px;
+      line-height: 1.45;
+      color: #475066;
+      font-weight: 800;
+    }
+
+    .end-stats {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 34px;
+    }
+
+    .end-stat {
+      min-width: 190px;
+      padding: 18px 20px;
+      border-radius: 26px;
+      background: rgba(255,255,255,.84);
+      border: 4px solid #eef6ff;
+      font-size: 26px;
+      font-weight: 950;
+      color: #4d566a;
+    }
+
+    .stars {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 7;
+    }
+
+    .star {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff44f;
+      box-shadow: 0 0 18px rgba(255,244,79,.85);
+      animation: sparkle .8s ease-out forwards;
+    }
+
+    @keyframes sparkle {
+      from { transform: translateY(0) scale(.5); opacity: 1; }
+      to { transform: translateY(-90px) scale(1.35); opacity: 0; }
+    }
+
+    .shake { animation: shake .36s ease; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      22% { transform: translateX(-10px); }
+      45% { transform: translateX(9px); }
+      68% { transform: translateX(-7px); }
+    }
+
+    .pop { animation: pop .42s cubic-bezier(.2,1.5,.3,1); }
+    @keyframes pop {
+      0% { transform: scale(.92); }
+      60% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+  #app{position:absolute;top:50%;left:50%;width:1920px;height:1080px;transform-origin:center center;overflow:hidden;}</style>
+</head>
+<body>
+  <main id="app" aria-label="数学小侦探推理挑战课件">
+    <section id="startScreen" class="screen start-screen active">
+      <div class="start-card">
+        <div class="course-kicker">逻辑推理 · 入门级</div>
+        <h1>数学小侦探</h1>
+        <p class="subtitle">读题干、看线索、选答案，完成 5 道推理挑战。</p>
+        <div class="start-actions">
+          <button class="primary-pill" id="startBtn">开始破案</button>
+          <button class="ghost-pill" id="startRulesBtn" aria-label="查看规则">?</button>
+        </div>
+      </div>
+      <div class="start-scene" aria-hidden="true">
+        <div class="office-prop shelf"></div>
+        <div class="office-prop desk"></div>
+        <div class="office-prop lamp"></div>
+        <div class="egg-hero">
+          <div class="egg" id="heroEgg" data-mood="happy">
+            <div class="egg-img"></div>
+            <div class="hat"></div>
+            <div class="egg-body"><div class="mouth"></div></div>
+            <div class="magnifier"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen">
+      <header class="topbar">
+        <div class="title-line">
+          <div class="badge" id="progressBadge">第 1/5 题</div>
+          <div class="badge" id="scoreBadge">答对 0 题</div>
+        </div>
+        <button class="icon-btn" id="rulesBtn" aria-label="帮助">?</button>
+      </header>
+
+      <section class="battle">
+        <article class="case-board">
+          <div class="case-header">
+            <div class="round-chip" id="roundChip">第 1 题</div>
+            <div class="status-copy" id="statusCopy">点击线索卡，选择答案后确认。</div>
+            <div class="round-chip" id="knowledgeChip">逻辑推理</div>
+          </div>
+          <div class="question-card">
+            <div class="question-label" id="questionLabel">题目</div>
+            <div class="stem" id="questionStem"></div>
+          </div>
+          <div class="clue-section-title">
+            <span>线索卡</span>
+            <span id="clueRole">线索是题目条件，打开后再推理</span>
+          </div>
+          <div class="clue-row" id="clueRow"></div>
+        </article>
+
+      </section>
+
+      <section class="answer-zone">
+        <div class="answer-head">
+          <div class="prompt-title">选择你的推理答案</div>
+        </div>
+        <div class="options" id="options"></div>
+      </section>
+
+      <div class="bottom-actions">
+        <button class="confirm-btn" id="confirmBtn">确认</button>
+      </div>
+
+      <div class="stars" id="stars"></div>
+    </section>
+
+    <section class="rules-modal" id="rulesModal">
+      <div class="modal-card">
+        <h2>侦探推理挑战</h2>
+        <div class="rules-grid">
+          <div class="rule-item">1. 先读题干，再打开线索卡。</div>
+          <div class="rule-item">2. 线索是题目条件，不是额外奖励。</div>
+          <div class="rule-item">3. 根据线索排除不可能的答案。</div>
+          <div class="rule-item">4. 选择 A/B/C 后点击确认提交。</div>
+          <div class="rule-item">5. 答错会标出正确答案，不扣分。</div>
+          <div class="rule-item">6. AI 小蛋仔是推理搭档，不是对手。</div>
+        </div>
+        <button class="primary-pill" id="closeRulesBtn">继续</button>
+      </div>
+    </section>
+
+    <section class="end-modal" id="endModal">
+      <div class="modal-card end-card">
+        <div class="end-badge" id="endBadge">🔍</div>
+        <h2 class="end-title" id="endTitle">挑战完成</h2>
+        <p class="end-copy" id="endCopy"></p>
+        <div class="end-stats">
+          <div class="end-stat" id="endPlayerScore">你：0</div>
+          <div class="end-stat" id="endAiScore">共 5 题</div>
+          <div class="end-stat" id="endHp">已完成</div>
+        </div>
+        <button class="primary-pill" id="restartBtn">重置游戏</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const ASSETS = {
+      startBg: "images/bg.png",
+      gameBg: "assets/math_detective_game_bg.png",
+      playerDetective: "assets/math_detective_player_egg.png",
+      opponentDetective: "assets/math_detective_ai_egg.png",
+      detectiveBadge: "assets/math_detective_badge.png",
+      victoryBg: "assets/math_detective_victory_bg.png",
+      voiceWelcome: "assets/voice_welcome.mp3",
+      voiceClueOpened: "assets/voice_clue_opened.mp3",
+      voiceCorrect: "assets/voice_correct.mp3",
+      voiceWrong: "assets/voice_wrong.mp3"
+    };
+
+    const questions = [
+      {
+        label: "题目 1 · 条件真假推理",
+        stem: "小红、小明、小蓝三人比赛跑步。小红说：“我不是最后一名。”小明说：“我是第一名。”小蓝说：“小明不是第一名。”已知只有一人说了真话，请问谁是第一名？",
+        clues: [
+          "如果小明是第一名，那么小明和小蓝都说真话",
+          "只有一人说真话，说明小明不是第一名",
+          "小红不是最后一名，那她是第一或第二"
+        ],
+        options: ["小红", "小明", "小蓝"],
+        answer: 0,
+        reasoning: "按当前题库配置，正确答案为小红。题面原始推理链存在不严谨：在“只有一人说真话”的条件下，建议正式投放前由教研确认题干或线索。"
+      },
+      {
+        label: "题目 2 · 数字规律",
+        stem: "观察数字规律，下一个数字是什么？\n2, 4, 8, 16, __",
+        clues: ["2×2=4", "4×2=8", "每次乘以2"],
+        options: ["24", "32", "20"],
+        answer: 1,
+        reasoning: "2×2=4，4×2=8，8×2=16，16×2=32。"
+      },
+      {
+        label: "题目 3 · 排除法推理",
+        stem: "三个小朋友分别有红、黄、蓝三种颜色的气球。已知：\n1. 小红没有红色气球\n2. 小蓝没有蓝色气球\n3. 小黄的气球不是黄色的\n请问小红的气球是什么颜色？",
+        clues: [
+          "小黄的气球不是黄色，那只能是红或蓝",
+          "小蓝没有蓝色，那小蓝是红或黄",
+          "小红没有红色，那小红是黄或蓝"
+        ],
+        options: ["红色", "黄色", "蓝色"],
+        answer: 2,
+        reasoning: "按当前题库配置，正确答案为蓝色。题面当前条件可出现多种分配，建议正式投放前补充一个排除条件，让答案唯一。"
+      },
+      {
+        label: "题目 4 · 方程组合",
+        stem: "找规律填空\n□ + □ = 10\n□ - □ = 2\n大数在前，这两个数分别是？",
+        clues: [
+          "两个数相加得10，可能是9+1、8+2、7+3、6+4、5+5。",
+          "两个数相差2。",
+          "6+4=10，6-4=2。"
+        ],
+        options: ["8和2", "7和3", "6和4"],
+        answer: 2,
+        reasoning: "相加得10的组合中，只有6和4相差2。"
+      },
+      {
+        label: "题目 5 · 职业推理",
+        stem: "小明、小强、小华三个人，一个是医生，一个是老师，一个是警察。已知：\n1. 小明不是医生\n2. 小强不是老师\n3. 小华是医生\n请问小强是什么职业？",
+        clues: [
+          "小华是医生，所以小明和小强是老师或警察。",
+          "小明不是医生，和已知条件不冲突。",
+          "小强不是老师，那小强只能是警察。"
+        ],
+        options: ["医生", "老师", "警察"],
+        answer: 2,
+        reasoning: "小华是医生，小明和小强只剩老师或警察；小强不是老师，所以小强是警察。"
+      }
+    ];
+
+    const state = {
+      current: 0,
+      selected: null,
+      playerScore: 0,
+      revealed: [],
+      locked: false,
+      phase: "answer",
+      ended: false,
+      endTimer: null,
+      clueVoicePlayed: false
+    };
+
+    const audio = {
+      unlocked: false,
+      ctx: null,
+      currentVoice: null,
+      voices: {},
+      init() {
+        this.voices = {
+          welcome: this.createVoice(ASSETS.voiceWelcome),
+          clueOpened: this.createVoice(ASSETS.voiceClueOpened),
+          correct: this.createVoice(ASSETS.voiceCorrect),
+          wrong: this.createVoice(ASSETS.voiceWrong)
+        };
+      },
+      createVoice(src) {
+        if (!src) return null;
+        const voice = new Audio(src);
+        voice.preload = "auto";
+        voice.volume = .85;
+        return voice;
+      },
+      unlock() {
+        this.unlocked = true;
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === "suspended") {
+          this.ctx.resume().catch(() => {});
+        }
+      },
+      playVoice(name) {
+        if (!this.unlocked) return;
+        const voice = this.voices[name];
+        if (!voice) return;
+        if (this.currentVoice && this.currentVoice !== voice) {
+          this.currentVoice.pause();
+          this.currentVoice.currentTime = 0;
+        }
+        voice.currentTime = 0;
+        this.currentVoice = voice;
+        voice.play().catch(() => {});
+      },
+      tone(freq, start, duration, type, gainValue) {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(gainValue, start + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(start);
+        osc.stop(start + duration + 0.02);
+      },
+      playSfx(name) {
+        if (!this.unlocked || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const map = {
+          tap: [[620, 0, .055, "sine", .035]],
+          start: [[520, 0, .07, "sine", .03], [780, .055, .11, "sine", .04]],
+          card: [[360, 0, .045, "triangle", .03], [620, .04, .07, "triangle", .026]],
+          select: [[700, 0, .06, "sine", .032]],
+          warn: [[220, 0, .09, "triangle", .032], [180, .08, .12, "triangle", .028]],
+          success: [[620, 0, .08, "sine", .035], [860, .065, .12, "sine", .042], [1040, .16, .16, "sine", .035]],
+          wrong: [[260, 0, .11, "triangle", .028], [210, .1, .14, "triangle", .024]],
+          next: [[440, 0, .055, "sine", .025], [660, .045, .075, "sine", .028]],
+          modal: [[480, 0, .08, "sine", .03]],
+          complete: [[520, 0, .1, "sine", .032], [780, .09, .14, "sine", .04], [980, .2, .2, "sine", .035]]
+        };
+        (map[name] || []).forEach(([freq, offset, duration, type, gain]) => {
+          this.tone(freq, now + offset, duration, type, gain);
+        });
+      }
+    };
+
+    const els = {
+      app: document.getElementById("app"),
+      startScreen: document.getElementById("startScreen"),
+      gameScreen: document.getElementById("gameScreen"),
+      startBtn: document.getElementById("startBtn"),
+      startRulesBtn: document.getElementById("startRulesBtn"),
+      rulesBtn: document.getElementById("rulesBtn"),
+      roundChip: document.getElementById("roundChip"),
+      knowledgeChip: document.getElementById("knowledgeChip"),
+      statusCopy: document.getElementById("statusCopy"),
+      questionLabel: document.getElementById("questionLabel"),
+      questionStem: document.getElementById("questionStem"),
+      clueRow: document.getElementById("clueRow"),
+      options: document.getElementById("options"),
+      clueRole: document.getElementById("clueRole"),
+      progressBadge: document.getElementById("progressBadge"),
+      scoreBadge: document.getElementById("scoreBadge"),
+      heroEgg: document.getElementById("heroEgg"),
+      confirmBtn: document.getElementById("confirmBtn"),
+      stars: document.getElementById("stars"),
+      rulesModal: document.getElementById("rulesModal"),
+      closeRulesBtn: document.getElementById("closeRulesBtn"),
+      endModal: document.getElementById("endModal"),
+      endBadge: document.getElementById("endBadge"),
+      endTitle: document.getElementById("endTitle"),
+      endCopy: document.getElementById("endCopy"),
+      endPlayerScore: document.getElementById("endPlayerScore"),
+      endAiScore: document.getElementById("endAiScore"),
+      endHp: document.getElementById("endHp"),
+      restartBtn: document.getElementById("restartBtn")
+    };
+
+    function setAssetVar(name, url) {
+      if (!url) return;
+      document.documentElement.style.setProperty(name, `url("${url}")`);
+    }
+
+    function applyAssets() {
+      setAssetVar("--start-bg", ASSETS.startBg);
+      setAssetVar("--game-bg", ASSETS.gameBg);
+      setAssetVar("--player-url", ASSETS.playerDetective);
+      setAssetVar("--opponent-url", ASSETS.opponentDetective);
+      setAssetVar("--badge-url", ASSETS.detectiveBadge);
+      setAssetVar("--victory-bg", ASSETS.victoryBg);
+      if (ASSETS.startBg) {
+        els.startScreen.classList.add("art-cover");
+      }
+      if (ASSETS.playerDetective) {
+        els.heroEgg.classList.add("use-img");
+      }
+    }
+
+    function resetState() {
+      state.current = 0;
+      state.selected = null;
+      state.playerScore = 0;
+      state.revealed = [];
+      state.locked = false;
+      state.phase = "answer";
+      state.ended = false;
+      state.clueVoicePlayed = false;
+      if (state.endTimer) {
+        clearTimeout(state.endTimer);
+        state.endTimer = null;
+      }
+      els.endModal.classList.remove("show");
+      renderQuestion();
+    }
+
+    function startGame() {
+      window.Global = {
+        startTime: new Date().getTime(),
+        rightNum: 0,
+        questionCurArr1: questions,
+        answerNum: 0
+      };
+      audio.unlock();
+      audio.playSfx("start");
+      els.startScreen.classList.remove("active");
+      els.gameScreen.classList.add("active");
+      resetState();
+      audio.playVoice("welcome");
+    }
+
+    function renderQuestion() {
+      const q = questions[state.current];
+      state.selected = null;
+      state.revealed = [false, false, false];
+      state.locked = false;
+      state.phase = "answer";
+      state.clueVoicePlayed = false;
+
+      els.roundChip.textContent = `第 ${state.current + 1} 题`;
+      els.knowledgeChip.textContent = state.current === 1 ? "数字规律" : "逻辑推理";
+      els.questionLabel.textContent = q.label;
+      els.questionStem.textContent = q.stem;
+      els.statusCopy.textContent = "先读题，再打开线索卡辅助推理。";
+      els.confirmBtn.textContent = "确认";
+      els.confirmBtn.disabled = false;
+      els.clueRole.textContent = "线索是题目条件，打开后再推理";
+      document.querySelector(".answer-zone").classList.remove("need-choice");
+
+      els.clueRow.innerHTML = q.clues.map((clue, index) => `
+        <button class="clue-card" data-index="${index}" aria-label="线索卡${index + 1}">
+          <span class="clue-inner">
+            <span class="clue-face clue-front">线索 ${index + 1}</span>
+            <span class="clue-face clue-back">${clue}</span>
+          </span>
+        </button>
+      `).join("");
+
+      els.options.innerHTML = q.options.map((option, index) => `
+        <button class="option" data-index="${index}">
+          <span class="option-letter">${String.fromCharCode(65 + index)}</span>
+          <span class="option-text">${option}</span>
+          <span class="option-mark" aria-hidden="true"></span>
+        </button>
+      `).join("");
+
+      updateStats();
+      bindDynamicEvents();
+    }
+
+    function bindDynamicEvents() {
+      els.clueRow.querySelectorAll(".clue-card").forEach(card => {
+        card.addEventListener("click", () => {
+          if (state.locked) return;
+          const index = Number(card.dataset.index);
+          state.revealed[index] = true;
+          card.classList.add("revealed");
+          audio.playSfx("card");
+          els.statusCopy.textContent = "线索已打开，把它和题干条件合在一起判断。";
+          els.clueRole.textContent = "已打开线索，把它和题干一起判断";
+          if (!state.clueVoicePlayed) {
+            state.clueVoicePlayed = true;
+            audio.playVoice("clueOpened");
+          }
+        });
+      });
+
+      els.options.querySelectorAll(".option").forEach(option => {
+        option.addEventListener("click", () => {
+          if (state.locked) return;
+          state.selected = Number(option.dataset.index);
+          audio.playSfx("select");
+          document.querySelector(".answer-zone").classList.remove("need-choice");
+          els.options.querySelectorAll(".option").forEach(o => o.classList.remove("selected"));
+          option.classList.add("selected");
+          els.statusCopy.textContent = "已选择答案，点击确认查看讲解。";
+        });
+      });
+    }
+
+    function updateStats() {
+      els.progressBadge.textContent = `第 ${state.current + 1}/5 题`;
+      els.scoreBadge.textContent = `答对 ${state.playerScore} 题`;
+    }
+
+    function submitAnswer() {
+      if (state.phase === "result") {
+        audio.playSfx("next");
+        goNext();
+        return;
+      }
+      if (state.locked) return;
+      if (state.selected === null) {
+        audio.playSfx("warn");
+        document.querySelector(".answer-zone").classList.remove("need-choice");
+        void document.querySelector(".answer-zone").offsetWidth;
+        document.querySelector(".answer-zone").classList.add("need-choice");
+        return;
+      }
+      state.locked = true;
+      if (window.Global) {
+        window.Global.answerNum += 1;
+      }
+      const q = questions[state.current];
+      const correct = state.selected === q.answer;
+      revealAnswer(correct);
+      state.phase = "result";
+      els.confirmBtn.textContent = state.current >= questions.length - 1 ? "完成" : "下一题";
+      els.confirmBtn.disabled = false;
+      if (state.current >= questions.length - 1) {
+        state.endTimer = setTimeout(() => {
+          state.endTimer = null;
+          showEnd("complete");
+        }, 1200);
+      }
+    }
+
+    function revealAnswer(correct) {
+      const q = questions[state.current];
+      els.options.querySelectorAll(".option").forEach(option => {
+        const idx = Number(option.dataset.index);
+        const mark = option.querySelector(".option-mark");
+        if (idx === q.answer) {
+          option.classList.add("correct");
+          mark.textContent = "正确答案";
+        }
+        if (idx === state.selected && !correct) {
+          option.classList.add("wrong");
+          mark.textContent = "你的选择";
+        }
+      });
+
+      if (correct) {
+        state.playerScore += 1;
+        if (window.Global) {
+          window.Global.rightNum += 1;
+        }
+        sparkle(16, 650, 420);
+        audio.playSfx("success");
+        audio.playVoice("correct");
+      } else {
+        audio.playSfx("wrong");
+        audio.playVoice("wrong");
+      }
+      updateStats();
+    }
+
+    function goNext() {
+      if (state.current >= questions.length - 1) {
+        if (state.endTimer) {
+          clearTimeout(state.endTimer);
+          state.endTimer = null;
+        }
+        showEnd("complete");
+        return;
+      }
+      state.current += 1;
+      renderQuestion();
+    }
+
+    function showEnd(type) {
+      if (state.ended) return true;
+      state.ended = true;
+      els.endBadge.textContent = "🏅";
+      els.endTitle.textContent = "推理完成";
+      els.endCopy.textContent = "你已经完成 5 道逻辑推理题。回顾错题时，重点看题干条件和线索之间的关系。";
+      els.endPlayerScore.textContent = `答对：${state.playerScore}`;
+      els.endAiScore.textContent = "共 5 题";
+      els.endHp.textContent = "已完成";
+      els.endModal.classList.add("show");
+      audio.playSfx("complete");
+      sparkle(40, 960, 540);
+
+      if (window.Global) {
+        let tmpTime = new Date().getTime() - window.Global.startTime;
+        let message = {
+          isRight: 3,
+          rightNum: window.Global.rightNum,
+          quizAcc: Math.round((window.Global.rightNum / window.Global.questionCurArr1.length) * 100),
+          questionNum: window.Global.questionCurArr1.length,
+          score: "",
+          total_score: "",
+          gameType: 5,
+          tmpl: "数学小侦探",
+          answerTime: tmpTime > 0 ? tmpTime : 0,
+          answerNum: window.Global.answerNum
+        };
+        console.log(message);
+        if (typeof anysdk !== 'undefined' && anysdk.over) {
+          anysdk.over(message);
+        }
+      }
+      return true;
+    }
+
+    function sparkle(count, x, y) {
+      for (let i = 0; i < count; i += 1) {
+        const star = document.createElement("span");
+        star.className = "star";
+        star.style.left = `${x + (Math.random() - .5) * 520}px`;
+        star.style.top = `${y + (Math.random() - .5) * 260}px`;
+        star.style.background = ["#fff44f", "#ffb7c5", "#98ffcc", "#87ceeb"][i % 4];
+        els.stars.appendChild(star);
+        setTimeout(() => star.remove(), 900);
+      }
+    }
+
+    function showRules() {
+      audio.unlock();
+      audio.playSfx("modal");
+      els.rulesModal.classList.add("show");
+    }
+    function hideRules() {
+      audio.playSfx("tap");
+      els.rulesModal.classList.remove("show");
+    }
+
+    els.startScreen.addEventListener("click", startGame);
+    els.startBtn.addEventListener("click", event => {
+      event.stopPropagation();
+      startGame();
+    });
+    els.startRulesBtn.addEventListener("click", event => {
+      event.stopPropagation();
+      showRules();
+    });
+    els.rulesBtn.addEventListener("click", showRules);
+    els.closeRulesBtn.addEventListener("click", hideRules);
+    els.restartBtn.addEventListener("click", () => {
+      audio.playSfx("tap");
+      resetState();
+    });
+    els.confirmBtn.addEventListener("click", submitAnswer);
+
+    applyAssets();
+    audio.init();
+  </script>
+  <script>
+    (function () {
+      var app = document.getElementById('app');
+      function updateScale() {
+        var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+        app.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+        app.style.visibility = 'visible';
+      }
+      window.addEventListener('resize', updateScale);
+      updateScale();
+    })();
+  </script>
+  <script src="https://iteachcdn.xdf.cn/aijiajiao/app/ppt/icwsync.min.js"></script>
+  <script src="https://iteachcdn.xdf.cn/mmcw/plus/egret/egretinitmessage.js"></script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import {
   FileText,
   Image,
   MessageCircle,
+  Minus,
   Paperclip,
   SendHorizontal,
   Wand2,
@@ -682,8 +683,8 @@ export default function InspirationAssistant({
                 </div>
               </div>
               <div style={styles.headerActions} data-assistant-no-drag="true">
-                <button type="button" style={styles.closeBtn} onClick={collapseAssistant} aria-label="关闭">
-                  <X size={18} />
+                <button type="button" style={styles.closeBtn} onClick={collapseAssistant} aria-label="最小化灵感助手">
+                  <Minus size={18} strokeWidth={2.2} />
                 </button>
               </div>
             </div>

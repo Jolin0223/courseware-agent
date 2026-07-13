@@ -38,6 +38,7 @@ import { createLearningDataRecoverySummary } from '../utils/learningDataRecovery
 import toast from '../utils/toast';
 
 type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
+const GENERIC_AI_WAITING_TEXT = '我已收到您的消息，正在处理中...';
 
 type PromptFlyState = {
   id: number;
@@ -447,15 +448,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 900,
   },
-  analyzingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
-    padding: '48px 24px',
-    width: '100%',
-  },
   messageUser: {
     display: 'flex',
     justifyContent: 'flex-end',
@@ -492,6 +484,26 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 15,
     lineHeight: 1.5,
     border: '1px solid #E2E8F0',
+  },
+  waitingStack: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 9,
+    maxWidth: 'var(--chat-content-max, 864px)',
+  },
+  waitingDots: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 12,
+    padding: 0,
+    height: 18,
+  },
+  waitingDot: {
+    width: 9,
+    height: 9,
+    borderRadius: '50%',
+    animation: 'dotBounce 1.4s infinite ease-in-out both',
   },
 };
 
@@ -1307,6 +1319,22 @@ const SimpleStreamText: React.FC<{ text: string; speed?: number }> = ({ text, sp
   );
 };
 
+const AIWaitingMessage: React.FC = () => (
+  <div style={styles.messageAssistant}>
+    <AIAvatar />
+    <div style={styles.waitingStack}>
+      <div style={styles.assistantBubble}>
+        {GENERIC_AI_WAITING_TEXT}
+      </div>
+      <div style={styles.waitingDots} aria-label="AI 正在处理">
+        <span style={{ ...styles.waitingDot, background: '#8CB9FF', animationDelay: '0s' }} />
+        <span style={{ ...styles.waitingDot, background: '#65D9E5', animationDelay: '0.16s' }} />
+        <span style={{ ...styles.waitingDot, background: '#1F86FF', animationDelay: '0.32s' }} />
+      </div>
+    </div>
+  </div>
+);
+
 function MaterialIntentCard({
   confirmation,
   onConfirm,
@@ -2014,7 +2042,6 @@ export default function GeneratorPage() {
     setFrameworkDone(false);
 
     setTimeout(() => {
-      addAssistantMessage(convId, '我已理解您的需求，正在为您生成需求确认框架。', 'text');
       setPhase('loading-framework');
       
       const framework = generateRequirementFromPrompt(promptForFramework);
@@ -2740,42 +2767,13 @@ export default function GeneratorPage() {
                 );
               })}
               
-              {phase === 'analyzing' && (
+              {(phase === 'analyzing' || phase === 'loading-framework') && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <div style={styles.analyzingContainer}>
-                    <div style={{ position: 'relative', width: 56, height: 56 }}>
-                      <svg width="56" height="56" viewBox="0 0 56 56" style={{ animation: 'spin 1.2s linear infinite' }}>
-                        <defs>
-                          <linearGradient id="spinnerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="var(--agent-primary)" />
-                            <stop offset="100%" stopColor="var(--agent-secondary)" />
-                          </linearGradient>
-                        </defs>
-                        <circle cx="28" cy="28" r="24" fill="none" stroke="#F1F5F9" strokeWidth="4" />
-                        <circle cx="28" cy="28" r="24" fill="none" stroke="url(#spinnerGradient)" strokeWidth="4" strokeLinecap="round" strokeDasharray="100 51" />
-                      </svg>
-                    </div>
-                    <span style={{ color: '#475569', fontSize: 15, fontWeight: 500 }}>正在分析您的需求...</span>
-                    <span style={{ color: '#94A3B8', fontSize: 13 }}>AI 正在理解您的教学目标和互动需求</span>
-                  </div>
-                </motion.div>
-              )}
-
-              {phase === 'loading-framework' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  style={{ padding: '8px 0 8px 44px' }}
-                >
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--agent-primary)', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0s' }} />
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--agent-secondary)', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0.16s' }} />
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--agent-primary)', animation: 'dotBounce 1.4s infinite ease-in-out both', animationDelay: '0.32s' }} />
-                  </div>
+                  <AIWaitingMessage />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -2912,10 +2910,6 @@ export default function GeneratorPage() {
       
       {/* Global styles */}
       <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
         @keyframes blink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }

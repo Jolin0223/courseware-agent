@@ -38,7 +38,7 @@ import { createLearningDataRecoverySummary } from '../utils/learningDataRecovery
 import toast from '../utils/toast';
 
 type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
-const GENERIC_AI_WAITING_TEXT = '我已收到您的消息，正在处理中...';
+const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中~';
 
 type PromptFlyState = {
   id: number;

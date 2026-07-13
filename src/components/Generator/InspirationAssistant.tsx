@@ -58,13 +58,12 @@ const assistantCompactIconUrl = 'https://aigc-material.xdf.cn/lingguang-aigc/mat
 const assistantLauncherIconUrl = assistantCompactIconUrl;
 const assistantIconUrl = assistantLauncherIconUrl;
 const viewportMargin = 16;
-const launcherRightOffset = 48;
-const compactLauncherRightOffset = 35;
+const launcherRightOffset = 35;
 const launcherBottomOffset = 76;
 const defaultPanelWidth = 492;
 const defaultPanelHeight = 640;
-const expandedLauncherWidth = 154;
-const expandedLauncherHeight = 52;
+const expandedLauncherWidth = 140;
+const expandedLauncherHeight = 44;
 const compactLauncherWidth = 44;
 const launcherHeight = 44;
 const homeFirstScreenScrollThreshold = 88;
@@ -183,10 +182,9 @@ export default function InspirationAssistant({
   const currentLauncherWidth = compactLauncher ? compactLauncherWidth : expandedLauncherWidth;
   const currentLauncherHeight = compactLauncher ? launcherHeight : expandedLauncherHeight;
   const panelHeight = Math.min(defaultPanelHeight, getViewportSize().height - viewportMargin * 2);
-  const currentLauncherRightOffset = compactLauncher ? compactLauncherRightOffset : launcherRightOffset;
   const currentLauncherPosition = dragPosition && !open
     ? dragPosition
-    : launcherPosition || getDefaultPosition(currentLauncherWidth, currentLauncherHeight, launcherBottomOffset, currentLauncherRightOffset);
+    : launcherPosition || getDefaultPosition(currentLauncherWidth, currentLauncherHeight, launcherBottomOffset, launcherRightOffset);
   const currentPanelPosition = dragPosition && open
     ? dragPosition
     : panelPosition || getDefaultPosition(defaultPanelWidth, panelHeight);
@@ -533,7 +531,8 @@ export default function InspirationAssistant({
           box-shadow: 0 18px 44px var(--agent-shadow), 0 0 0 1px rgba(255,255,255,0.72);
         }
         .inspiration-assistant-launcher-compact:hover {
-          width: 140px !important;
+          width: ${expandedLauncherWidth}px !important;
+          height: ${expandedLauncherHeight}px !important;
           padding: 0 18px 0 7px !important;
           gap: 8px !important;
           background: linear-gradient(135deg, var(--agent-primary), var(--agent-secondary)) !important;
@@ -541,7 +540,7 @@ export default function InspirationAssistant({
           box-shadow: 0 14px 30px rgba(14, 116, 144, 0.22), 0 0 0 3px var(--agent-focus-ring) !important;
         }
         .inspiration-assistant-launcher-compact.inspiration-assistant-expand-left:hover {
-          transform: translateX(-96px) translateY(-1px);
+          transform: translateX(-${expandedLauncherWidth - compactLauncherWidth}px) translateY(-1px);
         }
         .inspiration-assistant-launcher-compact:hover .inspiration-assistant-label {
           max-width: 76px !important;
@@ -568,7 +567,6 @@ export default function InspirationAssistant({
             bottom: 'auto',
             transition: dragPosition ? 'none' : styles.fab.transition,
           }}
-          onMouseDown={event => startFloatingDrag(event, 'launcher')}
           onClick={event => {
             if (dragMovedRef.current) {
               event.preventDefault();
@@ -828,21 +826,22 @@ export default function InspirationAssistant({
 const styles: Record<string, React.CSSProperties> = {
   fab: {
     position: 'fixed',
-    right: 36,
-    bottom: 26,
+    width: 140,
+    height: 44,
+    right: launcherRightOffset,
+    bottom: launcherBottomOffset,
     zIndex: 1200,
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 9,
-    height: 52,
-    padding: '0 22px',
-    border: '2px solid rgba(255,255,255,0.88)',
+    gap: 8,
+    padding: '0 18px 0 7px',
+    border: '1px solid var(--agent-border)',
     borderRadius: 999,
     background: 'linear-gradient(135deg, var(--agent-primary), var(--agent-secondary))',
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: 900,
-    boxShadow: '0 18px 44px var(--agent-shadow), 0 0 0 1px rgba(255,255,255,0.6)',
+    boxShadow: '0 14px 30px rgba(14, 116, 144, 0.22), 0 0 0 3px var(--agent-focus-ring)',
     cursor: 'pointer',
     transition: 'left 0.18s ease, top 0.18s ease, width 0.18s ease, height 0.18s ease, padding 0.18s ease, border-radius 0.18s ease, transform 0.15s ease, box-shadow 0.15s ease',
     overflow: 'hidden',
@@ -851,7 +850,6 @@ const styles: Record<string, React.CSSProperties> = {
   fabCompact: {
     width: 44,
     height: 44,
-    right: 31,
     padding: 4,
     borderRadius: 999,
     gap: 0,

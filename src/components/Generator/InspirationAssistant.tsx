@@ -62,7 +62,7 @@ const launcherRightOffset = 35;
 const launcherBottomOffset = 76;
 const defaultPanelWidth = 492;
 const defaultPanelHeight = 640;
-const expandedLauncherWidth = 172;
+const expandedLauncherWidth = 160;
 const expandedLauncherHeight = 44;
 const compactLauncherWidth = 44;
 const launcherHeight = 44;
@@ -533,7 +533,7 @@ export default function InspirationAssistant({
         .inspiration-assistant-launcher-compact:hover {
           width: ${expandedLauncherWidth}px !important;
           height: ${expandedLauncherHeight}px !important;
-          padding: 0 18px 0 7px !important;
+          padding: 0 10px 0 7px !important;
           gap: 8px !important;
           background: linear-gradient(135deg, var(--agent-primary), var(--agent-secondary)) !important;
           border: 1px solid var(--agent-border) !important;
@@ -543,8 +543,8 @@ export default function InspirationAssistant({
           transform: translateX(-${expandedLauncherWidth - compactLauncherWidth}px) translateY(-1px);
         }
         .inspiration-assistant-launcher-compact:hover .inspiration-assistant-label {
-          max-width: 104px !important;
-          min-width: 90px !important;
+          max-width: 96px !important;
+          min-width: 88px !important;
           opacity: 1 !important;
           margin-left: 0 !important;
         }
@@ -826,7 +826,7 @@ export default function InspirationAssistant({
 const styles: Record<string, React.CSSProperties> = {
   fab: {
     position: 'fixed',
-    width: 172,
+    width: 160,
     height: 44,
     right: launcherRightOffset,
     bottom: launcherBottomOffset,
@@ -834,7 +834,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 8,
-    padding: '0 18px 0 7px',
+    padding: '0 10px 0 7px',
     border: '1px solid var(--agent-border)',
     borderRadius: 999,
     background: 'linear-gradient(135deg, var(--agent-primary), var(--agent-secondary))',

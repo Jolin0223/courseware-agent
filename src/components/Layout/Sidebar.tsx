@@ -336,6 +336,14 @@ const styles = {
 
 } as const;
 
+const getInitialSidebarTheme = (): AgentThemeId => {
+  if (typeof document !== 'undefined') {
+    const activeTheme = document.documentElement.dataset.agentTheme;
+    if (activeTheme === 'green' || activeTheme === 'iteach') return activeTheme;
+  }
+  return getStoredThemeId();
+};
+
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -343,7 +351,7 @@ function Sidebar() {
 
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [themeExpanded, setThemeExpanded] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<AgentThemeId>(() => getStoredThemeId());
+  const [currentTheme, setCurrentTheme] = useState<AgentThemeId>(() => getInitialSidebarTheme());
   const [themeSwitchVisible, setThemeSwitchVisible] = useState(false);
   const [modeSwitchVisible, setModeSwitchVisible] = useState(false);
   const hiddenThemeClickCountRef = useRef(0);

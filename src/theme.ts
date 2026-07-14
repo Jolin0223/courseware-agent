@@ -1,4 +1,4 @@
-export type AgentThemeId = 'green' | 'iteach' | 'cyan' | 'workbench' | 'orange';
+export type AgentThemeId = 'green' | 'iteach';
 
 export interface AgentThemeOption {
   id: AgentThemeId;
@@ -35,39 +35,6 @@ export const AGENT_THEMES: AgentThemeOption[] = [
       accent: '#FF8A00',
     },
   },
-  {
-    id: 'cyan',
-    name: '蓝青智能',
-    shortName: '青',
-    description: '去掉橙色动作色，整体保持蓝青智能感',
-    colors: {
-      primary: '#0274FC',
-      secondary: '#00FFF6',
-      accent: '#00B8D9',
-    },
-  },
-  {
-    id: 'workbench',
-    name: 'iTeach 工作台',
-    shortName: '工',
-    description: '贴近小学工作台的浅蓝白界面，弱化演示感',
-    colors: {
-      primary: '#1677FF',
-      secondary: '#68B8FF',
-      accent: '#1677FF',
-    },
-  },
-  {
-    id: 'orange',
-    name: '橙光创作',
-    shortName: '橙',
-    description: '更强调创作、灵感和低龄活力',
-    colors: {
-      primary: '#FF7A1A',
-      secondary: '#FFD35C',
-      accent: '#0274FC',
-    },
-  },
 ];
 
 const THEME_STORAGE_KEY = 'courseware-agent-theme';
@@ -80,21 +47,15 @@ const aliases: Record<string, AgentThemeId> = {
   iteach: 'iteach',
   blue: 'iteach',
   c: 'iteach',
-  cyan: 'cyan',
-  blueai: 'cyan',
-  smartblue: 'cyan',
-  qing: 'cyan',
-  workbench: 'workbench',
-  iteachworkbench: 'workbench',
-  platform: 'workbench',
-  xiaoxue: 'workbench',
-  orange: 'orange',
-  b: 'orange',
 };
 
 export function getAgentTheme(id?: string | null) {
-  const normalized = id ? aliases[id.toLowerCase()] : undefined;
-  return AGENT_THEMES.find(theme => theme.id === normalized) || AGENT_THEMES[0];
+  const normalized = id ? aliases[id.toLowerCase()] : DEFAULT_THEME_ID;
+  return (
+    AGENT_THEMES.find(theme => theme.id === normalized)
+    || AGENT_THEMES.find(theme => theme.id === DEFAULT_THEME_ID)
+    || AGENT_THEMES[0]
+  );
 }
 
 export function getStoredThemeId(): AgentThemeId {
@@ -115,6 +76,10 @@ export function applyAgentTheme(id: AgentThemeId, persist = true) {
 export function initAgentTheme() {
   if (typeof window === 'undefined') return DEFAULT_THEME_ID;
   const params = new URLSearchParams(window.location.search);
+  if (params.has('box-green')) {
+    applyAgentTheme('green', false);
+    return 'green';
+  }
   const queryTheme = params.get('theme') || params.get('agentTheme');
   const themeId = queryTheme ? getAgentTheme(queryTheme).id : getStoredThemeId();
   applyAgentTheme(themeId, Boolean(queryTheme));

@@ -62,7 +62,7 @@ const launcherRightOffset = 35;
 const launcherBottomOffset = 76;
 const defaultPanelWidth = 492;
 const defaultPanelHeight = 640;
-const expandedLauncherWidth = 140;
+const expandedLauncherWidth = 172;
 const expandedLauncherHeight = 44;
 const compactLauncherWidth = 44;
 const launcherHeight = 44;
@@ -543,8 +543,8 @@ export default function InspirationAssistant({
           transform: translateX(-${expandedLauncherWidth - compactLauncherWidth}px) translateY(-1px);
         }
         .inspiration-assistant-launcher-compact:hover .inspiration-assistant-label {
-          max-width: 76px !important;
-          min-width: 64px !important;
+          max-width: 104px !important;
+          min-width: 90px !important;
           opacity: 1 !important;
           margin-left: 0 !important;
         }
@@ -574,7 +574,7 @@ export default function InspirationAssistant({
             }
             setOpen(true);
           }}
-          aria-label="打开灵感助手"
+          aria-label="打开灵感龙虾助手"
         >
           <span
             className="inspiration-assistant-icon"
@@ -593,7 +593,7 @@ export default function InspirationAssistant({
             className="inspiration-assistant-label"
             style={{ ...styles.fabLabel, ...(compactLauncher ? styles.fabLabelCompact : {}) }}
           >
-            灵感助手
+            灵感龙虾助手
           </span>
         </button>
       )}
@@ -661,7 +661,7 @@ export default function InspirationAssistant({
               hidden
               onChange={handleFileSelect}
             />
-            {isDraggingFiles && <div style={styles.dragUploadMask}>松开即可添加到灵感助手</div>}
+            {isDraggingFiles && <div style={styles.dragUploadMask}>松开即可添加到灵感龙虾助手</div>}
             <div style={styles.header} onMouseDown={event => startFloatingDrag(event, 'panel')}>
               <div style={styles.headerLeft}>
                 <button
@@ -669,19 +669,19 @@ export default function InspirationAssistant({
                   data-assistant-no-drag="true"
                   style={styles.logo}
                   onDoubleClick={handleLogoDoubleClick}
-                  aria-label="切换灵感助手版本"
+                  aria-label="切换灵感龙虾助手版本"
                 >
                   <img src={assistantIconUrl} alt="" style={styles.logoImage} />
                 </button>
                 <div>
-                  <div style={styles.title}>灵感助手</div>
+                  <div style={styles.title}>灵感龙虾助手</div>
                   <div style={styles.subtitle}>
                     {advancedMode ? '聊出玩法，再带回输入框生成课件' : '帮你一起想玩法、补提示词，也可以整理成可复制的生成方案'}
                   </div>
                 </div>
               </div>
               <div style={styles.headerActions} data-assistant-no-drag="true">
-                <button type="button" style={styles.closeBtn} onClick={collapseAssistant} aria-label="最小化灵感助手">
+                <button type="button" style={styles.closeBtn} onClick={collapseAssistant} aria-label="最小化灵感龙虾助手">
                   <Minus size={18} strokeWidth={2.2} />
                 </button>
               </div>
@@ -826,7 +826,7 @@ export default function InspirationAssistant({
 const styles: Record<string, React.CSSProperties> = {
   fab: {
     position: 'fixed',
-    width: 140,
+    width: 172,
     height: 44,
     right: launcherRightOffset,
     bottom: launcherBottomOffset,

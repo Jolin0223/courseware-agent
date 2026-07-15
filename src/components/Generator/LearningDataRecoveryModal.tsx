@@ -147,10 +147,12 @@ export default function LearningDataRecoveryModal({
 
   useEffect(() => {
     if (!isOpen) return;
+    /* eslint-disable react-hooks/set-state-in-effect -- Opening the modal must reset the user flow to the current courseware data. */
     setViewMode('preview');
     setItems(getRecoveryItemsForCourseware(coursewareTitle, initialItems));
     setReportCase(getCaseFromTitle(coursewareTitle));
     setShowCaseSwitch(false);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [coursewareTitle, initialItems, isOpen]);
 
   if (isOpen === false) return null;
@@ -253,6 +255,7 @@ export default function LearningDataRecoveryModal({
         ) : (
           <div style={styles.previewContent}>
             <StudentReportPreview
+              key={`${coursewareTitle || 'courseware'}-${reportCase}-${showCaseSwitch ? 'simple' : 'default'}`}
               coursewareTitle={coursewareTitle}
               selectedItems={selectedItems}
               reportCase={reportCase}
@@ -321,76 +324,74 @@ function StudentReportPreview({
   const profile = getReportProfile(coursewareTitle || '水果单词互动乐园', isSimpleDemo ? reportCase : getCaseFromTitle(coursewareTitle));
   const selectedIds = new Set(selectedItems.map(item => item.id));
   const visibleMetrics = profile.metricRows.filter(metric => selectedIds.has(metric.id));
-  const summaryText = visibleMetrics.length
-    ? `本次记录了 ${visibleMetrics.length} 项学习表现`
-    : '当前暂无可展示的学习表现';
-  const drawerStyle = {
-    ...styles.reportDrawer,
-    ...(visibleMetrics.length > 0 && visibleMetrics.length <= 4 ? styles.reportDrawerCompact : {}),
+  const metricViewportStyle = {
+    ...styles.metricViewport,
+    ...(visibleMetrics.length <= 4 ? styles.metricViewportDefault : styles.metricViewportScrollable),
   };
   const metricListStyle = {
     ...styles.drawerMetricList,
-    ...(visibleMetrics.length <= 2 ? styles.drawerMetricListSparse : {}),
-    ...(visibleMetrics.length > 2 && visibleMetrics.length <= 4 ? styles.drawerMetricListBalanced : {}),
+    ...(visibleMetrics.length <= 2 ? styles.drawerMetricListSingleColumn : {}),
   };
-  const metricTileExtraStyle = visibleMetrics.length <= 2
-    ? styles.drawerMetricTileSparse
-    : visibleMetrics.length <= 4
-      ? styles.drawerMetricTileBalanced
-      : {};
-
-  useEffect(() => {
-    setDrawerOpen(true);
-  }, [profile.key, coursewareTitle]);
-
   return (
     <div style={styles.phonePreview}>
       <div style={styles.phoneScreenshot} />
       {drawerOpen && <div style={styles.drawerOverlay} />}
-      {drawerOpen ? <div style={drawerStyle}>
+      {drawerOpen ? <div style={styles.reportDrawer}>
         <div style={styles.drawerHeader}>
           <div style={styles.drawerTitle}>{profile.drawerTitle}</div>
           <button type="button" style={styles.collapseButton} onClick={() => setDrawerOpen(false)}>
             收起 <ChevronUp size={14} />
           </button>
         </div>
-        <div style={styles.drawerSummary}>
-          <span>{summaryText}</span>
-          <span style={styles.summaryBadge}>
-            <span style={styles.summaryBadgeIcon}>✓</span>
-            已记录
-          </span>
+        <div style={styles.reportDetailPanel}>
+          <div style={styles.detailTitle}>
+            <img
+              src={reportDetailTitleUrl}
+              alt="互动详情"
+              style={styles.drawerTitleImage}
+            />
+          </div>
+          <div style={styles.drawerSummary}>
+            {visibleMetrics.length ? (
+              <>
+                本次记录了 <span style={styles.drawerSummaryCount}>{visibleMetrics.length}</span> 项学习表现
+              </>
+            ) : (
+              '当前暂无可展示的学习表现'
+            )}
+          </div>
+          <div className="learning-report-metric-scroll" style={metricViewportStyle}>
+            {visibleMetrics.length ? (
+              <div style={metricListStyle}>
+                {visibleMetrics.map((metric, index) => {
+                  const Icon = iconMap[metric.icon];
+                  const accent = metricAccents[index % metricAccents.length];
+                  return (
+                    <div key={metric.id} style={{ ...styles.drawerMetricTile, borderColor: accent.border }}>
+                      <span style={{ ...styles.drawerMetricIcon, background: accent.iconBg, color: accent.icon }}>
+                        <Icon size={18} />
+                      </span>
+                      <span style={styles.drawerMetricLabel}>{metric.label}</span>
+                      <span style={styles.drawerMetricValue}>{metric.value}</span>
+                      <span style={{ ...styles.metricStar, background: accent.corner }} aria-hidden="true" />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={styles.emptyMetricHint}>当前未选择可展示的学习表现指标</div>
+            )}
+          </div>
+          <div style={styles.drawerFooterText}>
+            <img
+              src={reportFooterDecorationUrl}
+              alt="每一次互动，都是一次小小的进步记录。"
+              style={styles.footerDecorationImage}
+            />
+          </div>
         </div>
-        <div className="learning-report-metric-scroll" style={styles.metricViewport}>
-          {visibleMetrics.length ? (
-            <div style={metricListStyle}>
-              {visibleMetrics.map((metric, index) => {
-                const Icon = iconMap[metric.icon];
-                const accent = metricAccents[index % metricAccents.length];
-                const shouldSpanLastMetric = visibleMetrics.length === 3 && index === 2;
-                return (
-                  <div key={metric.id} style={{ ...styles.drawerMetricTile, ...metricTileExtraStyle, ...(shouldSpanLastMetric ? styles.drawerMetricTileWide : {}), background: accent.card, borderColor: accent.border }}>
-                    <span style={{ ...styles.drawerMetricIcon, background: accent.iconBg, color: accent.icon }}>
-                      <Icon size={18} />
-                    </span>
-                    <span style={styles.drawerMetricLabel}>{metric.label}</span>
-                    <span style={styles.drawerMetricValue}>{metric.value}</span>
-                    <span style={{ ...styles.metricCornerMark, background: accent.corner }} />
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={styles.emptyMetricHint}>当前未选择可展示的学习表现指标</div>
-          )}
-        </div>
-        <div style={styles.drawerFooterText}>
-          <span>每一次互动，都是一次小小的进步记录。</span>
-          <span style={styles.footerStars} aria-hidden="true">
-            <span style={styles.footerStarLarge}>★</span>
-            <span style={styles.footerStarSmall}>★</span>
-          </span>
-        </div>
+        <img src={reportGrassLeftUrl} alt="" aria-hidden="true" style={styles.grassLeft} />
+        <img src={reportGrassRightUrl} alt="" aria-hidden="true" style={styles.grassRight} />
       </div> : (
         <button type="button" style={styles.openReportButton} onClick={() => setDrawerOpen(true)}>
           互动详情 <ChevronDown size={14} />
@@ -401,13 +402,18 @@ function StudentReportPreview({
 }
 
 const metricAccents = [
-  { card: 'rgba(255, 255, 255, 0.94)', border: '#D1FAE5', iconBg: '#ECFDF5', icon: '#16A34A', corner: '#BBF7D0' },
-  { card: 'rgba(255, 255, 255, 0.94)', border: '#DBEAFE', iconBg: '#EFF6FF', icon: '#2563EB', corner: '#BFDBFE' },
-  { card: 'rgba(255, 255, 255, 0.94)', border: '#FED7AA', iconBg: '#FFF7ED', icon: '#F97316', corner: '#FDBA74' },
-  { card: 'rgba(255, 255, 255, 0.94)', border: '#FBCFE8', iconBg: '#FDF2F8', icon: '#DB2777', corner: '#F9A8D4' },
-  { card: 'rgba(255, 255, 255, 0.94)', border: '#CCFBF1', iconBg: '#F0FDFA', icon: '#0F766E', corner: '#99F6E4' },
-  { card: 'rgba(255, 255, 255, 0.94)', border: '#DDD6FE', iconBg: '#F5F3FF', icon: '#7C3AED', corner: '#C4B5FD' },
+  { border: '#D1FAE5', iconBg: '#DCFCE7', icon: '#16A34A', corner: '#D9FBE7' },
+  { border: '#DBEAFE', iconBg: '#DBEAFE', icon: '#2563EB', corner: '#DCEBFF' },
+  { border: '#FED7AA', iconBg: '#FFEDD5', icon: '#F97316', corner: '#FFE4C2' },
+  { border: '#FBCFE8', iconBg: '#FCE7F3', icon: '#DB2777', corner: '#FCE0F0' },
+  { border: '#CCFBF1', iconBg: '#CCFBF1', icon: '#0F766E', corner: '#D0FAF2' },
+  { border: '#DDD6FE', iconBg: '#EDE9FE', icon: '#7C3AED', corner: '#E7DEFF' },
 ];
+
+const reportFooterDecorationUrl = '/images/report-footer-decoration-cropped.png';
+const reportDetailTitleUrl = '/images/report-detail-title-cropped.png';
+const reportGrassLeftUrl = '/images/report-grass-left.png';
+const reportGrassRightUrl = '/images/report-grass-right.png';
 
 const styles: Record<string, React.CSSProperties> = {
   mask: {
@@ -717,33 +723,60 @@ const styles: Record<string, React.CSSProperties> = {
     bottom: 0,
     zIndex: 4,
     height: 560,
-    maxHeight: '98%',
-    padding: '24px 14px 20px',
+    maxHeight: '96%',
+    padding: '20px 10px 8px',
     borderRadius: '18px 18px 0 0',
-    backgroundImage: 'url("/images/color-game-learning-report-mobile.png")',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center bottom',
-    boxShadow: '0 -16px 38px rgba(15, 23, 42, 0.18)',
+    border: 'none',
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0 -16px 38px rgba(15, 23, 42, 0.16)',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-  },
-  reportDrawerCompact: {
-    height: 526,
-    padding: '22px 14px 18px',
   },
   drawerHeader: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    minHeight: 44,
-    marginBottom: 14,
+    minHeight: 36,
+    marginBottom: 10,
+    padding: '0 12px',
   },
   drawerTitle: {
     color: '#0F172A',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 950,
+    lineHeight: 1.2,
+  },
+  reportDetailPanel: {
+    position: 'relative',
+    zIndex: 2,
+    flex: 1,
+    minHeight: 0,
+    padding: '24px 18px 10px',
+    borderRadius: 16,
+    border: '1px solid #A7F3D0',
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  detailTitle: {
+    position: 'relative',
+    zIndex: 2,
+    height: 40,
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginBottom: 10,
+  },
+  drawerTitleImage: {
+    width: 135,
+    height: 'auto',
+    objectFit: 'contain',
+    display: 'block',
   },
   collapseButton: {
     height: 32,
@@ -760,96 +793,63 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 4,
   },
   drawerSummary: {
-    padding: '15px 16px',
-    borderRadius: 12,
-    background: 'rgba(255, 255, 255, 0.86)',
-    color: '#334155',
-    fontSize: 15,
-    lineHeight: 1.5,
-    fontWeight: 900,
-    marginBottom: 16,
-    display: 'grid',
-    gridTemplateColumns: '1fr auto',
-    alignItems: 'center',
-    gap: 12,
-    overflow: 'hidden',
-  },
-  summaryBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 5,
-    padding: '5px 8px',
+    position: 'relative',
+    zIndex: 2,
+    alignSelf: 'center',
+    padding: '8px 24px',
     borderRadius: 999,
-    background: '#ECFDF5',
-    border: '1px solid #BBF7D0',
-    color: '#047857',
-    fontSize: 12,
-    fontWeight: 950,
+    background: '#F1FDF8',
+    color: '#334155',
+    fontSize: 14,
+    lineHeight: 1.4,
+    fontWeight: 900,
+    marginBottom: 14,
     whiteSpace: 'nowrap',
+    boxShadow: 'inset 0 0 0 1px rgba(209, 250, 229, 0.72)',
+    flexShrink: 0,
   },
-  summaryBadgeIcon: {
-    width: 16,
-    height: 16,
-    borderRadius: '50%',
-    background: '#22C55E',
-    color: '#FFFFFF',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 11,
-    lineHeight: 1,
+  drawerSummaryCount: {
+    color: '#16A34A',
+    fontSize: 17,
+    fontWeight: 950,
+    padding: '0 2px',
   },
   drawerMetricList: {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: 13,
+    gap: 12,
+  },
+  drawerMetricListSingleColumn: {
+    gridTemplateColumns: '1fr',
   },
   metricViewport: {
-    flex: 1,
+    position: 'relative',
+    zIndex: 2,
     minHeight: 0,
-    overflowY: 'auto',
     paddingRight: 2,
+    flexShrink: 0,
   },
-  drawerMetricListSparse: {
-    minHeight: '100%',
-    gridTemplateColumns: '1fr',
-    alignContent: 'stretch',
-    gap: 12,
-    gridAutoRows: 'minmax(0, 1fr)',
+  metricViewportDefault: {
+    overflowY: 'hidden',
   },
-  drawerMetricListBalanced: {
-    minHeight: '100%',
-    alignContent: 'stretch',
-    gap: 12,
-    gridAutoRows: 'minmax(0, 1fr)',
+  metricViewportScrollable: {
+    maxHeight: 244,
+    overflowY: 'auto',
   },
   drawerMetricTile: {
     position: 'relative',
     minHeight: 104,
     borderRadius: 14,
     background: 'rgba(255, 255, 255, 0.94)',
-    padding: '15px 14px 54px',
-    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.065)',
-    border: '1px solid rgba(226, 232, 240, 0.76)',
+    padding: '14px 12px 42px',
+    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.045)',
+    border: '1px solid #E2E8F0',
     overflow: 'hidden',
-  },
-  drawerMetricTileSparse: {
-    minHeight: 0,
-    height: '100%',
-    padding: '18px 18px 62px',
-  },
-  drawerMetricTileBalanced: {
-    height: '100%',
-    minHeight: 0,
-    padding: '18px 14px 60px',
-  },
-  drawerMetricTileWide: {
-    gridColumn: '1 / -1',
   },
   drawerMetricIcon: {
     position: 'absolute',
-    left: 14,
-    top: 16,
+    left: 12,
+    top: 13,
     width: 34,
     height: 34,
     borderRadius: '50%',
@@ -861,7 +861,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   drawerMetricLabel: {
     display: 'block',
-    fontSize: 12,
+    fontSize: 13,
     color: '#64748B',
     fontWeight: 800,
     minHeight: 34,
@@ -874,23 +874,23 @@ const styles: Record<string, React.CSSProperties> = {
   drawerMetricValue: {
     display: 'block',
     position: 'absolute',
-    left: 14,
-    right: 14,
-    bottom: 20,
-    color: '#0F172A',
-    fontSize: 24,
-    fontWeight: 500,
+    left: 12,
+    right: 34,
+    bottom: 17,
+    color: '#1F2937',
+    fontSize: 23,
+    fontWeight: 950,
     lineHeight: 1,
     whiteSpace: 'nowrap',
   },
-  metricCornerMark: {
+  metricStar: {
     position: 'absolute',
-    right: -18,
-    bottom: -18,
-    width: 56,
-    height: 56,
+    right: -9,
+    bottom: -9,
+    width: 34,
+    height: 34,
     borderRadius: '50%',
-    opacity: 0.55,
+    opacity: 0.96,
   },
   emptyMetricHint: {
     padding: 12,
@@ -903,55 +903,38 @@ const styles: Record<string, React.CSSProperties> = {
   },
   drawerFooterText: {
     position: 'relative',
+    zIndex: 2,
     flexShrink: 0,
-    marginTop: 14,
-    padding: '14px 72px 14px 15px',
-    borderRadius: 12,
-    background: 'rgba(255, 255, 255, 0.86)',
-    color: '#334155',
-    fontSize: 14,
-    fontWeight: 800,
-    lineHeight: 1.3,
-    minHeight: 48,
+    margin: 'auto 8px 4px',
+    height: 86,
     overflow: 'hidden',
-    whiteSpace: 'nowrap',
-  },
-  footerStars: {
-    position: 'absolute',
-    right: 13,
-    top: '50%',
-    width: 44,
-    height: 34,
-    transform: 'translateY(-50%)',
-  },
-  footerStarLarge: {
-    position: 'absolute',
-    right: 0,
-    top: 2,
-    width: 30,
-    height: 30,
-    borderRadius: '50%',
-    background: '#FEF3C7',
-    color: '#F59E0B',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 16,
-    boxShadow: '0 5px 12px rgba(245, 158, 11, 0.2)',
   },
-  footerStarSmall: {
+  footerDecorationImage: {
+    width: '90%',
+    height: '90%',
+    objectFit: 'contain',
+    display: 'block',
+  },
+  grassLeft: {
     position: 'absolute',
-    left: 2,
-    top: 0,
-    width: 20,
-    height: 20,
-    borderRadius: '50%',
-    background: '#DBEAFE',
-    color: '#2563EB',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 11,
+    left: -14,
+    bottom: -2,
+    width: 112,
+    height: 'auto',
+    zIndex: 4,
+    pointerEvents: 'none',
+  },
+  grassRight: {
+    position: 'absolute',
+    right: -14,
+    bottom: -2,
+    width: 126,
+    height: 'auto',
+    zIndex: 4,
+    pointerEvents: 'none',
   },
   openReportButton: {
     position: 'absolute',

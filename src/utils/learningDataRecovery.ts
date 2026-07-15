@@ -38,6 +38,11 @@ const metricItems: Record<string, Omit<LearningDataRecoveryItem, 'checked'>> = {
     label: '通关关卡数',
     description: '用于展示学生通过了多少个关卡。',
   },
+  maxStreak: {
+    id: 'max-streak',
+    label: '最高连对',
+    description: '用于展示学生连续答对的最好表现。',
+  },
 };
 
 const withChecked = (items: Array<Omit<LearningDataRecoveryItem, 'checked'>>, checkedIds?: Set<string>): LearningDataRecoveryItem[] =>
@@ -87,7 +92,12 @@ export const getRecoveryItemsForCourseware = (
     ], checkedIds);
   }
 
-  if (normalizedTitle.includes('水果单词互动乐园') || normalizedTitle.includes('水果单词')) {
+  if (
+    normalizedTitle.includes('水果单词互动乐园')
+    || normalizedTitle.includes('水果单词')
+    || normalizedTitle.includes('动物单词')
+    || normalizedTitle.includes('颜色单词')
+  ) {
     return withChecked([
       metricItems.finalScore,
       metricItems.accuracy,
@@ -96,6 +106,7 @@ export const getRecoveryItemsForCourseware = (
       metricItems.completionCount,
       metricItems.rewardCount,
       metricItems.passedLevels,
+      metricItems.maxStreak,
     ], checkedIds);
   }
 

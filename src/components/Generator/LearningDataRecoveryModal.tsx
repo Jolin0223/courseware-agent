@@ -22,7 +22,6 @@ interface LearningDataRecoveryModalProps {
   isLatestVersion?: boolean;
   mode?: 'create' | 'edit';
   onClose?: () => void;
-  onRegenerate?: (items: LearningDataRecoveryItem[]) => void;
   onConfirm?: (items: LearningDataRecoveryItem[]) => void;
 }
 
@@ -107,6 +106,7 @@ const getReportProfile = (gameName: string, caseKey: ReportCaseKey): ReportProfi
       { id: 'completion-count', label: '完成次数', value: '1次', icon: 'complete' },
       { id: 'reward-count', label: '奖励数量', value: '8颗星', icon: 'reward' },
       { id: 'passed-levels', label: '通关关卡数', value: '3关', icon: 'level' },
+      { id: 'max-streak', label: '最高连对', value: '6题', icon: 'correct' },
     ],
   };
 };
@@ -134,7 +134,6 @@ export default function LearningDataRecoveryModal({
   initialItems,
   isLatestVersion = true,
   onClose,
-  onRegenerate,
   onConfirm,
 }: LearningDataRecoveryModalProps) {
   const [viewMode, setViewMode] = useState<'preview' | 'config'>('preview');
@@ -149,9 +148,10 @@ export default function LearningDataRecoveryModal({
   useEffect(() => {
     if (!isOpen) return;
     setViewMode('preview');
+    setItems(getRecoveryItemsForCourseware(coursewareTitle, initialItems));
     setReportCase(getCaseFromTitle(coursewareTitle));
     setShowCaseSwitch(false);
-  }, [coursewareTitle, isOpen]);
+  }, [coursewareTitle, initialItems, isOpen]);
 
   if (isOpen === false) return null;
 
@@ -166,7 +166,6 @@ export default function LearningDataRecoveryModal({
     if (selectedCount === 0 || isSubmitting) return;
     setIsSubmitting(true);
     window.setTimeout(() => {
-      onRegenerate?.(selectedItems);
       onConfirm?.(selectedItems);
       setIsSubmitting(false);
       onClose?.();
@@ -180,14 +179,10 @@ export default function LearningDataRecoveryModal({
           <div style={styles.headerLeft}>
             <div style={styles.iconCircle}><BarChart3 size={20} /></div>
             <div>
-              <div style={styles.title}>{viewMode === 'preview' ? '预览报告展示' : canModifyRecovery ? '修改报告数据' : '查看回收数据'}</div>
-              <div style={styles.subTitle}>
-                {viewMode === 'preview'
-                  ? '学生端/家长端报告样式预览，正式报告将使用真实作答结果生成。'
-                  : canModifyRecovery
-                    ? '选择需要进入学情报告的回收数据，确认后将重新生成下一版课件'
-                    : '当前为历史版本，仅可查看本版已生效的回收数据'}
-              </div>
+              <div style={styles.title}>{viewMode === 'preview' ? '预览报告展示' : canModifyRecovery ? '修改报告数据' : '当前为旧版'}</div>
+              {viewMode === 'preview' && (
+                <div style={styles.subTitle}>学生端/家长端报告样式预览，正式报告将使用真实作答结果生成。</div>
+              )}
             </div>
           </div>
           <button style={styles.closeBtn} onClick={onClose} aria-label="关闭">
@@ -199,8 +194,8 @@ export default function LearningDataRecoveryModal({
           <div style={styles.content}>
             <div style={styles.notice}>
               {canModifyRecovery
-                ? '当前 HTML 已自动写入学情数据回收能力。老师可修改需要回收的数据；修改后需要重新生成下一版 HTML。'
-                : '当前为历史版本，仅可查看本版已生效的学情数据回收配置，无法修改。'}
+                ? '当前互动游戏已支持学情数据回收，老师可修改需要进入报告展示的数据。'
+                : '当前为旧版，请在最新版上查看和操作。'}
             </div>
 
             <div style={styles.itemList}>
@@ -247,10 +242,10 @@ export default function LearningDataRecoveryModal({
                     disabled={selectedCount === 0 || isSubmitting}
                     onClick={handleRegenerate}
                   >
-                    {isSubmitting ? '生成中...' : '确定并重新生成课件'}
+                    {isSubmitting ? '保存中...' : '确定'}
                   </button>
                 ) : (
-                  <div style={styles.readOnlyHint}>历史版本仅支持查看，请在最新版本中修改回收数据</div>
+                  <div style={styles.readOnlyHint}>当前为旧版，请在最新版上查看和操作</div>
                 )}
               </div>
             </div>
@@ -329,6 +324,20 @@ function StudentReportPreview({
   const summaryText = visibleMetrics.length
     ? `本次记录了 ${visibleMetrics.length} 项学习表现`
     : '当前暂无可展示的学习表现';
+  const drawerStyle = {
+    ...styles.reportDrawer,
+    ...(visibleMetrics.length > 0 && visibleMetrics.length <= 4 ? styles.reportDrawerCompact : {}),
+  };
+  const metricListStyle = {
+    ...styles.drawerMetricList,
+    ...(visibleMetrics.length <= 2 ? styles.drawerMetricListSparse : {}),
+    ...(visibleMetrics.length > 2 && visibleMetrics.length <= 4 ? styles.drawerMetricListBalanced : {}),
+  };
+  const metricTileExtraStyle = visibleMetrics.length <= 2
+    ? styles.drawerMetricTileSparse
+    : visibleMetrics.length <= 4
+      ? styles.drawerMetricTileBalanced
+      : {};
 
   useEffect(() => {
     setDrawerOpen(true);
@@ -338,7 +347,7 @@ function StudentReportPreview({
     <div style={styles.phonePreview}>
       <div style={styles.phoneScreenshot} />
       {drawerOpen && <div style={styles.drawerOverlay} />}
-      {drawerOpen ? <div style={styles.reportDrawer}>
+      {drawerOpen ? <div style={drawerStyle}>
         <div style={styles.drawerHeader}>
           <div style={styles.drawerTitle}>{profile.drawerTitle}</div>
           <button type="button" style={styles.collapseButton} onClick={() => setDrawerOpen(false)}>
@@ -352,26 +361,29 @@ function StudentReportPreview({
             已记录
           </span>
         </div>
-        {visibleMetrics.length ? (
-          <div style={styles.drawerMetricList}>
-            {visibleMetrics.map((metric, index) => {
-              const Icon = iconMap[metric.icon];
-              const accent = metricAccents[index % metricAccents.length];
-              return (
-                <div key={metric.id} style={{ ...styles.drawerMetricTile, background: accent.card, borderColor: accent.border }}>
-                  <span style={{ ...styles.drawerMetricIcon, background: accent.iconBg, color: accent.icon }}>
-                    <Icon size={18} />
-                  </span>
-                  <span style={styles.drawerMetricLabel}>{metric.label}</span>
-                  <span style={styles.drawerMetricValue}>{metric.value}</span>
-                  <span style={{ ...styles.metricCornerMark, background: accent.corner }} />
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div style={styles.emptyMetricHint}>当前未选择可展示的学习表现指标</div>
-        )}
+        <div className="learning-report-metric-scroll" style={styles.metricViewport}>
+          {visibleMetrics.length ? (
+            <div style={metricListStyle}>
+              {visibleMetrics.map((metric, index) => {
+                const Icon = iconMap[metric.icon];
+                const accent = metricAccents[index % metricAccents.length];
+                const shouldSpanLastMetric = visibleMetrics.length === 3 && index === 2;
+                return (
+                  <div key={metric.id} style={{ ...styles.drawerMetricTile, ...metricTileExtraStyle, ...(shouldSpanLastMetric ? styles.drawerMetricTileWide : {}), background: accent.card, borderColor: accent.border }}>
+                    <span style={{ ...styles.drawerMetricIcon, background: accent.iconBg, color: accent.icon }}>
+                      <Icon size={18} />
+                    </span>
+                    <span style={styles.drawerMetricLabel}>{metric.label}</span>
+                    <span style={styles.drawerMetricValue}>{metric.value}</span>
+                    <span style={{ ...styles.metricCornerMark, background: accent.corner }} />
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={styles.emptyMetricHint}>当前未选择可展示的学习表现指标</div>
+          )}
+        </div>
         <div style={styles.drawerFooterText}>
           <span>每一次互动，都是一次小小的进步记录。</span>
           <span style={styles.footerStars} aria-hidden="true">
@@ -588,8 +600,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   primaryBtn: {
     height: 36,
-    minWidth: 168,
-    padding: '0 20px',
+    minWidth: 112,
+    padding: '0 18px',
     borderRadius: 8,
     border: 'none',
     background: 'var(--agent-gradient)',
@@ -704,7 +716,7 @@ const styles: Record<string, React.CSSProperties> = {
     right: 0,
     bottom: 0,
     zIndex: 4,
-    minHeight: 560,
+    height: 560,
     maxHeight: '98%',
     padding: '24px 14px 20px',
     borderRadius: '18px 18px 0 0',
@@ -712,7 +724,13 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundSize: 'cover',
     backgroundPosition: 'center bottom',
     boxShadow: '0 -16px 38px rgba(15, 23, 42, 0.18)',
-    overflowY: 'auto',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  reportDrawerCompact: {
+    height: 526,
+    padding: '22px 14px 18px',
   },
   drawerHeader: {
     display: 'flex',
@@ -786,17 +804,52 @@ const styles: Record<string, React.CSSProperties> = {
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     gap: 13,
   },
+  metricViewport: {
+    flex: 1,
+    minHeight: 0,
+    overflowY: 'auto',
+    paddingRight: 2,
+  },
+  drawerMetricListSparse: {
+    minHeight: '100%',
+    gridTemplateColumns: '1fr',
+    alignContent: 'stretch',
+    gap: 12,
+    gridAutoRows: 'minmax(0, 1fr)',
+  },
+  drawerMetricListBalanced: {
+    minHeight: '100%',
+    alignContent: 'stretch',
+    gap: 12,
+    gridAutoRows: 'minmax(0, 1fr)',
+  },
   drawerMetricTile: {
     position: 'relative',
-    minHeight: 96,
+    minHeight: 104,
     borderRadius: 14,
     background: 'rgba(255, 255, 255, 0.94)',
-    padding: '13px 13px',
+    padding: '15px 14px 54px',
     boxShadow: '0 10px 22px rgba(15, 23, 42, 0.065)',
     border: '1px solid rgba(226, 232, 240, 0.76)',
     overflow: 'hidden',
   },
+  drawerMetricTileSparse: {
+    minHeight: 0,
+    height: '100%',
+    padding: '18px 18px 62px',
+  },
+  drawerMetricTileBalanced: {
+    height: '100%',
+    minHeight: 0,
+    padding: '18px 14px 60px',
+  },
+  drawerMetricTileWide: {
+    gridColumn: '1 / -1',
+  },
   drawerMetricIcon: {
+    position: 'absolute',
+    left: 14,
+    top: 16,
     width: 34,
     height: 34,
     borderRadius: '50%',
@@ -805,24 +858,30 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    float: 'left',
-    marginRight: 10,
   },
   drawerMetricLabel: {
     display: 'block',
     fontSize: 12,
     color: '#64748B',
     fontWeight: 800,
-    marginTop: 3,
+    minHeight: 34,
+    paddingLeft: 44,
+    lineHeight: '34px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   drawerMetricValue: {
     display: 'block',
-    clear: 'both',
-    marginTop: 10,
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    bottom: 20,
     color: '#0F172A',
     fontSize: 24,
     fontWeight: 500,
     lineHeight: 1,
+    whiteSpace: 'nowrap',
   },
   metricCornerMark: {
     position: 'absolute',
@@ -844,6 +903,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   drawerFooterText: {
     position: 'relative',
+    flexShrink: 0,
     marginTop: 14,
     padding: '14px 72px 14px 15px',
     borderRadius: 12,

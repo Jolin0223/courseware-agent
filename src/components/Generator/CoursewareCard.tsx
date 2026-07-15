@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Courseware, LearningDataRecoveryRequest, VisualStyleRegenerationRequest } from '../../types';
+import type { Courseware, LearningDataRecoveryItem, LearningDataRecoveryRequest, VisualStyleRegenerationRequest } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
 import toast from '../../utils/toast';
@@ -67,9 +67,11 @@ export default function CoursewareCard({
   const [audios, setAudios] = useState(MOCK_AUDIOS);
   const [editDisabledTooltip, setEditDisabledTooltip] = useState(false);
   const [styleDisabledTooltip, setStyleDisabledTooltip] = useState(false);
+  const [reportDisabledTooltip, setReportDisabledTooltip] = useState(false);
   const [isLatest, setIsLatest] = useState(isLatestProp);
   const [currentVersion, setCurrentVersion] = useState(version);
   const [showLearningDataModal, setShowLearningDataModal] = useState(false);
+  const [localLearningDataItems, setLocalLearningDataItems] = useState<LearningDataRecoveryItem[] | undefined>(courseware.learningDataRecovery?.selectedItems);
   const [showVisualStyleModal, setShowVisualStyleModal] = useState(false);
   const [selectedBaseStyleId, setSelectedBaseStyleId] = useState<string | null>(null);
   const [selectedEnhancementIds, setSelectedEnhancementIds] = useState<string[]>([]);
@@ -267,6 +269,10 @@ export default function CoursewareCard({
     const nextIndex = (safeIndex + direction + availableStyles.length) % availableStyles.length;
     openStylePreview(previewingStyle.kind, availableStyles[nextIndex].id);
   };
+
+  useEffect(() => {
+    setLocalLearningDataItems(courseware.learningDataRecovery?.selectedItems);
+  }, [courseware.id, version, courseware.learningDataRecovery?.selectedItems]);
 
   useEffect(() => {
     if (!previewingStyle) return;
@@ -501,17 +507,31 @@ export default function CoursewareCard({
               </div>
             )}
           </div>
-          <button
-            onClick={() => setShowLearningDataModal(true)}
-            style={getActionButtonStyle('secondary')}
-            onMouseDown={e => e.preventDefault()}
-            onMouseEnter={e => handleActionEnter(e)}
-            onMouseLeave={e => handleActionLeave(e)}
-            onBlur={e => handleActionLeave(e)}
+          <div style={{ position: 'relative', display: 'inline-flex' }}
+            onMouseEnter={() => { if (!isLatest) setReportDisabledTooltip(true); }}
+            onMouseLeave={() => setReportDisabledTooltip(false)}
           >
-            <BarChart3 size={15} />
-            预览报告
-          </button>
+            <button
+              onClick={() => { if (isLatest) setShowLearningDataModal(true); }}
+              style={getActionButtonStyle('secondary', isLatest)}
+              onMouseDown={e => e.preventDefault()}
+              onMouseEnter={e => handleActionEnter(e, isLatest)}
+              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest)}
+              onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
+            >
+              <BarChart3 size={15} />
+              预览报告
+            </button>
+            {reportDisabledTooltip && !isLatest && (
+              <div style={{
+                position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+                marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff',
+                fontSize: 11, whiteSpace: 'nowrap', zIndex: 40, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              }}>
+                当前为旧版，请在最新版上查看和操作
+              </div>
+            )}
+          </div>
           {isEmbedded && (
             <button
               onClick={() => {
@@ -588,15 +608,16 @@ export default function CoursewareCard({
       <LearningDataRecoveryModal
         isOpen={showLearningDataModal}
         coursewareTitle={courseware.title}
-        initialItems={courseware.learningDataRecovery?.selectedItems}
+        initialItems={localLearningDataItems}
         isLatestVersion={isLatest}
         onClose={() => setShowLearningDataModal(false)}
-        onRegenerate={(items) => {
-          setIsLatest(false);
+        onConfirm={(items) => {
+          setLocalLearningDataItems(items);
+          toast('已更新报告数据');
           onLearningDataRecoveryRequest?.({
             coursewareTitle: courseware.title,
             htmlContent: courseware.htmlContent,
-            version: '下一版',
+            version: currentVersion,
             mode: 'edit',
             initialItems: items,
           });

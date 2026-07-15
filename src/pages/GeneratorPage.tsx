@@ -34,7 +34,6 @@ import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
 import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
-import { createLearningDataRecoverySummary } from '../utils/learningDataRecovery';
 import toast from '../utils/toast';
 
 type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
@@ -2598,25 +2597,7 @@ export default function GeneratorPage() {
                         onOpenPreview={(coursewareId, version) => {
                           openPreview(coursewareId, version);
                         }}
-                        onLearningDataRecoveryRequest={(request) => {
-                          if (!activeConversationId) return;
-                          const selectedItems = request.initialItems || [];
-                          const summary = createLearningDataRecoverySummary(selectedItems);
-                          const selectedLabels = selectedItems.map(item => item.label).join('、') || '基础完成数据';
-                          addAssistantMessage(
-                            activeConversationId,
-                            `已根据您修改后的「${selectedLabels}」重新生成支持学情数据回收的下一版 HTML。`,
-                            'text'
-                          );
-                          window.setTimeout(() => {
-                            addAssistantMessage(activeConversationId, {
-                              title: request.coursewareTitle,
-                              version: request.version || '下一版',
-                              htmlContent: request.htmlContent,
-                              learningDataRecovery: summary,
-                            }, 'courseware-result');
-                          }, demoMs(700));
-                        }}
+                        onLearningDataRecoveryRequest={() => {}}
                         onVisualStyleRegenerate={(request) => {
                           if (!activeConversationId) return;
                           const newCoursewareId = Date.now();

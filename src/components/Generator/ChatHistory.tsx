@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Search, Pin, Trash2, Edit3, MoreHorizontal, Loader2, History, ChevronDown, ChevronRight } from 'lucide-react';
 import { useConversationStore } from '../../store/conversationStore';
 import { useUIStore } from '../../store/uiStore';
 import type { Conversation } from '../../types';
+
+type StickySection = 'pinned' | 'history';
 
 const ChatHistory: React.FC = () => {
   const navigate = useNavigate();
@@ -26,9 +28,13 @@ const ChatHistory: React.FC = () => {
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [historyCollapsed, setHistoryCollapsed] = useState(false);
   const [pendingDeleteConversation, setPendingDeleteConversation] = useState<Conversation | null>(null);
+  const [activeStickySection, setActiveStickySection] = useState<StickySection>('pinned');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const historySectionRef = useRef<HTMLButtonElement>(null);
+  const wheelSectionRef = useRef<StickySection | null>(null);
 
   useEffect(() => {
     if (renamingId && renameInputRef.current) {
@@ -55,7 +61,49 @@ const ChatHistory: React.FC = () => {
   const unpinned = filtered.filter((c) => !c.isPinned);
   const sortedConversations = [...pinned, ...unpinned];
   const topSectionIsPinned = pinned.length > 0;
-  const topSectionCollapsed = topSectionIsPinned ? pinnedCollapsed : historyCollapsed;
+  const hasSplitSections = pinned.length > 0 && unpinned.length > 0;
+  const stickySection: StickySection = hasSplitSections
+    ? activeStickySection
+    : topSectionIsPinned
+      ? 'pinned'
+      : 'history';
+  const stickySectionCollapsed = stickySection === 'pinned' ? pinnedCollapsed : historyCollapsed;
+
+  const updateStickySection = useCallback(() => {
+    if (!hasSplitSections) {
+      setActiveStickySection(topSectionIsPinned ? 'pinned' : 'history');
+      return;
+    }
+
+    const scrollNode = scrollRef.current;
+    const historyNode = historySectionRef.current;
+    if (!scrollNode || !historyNode) return;
+
+    const historyBoundary = Math.max(0, historyNode.offsetTop - 1);
+    const nextSection: StickySection = scrollNode.scrollTop >= historyBoundary
+      ? 'history'
+      : wheelSectionRef.current || 'pinned';
+    setActiveStickySection(prev => prev === nextSection ? prev : nextSection);
+  }, [hasSplitSections, topSectionIsPinned]);
+
+  const handleHistoryWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
+    if (!hasSplitSections) return;
+
+    const historyNode = historySectionRef.current;
+    if (!historyNode) return;
+
+    const nextSection: StickySection = event.clientY >= historyNode.getBoundingClientRect().top
+      ? 'history'
+      : 'pinned';
+    wheelSectionRef.current = nextSection;
+    setActiveStickySection(prev => prev === nextSection ? prev : nextSection);
+  }, [hasSplitSections]);
+
+  useEffect(() => {
+    wheelSectionRef.current = null;
+    const frame = window.requestAnimationFrame(updateStickySection);
+    return () => window.cancelAnimationFrame(frame);
+  }, [historyCollapsed, pinnedCollapsed, pinned.length, searchQuery, unpinned.length, updateStickySection]);
 
   const handleRenameSubmit = (id: string) => {
     if (renameValue.trim()) {
@@ -322,7 +370,7 @@ const ChatHistory: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                if (topSectionIsPinned) {
+                if (stickySection === 'pinned') {
                   setPinnedCollapsed(prev => !prev);
                 } else {
                   setHistoryCollapsed(prev => !prev);
@@ -330,15 +378,15 @@ const ChatHistory: React.FC = () => {
               }}
               style={sectionToggleStyle}
             >
-              {pinned.length > 0 ? (
+              {stickySection === 'pinned' ? (
                 <Pin size={15} style={{ color: '#7D8FA6' }} />
               ) : (
                 <History size={16} style={{ color: '#7D8FA6' }} />
               )}
               <span style={{ fontSize: '13px', fontWeight: 750, color: '#6F8199', letterSpacing: 0 }}>
-                {pinned.length > 0 ? '置顶任务' : '历史会话'}
+                {stickySection === 'pinned' ? '置顶任务' : '历史会话'}
               </span>
-              {topSectionCollapsed ? (
+              {stickySectionCollapsed ? (
                 <ChevronRight size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
               ) : (
                 <ChevronDown size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
@@ -380,7 +428,10 @@ const ChatHistory: React.FC = () => {
 
       {/* Conversation list */}
       <div
+        ref={scrollRef}
         className="chat-history-scroll"
+        onScroll={updateStickySection}
+        onWheelCapture={handleHistoryWheel}
         style={{
           flex: 1,
           overflowY: 'auto',
@@ -392,6 +443,7 @@ const ChatHistory: React.FC = () => {
 
         {pinned.length > 0 && unpinned.length > 0 && (
           <button
+            ref={historySectionRef}
             type="button"
             onClick={() => setHistoryCollapsed(prev => !prev)}
             style={{

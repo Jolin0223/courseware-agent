@@ -851,7 +851,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
   },
   collapsedBubble: {
-    maxHeight: 168,
+    maxHeight: 260,
   },
   fadeMask: {
     position: 'absolute',

@@ -846,6 +846,10 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     alignItems: 'flex-end',
     width: '100%',
   },
+  fullWidthBubble: {
+    width: '100%',
+    boxSizing: 'border-box',
+  },
   collapsibleBubble: {
     position: 'relative',
     overflow: 'hidden',
@@ -878,7 +882,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
   },
   appliedPromptCard: {
     width: '100%',
-    maxWidth: 560,
+    maxWidth: '100%',
     padding: 12,
     marginTop: 8,
     borderRadius: 14,
@@ -1134,11 +1138,13 @@ function UserMessage({
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
   const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
   const appliedPlaywayMessage = message.text ? parseAppliedPlaywayMessage(message.text) : null;
+  const hasAttachments = images.length > 0 || documents.length > 0 || htmlAttachments.length > 0;
   const isLongText = Boolean(
     message.text
     && !appliedPlaywayMessage
     && (message.text.length > 260 || message.text.split('\n').length > 8)
   );
+  const shouldUseFullWidthBubble = Boolean(isLongText || hasAttachments || appliedPlaywayMessage);
 
   return (
     <>
@@ -1192,6 +1198,7 @@ function UserMessage({
               <div
                 style={{
                   ...styles.userBubble,
+                  ...(shouldUseFullWidthBubble ? userMessageStyles.fullWidthBubble : {}),
                   whiteSpace: 'pre-wrap',
                 }}
               >
@@ -1238,6 +1245,7 @@ function UserMessage({
                 style={{
                   ...styles.userBubble,
                   ...userMessageStyles.collapsibleBubble,
+                  ...(shouldUseFullWidthBubble ? userMessageStyles.fullWidthBubble : {}),
                   ...(isLongText && !longTextExpanded ? userMessageStyles.collapsedBubble : {}),
                   whiteSpace: 'pre-wrap',
                 }}

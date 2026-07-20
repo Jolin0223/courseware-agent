@@ -819,12 +819,10 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
           transform: rotate(45deg);
         }
         .resource-edit-prompt-input {
-          transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+          transition: border-color 0.16s ease;
         }
         .resource-edit-prompt-input:focus {
           border-color: var(--agent-primary) !important;
-          background: var(--agent-soft) !important;
-          box-shadow: 0 0 0 2px var(--agent-focus-ring-strong) !important;
         }
       `}</style>
     </div>

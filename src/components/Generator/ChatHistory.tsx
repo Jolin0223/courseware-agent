@@ -145,7 +145,7 @@ const ChatHistory: React.FC = () => {
           transition: 'all 0.15s',
           borderRadius: 10,
           marginBottom: 4,
-          boxShadow: isActive ? '0 8px 22px rgba(37, 74, 120, 0.11), 0 1px 2px rgba(15, 23, 42, 0.035)' : 'none',
+          boxShadow: isActive ? '0 4px 12px rgba(37, 74, 120, 0.06), 0 1px 2px rgba(15, 23, 42, 0.025)' : 'none',
         }}
         onMouseEnter={(e) => {
           if (!isActive) {

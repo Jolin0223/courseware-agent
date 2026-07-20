@@ -723,13 +723,13 @@ export default function CoursewareCard({
                           minHeight: 174,
                           padding: 10,
                           borderRadius: 14,
-                          border: selected ? '1px solid #BFE9F5' : '1px solid #E2E8F0',
-                          borderColor: selected ? '#BFE9F5' : '#E2E8F0',
-                          background: selected ? '#F1FAFF' : '#FFFFFF',
+                          border: selected ? '1px solid var(--agent-primary)' : '1px solid #E2E8F0',
+                          borderColor: selected ? 'var(--agent-primary)' : '#E2E8F0',
+                          background: selected ? 'var(--agent-soft)' : '#FFFFFF',
                           cursor: 'pointer',
                           textAlign: 'left',
                           transition: 'all 0.15s',
-                          boxShadow: selected ? '0 10px 24px rgba(14, 165, 233, 0.10)' : 'none',
+                          boxShadow: selected ? '0 8px 18px var(--agent-focus-ring)' : 'none',
                           outline: 'none',
                         }}
                       >
@@ -842,8 +842,8 @@ export default function CoursewareCard({
                           )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                          <span style={{ fontSize: 13, fontWeight: 850, color: selected ? '#0F766E' : '#0F172A' }}>{style.name}</span>
-                          {selected && <CheckCircle2 size={15} color="#0F766E" />}
+                          <span style={{ fontSize: 13, fontWeight: 850, color: selected ? 'var(--agent-primary)' : '#0F172A' }}>{style.name}</span>
+                          {selected && <CheckCircle2 size={15} color="var(--agent-primary)" />}
                         </div>
                         <div style={{ marginTop: 5, fontSize: 12, lineHeight: 1.45, color: '#64748B' }}>{style.desc}</div>
                       </button>
@@ -882,12 +882,12 @@ export default function CoursewareCard({
                           minHeight: 92,
                           padding: 8,
                           borderRadius: 14,
-                          border: selected ? '1px solid #BFE9F5' : '1px solid #E2E8F0',
-                          borderColor: selected ? '#BFE9F5' : '#E2E8F0',
-                          background: selected ? '#FFFFFF' : 'rgba(255,255,255,0.82)',
+                          border: selected ? '1px solid var(--agent-primary)' : '1px solid #E2E8F0',
+                          borderColor: selected ? 'var(--agent-primary)' : '#E2E8F0',
+                          background: selected ? 'var(--agent-soft)' : 'rgba(255,255,255,0.82)',
                           cursor: 'pointer',
                           textAlign: 'left',
-                          boxShadow: selected ? '0 8px 18px rgba(14, 165, 233, 0.10)' : 'none',
+                          boxShadow: selected ? '0 6px 14px var(--agent-focus-ring)' : 'none',
                           outline: 'none',
                         }}
                       >
@@ -900,7 +900,7 @@ export default function CoursewareCard({
                             aspectRatio: '1 / 1',
                             overflow: 'hidden',
                             borderRadius: 12,
-                            border: selected ? '1px solid rgba(15, 118, 110, 0.24)' : '1px solid rgba(203, 213, 225, 0.9)',
+                            border: selected ? '1px solid var(--agent-border)' : '1px solid rgba(203, 213, 225, 0.9)',
                             background: 'linear-gradient(45deg, #F8FAFC 25%, #EEF2F7 25%, #EEF2F7 50%, #F8FAFC 50%, #F8FAFC 75%, #EEF2F7 75%, #EEF2F7 100%)',
                             backgroundSize: '18px 18px',
                           }}>
@@ -956,7 +956,7 @@ export default function CoursewareCard({
                           height: 20,
                           borderRadius: 7,
                           border: selected ? 'none' : '1px solid #CBD5E1',
-                          background: selected ? 'var(--agent-gradient)' : 'rgba(255,255,255,0.86)',
+                          background: selected ? 'var(--agent-primary)' : 'rgba(255,255,255,0.86)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -965,7 +965,7 @@ export default function CoursewareCard({
                           {selected && <CheckCircle2 size={13} color="#fff" />}
                         </span>
                         <span style={{ display: 'block', minWidth: 0 }}>
-                          <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: selected ? '#0F766E' : '#1E293B' }}>{style.name}</span>
+                          <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: selected ? 'var(--agent-primary)' : '#1E293B' }}>{style.name}</span>
                           <span style={{
                             display: '-webkit-box',
                             marginTop: 4,

@@ -186,7 +186,7 @@ const ImageEditCard: React.FC<{
               {/* 输入区 */}
               {activeTab === 'text' && (
                 <>
-                  <textarea value={promptText} onChange={e => setPromptText(e.target.value)} placeholder="描述你想要的图片..." style={{
+                  <textarea className="resource-edit-prompt-input" value={promptText} onChange={e => setPromptText(e.target.value)} placeholder="描述你想要的图片..." style={{
                     flex: 1, padding: '8px 10px', paddingTop: 8, borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 11, outline: 'none', marginBottom: 6,
                     resize: 'none', minHeight: 60, lineHeight: '1.4',
                   }} />
@@ -200,7 +200,7 @@ const ImageEditCard: React.FC<{
               )}
               {activeTab === 'image' && (
                 <>
-                  <textarea value={img2imgPrompt} onChange={e => setImg2imgPrompt(e.target.value)} placeholder="描述要如何修改..." style={{
+                  <textarea className="resource-edit-prompt-input" value={img2imgPrompt} onChange={e => setImg2imgPrompt(e.target.value)} placeholder="描述要如何修改..." style={{
                     flex: 1, padding: '8px 10px', paddingTop: 8, borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 11, outline: 'none', marginBottom: 6,
                     resize: 'none', minHeight: 60, lineHeight: '1.4',
                   }} />
@@ -817,6 +817,14 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
           border: solid #fff;
           border-width: 0 1.5px 1.5px 0;
           transform: rotate(45deg);
+        }
+        .resource-edit-prompt-input {
+          transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+        }
+        .resource-edit-prompt-input:focus {
+          border-color: var(--agent-primary) !important;
+          background: var(--agent-soft) !important;
+          box-shadow: 0 0 0 2px var(--agent-focus-ring-strong) !important;
         }
       `}</style>
     </div>

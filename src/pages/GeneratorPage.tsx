@@ -829,6 +829,17 @@ const voiceCardStyles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     outline: 'none',
   },
+  confirmedState: {
+    width: '100%',
+    padding: '10px 12px',
+    borderRadius: 10,
+    background: '#ECFDF5',
+    border: '1px solid #A7F3D0',
+    color: '#047857',
+    fontSize: 13,
+    fontWeight: 800,
+    lineHeight: 1.5,
+  },
 };
 
 const userMessageStyles: Record<string, React.CSSProperties> = {
@@ -1485,6 +1496,12 @@ const getVoiceSelectionFromChoice = (choice: VoiceCapabilityChoice): VoiceCapabi
   };
 };
 
+const getVoiceSelectionLabel = (selection: VoiceCapabilitySelection) => {
+  if (selection.englishOralAssessment) return '启用学生小屏真实收音和英语口语评测';
+  if (selection.smallScreenRecording) return '启用学生小屏真实收音，不启用口语评测';
+  return '不需要语音服务，继续';
+};
+
 function VoiceCapabilityCard({
   confirmation,
   onConfirm,
@@ -1498,20 +1515,31 @@ function VoiceCapabilityCard({
     : 'record-only';
   const [selectedChoice, setSelectedChoice] = useState<VoiceCapabilityChoice>(defaultChoice);
   const [remainingSeconds, setRemainingSeconds] = useState(AUTO_CONFIRM_SECONDS);
+  const [confirmedSelectionOverride, setConfirmedSelectionOverride] = useState<VoiceCapabilitySelection | undefined>();
+  const confirmedSelection = confirmation.confirmedSelection || confirmedSelectionOverride;
   const selectedChoiceRef = useRef(selectedChoice);
-  const confirmedRef = useRef(false);
+  const confirmedRef = useRef(Boolean(confirmedSelection));
+  const isConfirmed = Boolean(confirmedSelection);
 
   useEffect(() => {
     selectedChoiceRef.current = selectedChoice;
   }, [selectedChoice]);
 
+  useEffect(() => {
+    confirmedRef.current = Boolean(confirmedSelection);
+  }, [confirmedSelection]);
+
   const confirmSelection = useCallback((choice: VoiceCapabilityChoice) => {
     if (confirmedRef.current) return;
+    const nextSelection = getVoiceSelectionFromChoice(choice);
     confirmedRef.current = true;
-    onConfirm?.(getVoiceSelectionFromChoice(choice));
+    setConfirmedSelectionOverride(nextSelection);
+    onConfirm?.(nextSelection);
   }, [onConfirm]);
 
   useEffect(() => {
+    if (isConfirmed) return;
+
     const timer = window.setInterval(() => {
       setRemainingSeconds(prev => {
         if (prev <= 1) {
@@ -1524,19 +1552,21 @@ function VoiceCapabilityCard({
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [confirmSelection]);
+  }, [confirmSelection, isConfirmed]);
 
   const optionStyle = (selected: boolean): React.CSSProperties => ({
     ...voiceCardStyles.optionBtn,
     borderColor: selected ? 'var(--agent-primary)' : '#E2E8F0',
-    background: selected ? 'var(--agent-soft-strong)' : '#F8FAFC',
-    boxShadow: selected ? '0 8px 22px rgba(14, 165, 233, 0.12)' : 'none',
+    background: selected ? (isConfirmed ? '#ECFDF5' : 'var(--agent-soft-strong)') : '#F8FAFC',
+    boxShadow: selected && !isConfirmed ? '0 8px 22px rgba(14, 165, 233, 0.12)' : 'none',
+    cursor: isConfirmed ? 'default' : 'pointer',
+    opacity: isConfirmed && !selected ? 0.62 : 1,
   });
 
   const iconStyle = (selected: boolean): React.CSSProperties => ({
     ...voiceCardStyles.optionIcon,
     background: selected ? '#FFFFFF' : '#E0F2FE',
-    color: selected ? 'var(--agent-primary)' : '#0284C7',
+    color: selected ? (isConfirmed ? '#059669' : 'var(--agent-primary)') : '#0284C7',
   });
 
   return (
@@ -1559,6 +1589,7 @@ function VoiceCapabilityCard({
       <div style={voiceCardStyles.options}>
         <button
           type="button"
+          disabled={isConfirmed}
           onClick={() => setSelectedChoice('record-with-assessment')}
           style={optionStyle(selectedChoice === 'record-with-assessment')}
         >
@@ -1571,6 +1602,7 @@ function VoiceCapabilityCard({
 
         <button
           type="button"
+          disabled={isConfirmed}
           onClick={() => setSelectedChoice('record-only')}
           style={optionStyle(selectedChoice === 'record-only')}
         >
@@ -1588,23 +1620,31 @@ function VoiceCapabilityCard({
       </div>
 
       <div style={voiceCardStyles.footer}>
-        <span style={voiceCardStyles.countdown}>{remainingSeconds}s 后将自动按当前选择继续</span>
-        <div style={voiceCardStyles.actions}>
-          <button
-            type="button"
-            onClick={() => confirmSelection('none')}
-            style={voiceCardStyles.ghostBtn}
-          >
-            不需要语音服务，继续
-          </button>
-          <button
-            type="button"
-            onClick={() => confirmSelection(selectedChoice)}
-            style={voiceCardStyles.confirmBtn}
-          >
-            确认并继续
-          </button>
-        </div>
+        {confirmedSelection ? (
+          <div style={voiceCardStyles.confirmedState}>
+            已确认：{getVoiceSelectionLabel(confirmedSelection)}
+          </div>
+        ) : (
+          <>
+            <span style={voiceCardStyles.countdown}>{remainingSeconds}s 后将自动按当前选择继续</span>
+            <div style={voiceCardStyles.actions}>
+              <button
+                type="button"
+                onClick={() => confirmSelection('none')}
+                style={voiceCardStyles.ghostBtn}
+              >
+                不需要语音服务，继续
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmSelection(selectedChoice)}
+                style={voiceCardStyles.confirmBtn}
+              >
+                确认并继续
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -2472,11 +2512,30 @@ export default function GeneratorPage() {
     if (!message || message.type !== 'voice-capability-confirmation') return;
 
     const confirmation = message.content as VoiceCapabilityConfirmation;
-    const selectedText = selection.englishOralAssessment
-      ? '启用学生小屏真实收音和英语口语评测'
-      : selection.smallScreenRecording
-        ? '启用学生小屏真实收音，不启用口语评测'
-        : '不需要语音服务，继续';
+    if (confirmation.confirmedSelection) return;
+    const selectedText = getVoiceSelectionLabel(selection);
+
+    useConversationStore.setState(state => ({
+      conversations: state.conversations.map(conversation => (
+        conversation.id === activeConversationId
+          ? {
+              ...conversation,
+              messages: conversation.messages.map(item => (
+                item.id === messageId && item.type === 'voice-capability-confirmation'
+                  ? {
+                      ...item,
+                      content: {
+                        ...(item.content as VoiceCapabilityConfirmation),
+                        confirmedSelection: selection,
+                        confirmedAt: new Date().toISOString(),
+                      },
+                    }
+                  : item
+              )),
+            }
+          : conversation
+      )),
+    }));
 
     addUserMessage(activeConversationId, selectedText);
     startRequirementFlow(

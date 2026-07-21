@@ -163,6 +163,8 @@ export interface VoiceCapabilityConfirmation {
   promptForFramework: string;
   intent: VoiceCapabilityIntent;
   source: 'user-prompt' | 'material-intent';
+  confirmedSelection?: VoiceCapabilitySelection;
+  confirmedAt?: string;
 }
 
 export interface VoiceCapabilitySelection {

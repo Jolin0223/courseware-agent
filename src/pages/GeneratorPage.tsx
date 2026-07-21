@@ -681,9 +681,9 @@ const intentCardStyles: Record<string, React.CSSProperties> = {
     width: '100%',
     padding: '10px 12px',
     borderRadius: 10,
-    background: '#ECFDF5',
-    border: '1px solid #A7F3D0',
-    color: '#047857',
+    background: 'var(--agent-soft-strong)',
+    border: '1px solid #BAE6FD',
+    color: 'var(--agent-primary-text)',
     fontSize: 13,
     fontWeight: 800,
     lineHeight: 1.5,
@@ -844,9 +844,9 @@ const voiceCardStyles: Record<string, React.CSSProperties> = {
     width: '100%',
     padding: '10px 12px',
     borderRadius: 10,
-    background: '#ECFDF5',
-    border: '1px solid #A7F3D0',
-    color: '#047857',
+    background: 'var(--agent-soft-strong)',
+    border: '1px solid #BAE6FD',
+    color: 'var(--agent-primary-text)',
     fontSize: 13,
     fontWeight: 800,
     lineHeight: 1.5,
@@ -1418,8 +1418,8 @@ function MaterialIntentCard({
         <div
           style={{
             ...intentCardStyles.badge,
-            background: isConfirmed ? '#ECFDF5' : '#FEF3C7',
-            color: isConfirmed ? '#047857' : '#B45309',
+            background: isConfirmed ? 'var(--agent-soft-strong)' : '#FEF3C7',
+            color: isConfirmed ? 'var(--agent-primary-text)' : '#B45309',
           }}
         >
           {isConfirmed ? '已确认' : '需逐个确认'}
@@ -1455,7 +1455,7 @@ function MaterialIntentCard({
                     style={{
                       ...intentCardStyles.optionBtn,
                       borderColor: selected === option.intent ? 'var(--agent-primary)' : 'var(--agent-border)',
-                      background: selected === option.intent ? (isConfirmed ? '#ECFDF5' : 'var(--agent-soft-strong)') : 'var(--agent-soft)',
+                      background: selected === option.intent ? 'var(--agent-soft-strong)' : 'var(--agent-soft)',
                       cursor: isConfirmed ? 'default' : 'pointer',
                       opacity: isConfirmed && selected !== option.intent ? 0.62 : 1,
                     }}
@@ -1606,7 +1606,7 @@ function VoiceCapabilityCard({
   const optionStyle = (selected: boolean): React.CSSProperties => ({
     ...voiceCardStyles.optionBtn,
     borderColor: selected ? 'var(--agent-primary)' : '#E2E8F0',
-    background: selected ? (isConfirmed ? '#ECFDF5' : 'var(--agent-soft-strong)') : '#F8FAFC',
+    background: selected ? 'var(--agent-soft-strong)' : '#F8FAFC',
     boxShadow: selected && !isConfirmed ? '0 8px 22px rgba(14, 165, 233, 0.12)' : 'none',
     cursor: isConfirmed ? 'default' : 'pointer',
     opacity: isConfirmed && !selected ? 0.62 : 1,
@@ -1615,7 +1615,7 @@ function VoiceCapabilityCard({
   const iconStyle = (selected: boolean): React.CSSProperties => ({
     ...voiceCardStyles.optionIcon,
     background: selected ? '#FFFFFF' : '#E0F2FE',
-    color: selected ? (isConfirmed ? '#059669' : 'var(--agent-primary)') : '#0284C7',
+    color: selected ? 'var(--agent-primary)' : '#0284C7',
   });
 
   return (

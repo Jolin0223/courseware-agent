@@ -1450,7 +1450,7 @@ function MaterialIntentCard({
                             ? '#7DD3FC'
                             : 'var(--agent-border)',
                         background: optionSelected || optionHovered ? 'var(--agent-soft-strong)' : 'var(--agent-soft)',
-                        boxShadow: optionHovered && !optionSelected ? '0 6px 16px rgba(14, 165, 233, 0.10)' : 'none',
+                        boxShadow: 'none',
                         cursor: isConfirmed ? 'default' : 'pointer',
                         opacity: isConfirmed && !optionSelected ? 0.62 : 1,
                       }}
@@ -1491,9 +1491,7 @@ function MaterialIntentCard({
                       : focusedCustomInputId === file.id
                         ? '#7DD3FC'
                         : '#CBD5E1',
-                    boxShadow: selected === 'custom' || focusedCustomInputId === file.id
-                      ? '0 0 0 3px rgba(14, 165, 233, 0.12)'
-                      : 'none',
+                    boxShadow: 'none',
                     background: isConfirmed ? '#F8FAFC' : '#FFFFFF',
                     cursor: isConfirmed ? 'default' : 'text',
                   }}
@@ -1617,7 +1615,7 @@ function VoiceCapabilityCard({
         ? '#7DD3FC'
         : '#E2E8F0',
     background: selected || (hovered && !isConfirmed) ? 'var(--agent-soft-strong)' : '#F8FAFC',
-    boxShadow: (selected || hovered) && !isConfirmed ? '0 8px 22px rgba(14, 165, 233, 0.12)' : 'none',
+    boxShadow: 'none',
     cursor: isConfirmed ? 'default' : 'pointer',
     opacity: isConfirmed && !selected ? 0.62 : 1,
     });

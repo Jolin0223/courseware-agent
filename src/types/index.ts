@@ -154,6 +154,8 @@ export interface MaterialIntentConfirmation {
   pendingAttachments: UploadedAttachment[];
   resolvedIntents: MaterialIntentResolution[];
   summary: string;
+  confirmedResolutions?: MaterialIntentResolution[];
+  confirmedAt?: string;
 }
 
 export type VoiceCapabilityIntent = 'english-oral' | 'record-only';

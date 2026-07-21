@@ -677,6 +677,17 @@ const intentCardStyles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     flexShrink: 0,
   },
+  confirmedState: {
+    width: '100%',
+    padding: '10px 12px',
+    borderRadius: 10,
+    background: '#ECFDF5',
+    border: '1px solid #A7F3D0',
+    color: '#047857',
+    fontSize: 13,
+    fontWeight: 800,
+    lineHeight: 1.5,
+  },
 };
 
 const voiceCardStyles: Record<string, React.CSSProperties> = {
@@ -1362,14 +1373,22 @@ function MaterialIntentCard({
 }) {
   const [selectedIntents, setSelectedIntents] = useState<Record<string, MaterialIntent>>({});
   const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
-  const allSelected = confirmation.pendingAttachments.every(file => selectedIntents[file.id]);
+  const [confirmedResolutionsOverride, setConfirmedResolutionsOverride] = useState<MaterialIntentResolution[] | undefined>();
+  const confirmedResolutions = confirmation.confirmedResolutions || confirmedResolutionsOverride;
+  const confirmedRef = useRef(Boolean(confirmedResolutions));
+  const isConfirmed = Boolean(confirmedResolutions);
+  const allSelected = isConfirmed || confirmation.pendingAttachments.every(file => selectedIntents[file.id]);
+
+  useEffect(() => {
+    confirmedRef.current = Boolean(confirmedResolutions);
+  }, [confirmedResolutions]);
 
   const getOptions = (file: UploadedAttachment) => (
     file.type === 'image' ? imageIntentOptions : documentIntentOptions
   );
 
   const handleConfirm = () => {
-    if (!allSelected) return;
+    if (!allSelected || confirmedRef.current) return;
     const resolutions = confirmation.pendingAttachments.map(file => {
       const intent = selectedIntents[file.id];
       const option = getOptions(file).find(item => item.intent === intent);
@@ -1384,6 +1403,8 @@ function MaterialIntentCard({
         reason: '用户在用途确认卡中手动确认',
       };
     });
+    confirmedRef.current = true;
+    setConfirmedResolutionsOverride(resolutions);
     onConfirm?.(resolutions);
   };
 
@@ -1394,12 +1415,21 @@ function MaterialIntentCard({
           <div style={intentCardStyles.title}>请确认上传材料的用途</div>
           <div style={intentCardStyles.summary}>{confirmation.summary}</div>
         </div>
-        <div style={intentCardStyles.badge}>需逐个确认</div>
+        <div
+          style={{
+            ...intentCardStyles.badge,
+            background: isConfirmed ? '#ECFDF5' : '#FEF3C7',
+            color: isConfirmed ? '#047857' : '#B45309',
+          }}
+        >
+          {isConfirmed ? '已确认' : '需逐个确认'}
+        </div>
       </div>
 
       <div style={intentCardStyles.pendingList}>
         {confirmation.pendingAttachments.map(file => {
-          const selected = selectedIntents[file.id];
+          const confirmedResolution = confirmedResolutions?.find(item => item.attachmentId === file.id);
+          const selected = confirmedResolution?.intent || selectedIntents[file.id];
           return (
             <div key={file.id} style={intentCardStyles.pendingItem}>
               <div style={intentCardStyles.fileItem}>
@@ -1410,7 +1440,9 @@ function MaterialIntentCard({
                 )}
                 <div style={{ minWidth: 0 }}>
                   <div style={intentCardStyles.fileName}>{file.name}</div>
-                  <div style={intentCardStyles.fileType}>{getAttachmentLabel(file)} · 请选择用途</div>
+                  <div style={intentCardStyles.fileType}>
+                    {getAttachmentLabel(file)} · {confirmedResolution ? `已确认：${confirmedResolution.title}` : '请选择用途'}
+                  </div>
                 </div>
               </div>
 
@@ -1418,11 +1450,14 @@ function MaterialIntentCard({
                 {getOptions(file).map(option => (
                   <button
                     key={option.intent}
+                    disabled={isConfirmed}
                     onClick={() => setSelectedIntents(prev => ({ ...prev, [file.id]: option.intent }))}
                     style={{
                       ...intentCardStyles.optionBtn,
                       borderColor: selected === option.intent ? 'var(--agent-primary)' : 'var(--agent-border)',
-                      background: selected === option.intent ? 'var(--agent-soft-strong)' : 'var(--agent-soft)',
+                      background: selected === option.intent ? (isConfirmed ? '#ECFDF5' : 'var(--agent-soft-strong)') : 'var(--agent-soft)',
+                      cursor: isConfirmed ? 'default' : 'pointer',
+                      opacity: isConfirmed && selected !== option.intent ? 0.62 : 1,
                     }}
                   >
                     <span style={intentCardStyles.optionTitle}>{option.title}</span>
@@ -1436,18 +1471,24 @@ function MaterialIntentCard({
                   <input
                     type="radio"
                     checked={selected === 'custom'}
+                    disabled={isConfirmed}
                     onChange={() => setSelectedIntents(prev => ({ ...prev, [file.id]: 'custom' }))}
                   />
                   其他用途
                 </label>
                 <input
-                  value={customTexts[file.id] || ''}
+                  value={confirmedResolution?.customText || customTexts[file.id] || ''}
+                  disabled={isConfirmed}
                   onChange={e => {
                     setCustomTexts(prev => ({ ...prev, [file.id]: e.target.value }));
                     setSelectedIntents(prev => ({ ...prev, [file.id]: 'custom' }));
                   }}
                   placeholder="例如：只用来补充例题语境、只参考版式，不参与生成..."
-                  style={intentCardStyles.customInput}
+                  style={{
+                    ...intentCardStyles.customInput,
+                    background: isConfirmed ? '#F8FAFC' : '#FFFFFF',
+                    cursor: isConfirmed ? 'default' : 'text',
+                  }}
                 />
               </div>
             </div>
@@ -1456,18 +1497,26 @@ function MaterialIntentCard({
       </div>
 
       <div style={intentCardStyles.footer}>
-        <span style={intentCardStyles.footerHint}>确认后，AI 会把每个材料的用途写入需求分析。</span>
-        <button
-          onClick={handleConfirm}
-          disabled={!allSelected}
-          style={{
-            ...intentCardStyles.confirmBtn,
-            background: allSelected ? 'var(--agent-primary)' : '#CBD5E1',
-            cursor: allSelected ? 'pointer' : 'not-allowed',
-          }}
-        >
-          确认用途并继续
-        </button>
+        {confirmedResolutions ? (
+          <div style={intentCardStyles.confirmedState}>
+            已确认 {confirmedResolutions.length} 个材料用途
+          </div>
+        ) : (
+          <>
+            <span style={intentCardStyles.footerHint}>确认后，AI 会把每个材料的用途写入需求分析。</span>
+            <button
+              onClick={handleConfirm}
+              disabled={!allSelected}
+              style={{
+                ...intentCardStyles.confirmBtn,
+                background: allSelected ? 'var(--agent-primary)' : '#CBD5E1',
+                cursor: allSelected ? 'pointer' : 'not-allowed',
+              }}
+            >
+              确认用途并继续
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -2471,6 +2520,7 @@ export default function GeneratorPage() {
     if (!message || message.type !== 'material-intent-confirmation') return;
 
     const confirmation = message.content as MaterialIntentConfirmation;
+    if (confirmation.confirmedResolutions) return;
     const allAttachments = [
       ...confirmation.pendingAttachments,
       ...confirmation.resolvedIntents
@@ -2488,6 +2538,28 @@ export default function GeneratorPage() {
     ];
     const allResolutions = [...confirmation.resolvedIntents, ...resolutions];
     const originalPrompt = confirmation.prompt || '请根据上传材料生成互动课件';
+
+    useConversationStore.setState(state => ({
+      conversations: state.conversations.map(conversation => (
+        conversation.id === activeConversationId
+          ? {
+              ...conversation,
+              messages: conversation.messages.map(item => (
+                item.id === messageId && item.type === 'material-intent-confirmation'
+                  ? {
+                      ...item,
+                      content: {
+                        ...(item.content as MaterialIntentConfirmation),
+                        confirmedResolutions: resolutions,
+                        confirmedAt: new Date().toISOString(),
+                      },
+                    }
+                  : item
+              )),
+            }
+          : conversation
+      )),
+    }));
 
     addUserMessage(activeConversationId, {
       text: `我已确认 ${resolutions.length} 个材料用途`,

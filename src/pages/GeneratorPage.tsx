@@ -677,17 +677,6 @@ const intentCardStyles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     flexShrink: 0,
   },
-  confirmedState: {
-    width: '100%',
-    padding: '10px 12px',
-    borderRadius: 10,
-    background: 'var(--agent-soft-strong)',
-    border: '1px solid #BAE6FD',
-    color: 'var(--agent-primary-text)',
-    fontSize: 13,
-    fontWeight: 800,
-    lineHeight: 1.5,
-  },
 };
 
 const voiceCardStyles: Record<string, React.CSSProperties> = {
@@ -839,17 +828,6 @@ const voiceCardStyles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     cursor: 'pointer',
     outline: 'none',
-  },
-  confirmedState: {
-    width: '100%',
-    padding: '10px 12px',
-    borderRadius: 10,
-    background: 'var(--agent-soft-strong)',
-    border: '1px solid #BAE6FD',
-    color: 'var(--agent-primary-text)',
-    fontSize: 13,
-    fontWeight: 800,
-    lineHeight: 1.5,
   },
 };
 
@@ -1373,6 +1351,8 @@ function MaterialIntentCard({
 }) {
   const [selectedIntents, setSelectedIntents] = useState<Record<string, MaterialIntent>>({});
   const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
+  const [hoveredIntentOption, setHoveredIntentOption] = useState<string | null>(null);
+  const [focusedCustomInputId, setFocusedCustomInputId] = useState<string | null>(null);
   const [confirmedResolutionsOverride, setConfirmedResolutionsOverride] = useState<MaterialIntentResolution[] | undefined>();
   const confirmedResolutions = confirmation.confirmedResolutions || confirmedResolutionsOverride;
   const confirmedRef = useRef(Boolean(confirmedResolutions));
@@ -1409,7 +1389,7 @@ function MaterialIntentCard({
   };
 
   return (
-    <div style={intentCardStyles.card}>
+    <div className="agent-confirm-card agent-material-intent-card" style={intentCardStyles.card}>
       <div style={intentCardStyles.header}>
         <div>
           <div style={intentCardStyles.title}>请确认上传材料的用途</div>
@@ -1447,23 +1427,39 @@ function MaterialIntentCard({
               </div>
 
               <div style={intentCardStyles.options}>
-                {getOptions(file).map(option => (
-                  <button
-                    key={option.intent}
-                    disabled={isConfirmed}
-                    onClick={() => setSelectedIntents(prev => ({ ...prev, [file.id]: option.intent }))}
-                    style={{
-                      ...intentCardStyles.optionBtn,
-                      borderColor: selected === option.intent ? 'var(--agent-primary)' : 'var(--agent-border)',
-                      background: selected === option.intent ? 'var(--agent-soft-strong)' : 'var(--agent-soft)',
-                      cursor: isConfirmed ? 'default' : 'pointer',
-                      opacity: isConfirmed && selected !== option.intent ? 0.62 : 1,
-                    }}
-                  >
-                    <span style={intentCardStyles.optionTitle}>{option.title}</span>
-                    <span style={intentCardStyles.optionDesc}>{option.description}</span>
-                  </button>
-                ))}
+                {getOptions(file).map(option => {
+                  const optionKey = `${file.id}:${option.intent}`;
+                  const optionSelected = selected === option.intent;
+                  const optionHovered = hoveredIntentOption === optionKey;
+                  return (
+                    <button
+                      key={option.intent}
+                      className="agent-confirm-option"
+                      data-selected={optionSelected ? 'true' : undefined}
+                      disabled={isConfirmed}
+                      onClick={() => setSelectedIntents(prev => ({ ...prev, [file.id]: option.intent }))}
+                      onMouseEnter={() => !isConfirmed && setHoveredIntentOption(optionKey)}
+                      onMouseLeave={() => setHoveredIntentOption(prev => prev === optionKey ? null : prev)}
+                      onFocus={() => !isConfirmed && setHoveredIntentOption(optionKey)}
+                      onBlur={() => setHoveredIntentOption(prev => prev === optionKey ? null : prev)}
+                      style={{
+                        ...intentCardStyles.optionBtn,
+                        borderColor: optionSelected
+                          ? 'var(--agent-primary)'
+                          : optionHovered
+                            ? '#7DD3FC'
+                            : 'var(--agent-border)',
+                        background: optionSelected || optionHovered ? 'var(--agent-soft-strong)' : 'var(--agent-soft)',
+                        boxShadow: optionHovered && !optionSelected ? '0 6px 16px rgba(14, 165, 233, 0.10)' : 'none',
+                        cursor: isConfirmed ? 'default' : 'pointer',
+                        opacity: isConfirmed && !optionSelected ? 0.62 : 1,
+                      }}
+                    >
+                      <span style={intentCardStyles.optionTitle}>{option.title}</span>
+                      <span style={intentCardStyles.optionDesc}>{option.description}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               <div style={intentCardStyles.customRow}>
@@ -1477,8 +1473,12 @@ function MaterialIntentCard({
                   其他用途
                 </label>
                 <input
+                  className="agent-confirm-input"
+                  data-selected={selected === 'custom' ? 'true' : undefined}
                   value={confirmedResolution?.customText || customTexts[file.id] || ''}
                   disabled={isConfirmed}
+                  onFocus={() => setFocusedCustomInputId(file.id)}
+                  onBlur={() => setFocusedCustomInputId(prev => prev === file.id ? null : prev)}
                   onChange={e => {
                     setCustomTexts(prev => ({ ...prev, [file.id]: e.target.value }));
                     setSelectedIntents(prev => ({ ...prev, [file.id]: 'custom' }));
@@ -1486,6 +1486,14 @@ function MaterialIntentCard({
                   placeholder="例如：只用来补充例题语境、只参考版式，不参与生成..."
                   style={{
                     ...intentCardStyles.customInput,
+                    borderColor: selected === 'custom'
+                      ? 'var(--agent-primary)'
+                      : focusedCustomInputId === file.id
+                        ? '#7DD3FC'
+                        : '#CBD5E1',
+                    boxShadow: selected === 'custom' || focusedCustomInputId === file.id
+                      ? '0 0 0 3px rgba(14, 165, 233, 0.12)'
+                      : 'none',
                     background: isConfirmed ? '#F8FAFC' : '#FFFFFF',
                     cursor: isConfirmed ? 'default' : 'text',
                   }}
@@ -1496,28 +1504,22 @@ function MaterialIntentCard({
         })}
       </div>
 
-      <div style={intentCardStyles.footer}>
-        {confirmedResolutions ? (
-          <div style={intentCardStyles.confirmedState}>
-            已确认 {confirmedResolutions.length} 个材料用途
-          </div>
-        ) : (
-          <>
-            <span style={intentCardStyles.footerHint}>确认后，AI 会把每个材料的用途写入需求分析。</span>
-            <button
-              onClick={handleConfirm}
-              disabled={!allSelected}
-              style={{
-                ...intentCardStyles.confirmBtn,
-                background: allSelected ? 'var(--agent-primary)' : '#CBD5E1',
-                cursor: allSelected ? 'pointer' : 'not-allowed',
-              }}
-            >
-              确认用途并继续
-            </button>
-          </>
-        )}
-      </div>
+      {!confirmedResolutions && (
+        <div style={intentCardStyles.footer}>
+          <span style={intentCardStyles.footerHint}>确认后，AI 会把每个材料的用途写入需求分析。</span>
+          <button
+            onClick={handleConfirm}
+            disabled={!allSelected}
+            style={{
+              ...intentCardStyles.confirmBtn,
+              background: allSelected ? 'var(--agent-primary)' : '#CBD5E1',
+              cursor: allSelected ? 'pointer' : 'not-allowed',
+            }}
+          >
+            确认用途并继续
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1564,6 +1566,7 @@ function VoiceCapabilityCard({
     : 'record-only';
   const [selectedChoice, setSelectedChoice] = useState<VoiceCapabilityChoice>(defaultChoice);
   const [remainingSeconds, setRemainingSeconds] = useState(AUTO_CONFIRM_SECONDS);
+  const [hoveredVoiceChoice, setHoveredVoiceChoice] = useState<VoiceCapabilityChoice | null>(null);
   const [confirmedSelectionOverride, setConfirmedSelectionOverride] = useState<VoiceCapabilitySelection | undefined>();
   const confirmedSelection = confirmation.confirmedSelection || confirmedSelectionOverride;
   const selectedChoiceRef = useRef(selectedChoice);
@@ -1603,14 +1606,22 @@ function VoiceCapabilityCard({
     return () => window.clearInterval(timer);
   }, [confirmSelection, isConfirmed]);
 
-  const optionStyle = (selected: boolean): React.CSSProperties => ({
+  const optionStyle = (choice: VoiceCapabilityChoice): React.CSSProperties => {
+    const selected = selectedChoice === choice;
+    const hovered = hoveredVoiceChoice === choice;
+    return ({
     ...voiceCardStyles.optionBtn,
-    borderColor: selected ? 'var(--agent-primary)' : '#E2E8F0',
-    background: selected ? 'var(--agent-soft-strong)' : '#F8FAFC',
-    boxShadow: selected && !isConfirmed ? '0 8px 22px rgba(14, 165, 233, 0.12)' : 'none',
+    borderColor: selected
+      ? 'var(--agent-primary)'
+      : hovered && !isConfirmed
+        ? '#7DD3FC'
+        : '#E2E8F0',
+    background: selected || (hovered && !isConfirmed) ? 'var(--agent-soft-strong)' : '#F8FAFC',
+    boxShadow: (selected || hovered) && !isConfirmed ? '0 8px 22px rgba(14, 165, 233, 0.12)' : 'none',
     cursor: isConfirmed ? 'default' : 'pointer',
     opacity: isConfirmed && !selected ? 0.62 : 1,
-  });
+    });
+  };
 
   const iconStyle = (selected: boolean): React.CSSProperties => ({
     ...voiceCardStyles.optionIcon,
@@ -1619,7 +1630,7 @@ function VoiceCapabilityCard({
   });
 
   return (
-    <div style={voiceCardStyles.card}>
+    <div className="agent-confirm-card agent-voice-capability-card" style={voiceCardStyles.card}>
       <div style={voiceCardStyles.header}>
         <div>
           <div style={voiceCardStyles.titleRow}>
@@ -1630,17 +1641,29 @@ function VoiceCapabilityCard({
             检测到本课件可能需要学生开口作答，请确认是否需要真实收音或英语口语评测。
           </div>
         </div>
-        <div style={voiceCardStyles.badge}>
-          {confirmation.intent === 'english-oral' ? '疑似英语口语' : '疑似录音作答'}
+        <div
+          style={{
+            ...voiceCardStyles.badge,
+            background: isConfirmed ? 'var(--agent-soft-strong)' : '#E0F2FE',
+            color: isConfirmed ? 'var(--agent-primary-text)' : '#0369A1',
+          }}
+        >
+          {isConfirmed ? '已确认' : confirmation.intent === 'english-oral' ? '疑似英语口语' : '疑似录音作答'}
         </div>
       </div>
 
       <div style={voiceCardStyles.options}>
         <button
           type="button"
+          className="agent-confirm-option"
+          data-selected={selectedChoice === 'record-with-assessment' ? 'true' : undefined}
           disabled={isConfirmed}
           onClick={() => setSelectedChoice('record-with-assessment')}
-          style={optionStyle(selectedChoice === 'record-with-assessment')}
+          onMouseEnter={() => !isConfirmed && setHoveredVoiceChoice('record-with-assessment')}
+          onMouseLeave={() => setHoveredVoiceChoice(prev => prev === 'record-with-assessment' ? null : prev)}
+          onFocus={() => !isConfirmed && setHoveredVoiceChoice('record-with-assessment')}
+          onBlur={() => setHoveredVoiceChoice(prev => prev === 'record-with-assessment' ? null : prev)}
+          style={optionStyle('record-with-assessment')}
         >
           <span style={iconStyle(selectedChoice === 'record-with-assessment')}><Headphones size={17} /></span>
           <span>
@@ -1651,9 +1674,15 @@ function VoiceCapabilityCard({
 
         <button
           type="button"
+          className="agent-confirm-option"
+          data-selected={selectedChoice === 'record-only' ? 'true' : undefined}
           disabled={isConfirmed}
           onClick={() => setSelectedChoice('record-only')}
-          style={optionStyle(selectedChoice === 'record-only')}
+          onMouseEnter={() => !isConfirmed && setHoveredVoiceChoice('record-only')}
+          onMouseLeave={() => setHoveredVoiceChoice(prev => prev === 'record-only' ? null : prev)}
+          onFocus={() => !isConfirmed && setHoveredVoiceChoice('record-only')}
+          onBlur={() => setHoveredVoiceChoice(prev => prev === 'record-only' ? null : prev)}
+          style={optionStyle('record-only')}
         >
           <span style={iconStyle(selectedChoice === 'record-only')}><Mic size={17} /></span>
           <span>
@@ -1668,33 +1697,27 @@ function VoiceCapabilityCard({
         <span>古诗词朗读评测、中文朗读评测、背诵评测、开放口述评价暂未开放，可先使用真实收音完成录音作答。</span>
       </div>
 
-      <div style={voiceCardStyles.footer}>
-        {confirmedSelection ? (
-          <div style={voiceCardStyles.confirmedState}>
-            已确认：{getVoiceSelectionLabel(confirmedSelection)}
+      {!confirmedSelection && (
+        <div style={voiceCardStyles.footer}>
+          <span style={voiceCardStyles.countdown}>{remainingSeconds}s 后将自动按当前选择继续</span>
+          <div style={voiceCardStyles.actions}>
+            <button
+              type="button"
+              onClick={() => confirmSelection('none')}
+              style={voiceCardStyles.ghostBtn}
+            >
+              不需要语音服务，继续
+            </button>
+            <button
+              type="button"
+              onClick={() => confirmSelection(selectedChoice)}
+              style={voiceCardStyles.confirmBtn}
+            >
+              确认并继续
+            </button>
           </div>
-        ) : (
-          <>
-            <span style={voiceCardStyles.countdown}>{remainingSeconds}s 后将自动按当前选择继续</span>
-            <div style={voiceCardStyles.actions}>
-              <button
-                type="button"
-                onClick={() => confirmSelection('none')}
-                style={voiceCardStyles.ghostBtn}
-              >
-                不需要语音服务，继续
-              </button>
-              <button
-                type="button"
-                onClick={() => confirmSelection(selectedChoice)}
-                style={voiceCardStyles.confirmBtn}
-              >
-                确认并继续
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

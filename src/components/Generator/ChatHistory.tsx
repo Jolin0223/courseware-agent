@@ -34,7 +34,6 @@ const ChatHistory: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const historySectionRef = useRef<HTMLButtonElement>(null);
-  const wheelSectionRef = useRef<StickySection | null>(null);
 
   useEffect(() => {
     if (renamingId && renameInputRef.current) {
@@ -79,28 +78,24 @@ const ChatHistory: React.FC = () => {
     const historyNode = historySectionRef.current;
     if (!scrollNode || !historyNode) return;
 
-    const historyBoundary = Math.max(0, historyNode.offsetTop - 1);
+    const rawHistoryBoundary = Math.max(
+      0,
+      historyNode.getBoundingClientRect().top - scrollNode.getBoundingClientRect().top + scrollNode.scrollTop - 1
+    );
+    const maxScrollTop = Math.max(0, scrollNode.scrollHeight - scrollNode.clientHeight);
+    if (maxScrollTop === 0) {
+      setActiveStickySection('pinned');
+      return;
+    }
+
+    const historyBoundary = Math.min(rawHistoryBoundary, maxScrollTop);
     const nextSection: StickySection = scrollNode.scrollTop >= historyBoundary
       ? 'history'
-      : wheelSectionRef.current || 'pinned';
+      : 'pinned';
     setActiveStickySection(prev => prev === nextSection ? prev : nextSection);
   }, [hasSplitSections, topSectionIsPinned]);
 
-  const handleHistoryWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
-    if (!hasSplitSections) return;
-
-    const historyNode = historySectionRef.current;
-    if (!historyNode) return;
-
-    const nextSection: StickySection = event.clientY >= historyNode.getBoundingClientRect().top
-      ? 'history'
-      : 'pinned';
-    wheelSectionRef.current = nextSection;
-    setActiveStickySection(prev => prev === nextSection ? prev : nextSection);
-  }, [hasSplitSections]);
-
   useEffect(() => {
-    wheelSectionRef.current = null;
     const frame = window.requestAnimationFrame(updateStickySection);
     return () => window.cancelAnimationFrame(frame);
   }, [historyCollapsed, pinnedCollapsed, pinned.length, searchQuery, unpinned.length, updateStickySection]);
@@ -431,7 +426,6 @@ const ChatHistory: React.FC = () => {
         ref={scrollRef}
         className="chat-history-scroll"
         onScroll={updateStickySection}
-        onWheelCapture={handleHistoryWheel}
         style={{
           flex: 1,
           overflowY: 'auto',

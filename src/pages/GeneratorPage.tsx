@@ -2333,7 +2333,6 @@ export default function GeneratorPage() {
 
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
-    if (phase === 'generating' || phase === 'completed') return;
     
     addUserMessage(activeConversationId, skipMessage || '我已确认需求，立即生成。');
     setPhase('generating');
@@ -2401,7 +2400,7 @@ export default function GeneratorPage() {
         failAtStageRef.current
       );
     }, demoMs(500));
-  }, [activeConversationId, phase, addUserMessage, startGeneration, addAssistantMessage, completeGeneration, addCourseware, setSidebarCollapsed, openPreview]);
+  }, [activeConversationId, addUserMessage, startGeneration, addAssistantMessage, completeGeneration, addCourseware, setSidebarCollapsed, openPreview]);
 
   const handleStop = useCallback(() => {
     if (abortControllerRef.current) {
@@ -2703,10 +2702,7 @@ export default function GeneratorPage() {
         </div>
       );
     }
-
-    const isFrameworkOutputting = phase === 'loading-framework' || (phase === 'framework' && !frameworkDone);
-    const canConfirmFramework = phase === 'framework' && frameworkDone;
-
+    
     return (
       <>
         <div
@@ -2929,54 +2925,43 @@ export default function GeneratorPage() {
           <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 24px 0' }}>
             {phase === 'loading-framework' || !frameworkDone ? (
               <button
-                disabled={isFrameworkOutputting}
                 onClick={handleSkipFramework}
                 style={{
                   padding: '10px 28px',
-                  background: '#F8FAFC',
-                  color: '#94A3B8',
-                  WebkitTextFillColor: '#94A3B8',
-                  border: '1px solid #CBD5E1',
+                  background: '#fff',
+                  color: 'var(--agent-primary)',
+                  border: '1px solid var(--agent-primary)',
                   borderRadius: 8,
                   fontSize: 14,
                   fontWeight: 500,
-                  cursor: 'not-allowed',
+                  cursor: 'pointer',
                   transition: 'all 0.15s',
                   outline: 'none',
                 }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,201,167,0.05)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}
               >
-                <span style={{ color: '#94A3B8', WebkitTextFillColor: '#94A3B8' }}>跳过确认，直接生成</span>
+                跳过确认，直接生成
               </button>
             ) : (
               <button
-                disabled={!canConfirmFramework}
                 onClick={() => handleConfirmFramework()}
                 style={{
                   padding: '10px 28px',
-                  background: canConfirmFramework ? 'var(--agent-gradient)' : '#CBD5E1',
-                  color: canConfirmFramework ? '#FFFFFF' : '#94A3B8',
-                  WebkitTextFillColor: canConfirmFramework ? '#FFFFFF' : '#94A3B8',
+                  background: 'var(--agent-gradient)',
+                  color: '#fff',
                   border: 'none',
                   borderRadius: 8,
                   fontSize: 14,
                   fontWeight: 500,
-                  cursor: canConfirmFramework ? 'pointer' : 'not-allowed',
+                  cursor: 'pointer',
                   transition: 'all 0.15s',
                   outline: 'none',
                 }}
-                onMouseEnter={e => {
-                  if (canConfirmFramework) e.currentTarget.style.opacity = '0.9';
-                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
               >
-                <span
-                  style={{
-                    color: canConfirmFramework ? '#FFFFFF' : '#94A3B8',
-                    WebkitTextFillColor: canConfirmFramework ? '#FFFFFF' : '#94A3B8',
-                  }}
-                >
-                  确认需求，开始生成
-                </span>
+                确认需求，开始生成
               </button>
             )}
           </div>

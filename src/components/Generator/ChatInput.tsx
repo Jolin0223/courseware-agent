@@ -71,7 +71,7 @@ const SUPPORTED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif'];
 const SUPPORTED_DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'md'];
 
 const HOVER_CSS = `
-  .ci-icon-btn:hover { color: var(--agent-primary-text) !important; background: var(--agent-soft) !important; }
+  .ci-icon-btn:not(:disabled):hover { color: var(--agent-primary-text) !important; background: var(--agent-soft) !important; }
 `;
 
 import toast from '../../utils/toast';
@@ -427,6 +427,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     && lockedAttachments.length === 0
     && !appliedInspirationDraft
   );
+  const inputLocked = Boolean(disabled || isGenerating);
 
   const materialUsagePlaceholder = (() => {
     if (imageFiles.length > 0 && documentFiles.length > 0) {
@@ -525,10 +526,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const handleImageUpload = () => {
+    if (inputLocked) return;
     imageInputRef.current?.click();
   };
 
   const handleFileUpload = () => {
+    if (inputLocked) return;
     fileInputRef.current?.click();
   };
 
@@ -544,6 +547,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const addImageFiles = (files: File[]) => {
+    if (inputLocked) return;
     const currentImageCount = attachedFiles.filter(f => f.type === 'image').length;
     const availableSlots = MAX_IMAGE_COUNT - currentImageCount;
     if (availableSlots <= 0) {
@@ -573,6 +577,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const addDocumentFiles = (files: File[]) => {
+    if (inputLocked) return;
     const currentDocumentCount = attachedFiles.filter(f => f.type === 'document').length;
     const availableSlots = MAX_DOCUMENT_COUNT - currentDocumentCount;
     if (availableSlots <= 0) {
@@ -622,6 +627,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
+    if (inputLocked) return;
     const items = e.clipboardData.items;
     let hasFile = false;
 
@@ -685,6 +691,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const removeAttachedFile = (id: string) => {
+    if (inputLocked) return;
     setAttachedFiles(prev => {
       const file = prev.find(f => f.id === id);
       if (file?.url) {
@@ -713,6 +720,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const moveAttachedFile = (fromId: string, toId: string) => {
+    if (inputLocked) return;
     if (fromId === toId) return;
     setAttachedFiles(prev => {
       const fromIndex = prev.findIndex(file => file.id === fromId);
@@ -857,17 +865,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <>
       <style>{HOVER_CSS}</style>
-      <input ref={imageInputRef} type="file" accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" multiple hidden onChange={handleImageSelect} />
-      <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" multiple hidden onChange={handleFileSelect} />
+      <input ref={imageInputRef} type="file" accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" multiple hidden disabled={inputLocked} onChange={handleImageSelect} />
+      <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" multiple hidden disabled={inputLocked} onChange={handleFileSelect} />
       <div style={centered ? styles.wrapperCentered : styles.wrapperBottom}>
         <div
           onDragEnter={(e) => {
+            if (inputLocked) return;
             if (Array.from(e.dataTransfer.types).includes('Files')) {
               e.preventDefault();
               setIsDraggingFiles(true);
             }
           }}
           onDragOver={(e) => {
+            if (inputLocked) return;
             if (Array.from(e.dataTransfer.types).includes('Files')) {
               e.preventDefault();
               setIsDraggingFiles(true);
@@ -879,6 +889,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             }
           }}
           onDrop={(e) => {
+            if (inputLocked) return;
             if (e.dataTransfer.files.length === 0) return;
             e.preventDefault();
             setIsDraggingFiles(false);
@@ -964,7 +975,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   onTextChange?.(next);
                 }}
                 placeholder={HOMEPAGE_INPUT_PLACEHOLDER}
-                disabled={disabled}
+                disabled={inputLocked}
                 rows={centered ? 2 : 3}
                 style={styles.teachingContentTextarea}
               />
@@ -978,7 +989,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   </div>
                   <button
                     type="button"
-                    disabled={disabled}
+                    disabled={inputLocked}
                     onClick={() => {
                       const next = appliedInspirationDraft.demand;
                       setText(next);
@@ -1046,17 +1057,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 placeholder={materialUsagePlaceholder}
-                disabled={disabled}
+                disabled={inputLocked}
                 rows={3}
                 style={{
                   ...styles.textarea,
                   ...(centered ? styles.textareaCentered : {}),
+                  ...(inputLocked ? styles.textareaDisabled : {}),
                 }}
               />
             </div>
           )}
 
-          {smartCompletion && !disabled && (
+          {smartCompletion && !inputLocked && (
             <div style={styles.smartCompletion}>
               <div style={styles.smartCompletionIcon}>
                 <Sparkles size={14} />
@@ -1082,7 +1094,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 {activeUploadTooltip === 'image' && renderUploadTooltip('image')}
                 <button
                   className="ci-icon-btn"
-                  style={styles.iconBtn}
+                  disabled={inputLocked}
+                  style={{
+                    ...styles.iconBtn,
+                    ...(inputLocked ? styles.iconBtnDisabled : {}),
+                  }}
                   onClick={handleImageUpload}
                   onFocus={() => setActiveUploadTooltip('image')}
                   onBlur={() => setActiveUploadTooltip(null)}
@@ -1100,7 +1116,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 {activeUploadTooltip === 'document' && renderUploadTooltip('document')}
                 <button
                   className="ci-icon-btn"
-                  style={styles.iconBtn}
+                  disabled={inputLocked}
+                  style={{
+                    ...styles.iconBtn,
+                    ...(inputLocked ? styles.iconBtnDisabled : {}),
+                  }}
                   onClick={handleFileUpload}
                   onFocus={() => setActiveUploadTooltip('document')}
                   onBlur={() => setActiveUploadTooltip(null)}
@@ -1113,7 +1133,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
               {isEmbedded && (
                 <button
                   className="ci-icon-btn"
-                  style={styles.iconBtn}
+                  disabled={inputLocked}
+                  style={{
+                    ...styles.iconBtn,
+                    ...(inputLocked ? styles.iconBtnDisabled : {}),
+                  }}
                   onClick={() => setLinkModalOpen(true)}
                   title="关联课件"
                 >
@@ -1146,7 +1170,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 <button
                   style={{
                     ...styles.sendBtn,
-                    background: 'var(--agent-hero-gradient)',
+                    background: '#94A3B8',
+                    boxShadow: 'none',
                     cursor: 'pointer',
                   }}
                   onClick={onStop}
@@ -1182,7 +1207,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 <button
                   key={item}
                   type="button"
-                  disabled={disabled}
+                  disabled={inputLocked}
                   style={styles.homepagePromptChip}
                   onClick={() => applyHomepagePromptChip(item)}
                 >
@@ -1192,7 +1217,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
             <button
               type="button"
-              disabled={disabled}
+              disabled={inputLocked}
               style={styles.homepagePromptRefresh}
               onClick={switchHomepagePromptGroup}
             >
@@ -1548,6 +1573,10 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     color: '#1E293B',
     overflowY: 'hidden',
+  },
+  textareaDisabled: {
+    color: '#94A3B8',
+    cursor: 'not-allowed',
   },
   textareaCentered: {
     minHeight: 56,
@@ -1965,6 +1994,11 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#64748B',
     cursor: 'pointer',
     transition: 'color 0.15s, background 0.15s',
+  },
+  iconBtnDisabled: {
+    color: '#CBD5E1',
+    cursor: 'not-allowed',
+    background: 'transparent',
   },
   sendBtn: {
     display: 'flex',

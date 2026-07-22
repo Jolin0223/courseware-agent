@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, MousePointer2, Highlighter, CheckCircle2 } from 'lucide-react';
+import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, MousePointer2, Highlighter, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
@@ -49,6 +49,31 @@ interface PublishedGameTarget {
   resourceScope?: 'group' | 'school' | 'personal';
   schoolName?: string;
   subject?: string;
+}
+
+type ResourceUpdateResult = 'success' | 'failure';
+type ResourceUpdateStatus = 'updating' | 'success' | 'failed';
+
+interface PublishSuccessPayload {
+  mode: PublishMode;
+  result?: ResourceUpdateResult;
+  scopeLabel: string;
+  jobId?: string;
+  resourceVersion?: string;
+}
+
+interface ResourceUpdateTask {
+  jobId: string;
+  resourceVersion: string;
+  targetId: string;
+  targetName: string;
+  version: string;
+  sessionNumber: number;
+  title: string;
+  scopeLabel: string;
+  result: ResourceUpdateResult;
+  status: ResourceUpdateStatus;
+  remainingSeconds: number;
 }
 
 interface PreviewAnnotation {
@@ -203,11 +228,29 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
   const [draftAnnotation, setDraftAnnotation] = useState<{ x: number; y: number; text: string } | null>(null);
   const [activeAnnotationId, setActiveAnnotationId] = useState<number | null>(null);
   const [hoveredHeaderButton, setHoveredHeaderButton] = useState<string | null>(null);
+  const [resourceUpdateTask, setResourceUpdateTask] = useState<ResourceUpdateTask | null>(null);
   const publishBtnRef = useRef<HTMLDivElement>(null);
   const versionScrollRef = useRef<HTMLDivElement>(null);
+  const resourceUpdateTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const resourceUpdateCountdownRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+
+  const clearResourceUpdateTimers = () => {
+    if (resourceUpdateTimerRef.current) {
+      window.clearTimeout(resourceUpdateTimerRef.current);
+      resourceUpdateTimerRef.current = null;
+    }
+    if (resourceUpdateCountdownRef.current) {
+      window.clearInterval(resourceUpdateCountdownRef.current);
+      resourceUpdateCountdownRef.current = null;
+    }
+  };
+
+  useEffect(() => clearResourceUpdateTimers, []);
 
   useEffect(() => {
     const nextVersions = buildSessionVersions(versionSourceCourseware);
+    clearResourceUpdateTimers();
+    setResourceUpdateTask(null);
     setVersions(nextVersions);
     setPublishedTargets(buildPublishedTargets(versionSourceCourseware));
     setSelectedVersion(
@@ -292,27 +335,86 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     setPublishMode('update');
   };
 
-  const handlePublishSuccess = () => {
-    if (publishMode === 'update' && selectedUpdateTarget) {
-      setVersions(prev => prev.map(v => {
-        if (v.version === selectedVersion) {
-          return {
-            ...v,
-            publishTargetId: selectedUpdateTarget.id,
-            isCurrentPublished: true,
-            isHistoricalPublished: false,
-          };
-        }
-        if (v.publishTargetId === selectedUpdateTarget.id && v.isCurrentPublished) {
-          return { ...v, isCurrentPublished: false, isHistoricalPublished: true };
-        }
-        return v;
-      }));
-      setPublishedTargets(prev => prev.map(target =>
-        target.id === selectedUpdateTarget.id
-          ? { ...target, currentVersion: selectedVersion, name: currentTitle }
-          : target
-      ));
+  const applyReplacementSuccess = (task: ResourceUpdateTask) => {
+    setVersions(prev => prev.map(v => {
+      if (v.version === task.version) {
+        return {
+          ...v,
+          publishTargetId: task.targetId,
+          isCurrentPublished: true,
+          isHistoricalPublished: false,
+        };
+      }
+      if (v.publishTargetId === task.targetId && v.isCurrentPublished) {
+        return { ...v, isCurrentPublished: false, isHistoricalPublished: true };
+      }
+      return v;
+    }));
+    setPublishedTargets(prev => prev.map(target =>
+      target.id === task.targetId
+        ? { ...target, currentVersion: task.version, name: task.title }
+        : target
+    ));
+  };
+
+  const startResourceUpdateSimulation = (task: Omit<ResourceUpdateTask, 'status' | 'remainingSeconds'>, durationSeconds?: number) => {
+    const totalSeconds = durationSeconds ?? (task.result === 'success' ? 8 : 7);
+    clearResourceUpdateTimers();
+    setResourceUpdateTask({
+      ...task,
+      status: 'updating',
+      remainingSeconds: totalSeconds,
+    });
+    resourceUpdateCountdownRef.current = window.setInterval(() => {
+      setResourceUpdateTask(prev => {
+        if (!prev || prev.jobId !== task.jobId || prev.status !== 'updating') return prev;
+        return { ...prev, remainingSeconds: Math.max(0, prev.remainingSeconds - 1) };
+      });
+    }, 1000);
+    resourceUpdateTimerRef.current = window.setTimeout(() => {
+      clearResourceUpdateTimers();
+      if (task.result === 'success') {
+        const completedTask = { ...task, status: 'success' as const, remainingSeconds: 0 };
+        applyReplacementSuccess(completedTask);
+        setResourceUpdateTask(null);
+        toast(`已替换并同步到${task.scopeLabel}中~`);
+        return;
+      }
+      setResourceUpdateTask({
+        ...task,
+        status: 'failed',
+        remainingSeconds: 0,
+      });
+      toast('更新替换失败，请再试一次~');
+    }, totalSeconds * 1000);
+  };
+
+  const handleRetryResourceUpdate = () => {
+    if (!resourceUpdateTask || resourceUpdateTask.status !== 'failed') return;
+    startResourceUpdateSimulation({
+      ...resourceUpdateTask,
+      jobId: `${resourceUpdateTask.jobId}-R`,
+      result: 'success',
+    }, 6);
+    toast('更新替换已提交，预计 30 秒内生效~');
+  };
+
+  const handlePublishSuccess = (payload?: PublishSuccessPayload) => {
+    if (publishMode === 'update' && selectedUpdateTarget && currentVersion) {
+      startResourceUpdateSimulation({
+        jobId: payload?.jobId || `UPDATE-${Date.now().toString().slice(-6)}`,
+        resourceVersion: payload?.resourceVersion || `rv-${selectedVersion}-${Date.now().toString().slice(-5)}`,
+        targetId: selectedUpdateTarget.id,
+        targetName: selectedUpdateTarget.name,
+        version: selectedVersion,
+        sessionNumber: currentVersion.sessionNumber,
+        title: currentTitle,
+        scopeLabel: payload?.scopeLabel || '资源库',
+        result: payload?.result || 'success',
+      });
+      setPublishMode(null);
+      setSelectedUpdateTargetId(null);
+      return;
     }
     if (publishMode === 'publish' || publishMode === 'new-game') {
       const nextId = `game-${publishedTargets.length + 1}`;
@@ -369,6 +471,7 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     };
   });
 
+  const isResourceUpdateInProgress = resourceUpdateTask?.status === 'updating';
   const publishBtnText = canUpdateCurrentDraft
     ? '替换'
     : currentVersion?.isRemoved
@@ -378,7 +481,7 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
       : currentVersion?.isHistoricalPublished
         ? '已发布(历史版本)'
         : '发布';
-  const publishBtnDisabled = (currentVersion?.isCurrentPublished || currentVersion?.isHistoricalPublished || currentVersion?.isRemoved) && !canUpdateCurrentDraft;
+  const publishBtnDisabled = isResourceUpdateInProgress || ((currentVersion?.isCurrentPublished || currentVersion?.isHistoricalPublished || currentVersion?.isRemoved) && !canUpdateCurrentDraft);
   const getActionButtonStyle = (
     key: string,
     variant: 'primary' | 'warning' | 'disabled',
@@ -403,21 +506,41 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
       action();
     };
 
-    if (publishBtnDisabled) return null;
+    if (isResourceUpdateInProgress) {
+      return (
+        <div ref={exitFullscreenFirst ? undefined : publishBtnRef} style={{ position: 'relative', display: 'flex', gap: 6 }}>
+          <button type="button" disabled style={getActionButtonStyle('updating', 'disabled')} title="更新替换中">
+            <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+            更新替换中
+          </button>
+        </div>
+      );
+    }
+
+    if (publishBtnDisabled) {
+      return (
+        <div ref={exitFullscreenFirst ? undefined : publishBtnRef} style={{ position: 'relative', display: 'flex', gap: 6 }}>
+          <button type="button" disabled style={getActionButtonStyle('published-disabled', 'disabled')} title={publishBtnText}>
+            <CheckCircle2 size={14} />
+            {publishBtnText}
+          </button>
+        </div>
+      );
+    }
 
     return (
       <div ref={exitFullscreenFirst ? undefined : publishBtnRef} style={{ position: 'relative', display: 'flex', gap: 6 }}>
         {canUpdateCurrentDraft ? (
           <>
             <button
-              onClick={() => runOutsideFullscreen(handleUpdatePublishClick)}
-              onMouseEnter={() => setHoveredHeaderButton('replace')}
-              onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'replace' ? null : prev)}
-              style={getActionButtonStyle('replace', 'warning')}
-              title="替换"
+              onClick={() => runOutsideFullscreen(resourceUpdateTask?.status === 'failed' ? handleRetryResourceUpdate : handleUpdatePublishClick)}
+              onMouseEnter={() => setHoveredHeaderButton(resourceUpdateTask?.status === 'failed' ? 'retry-replace' : 'replace')}
+              onMouseLeave={() => setHoveredHeaderButton(prev => (prev === 'replace' || prev === 'retry-replace') ? null : prev)}
+              style={getActionButtonStyle(resourceUpdateTask?.status === 'failed' ? 'retry-replace' : 'replace', 'warning')}
+              title={resourceUpdateTask?.status === 'failed' ? '再试一次' : '替换'}
             >
-              <RefreshCw size={14} />
-              替换
+              {resourceUpdateTask?.status === 'failed' ? <AlertCircle size={14} /> : <RefreshCw size={14} />}
+              {resourceUpdateTask?.status === 'failed' ? '再试一次' : '替换'}
             </button>
             <button
               onClick={() => runOutsideFullscreen(() => setPublishMode('new-game'))}

@@ -29,6 +29,7 @@ const schools = ['北京学校', '上海学校', '广州学校', '武汉学校',
 
 type PublishMode = 'publish' | 'update' | 'new-game';
 type PublishScope = 'group' | 'school' | 'personal';
+type PublishUpdateResult = 'success' | 'failure';
 
 type AutoTagStatus = 'idle' | 'loading' | 'ready';
 
@@ -204,7 +205,13 @@ interface UpdateTargetOption {
 interface PublishModalProps {
   coursewareId: number;
   onClose: () => void;
-  onPublishSuccess?: () => void;
+  onPublishSuccess?: (payload?: {
+    mode: PublishMode;
+    result?: PublishUpdateResult;
+    scopeLabel: string;
+    jobId?: string;
+    resourceVersion?: string;
+  }) => void;
   mode?: PublishMode;
   updateTargets?: UpdateTargetOption[];
   selectedUpdateTargetId?: string | null;
@@ -673,6 +680,19 @@ export default function PublishModal({
       toast('当前标签已失效，请删除后重新选择标签');
       return;
     }
+    const scopeLabel = publishScopes.find(item => item.key === effectivePublishScope)?.label || '资源库';
+    if (mode === 'update') {
+      onPublishSuccess?.({
+        mode,
+        result: 'success',
+        scopeLabel,
+        jobId: `UPDATE-${Date.now().toString().slice(-6)}`,
+        resourceVersion: `rv-${coursewareId}-${Date.now().toString().slice(-5)}`,
+      });
+      toast('更新替换已提交，预计 30 秒内生效~');
+      onClose();
+      return;
+    }
     if (mode === 'new-game' && courseware) {
       const nextId = Math.max(...coursewares.map(item => item.id), coursewareId) + 1;
       addCourseware({
@@ -700,9 +720,8 @@ export default function PublishModal({
         isPublished: true,
       });
     }
-    const scopeLabel = publishScopes.find(item => item.key === effectivePublishScope)?.label || '资源库';
-    toast(mode === 'update' ? `已替换并同步到${scopeLabel}~` : mode === 'new-game' ? `已发布为新互动课件，并同步到${scopeLabel}~` : `发布成功，已同步到${scopeLabel}~`);
-    onPublishSuccess?.();
+    toast(mode === 'new-game' ? `已发布为新互动课件，并同步到${scopeLabel}~` : `发布成功，已同步到${scopeLabel}~`);
+    onPublishSuccess?.({ mode, scopeLabel });
     onClose();
 
     const params = new URLSearchParams(window.location.search);
@@ -754,7 +773,7 @@ export default function PublishModal({
         <div style={styles.content}>
           {mode === 'update' && (
             <div style={styles.updateNotice}>
-              本次替换会更新当前互动课件的已发布版本，已插入课件中的互动课件会同步使用新版本。
+              本次替换操作会更新当前互动课件的已发布版本，已插入课件中的互动课件会同步使用新版本。
             </div>
           )}
 

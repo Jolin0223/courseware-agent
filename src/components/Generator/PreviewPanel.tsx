@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, MousePointer2, Highlighter, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, MousePointer2, Highlighter, CheckCircle2, AlertCircle, Loader2, Copy } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
@@ -292,6 +292,8 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
 
   const srcDoc = currentVersion?.htmlContent || PLACEHOLDER_HTML;
   const currentTitle = currentVersion?.title || courseware?.title || '互动课件';
+  const currentResourceId = currentVersion?.publishTargetId;
+  const canCopyResourceId = Boolean(currentResourceId && (currentVersion?.isCurrentPublished || currentVersion?.isHistoricalPublished));
 
   const handleFullscreen = () => {
     setFullscreenOpen(true);
@@ -324,6 +326,16 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditContent('');
+  };
+
+  const handleCopyResourceId = async () => {
+    if (!currentResourceId) return;
+    try {
+      await navigator.clipboard.writeText(currentResourceId);
+      toast('资源ID已复制');
+    } catch {
+      toast('资源ID复制失败，请稍后重试');
+    }
   };
 
   const handlePublish = () => {
@@ -497,6 +509,14 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     ...(hoveredHeaderButton === key && !disabled ? panelStyle.iconBtnHover : {}),
     ...(disabled ? panelStyle.iconBtnDisabled : {}),
   });
+  const renderHeaderTooltip = (key: string, text: string) => (
+    hoveredHeaderButton === key ? (
+      <div style={panelStyle.headerTooltip}>
+        {text}
+        <span style={panelStyle.headerTooltipArrow} />
+      </div>
+    ) : null
+  );
   const renderPublishActions = (options?: { exitFullscreenFirst?: boolean; exitAnnotationFirst?: boolean }) => {
     const exitFullscreenFirst = options?.exitFullscreenFirst;
     const exitAnnotationFirst = options?.exitAnnotationFirst;
@@ -609,7 +629,25 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
         <div style={panelStyle.headerLeft}>
           <div style={panelStyle.titleStack}>
             <span style={panelStyle.title}>{currentTitle}</span>
-            <span style={panelStyle.subTitle}>第{currentVersion?.sessionNumber || 1}版 · {currentVersion ? getVersionPublishLabel(currentVersion) : '未发布草稿'}</span>
+            <div style={panelStyle.subTitleRow}>
+              <span style={panelStyle.subTitle}>第{currentVersion?.sessionNumber || 1}版 · {currentVersion ? getVersionPublishLabel(currentVersion) : '未发布草稿'}</span>
+              {canCopyResourceId && currentResourceId && (
+                <button
+                  type="button"
+                  onClick={handleCopyResourceId}
+                  onMouseEnter={() => setHoveredHeaderButton('resource-id')}
+                  onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'resource-id' ? null : prev)}
+                  style={{
+                    ...panelStyle.resourceIdBtn,
+                    ...(hoveredHeaderButton === 'resource-id' ? panelStyle.resourceIdBtnHover : {}),
+                  }}
+                  aria-label="复制资源ID"
+                >
+                  <Copy size={11} />
+                  <span style={panelStyle.resourceIdText}>资源ID</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <div style={panelStyle.headerRight}>
@@ -637,34 +675,46 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
               插入课件
             </button>
           )}
-          <button
-            onClick={handleFullscreen}
-            onMouseEnter={() => setHoveredHeaderButton('fullscreen')}
-            onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'fullscreen' ? null : prev)}
-            style={getIconButtonStyle('fullscreen')}
-            title="全屏"
-          >
-            <Maximize2 size={15} />
-          </button>
-          <button
-            onClick={handleEdit}
-            disabled={isRemovedVersion}
-            onMouseEnter={() => !isRemovedVersion && setHoveredHeaderButton('edit')}
-            onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'edit' ? null : prev)}
-            style={getIconButtonStyle('edit', isRemovedVersion)}
-            title={isRemovedVersion ? '已下架资源不可编辑' : '编辑'}
-          >
-            <Edit3 size={15} />
-          </button>
-          <button
-            onClick={onClose}
-            onMouseEnter={() => setHoveredHeaderButton('close')}
-            onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'close' ? null : prev)}
-            style={getIconButtonStyle('close')}
-            title="关闭"
-          >
-            <X size={15} />
-          </button>
+          <div style={panelStyle.headerIconWrap}>
+            <button
+              type="button"
+              onClick={handleFullscreen}
+              onMouseEnter={() => setHoveredHeaderButton('fullscreen')}
+              onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'fullscreen' ? null : prev)}
+              style={getIconButtonStyle('fullscreen')}
+              aria-label="全屏预览并测试"
+            >
+              <Maximize2 size={15} />
+            </button>
+            {renderHeaderTooltip('fullscreen', '全屏预览并测试')}
+          </div>
+          <div style={panelStyle.headerIconWrap}>
+            <button
+              type="button"
+              onClick={handleEdit}
+              disabled={isRemovedVersion}
+              onMouseEnter={() => setHoveredHeaderButton('edit')}
+              onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'edit' ? null : prev)}
+              style={getIconButtonStyle('edit', isRemovedVersion)}
+              aria-label={isRemovedVersion ? '已下架资源不可编辑' : '编辑效果'}
+            >
+              <Edit3 size={15} />
+            </button>
+            {renderHeaderTooltip('edit', isRemovedVersion ? '已下架资源不可编辑' : '编辑效果')}
+          </div>
+          <div style={panelStyle.headerIconWrap}>
+            <button
+              type="button"
+              onClick={onClose}
+              onMouseEnter={() => setHoveredHeaderButton('close')}
+              onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'close' ? null : prev)}
+              style={getIconButtonStyle('close')}
+              aria-label="关闭"
+            >
+              <X size={15} />
+            </button>
+            {renderHeaderTooltip('close', '关闭')}
+          </div>
         </div>
       </div>
 
@@ -911,36 +961,42 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
                 <span style={panelStyle.stylePromptText}>{currentVersion.visualStylePrompt}</span>
               </div>
             )}
-            {previewDevice === 'default' ? (
-              <div style={panelStyle.defaultFrame}>
-                <iframe
-                  srcDoc={srcDoc}
-                  title={`${currentTitle} 默认预览`}
-                  sandbox="allow-scripts allow-same-origin"
-                  style={panelStyle.defaultIframe}
-                />
-              </div>
-            ) : previewDevice === 'web' ? (
-              <div style={panelStyle.webFrame}>
-                <img src="/images/iteach-web-preview.png" alt="iTeach 网页预览" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              </div>
-            ) : previewDevice === 'bigscreen' ? (
-              <div style={panelStyle.bigscreenFrame}>
-                <img src="/images/bigscreen-preview.webp" alt="大屏授课端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
-              </div>
-            ) : previewDevice === 'tablet' ? (
-              <div style={panelStyle.tabletFrame}>
-                <img src="/images/tablet-preview.webp" alt="学生小屏端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
-              </div>
-            ) : (
-              <div style={panelStyle.comingSoon}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🚧</div>
-                <div style={{ fontSize: 16, fontWeight: 600, color: '#334155' }}>敬请期待</div>
-                <div style={{ fontSize: 13, color: '#94A3B8', marginTop: 6 }}>
-                  {previewDevice === 'cloud-teacher' ? '云教室老师端' : '云教室学生端'}预览正在开发中
+            <div style={panelStyle.previewStageWrap}>
+              {previewDevice === 'default' ? (
+                <div style={panelStyle.defaultFrame}>
+                  <iframe
+                    srcDoc={srcDoc}
+                    title={`${currentTitle} 默认预览`}
+                    sandbox="allow-scripts allow-same-origin"
+                    style={panelStyle.defaultIframe}
+                  />
                 </div>
+              ) : previewDevice === 'web' ? (
+                <div style={panelStyle.webFrame}>
+                  <img src="/images/iteach-web-preview.png" alt="iTeach 网页预览" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+              ) : previewDevice === 'bigscreen' ? (
+                <div style={panelStyle.bigscreenFrame}>
+                  <img src="/images/bigscreen-preview.webp" alt="大屏授课端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
+                </div>
+              ) : previewDevice === 'tablet' ? (
+                <div style={panelStyle.tabletFrame}>
+                  <img src="/images/tablet-preview.webp" alt="学生小屏端预览" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
+                </div>
+              ) : (
+                <div style={panelStyle.comingSoon}>
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>🚧</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#334155' }}>敬请期待</div>
+                  <div style={{ fontSize: 13, color: '#94A3B8', marginTop: 6 }}>
+                    {previewDevice === 'cloud-teacher' ? '云教室老师端' : '云教室学生端'}预览正在开发中
+                  </div>
+                </div>
+              )}
+              <div style={panelStyle.previewTestHint}>
+                <AlertCircle size={13} style={panelStyle.previewTestHintIcon} />
+                <span>课件效果由AI生成，请注意效果测试，如有问题，可通过输入修改意见或编辑进行修复</span>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Version History Bar */}
@@ -1032,13 +1088,46 @@ const panelStyle: Record<string, React.CSSProperties> = {
     gap: 2,
     minWidth: 0,
   },
+  subTitleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  },
   subTitle: {
     fontSize: 11,
     color: '#64748B',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    maxWidth: 260,
+    maxWidth: 170,
+  },
+  resourceIdBtn: {
+    height: 18,
+    padding: 0,
+    borderRadius: 4,
+    border: 'none',
+    background: 'transparent',
+    color: '#94A3B8',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    fontSize: 11,
+    fontWeight: 400,
+    cursor: 'pointer',
+    flexShrink: 0,
+    maxWidth: 112,
+  },
+  resourceIdBtnHover: {
+    color: '#64748B',
+  },
+  resourceIdText: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    fontWeight: 400,
   },
   actionBtn: {
     display: 'flex',
@@ -1162,6 +1251,39 @@ const panelStyle: Record<string, React.CSSProperties> = {
     cursor: 'default',
     background: '#F8FAFC',
     borderColor: '#E2E8F0',
+  },
+  headerIconWrap: {
+    position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTooltip: {
+    position: 'absolute',
+    right: 0,
+    top: 'calc(100% + 8px)',
+    zIndex: 80,
+    minWidth: 'max-content',
+    height: 28,
+    padding: '0 9px',
+    borderRadius: 8,
+    background: '#0F172A',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 700,
+    lineHeight: '28px',
+    whiteSpace: 'nowrap',
+    boxShadow: '0 10px 24px rgba(15, 23, 42, 0.18)',
+    pointerEvents: 'none',
+  },
+  headerTooltipArrow: {
+    position: 'absolute',
+    right: 10,
+    top: -4,
+    width: 8,
+    height: 8,
+    background: '#0F172A',
+    transform: 'rotate(45deg)',
   },
   fullscreenMask: {
     position: 'fixed',
@@ -1613,6 +1735,33 @@ const panelStyle: Record<string, React.CSSProperties> = {
     padding: 16,
     overflow: 'hidden',
     position: 'relative',
+  },
+  previewStageWrap: {
+    width: '100%',
+    maxWidth: 'min(100%, 960px)',
+    maxHeight: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    justifyContent: 'center',
+    gap: 14,
+  },
+  previewTestHint: {
+    flexShrink: 0,
+    padding: '0 2px',
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 400,
+    lineHeight: 1.45,
+    textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  previewTestHintIcon: {
+    color: '#64748B',
+    flexShrink: 0,
   },
   stylePromptNote: {
     position: 'absolute',

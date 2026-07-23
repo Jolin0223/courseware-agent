@@ -373,7 +373,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   isGenerating,
   onStop,
   centered,
-  placeholder = '输入修改意见或继续追问',
+  placeholder = '在这里输入你的修改意见，AI会进行修复和优化',
   injectedText,
   injectedTextVersion,
   onTextChange,

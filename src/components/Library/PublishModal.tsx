@@ -1219,18 +1219,20 @@ export default function PublishModal({
         </div>
 
         <div style={styles.footer}>
-          <button
-            style={{ ...styles.btn, ...styles.btnCancel }}
-            onClick={onClose}
-          >
-            取消
-          </button>
-          <button
-            style={{ ...styles.btn, ...styles.btnPrimary }}
-            onClick={handlePublish}
-          >
-            {primaryText}
-          </button>
+          <div style={styles.footerActions}>
+            <button
+              style={{ ...styles.btn, ...styles.btnCancel }}
+              onClick={onClose}
+            >
+              返回预览测试
+            </button>
+            <button
+              style={{ ...styles.btn, ...styles.btnPrimary }}
+              onClick={handlePublish}
+            >
+              {primaryText}
+            </button>
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -1927,12 +1929,20 @@ const styles: Record<string, React.CSSProperties> = {
   },
   footer: {
     display: 'flex',
+    alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 12,
+    gap: 16,
     padding: '14px 22px 18px',
     borderTop: '1px solid #E2E8F0',
     flexShrink: 0,
     background: '#FFFFFF',
+  },
+  footerActions: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    flexShrink: 0,
   },
   btn: {
     height: 38,

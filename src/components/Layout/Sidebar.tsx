@@ -8,11 +8,14 @@ import {
   Monitor,
   PanelRight,
   ExternalLink,
+  LogOut,
+  UserRound,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 import Logo from './Logo';
 import ChatHistory from '../Generator/ChatHistory';
 import { AGENT_THEMES, applyAgentTheme, getStoredThemeId, type AgentThemeId } from '../../theme';
+import toast from '../../utils/toast';
 
 const EXPANDED_WIDTH = 280;
 const COLLAPSED_WIDTH = 64;
@@ -295,6 +298,49 @@ const styles = {
     overflow: 'visible',
   } as React.CSSProperties,
 
+  accountTools: (collapsed: boolean): React.CSSProperties => ({
+    position: 'relative',
+    zIndex: 3,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: collapsed ? 'center' : 'space-between',
+    gap: 8,
+    width: '100%',
+    minWidth: 0,
+  }),
+
+  accountAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    border: '1px solid rgba(255, 255, 255, 0.72)',
+    background: 'linear-gradient(145deg, #EAF8FF 0%, #FFFFFF 48%, #DCEBFF 100%)',
+    color: '#7C8DA6',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: 'none',
+    flexShrink: 0,
+  } as React.CSSProperties,
+
+  logoutBtn: {
+    height: 28,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    padding: '0 4px',
+    border: 'none',
+    borderRadius: 6,
+    background: 'transparent',
+    color: '#7B8DA5',
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'background 0.15s ease, color 0.15s ease',
+    whiteSpace: 'nowrap',
+  } as React.CSSProperties,
+
   hiddenModeHotspot: {
     position: 'absolute',
     right: 0,
@@ -417,6 +463,10 @@ function Sidebar() {
   const openCreationWindow = () => {
     const targetUrl = `${window.location.origin}/`;
     window.open(targetUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleLogout = () => {
+    toast('已退出登录');
   };
 
   const isActive = (item: NavItem) => {
@@ -623,6 +673,31 @@ function Sidebar() {
             </ModeIconBtn>
           </div>
         )}
+
+        <div style={styles.accountTools(sidebarCollapsed)}>
+          <span style={styles.accountAvatar} aria-label="已登录账号头像">
+            <UserRound size={18} strokeWidth={1.9} />
+          </span>
+
+          {!sidebarCollapsed && (
+            <button
+              type="button"
+              style={styles.logoutBtn}
+              onClick={handleLogout}
+              onMouseEnter={(event) => {
+                event.currentTarget.style.background = 'rgba(255,255,255,0.4)';
+                event.currentTarget.style.color = '#64748B';
+              }}
+              onMouseLeave={(event) => {
+                event.currentTarget.style.background = 'transparent';
+                event.currentTarget.style.color = '#7B8DA5';
+              }}
+            >
+              <LogOut size={13} />
+              退出登录
+            </button>
+          )}
+        </div>
       </div>
     </aside>
   );

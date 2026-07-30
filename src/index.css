@@ -130,6 +130,17 @@
   --agent-courseware-version-border: rgba(2,116,252,0.14);
 }
 
+@media (max-width: 760px) {
+  .agent-main-layout > .agent-sidebar {
+    display: none !important;
+  }
+
+  .agent-main-layout > .agent-main-content {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+}
+
 :root[data-agent-theme="iteach"] aside {
   border-right-color: #CFEAF7 !important;
 }

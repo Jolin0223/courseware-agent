@@ -339,11 +339,16 @@ export function createEmptyConversation(): Conversation {
 
 export function generateRequirementFromPrompt(prompt: string): RequirementFramework {
   const appliedPlaywayPrompt = prompt.match(/玩法要求：\n([\s\S]*?)\n\n(?:本次生成要求|生成要求)：/)?.[1]?.trim();
+  const firstNonEmptyLineAfter = (label: string) => prompt
+    .split(label)[1]
+    ?.split('\n')
+    .map(line => line.trim())
+    .find(Boolean);
   const materialLine = prompt.includes('上传材料：')
-    ? `\n③上传材料：${prompt.split('上传材料：')[1]?.split('\n')[0] || '已上传材料'}`
+    ? `\n③上传材料：${firstNonEmptyLineAfter('上传材料：') || '已上传材料'}`
     : '';
   const intentLine = prompt.includes('材料用途：')
-    ? `\n④材料用途：${prompt.split('材料用途：')[1]?.split('\n')[0] || '用于辅助生成课件'}`
+    ? `\n④材料用途：${firstNonEmptyLineAfter('材料用途：') || '用于辅助生成课件'}`
     : '';
   const materialDesign = intentLine
     ? `\n4. 上传材料处理：先根据上传材料完成信息提取与用途校验，再将有效内容写入课件结构；若材料作为素材，则进入图片资源位，若作为资料，则进入知识点和题目生成链路。`

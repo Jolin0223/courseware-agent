@@ -476,7 +476,7 @@ function Sidebar() {
   };
 
   return (
-    <aside style={styles.sidebar(sidebarCollapsed)}>
+    <aside className="agent-sidebar" style={styles.sidebar(sidebarCollapsed)}>
       {/* Logo */}
       <div style={styles.logoArea(sidebarCollapsed)}>
         {!sidebarCollapsed && (

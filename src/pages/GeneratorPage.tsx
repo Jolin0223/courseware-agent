@@ -4,6 +4,7 @@ import { ArrowUp, ChevronDown, ChevronUp, Headphones, Info, Mic, RotateCcw, Spar
 import ChatInput from '../components/Generator/ChatInput';
 // ChatHistory moved to Sidebar
 import RequirementCard from '../components/Generator/RequirementCard';
+import CoursewareRecommendationCard from '../components/Generator/CoursewareRecommendationCard';
 import ProgressPanel from '../components/Generator/ProgressPanel';
 import PreviewPanel from '../components/Generator/PreviewPanel';
 import CoursewareCard from '../components/Generator/CoursewareCard';
@@ -29,14 +30,18 @@ import type {
   VoiceCapabilityConfirmation,
   VoiceCapabilityIntent,
   VoiceCapabilitySelection,
+  TeachingContentSource,
+  CoursewareRecommendationMessage,
+  GenerationPreferences,
 } from '../types';
 import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
 import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
 import toast from '../utils/toast';
+import { buildAugustGenerationPlan, htmlModelOptions, imageModelOptions } from '../data/augustDemoData';
 
-type GenerationPhase = 'input' | 'analyzing' | 'loading-framework' | 'framework' | 'generating' | 'completed';
+type GenerationPhase = 'input' | 'analyzing' | 'recommendation' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中~';
 
 type PromptFlyState = {
@@ -58,16 +63,30 @@ const documentIntentOptions: MaterialIntentOption[] = [
   { intent: 'extract-document-questions', title: '提取题目', description: '只抽取题干、选项、答案和解析，用于题目互动' },
 ];
 
+const cloudIntentOptions: MaterialIntentOption[] = [
+  { intent: 'use-cloud-content', title: '使用页面教学内容', description: '提取知识点、题目或单词，生成新的互动练习' },
+  { intent: 'use-cloud-style', title: '参考页面画面风格', description: '只参考配色、角色和版式，内容仍按当前需求生成' },
+  { intent: 'use-cloud-structure', title: '参考页面玩法结构', description: '参考关卡、互动方式和页面流程，不复用原内容' },
+];
+
 const getAttachmentLabel = (attachment: UploadedAttachment) => (
-  attachment.type === 'image' ? '图片' : attachment.type === 'html' ? 'HTML' : '文档'
+  attachment.type === 'image'
+    ? '图片'
+    : attachment.type === 'html'
+      ? 'HTML'
+      : attachment.type === 'cloud-pages'
+        ? '云盘页面'
+        : '文档'
 );
 
 const buildAttachmentSummary = (attachments: UploadedAttachment[]) => {
   const imageCount = attachments.filter(f => f.type === 'image').length;
   const documentCount = attachments.filter(f => f.type === 'document').length;
+  const cloudPageCount = attachments.filter(f => f.type === 'cloud-pages').length;
   const parts = [];
   if (imageCount) parts.push(`${imageCount} 张图片`);
   if (documentCount) parts.push(`${documentCount} 份文档`);
+  if (cloudPageCount) parts.push(`${cloudPageCount} 组云盘页面`);
   return parts.join('、');
 };
 
@@ -102,6 +121,38 @@ const parseAppliedPlaywayMessage = (value: string) => {
 
 const detectMaterialIntentForAttachment = (prompt: string, attachment: UploadedAttachment): MaterialIntentResolution | null => {
   const text = prompt.toLowerCase();
+  if (attachment.type === 'cloud-pages' && /(画面|视觉|配色|画风|风格|版式|排版)/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'use-cloud-style',
+      title: '参考页面画面风格',
+      description: '只参考配色、角色和版式，内容仍按当前需求生成',
+      confidence: 0.9,
+      reason: '需求中明确提到画面、配色、风格或版式',
+    };
+  }
+
+  if (attachment.type === 'cloud-pages' && /(玩法|交互|关卡|流程|结构|操作方式)/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'use-cloud-structure',
+      title: '参考页面玩法结构',
+      description: '参考关卡、互动方式和页面流程，不复用原内容',
+      confidence: 0.9,
+      reason: '需求中明确提到玩法、交互、关卡、流程或结构',
+    };
+  }
+
+  if (attachment.type === 'cloud-pages' && /(页面|这些页|所选页|课件).*(内容|知识点|题目|单词|课文|做成|生成|练习|讲解)|把.*(内容|题目|单词|课文).*(做成|生成)/i.test(prompt)) {
+    return {
+      attachmentId: attachment.id,
+      intent: 'use-cloud-content',
+      title: '使用页面教学内容',
+      description: '提取知识点、题目或单词，生成新的互动练习',
+      confidence: 0.88,
+      reason: '需求中明确要求使用所选页面的教学内容生成课件',
+    };
+  }
   if (attachment.type === 'image' && /(背景|角色|道具|素材|插图|放到|用这张图|用这个图|图片.*用|图.*作为|图片作为|图作为)/i.test(prompt)) {
     return {
       attachmentId: attachment.id,
@@ -203,6 +254,9 @@ const buildIntentPrompt = (
     'generate-from-document': '基于上传文档中的教学资料生成互动课件',
     'use-as-requirement-doc': '将上传文档作为需求说明和玩法规则补充',
     'extract-document-questions': '先提取文档中的题目、答案和解析',
+    'use-cloud-content': '使用所选云盘页面中的教学内容生成互动课件',
+    'use-cloud-style': '只参考所选云盘页面的画面风格和版式',
+    'use-cloud-structure': '只参考所选云盘页面的玩法、关卡和页面结构',
     'custom': '按用户补充的其他用途处理',
   };
   const attachmentNames = attachments.map(f => `${getAttachmentLabel(f)}「${f.name}」`).join('、');
@@ -1137,8 +1191,22 @@ function UserMessage({
   const images = message.attachments?.filter(file => file.type === 'image') || [];
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
   const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
+  const teachingSources = message.attachments?.filter(file => Boolean(file.teachingSource)).map(file => file.teachingSource!) || [];
+  const selectedHtmlModel = htmlModelOptions.find(model => model.id === message.generationPreferences?.htmlModelId);
+  const selectedImageModel = imageModelOptions.find(model => model.id === message.generationPreferences?.imageModelId);
+  const selectedPreferences = [
+    message.generationPreferences?.visualStyleMode === 'manual'
+      ? `画面：${message.generationPreferences.visualStyleName}`
+      : null,
+    message.generationPreferences?.voiceMode === 'manual'
+      ? `音色：${message.generationPreferences.voiceName}`
+      : null,
+    selectedHtmlModel && selectedImageModel && (selectedHtmlModel.id !== 'smart-html' || selectedImageModel.id !== 'smart-image')
+      ? `模型：${selectedHtmlModel.name} + ${selectedImageModel.name}`
+      : null,
+  ].filter((item): item is string => Boolean(item));
   const appliedPlaywayMessage = message.text ? parseAppliedPlaywayMessage(message.text) : null;
-  const hasAttachments = images.length > 0 || documents.length > 0 || htmlAttachments.length > 0;
+  const hasAttachments = images.length > 0 || documents.length > 0 || htmlAttachments.length > 0 || teachingSources.length > 0 || selectedPreferences.length > 0;
   const isLongText = Boolean(
     message.text
     && !appliedPlaywayMessage
@@ -1148,10 +1216,10 @@ function UserMessage({
 
   return (
     <>
-      <div style={styles.messageUser}>
-        <div style={userMessageStyles.stack}>
+      <div className="agent-user-message" style={styles.messageUser}>
+        <div className="agent-user-message-stack" style={userMessageStyles.stack}>
           {images.length > 0 && (
-            <div style={userMessageStyles.imageGrid}>
+            <div className="agent-user-message-image-grid" style={userMessageStyles.imageGrid}>
               {images.map(image => (
                 <button
                   key={image.id}
@@ -1166,9 +1234,9 @@ function UserMessage({
           )}
 
           {documents.length > 0 && (
-            <div style={userMessageStyles.documentList}>
+            <div className="agent-user-message-document-list" style={userMessageStyles.documentList}>
               {documents.map(doc => (
-                <div key={doc.id} style={userMessageStyles.documentCard}>
+                <div key={doc.id} className="agent-user-message-document" style={userMessageStyles.documentCard}>
                   <span style={userMessageStyles.documentIcon}>文</span>
                   <div style={{ minWidth: 0 }}>
                     <div style={userMessageStyles.documentName}>{doc.name}</div>
@@ -1179,10 +1247,24 @@ function UserMessage({
             </div>
           )}
 
+          {teachingSources.length > 0 && (
+            <div className="agent-user-message-document-list" style={userMessageStyles.documentList}>
+              {teachingSources.map(source => (
+                <div key={source.id} className="agent-user-message-document" style={{ ...userMessageStyles.documentCard, maxWidth: 430, borderColor: '#BFE9F5', background: '#F8FCFF' }}>
+                  <span style={{ ...userMessageStyles.documentIcon, background: 'var(--agent-soft)', color: 'var(--agent-primary-text)' }}>{source.type === 'question-bank' ? '题' : source.type === 'word-book' ? '词' : '页'}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={userMessageStyles.documentName}>{source.name}</div>
+                    <div style={userMessageStyles.documentMeta}>{source.sourceLabel} · {source.summary}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {htmlAttachments.length > 0 && (
-            <div style={userMessageStyles.documentList}>
+            <div className="agent-user-message-document-list" style={userMessageStyles.documentList}>
               {htmlAttachments.map(file => (
-                <div key={file.id} style={userMessageStyles.htmlCard}>
+                <div key={file.id} className="agent-user-message-document" style={userMessageStyles.htmlCard}>
                   <HtmlTypeBadge size="small" />
                   <div style={{ minWidth: 0 }}>
                     <div style={userMessageStyles.documentName}>{file.name}</div>
@@ -1193,9 +1275,16 @@ function UserMessage({
             </div>
           )}
 
+          {selectedPreferences.length > 0 && (
+            <div className="aug-user-preferences">
+              {selectedPreferences.map(item => <span key={item}>{item}</span>)}
+            </div>
+          )}
+
           {appliedPlaywayMessage && (
-            <div style={userMessageStyles.textWrap}>
+            <div className="agent-user-message-text-wrap" style={userMessageStyles.textWrap}>
               <div
+                className={`agent-user-message-bubble ${shouldUseFullWidthBubble ? 'is-full-width' : ''}`}
                 style={{
                   ...styles.userBubble,
                   ...(shouldUseFullWidthBubble ? userMessageStyles.fullWidthBubble : {}),
@@ -1240,8 +1329,9 @@ function UserMessage({
           )}
 
           {message.text && !appliedPlaywayMessage && (
-            <div style={userMessageStyles.textWrap}>
+            <div className="agent-user-message-text-wrap" style={userMessageStyles.textWrap}>
               <div
+                className={`agent-user-message-bubble ${shouldUseFullWidthBubble ? 'is-full-width' : ''}`}
                 style={{
                   ...styles.userBubble,
                   ...userMessageStyles.collapsibleBubble,
@@ -1364,7 +1454,11 @@ function MaterialIntentCard({
   }, [confirmedResolutions]);
 
   const getOptions = (file: UploadedAttachment) => (
-    file.type === 'image' ? imageIntentOptions : documentIntentOptions
+    file.type === 'image'
+      ? imageIntentOptions
+      : file.type === 'cloud-pages'
+        ? cloudIntentOptions
+        : documentIntentOptions
   );
 
   const handleConfirm = () => {
@@ -1390,33 +1484,34 @@ function MaterialIntentCard({
 
   return (
     <div className="agent-confirm-card agent-material-intent-card" style={intentCardStyles.card}>
-      <div style={intentCardStyles.header}>
-        <div>
-          <div style={intentCardStyles.title}>请确认上传材料的用途</div>
+      <div className="agent-material-intent-header" style={intentCardStyles.header}>
+        <div className="agent-material-intent-heading">
+          <div style={intentCardStyles.title}>请确认这些内容的用途</div>
           <div style={intentCardStyles.summary}>{confirmation.summary}</div>
         </div>
         <div
+          className="agent-material-intent-badge"
           style={{
             ...intentCardStyles.badge,
             background: isConfirmed ? 'var(--agent-soft-strong)' : '#FEF3C7',
             color: isConfirmed ? 'var(--agent-primary-text)' : '#B45309',
           }}
         >
-          {isConfirmed ? '已确认' : '需逐个确认'}
+          {isConfirmed ? '已确认' : '用途待确认'}
         </div>
       </div>
 
-      <div style={intentCardStyles.pendingList}>
+      <div className="agent-material-intent-list" style={intentCardStyles.pendingList}>
         {confirmation.pendingAttachments.map(file => {
           const confirmedResolution = confirmedResolutions?.find(item => item.attachmentId === file.id);
           const selected = confirmedResolution?.intent || selectedIntents[file.id];
           return (
-            <div key={file.id} style={intentCardStyles.pendingItem}>
-              <div style={intentCardStyles.fileItem}>
+            <div key={file.id} className="agent-material-intent-item" style={intentCardStyles.pendingItem}>
+              <div className="agent-material-intent-file" style={intentCardStyles.fileItem}>
                 {file.type === 'image' && file.url ? (
                   <img src={file.url} alt={file.name} style={intentCardStyles.fileThumb} />
                 ) : (
-                  <div style={intentCardStyles.fileIcon}>{file.type === 'image' ? '图' : '文'}</div>
+                  <div style={intentCardStyles.fileIcon}>{file.type === 'image' ? '图' : file.type === 'cloud-pages' ? '页' : '文'}</div>
                 )}
                 <div style={{ minWidth: 0 }}>
                   <div style={intentCardStyles.fileName}>{file.name}</div>
@@ -1426,7 +1521,7 @@ function MaterialIntentCard({
                 </div>
               </div>
 
-              <div style={intentCardStyles.options}>
+              <div className="agent-material-intent-options" style={intentCardStyles.options}>
                 {getOptions(file).map(option => {
                   const optionKey = `${file.id}:${option.intent}`;
                   const optionSelected = selected === option.intent;
@@ -1462,8 +1557,8 @@ function MaterialIntentCard({
                 })}
               </div>
 
-              <div style={intentCardStyles.customRow}>
-                <label style={intentCardStyles.customLabel}>
+              <div className="agent-material-intent-custom" style={intentCardStyles.customRow}>
+                <label className="agent-material-intent-custom-label" style={intentCardStyles.customLabel}>
                   <input
                     type="radio"
                     checked={selected === 'custom'}
@@ -1503,9 +1598,10 @@ function MaterialIntentCard({
       </div>
 
       {!confirmedResolutions && (
-        <div style={intentCardStyles.footer}>
-          <span style={intentCardStyles.footerHint}>确认后，AI 会把每个材料的用途写入需求分析。</span>
+        <div className="agent-material-intent-footer" style={intentCardStyles.footer}>
+          <span className="agent-material-intent-footer-hint" style={intentCardStyles.footerHint}>只在用途会明显改变生成结果时需要确认。</span>
           <button
+            className="agent-material-intent-confirm"
             onClick={handleConfirm}
             disabled={!allSelected}
             style={{
@@ -1730,6 +1826,7 @@ function AssistantMessage({
   onContinue,
   onMaterialIntentConfirm,
   onVoiceCapabilityConfirm,
+  onRecommendationChoose,
   onOpenPreview,
   onLearningDataRecoveryRequest,
   onVisualStyleRegenerate,
@@ -1743,6 +1840,7 @@ function AssistantMessage({
   onContinue?: (stageIndex: number) => void;
   onMaterialIntentConfirm?: (messageId: string, resolutions: MaterialIntentResolution[]) => void;
   onVoiceCapabilityConfirm?: (messageId: string, selection: VoiceCapabilitySelection) => void;
+  onRecommendationChoose?: (messageId: string, recommendationId?: string) => void;
   onOpenPreview?: (coursewareId: number, version?: string | null) => void;
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
@@ -1750,6 +1848,25 @@ function AssistantMessage({
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
   const activeConversation = conversations.find(c => c.id === activeConversationId);
+
+  // Hide settings messages left in an HMR-restored demo session after the settings step moved before sending.
+  if (message.type === 'generation-settings') return null;
+
+  if (message.type === 'courseware-recommendation') {
+    const data = message.content as CoursewareRecommendationMessage;
+    return (
+      <div style={styles.messageAssistant}>
+        <AIAvatar />
+        <div style={styles.assistantContent}>
+          <CoursewareRecommendationCard
+            data={data}
+            readOnly={Boolean(data.action)}
+            onChoose={recommendationId => onRecommendationChoose?.(message.id, recommendationId)}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (message.type === 'requirement-framework') {
     return (
@@ -1785,7 +1902,7 @@ function AssistantMessage({
       </div>
     );
   }
-  
+
   if (message.type === 'generation-progress') {
     return (
       <div style={styles.messageAssistant}>
@@ -1872,6 +1989,7 @@ function AssistantMessage({
             onLearningDataRecoveryRequest={onLearningDataRecoveryRequest}
             onVisualStyleRegenerate={onVisualStyleRegenerate}
             publishBadgeLabel={publishBadgeLabel}
+            generationPreferences={result.generationPreferences}
           />
         </div>
       </div>
@@ -1906,11 +2024,13 @@ function AssistantMessage({
     );
   }
   
+  if (typeof message.content !== 'string') return null;
+
   return (
     <div style={styles.messageAssistant}>
       <AIAvatar />
       <div style={styles.assistantBubble}>
-        <SimpleStreamText text={message.content as string} />
+        <SimpleStreamText text={message.content} />
       </div>
     </div>
   );
@@ -2154,14 +2274,30 @@ export default function GeneratorPage() {
     injectPromptWithApplyMotion(item, next, sourceElement);
   }, [draftPrompt, injectPromptWithApplyMotion]);
 
-  const startRequirementFlow = useCallback((convId: string, promptForFramework: string) => {
+  const startRequirementFlow = useCallback((
+    convId: string,
+    promptForFramework: string,
+    teachingSources: TeachingContentSource[] = [],
+    generationPreferences: GenerationPreferences = {},
+    selectedRecommendationId?: string,
+  ) => {
     setPhase('analyzing');
     setFrameworkDone(false);
 
     setTimeout(() => {
       setPhase('loading-framework');
       
-      const framework = generateRequirementFromPrompt(promptForFramework);
+      const baseFramework = generateRequirementFromPrompt(promptForFramework);
+      const framework: RequirementFramework = {
+        ...baseFramework,
+        augustPlan: buildAugustGenerationPlan(
+          promptForFramework,
+          baseFramework,
+          teachingSources,
+          generationPreferences,
+          selectedRecommendationId,
+        ),
+      };
       pendingFrameworkRef.current = convId;
 
       frameworkTimerRef.current = setTimeout(() => {
@@ -2172,15 +2308,44 @@ export default function GeneratorPage() {
     }, demoMs(1500));
   }, [addAssistantMessage]);
 
+  const startRecommendationFlow = useCallback((
+    convId: string,
+    promptForFramework: string,
+    teachingSources: TeachingContentSource[] = [],
+    generationPreferences: GenerationPreferences = {},
+  ) => {
+    setPhase('analyzing');
+    setFrameworkDone(false);
+
+    window.setTimeout(() => {
+      const baseFramework = generateRequirementFromPrompt(promptForFramework);
+      const plan = buildAugustGenerationPlan(
+        promptForFramework,
+        baseFramework,
+        teachingSources,
+        generationPreferences,
+      );
+      addAssistantMessage(convId, {
+        promptForFramework,
+        teachingSources,
+        generationPreferences,
+        recommendations: plan.recommendations,
+      }, 'courseware-recommendation');
+      setPhase('recommendation');
+    }, demoMs(1800));
+  }, [addAssistantMessage]);
+
   const maybeAskVoiceCapability = useCallback((
     convId: string,
     originalPrompt: string,
     promptForFramework: string,
     source: VoiceCapabilityConfirmation['source'] = 'user-prompt',
+    teachingSources: TeachingContentSource[] = [],
+    generationPreferences: GenerationPreferences = {},
   ) => {
     const intent = detectVoiceCapabilityIntent(`${originalPrompt}\n${promptForFramework}`);
     if (!intent) {
-      startRequirementFlow(convId, promptForFramework);
+      startRecommendationFlow(convId, promptForFramework, teachingSources, generationPreferences);
       return;
     }
 
@@ -2189,9 +2354,11 @@ export default function GeneratorPage() {
       promptForFramework,
       intent,
       source,
+      teachingSources,
+      generationPreferences,
     }, 'voice-capability-confirmation');
     setPhase('input');
-  }, [addAssistantMessage, startRequirementFlow]);
+  }, [addAssistantMessage, startRecommendationFlow]);
 
   useEffect(() => {
     if (chatAreaRef.current) {
@@ -2249,6 +2416,9 @@ export default function GeneratorPage() {
       closePreview();
     }
     const hasFramework = activeConversation.messages.some(m => m.type === 'requirement-framework');
+    const latestRecommendation = [...activeConversation.messages]
+      .reverse()
+      .find(m => m.type === 'courseware-recommendation')?.content as CoursewareRecommendationMessage | undefined;
     const hasProgress = activeConversation.messages.some(m => m.type === 'generation-progress');
     const hasResult = activeConversation.messages.some(m => m.type === 'courseware-result');
     const isClone = activeConversation.title.startsWith('同款-');
@@ -2261,10 +2431,16 @@ export default function GeneratorPage() {
     } else if (hasFramework && phase === 'input') {
       setPhase('framework');
       setFrameworkDone(isClone ? false : true);
+    } else if (latestRecommendation && !latestRecommendation.action && phase === 'input') {
+      setPhase('recommendation');
     }
   }, [activeConversationId, closePreview]);
   
-  const handleSend = useCallback((text: string, attachments: UploadedAttachment[] = []) => {
+  const handleSend = useCallback((
+    text: string,
+    attachments: UploadedAttachment[] = [],
+    generationPreferences: GenerationPreferences = {},
+  ) => {
     let convId = activeConversationId;
     
     if (!convId) {
@@ -2283,12 +2459,18 @@ export default function GeneratorPage() {
     addUserMessage(convId, {
       text: text || '请帮我看看这些上传材料',
       attachments,
+      generationPreferences,
     });
     setDraftPrompt('');
     setSelectedInspiration(null);
 
     const cloneAttachments = attachments.filter(file => file.type === 'html' && file.locked);
-    const materialAttachments = attachments.filter(file => file.type !== 'html');
+    const materialAttachments = attachments.filter(file => (
+      file.type === 'image' || file.type === 'document' || file.type === 'cloud-pages'
+    ));
+    const teachingSources = attachments
+      .map(file => file.teachingSource)
+      .filter((source): source is TeachingContentSource => Boolean(source));
 
     if (cloneAttachments.length > 0) {
       useConversationStore.setState(state => ({
@@ -2299,7 +2481,10 @@ export default function GeneratorPage() {
       maybeAskVoiceCapability(
         convId,
         text,
-        `${text}\n\n同款参考附件：${cloneAttachments.map(file => `HTML「${file.name}」`).join('、')}。该附件仅作为隐藏上下文，不展示、不打开、不下载。`
+        `${text}\n\n同款参考附件：${cloneAttachments.map(file => `HTML「${file.name}」`).join('、')}。该附件仅作为隐藏上下文，不展示、不打开、不下载。`,
+        'user-prompt',
+        teachingSources,
+        generationPreferences,
       );
       return;
     }
@@ -2313,7 +2498,9 @@ export default function GeneratorPage() {
           resolvedIntents,
           summary: resolvedIntents.length > 0
             ? `已自动识别 ${resolvedIntents.length} 个材料用途，还有 ${pendingAttachments.length} 个材料需要你确认。`
-            : `已收到${buildAttachmentSummary(attachments)}，但还需要逐个确认用途。`,
+            : `已收到${buildAttachmentSummary(materialAttachments)}，但还需要逐个确认用途。`,
+          teachingSources,
+          generationPreferences,
         }, 'material-intent-confirmation');
         setPhase('input');
         return;
@@ -2324,27 +2511,96 @@ export default function GeneratorPage() {
         `已识别 ${resolvedIntents.length} 个上传材料用途：\n${resolvedIntents.map(item => `- ${item.title}：${item.reason}`).join('\n')}\n接下来我会把这些用途带入需求分析。`,
         'text'
       );
-      maybeAskVoiceCapability(convId, text, buildIntentPrompt(text, materialAttachments, resolvedIntents), 'material-intent');
+      maybeAskVoiceCapability(
+        convId,
+        text,
+        buildIntentPrompt(text, materialAttachments, resolvedIntents),
+        'material-intent',
+        teachingSources,
+        generationPreferences,
+      );
       return;
     }
 
-    maybeAskVoiceCapability(convId, text, text);
+    maybeAskVoiceCapability(convId, text, text, 'user-prompt', teachingSources, generationPreferences);
   }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
+
+  const handleRecommendationChoose = useCallback((messageId: string, recommendationId?: string) => {
+    if (!activeConversationId) return;
+    const message = activeConversation?.messages.find(item => item.id === messageId);
+    if (!message || message.type !== 'courseware-recommendation') return;
+    const data = message.content as CoursewareRecommendationMessage;
+    if (data.action) return;
+    const recommendation = data.recommendations.find(item => item.id === recommendationId);
+    const action: CoursewareRecommendationMessage['action'] = recommendation ? 'clone' : 'new';
+
+    useConversationStore.setState(state => ({
+      conversations: state.conversations.map(conversation => (
+        conversation.id === activeConversationId
+          ? {
+              ...conversation,
+              messages: conversation.messages.map(item => (
+                item.id === messageId
+                  ? {
+                      ...item,
+                      content: {
+                        ...(item.content as CoursewareRecommendationMessage),
+                        action,
+                        selectedRecommendationId: recommendation?.id,
+                      },
+                    }
+                  : item
+              )),
+            }
+          : conversation
+      )),
+    }));
+
+    addUserMessage(
+      activeConversationId,
+      recommendation
+        ? `一键同款「${recommendation.title}」，并保留我已选择的教学内容`
+        : '没有合适的推荐，继续按当前需求新建',
+    );
+    startRequirementFlow(
+      activeConversationId,
+      data.promptForFramework,
+      data.teachingSources,
+      data.generationPreferences || {},
+      recommendation?.id,
+    );
+  }, [activeConversationId, activeConversation, addUserMessage, startRequirementFlow]);
 
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
-    
-    addUserMessage(activeConversationId, skipMessage || '我已确认需求，立即生成。');
+
+    const latestFramework = [...(activeConversation?.messages || [])]
+      .reverse()
+      .find(message => message.type === 'requirement-framework')?.content as RequirementFramework | undefined;
+    const plan = latestFramework?.augustPlan;
+    const selectedRecommendation = plan?.recommendations.find(item => item.id === plan.selectedRecommendationId);
+    const htmlModel = htmlModelOptions.find(item => item.id === plan?.htmlModelId);
+    const imageModel = imageModelOptions.find(item => item.id === plan?.imageModelId);
+    const referenceText = selectedRecommendation ? `一键同款「${selectedRecommendation.title}」` : '按当前教学需求新建';
+    const confirmationText = plan
+      ? `我已确认生成方案：${referenceText}，画面使用「${plan.visualStyleName}」，音色使用「${plan.voiceName}」，HTML 生成使用「${htmlModel?.name || '智能选择'}」，图片生成使用「${imageModel?.name || '智能选择'}」。`
+      : '我已确认需求，立即生成。';
+
+    addUserMessage(activeConversationId, skipMessage || confirmationText);
     setPhase('generating');
     
     setTimeout(() => {
       startGeneration(activeConversationId);
       
       const initialProgress: GenerationProgress = {
+        introText: plan
+          ? `${plan.htmlModelId === 'gpt-5.5' || plan.imageModelId === 'jimeng-5.0' || plan.imageModelId === 'image-2' ? '已开始生成。所选模型生成时间较长' : '已开始生成'}，生成期间可以离开页面，完成后可在「我的创作」查看。`
+          : undefined,
+        instantIntro: Boolean(plan),
         stages: [
-          { name: '图片生成', status: 'pending', progress: 0 },
-          { name: '音频生成', status: 'pending', progress: 0 },
-          { name: '代码生成', status: 'pending', progress: 0 },
+          { name: '图片生成', status: 'pending', progress: 0, detail: plan ? `使用${imageModel?.name || '智能选择'}生成课件所需画面素材。` : undefined },
+          { name: '音频生成', status: 'pending', progress: 0, detail: plan ? `使用${plan.voiceName}合成讲解、发音与反馈音频。` : undefined },
+          { name: '代码生成', status: 'pending', progress: 0, detail: plan ? `使用${htmlModel?.name || '智能选择'}生成互动课件 HTML。` : undefined },
           { name: '代码审查', status: 'pending', progress: 0 },
           { name: '代码修复', status: 'pending', progress: 0 },
           { name: '学情数据回收数据设计', status: 'pending', progress: 0 },
@@ -2358,13 +2614,18 @@ export default function GeneratorPage() {
       simulateGeneration(
         activeConversationId,
         (updatedProgress) => {
+          const progressWithIntro: GenerationProgress = {
+            ...updatedProgress,
+            introText: initialProgress.introText,
+            instantIntro: initialProgress.instantIntro,
+          };
           useConversationStore.setState(state => ({
             conversations: state.conversations.map(c =>
               c.id === activeConversationId
                 ? {
                     ...c,
                     messages: c.messages.map(m =>
-                      m.type === 'generation-progress' ? { ...m, content: updatedProgress } : m
+                      m.type === 'generation-progress' ? { ...m, content: progressWithIntro } : m
                     ),
                   }
                 : c
@@ -2372,6 +2633,20 @@ export default function GeneratorPage() {
           }));
         },
         (result, coursewareId) => {
+          const resultWithPreferences: CoursewareResult = {
+            ...result,
+            generationPreferences: plan ? {
+              visualStyleMode: plan.visualStyleMode,
+              visualStyleId: plan.visualStyleId,
+              visualStyleName: plan.visualStyleName,
+              voiceMode: plan.voiceMode,
+              voiceId: plan.voiceId,
+              voiceName: plan.voiceName,
+              voiceLanguage: plan.voiceLanguage,
+              htmlModelId: plan.htmlModelId,
+              imageModelId: plan.imageModelId,
+            } : undefined,
+          };
           const newCourseware: Courseware = {
             id: coursewareId,
             title: result.title,
@@ -2386,11 +2661,11 @@ export default function GeneratorPage() {
             htmlContent: mockCoursewares[0].htmlContent,
             isOwn: true,
             isPublished: false,
-            learningDataRecovery: result.learningDataRecovery,
+            learningDataRecovery: resultWithPreferences.learningDataRecovery,
           };
           addCourseware(newCourseware);
-          addAssistantMessage(activeConversationId!, result, 'courseware-result');
-          completeGeneration(activeConversationId!, result, coursewareId);
+          addAssistantMessage(activeConversationId!, resultWithPreferences, 'courseware-result');
+          completeGeneration(activeConversationId!, resultWithPreferences, coursewareId);
           setPhase('completed');
           setSidebarCollapsed(true);
           openPreview(coursewareId);
@@ -2400,7 +2675,7 @@ export default function GeneratorPage() {
         failAtStageRef.current
       );
     }, demoMs(500));
-  }, [activeConversationId, addUserMessage, startGeneration, addAssistantMessage, completeGeneration, addCourseware, setSidebarCollapsed, openPreview]);
+  }, [activeConversationId, activeConversation, addUserMessage, startGeneration, addAssistantMessage, completeGeneration, addCourseware, setSidebarCollapsed, openPreview]);
 
   const handleStop = useCallback(() => {
     if (abortControllerRef.current) {
@@ -2596,6 +2871,8 @@ export default function GeneratorPage() {
       originalPrompt,
       buildIntentPrompt(originalPrompt, allAttachments, allResolutions),
       'material-intent',
+      confirmation.teachingSources || [],
+      confirmation.generationPreferences || {},
     );
   }, [activeConversationId, activeConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
 
@@ -2631,16 +2908,19 @@ export default function GeneratorPage() {
     }));
 
     addUserMessage(activeConversationId, selectedText);
-    startRequirementFlow(
+    startRecommendationFlow(
       activeConversationId,
       `${confirmation.promptForFramework}${buildVoiceCapabilityAppendix(selection)}`,
+      confirmation.teachingSources || [],
+      confirmation.generationPreferences || {},
     );
-  }, [activeConversationId, activeConversation, addUserMessage, startRequirementFlow]);
+  }, [activeConversationId, activeConversation, addUserMessage, startRecommendationFlow]);
   
   const renderContent = () => {
     if (!activeConversationId || (!hasMessages && phase === 'input')) {
       return (
         <div
+          className="agent-welcome-section"
           ref={welcomeScrollRef}
           data-welcome-scroll="true"
           data-app-scroll-container="true"
@@ -2648,19 +2928,20 @@ export default function GeneratorPage() {
           style={styles.welcomeSection}
         >
           <div
+            className="agent-welcome-hero"
             ref={welcomeHeroPanelRef}
             style={{
               ...styles.welcomeHeroPanel,
               minHeight: welcomeHeroMinHeight,
             }}
           >
-            <img src={HOMEPAGE_ROBOT_URL} alt="" style={styles.welcomeRobot} />
-            <div style={styles.welcomeHeroContent}>
-              <div style={styles.welcomeHeroCopy}>
+            <img className="agent-welcome-robot" src={HOMEPAGE_ROBOT_URL} alt="" style={styles.welcomeRobot} />
+            <div className="agent-welcome-hero-content" style={styles.welcomeHeroContent}>
+              <div className="agent-welcome-hero-copy" style={styles.welcomeHeroCopy}>
                 <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
                 <p style={styles.welcomeSubtitle}>AI智能生成多种互动游戏、互动讲解与教学活动，快速插入课件，提升课堂参与度与教学效果。</p>
               </div>
-              <div ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 980 }}>
+              <div className="agent-welcome-input" ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 980 }}>
                 <ChatInput
                   onSend={handleSend}
                   centered
@@ -2706,11 +2987,12 @@ export default function GeneratorPage() {
     return (
       <>
         <div
+          className="agent-chat-scroll"
           ref={chatAreaRef}
           data-app-scroll-container="true"
           style={{ ...styles.chatArea, ...chatContentVars, padding: chatAreaPadding }}
         >
-          <div style={styles.messagesContainer}>
+          <div className="agent-chat-messages" style={styles.messagesContainer}>
             <AnimatePresence mode="popLayout">
               {(activeConversation?.messages ?? []).map((msg, index) => {
                 const messages = activeConversation?.messages ?? [];
@@ -2735,7 +3017,7 @@ export default function GeneratorPage() {
                   >
                     {msg.role === 'user' ? (
                       <UserMessage
-                        content={msg.content as string}
+                        content={msg.content as string | UserMaterialMessage}
                         onUndoNextResult={
                           canUndoNextResult && nextMessage
                             ? () => handleUndoCoursewareResult(msg.id, nextMessage.id, nextCoursewareIndex, nextResultPublished)
@@ -2754,6 +3036,7 @@ export default function GeneratorPage() {
                         onContinue={handleContinueStage}
                         onMaterialIntentConfirm={handleMaterialIntentConfirm}
                         onVoiceCapabilityConfirm={handleVoiceCapabilityConfirm}
+                        onRecommendationChoose={handleRecommendationChoose}
                         onOpenPreview={(coursewareId, version) => {
                           openPreview(coursewareId, version);
                         }}
@@ -2967,7 +3250,7 @@ export default function GeneratorPage() {
           </div>
         )}
 
-        <div ref={bottomInputAnchorRef} style={{ ...styles.inputArea, ...chatContentVars, padding: inputAreaPadding }}>
+        <div className="agent-chat-input-area" ref={bottomInputAnchorRef} style={{ ...styles.inputArea, ...chatContentVars, padding: inputAreaPadding }}>
           <div style={{ width: '100%', maxWidth: chatContentMaxWidth }}>
             <ChatInput 
               onSend={handleSend} 

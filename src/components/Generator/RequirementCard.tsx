@@ -13,7 +13,9 @@ interface RequirementCardProps {
   onFrameworkChange?: (framework: RequirementFramework) => void;
 }
 
-const getSections = (framework: RequirementFramework) => [
+const getSections = (framework: RequirementFramework) => framework.augustPlan ? [
+  { key: 'userRequirement' as const, icon: '🎯', title: '教学需求' },
+] : [
   ...(framework.generationSettings
     ? [{ key: 'generationSettings' as const, icon: '⚙️', title: '生成设置' }]
     : []),

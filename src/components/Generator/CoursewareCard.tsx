@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Courseware, LearningDataRecoveryItem, LearningDataRecoveryRequest, VisualStyleRegenerationRequest } from '../../types';
+import type { Courseware, GenerationPreferences, LearningDataRecoveryItem, LearningDataRecoveryRequest, VisualStyleRegenerationRequest, VoiceOption } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
 import LearningDataRecoveryModal from './LearningDataRecoveryModal';
 import HtmlTypeBadge from '../common/HtmlTypeBadge';
+import { demoVoiceOptions, htmlModelOptions, imageModelOptions } from '../../data/augustDemoData';
 import {
   baseVisualStylePresets,
   enhancementVisualStylePreviewImages,
@@ -18,12 +19,13 @@ import {
 } from '../../data/visualStylePresets';
 
 // 默认音色选项
-const DEFAULT_VOICES = [
-  { id: 'female-1', name: '温柔女声', gender: 'female' as const, description: '标准女音，适合教学场景', isDefault: true },
-  { id: 'female-2', name: '活泼女童', gender: 'female' as const, description: '童声女音，适合低龄互动' },
-  { id: 'male-1', name: '标准男声', gender: 'male' as const, description: '标准男音，适合正式场景' },
-  { id: 'male-2', name: '活力男童', gender: 'male' as const, description: '童声男音，适合趣味教学' },
-];
+const RESOURCE_VOICES: VoiceOption[] = demoVoiceOptions.map((voice, index) => ({
+  id: voice.id,
+  name: voice.name,
+  gender: voice.gender === '女生' ? 'female' : 'male',
+  description: `${voice.language} · ${voice.tag}`,
+  isDefault: index === 0,
+}));
 
 // 模拟资源数据
 const MOCK_IMAGES: Array<{ id: string; label: string; src: string; prompt: string; status: 'completed' | 'generating' }> = [
@@ -36,8 +38,8 @@ const MOCK_AUDIOS: Array<
   | { id: string; label: string; type: 'tts'; status: 'completed' | 'generating'; voiceId: string; duration: number }
   | { id: string; label: string; type: 'bgm'; status: 'completed' | 'generating'; duration: number }
 > = [
-  { id: 'audio-1', label: '单词发音 - Apple', type: 'tts', status: 'completed', voiceId: 'female-1', duration: 1.2 },
-  { id: 'audio-2', label: '单词发音 - Banana', type: 'tts', status: 'completed', voiceId: 'female-1', duration: 1.5 },
+  { id: 'audio-1', label: '单词发音 - Apple', type: 'tts', status: 'completed', voiceId: 'amy', duration: 1.2 },
+  { id: 'audio-2', label: '单词发音 - Banana', type: 'tts', status: 'completed', voiceId: 'amy', duration: 1.5 },
   { id: 'audio-3', label: '游戏背景音乐', type: 'bgm', status: 'completed', duration: 30.0 },
 ];
 
@@ -51,6 +53,7 @@ export default function CoursewareCard({
   onLearningDataRecoveryRequest,
   onVisualStyleRegenerate,
   publishBadgeLabel,
+  generationPreferences,
 }: {
   courseware: Courseware;
   version?: string;
@@ -59,6 +62,7 @@ export default function CoursewareCard({
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
   publishBadgeLabel?: string;
+  generationPreferences?: GenerationPreferences;
 }) {
   const [copied, setCopied] = useState(false);
   const [feedbackCopied, setFeedbackCopied] = useState(false);
@@ -73,8 +77,14 @@ export default function CoursewareCard({
   const [showLearningDataModal, setShowLearningDataModal] = useState(false);
   const [localLearningDataItems, setLocalLearningDataItems] = useState<LearningDataRecoveryItem[] | undefined>(courseware.learningDataRecovery?.selectedItems);
   const [showVisualStyleModal, setShowVisualStyleModal] = useState(false);
+  const [resourceDefaults, setResourceDefaults] = useState({
+    imageModelId: generationPreferences?.imageModelId || 'jimeng-4.5',
+    voiceId: generationPreferences?.voiceId || 'amy',
+  });
   const [selectedBaseStyleId, setSelectedBaseStyleId] = useState<string | null>(null);
   const [selectedEnhancementIds, setSelectedEnhancementIds] = useState<string[]>([]);
+  const [styleHtmlModelId, setStyleHtmlModelId] = useState(generationPreferences?.htmlModelId || 'smart-html');
+  const [styleImageModelId, setStyleImageModelId] = useState(generationPreferences?.imageModelId || resourceDefaults.imageModelId || 'smart-image');
   const [previewingStyle, setPreviewingStyle] = useState<{
     id: string;
     name: string;
@@ -161,7 +171,8 @@ export default function CoursewareCard({
     toast(`图片 "${file.name}" 已上传`);
   };
 
-  const handleImageRegenerate = (imageId: string, prompt: string) => {
+  const handleImageRegenerate = (imageId: string, prompt: string, imageModelId: string) => {
+    const imageModel = imageModelOptions.find(model => model.id === imageModelId);
     setImages(prev => prev.map(img => 
       img.id === imageId 
         ? { ...img, prompt, status: 'generating' as const }
@@ -173,7 +184,7 @@ export default function CoursewareCard({
           ? { ...img, status: 'completed' as const }
           : img
       ));
-      toast('图片重新生成完成');
+      toast(`已使用“${imageModel?.name || '所选模型'}”重新生成图片`);
     }, 2000);
   };
 
@@ -187,7 +198,7 @@ export default function CoursewareCard({
   };
 
   const handleAudioRegenerate = (audioId: string, voiceId: string) => {
-    const voice = DEFAULT_VOICES.find(v => v.id === voiceId);
+    const voice = RESOURCE_VOICES.find(v => v.id === voiceId);
     setAudios(prev => prev.map(audio => 
       audio.id === audioId 
         ? { ...audio, voiceId, status: 'generating' as const }
@@ -216,6 +227,8 @@ export default function CoursewareCard({
     : selectedEnhancementIds.length > 0
       ? '仅对现有图片资产做图生图质感叠加'
       : '请选择基础风格或叠加图片质感';
+  const selectedStyleHtmlModel = htmlModelOptions.find(model => model.id === styleHtmlModelId) || htmlModelOptions[0];
+  const selectedStyleImageModel = imageModelOptions.find(model => model.id === styleImageModelId) || imageModelOptions[0];
   const previewStyleList = previewingStyle
     ? (previewingStyle.kind === 'base' ? baseVisualStylePresets : enhancementVisualStylePresets)
       .filter(style => Boolean((previewingStyle.kind === 'base' ? visualStylePreviewImages : enhancementVisualStylePreviewImages)[style.id]))
@@ -308,6 +321,16 @@ export default function CoursewareCard({
       styleName: selectedStyleName,
       stylePrompt: selectedStylePrompt,
       previewImageUrl: visualStyleSelection.previewImageUrl,
+      generationPreferences: {
+        visualStyleMode: 'manual',
+        visualStyleId: visualStyleSelection.baseStyleId || undefined,
+        visualStyleName: selectedStyleName,
+        voiceMode: generationPreferences?.voiceMode,
+        voiceId: generationPreferences?.voiceId,
+        voiceName: generationPreferences?.voiceName,
+        htmlModelId: selectedBaseStyle ? styleHtmlModelId : generationPreferences?.htmlModelId || 'smart-html',
+        imageModelId: styleImageModelId,
+      },
       regenerationMode,
     });
   };
@@ -589,21 +612,32 @@ export default function CoursewareCard({
         </button>
       </div>
 
-      <ResourceEditModal
+      {showEditModal && <ResourceEditModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         onConfirmReplace={() => {
-          setIsLatest(false);
-          setCurrentVersion(currentVersion);
+          setCurrentVersion(previous => {
+            const match = previous.match(/第(\d+)版/);
+            return match ? previous.replace(match[0], `第${Number(match[1]) + 1}版`) : previous;
+          });
+          setIsLatest(true);
         }}
         images={images}
         audios={audios}
-        voices={DEFAULT_VOICES}
+        voices={RESOURCE_VOICES}
+        creationPreferences={generationPreferences}
+        resourceDefaults={resourceDefaults}
+        onResourceDefaultsChange={defaults => {
+          setResourceDefaults(defaults);
+          const imageName = imageModelOptions.find(model => model.id === defaults.imageModelId)?.name;
+          const voiceName = RESOURCE_VOICES.find(voice => voice.id === defaults.voiceId)?.name;
+          toast(`已更新本课件后续默认：${imageName} · ${voiceName}`);
+        }}
         onImageReplace={handleImageReplace}
         onImageRegenerate={handleImageRegenerate}
         onAudioReplace={handleAudioReplace}
         onAudioRegenerate={handleAudioRegenerate}
-      />
+      />}
 
       <LearningDataRecoveryModal
         isOpen={showLearningDataModal}
@@ -630,7 +664,7 @@ export default function CoursewareCard({
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 1200,
+            zIndex: 24000,
             background: 'rgba(15, 23, 42, 0.36)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
@@ -989,9 +1023,9 @@ export default function CoursewareCard({
             <div style={{
               borderTop: '1px solid #E2E8F0',
               padding: '14px 18px',
-              display: 'flex',
+              display: 'grid',
+              gridTemplateColumns: 'minmax(190px, 1fr) minmax(260px, 1.35fr) auto',
               alignItems: 'center',
-              justifyContent: 'space-between',
               gap: 14,
               background: '#FFFFFF',
             }}>
@@ -1006,6 +1040,71 @@ export default function CoursewareCard({
                   textOverflow: 'ellipsis',
                 }}>
                   {selectedStyleName || '暂未选择风格'}
+                </div>
+              </div>
+              <div style={{ minWidth: 0, display: 'grid', gap: 8 }}>
+                {selectedBaseStyle && (
+                  <div style={{ minWidth: 0, display: 'grid', gridTemplateColumns: '58px minmax(0, 1fr)', alignItems: 'center', gap: 8 }}>
+                    <span style={{ color: '#64748B', fontSize: 11, fontWeight: 750 }}>课件模型</span>
+                    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' }}>
+                      {htmlModelOptions.map(model => {
+                        const selected = model.id === styleHtmlModelId;
+                        return (
+                          <button
+                            key={model.id}
+                            type="button"
+                            onClick={() => setStyleHtmlModelId(model.id)}
+                            style={{
+                              height: 28,
+                              padding: '0 9px',
+                              borderRadius: 8,
+                              border: selected ? '1px solid var(--agent-primary)' : '1px solid #DCE6EF',
+                              background: selected ? 'var(--agent-soft)' : '#FFFFFF',
+                              color: selected ? 'var(--agent-primary-text)' : '#536273',
+                              fontSize: 11,
+                              fontWeight: 750,
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {model.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <div style={{ minWidth: 0, display: 'grid', gridTemplateColumns: '58px minmax(0, 1fr)', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: '#64748B', fontSize: 11, fontWeight: 750 }}>生图模型</span>
+                  <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' }}>
+                    {imageModelOptions.map(model => {
+                      const selected = model.id === styleImageModelId;
+                      return (
+                        <button
+                          key={model.id}
+                          type="button"
+                          onClick={() => setStyleImageModelId(model.id)}
+                          style={{
+                            height: 28,
+                            padding: '0 9px',
+                            borderRadius: 8,
+                            border: selected ? '1px solid var(--agent-primary)' : '1px solid #DCE6EF',
+                            background: selected ? 'var(--agent-soft)' : '#FFFFFF',
+                            color: selected ? 'var(--agent-primary-text)' : '#536273',
+                            fontSize: 11,
+                            fontWeight: 750,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {model.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div style={{ color: '#94A3B8', fontSize: 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  当前：{selectedBaseStyle ? `${selectedStyleHtmlModel.name} · ` : ''}{selectedStyleImageModel.name}
                 </div>
               </div>
               <button
@@ -1043,7 +1142,7 @@ export default function CoursewareCard({
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 1300,
+            zIndex: 25000,
             background: 'rgba(15, 23, 42, 0.58)',
             backdropFilter: 'blur(10px)',
             display: 'flex',

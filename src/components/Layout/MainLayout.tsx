@@ -58,9 +58,10 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="agent-main-layout" style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
       <main
+        className="agent-main-content"
         data-app-scroll-container="true"
         style={{
           marginLeft: sidebarCollapsed ? 64 : 260,

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
-  Image,
-  Paperclip,
   Link,
   SendHorizontal,
   Sparkles,
@@ -9,15 +8,21 @@ import {
   RotateCw,
   ChevronDown,
   ChevronUp,
+  ImagePlus,
+  Paperclip,
   X,
+  Database,
+  BookOpenText,
+  Presentation,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
-import type { UploadedAttachment } from '../../types';
-import { FRUIT_COURSEWARE_PROMPT, isFruitCoursewarePrompt } from '../../data/fruitCoursewarePrompt';
+import type { GenerationPreferences, UploadedAttachment } from '../../types';
 import HtmlTypeBadge from '../common/HtmlTypeBadge';
+import TeachingContentPicker from './TeachingContentPicker';
+import GenerationPreferencePicker from './GenerationPreferencePicker';
 
 interface ChatInputProps {
-  onSend: (text: string, attachments?: UploadedAttachment[]) => void;
+  onSend: (text: string, attachments?: UploadedAttachment[], preferences?: GenerationPreferences) => void;
   disabled?: boolean;
   isGenerating?: boolean;
   onStop?: () => void;
@@ -69,6 +74,95 @@ const MAX_DOCUMENT_FILE_SIZE_MB = 10;
 const BYTES_PER_MB = 1024 * 1024;
 const SUPPORTED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif'];
 const SUPPORTED_DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'md'];
+
+interface TeachingUsageSuggestion {
+  label: string;
+  text: string;
+}
+
+const getTeachingUsageGuidance = (attachments: UploadedAttachment[]): {
+  placeholder: string;
+  suggestions: TeachingUsageSuggestion[];
+} | null => {
+  const sourceTypes = new Set(attachments.map(item => item.teachingSource?.type).filter(Boolean));
+  const hasQuestions = sourceTypes.has('question-bank');
+  const hasWords = sourceTypes.has('word-book');
+  const hasCloudPages = sourceTypes.has('cloud-pages');
+  const typeCount = Number(hasQuestions) + Number(hasWords) + Number(hasCloudPages);
+
+  if (typeCount > 1) {
+    if (hasQuestions && hasWords && hasCloudPages) {
+      return {
+        placeholder: '请说明这些内容如何组合，例如：先用课件页讲解单词，再用所选题目做闯关练习',
+        suggestions: [
+          { label: '讲解后闯关', text: '先用所选课件页讲解单词，再用所选题目做闯关练习' },
+          { label: '沿用课件玩法', text: '参考所选课件页的玩法结构，把这些单词和题目编排成连续关卡' },
+        ],
+      };
+    }
+    if (hasQuestions && hasWords) {
+      return {
+        placeholder: '请说明题目和单词如何组合，例如：先学习单词，再用所选题目做闯关练习',
+        suggestions: [
+          { label: '先学后练', text: '先学习这些单词，再用所选题目做闯关练习' },
+          { label: '单词热身', text: '先用单词认读热身，再进入题目讲评和互动练习' },
+        ],
+      };
+    }
+    if (hasQuestions && hasCloudPages) {
+      return {
+        placeholder: '请说明课件页面与题目如何配合，例如：先讲解所选页面，再用题目做互动练习',
+        suggestions: [
+          { label: '讲解后练习', text: '先讲解所选课件页面，再用这些题目做互动练习' },
+          { label: '参考玩法闯关', text: '参考所选课件页的玩法结构，把这些题目做成闯关游戏' },
+        ],
+      };
+    }
+    return {
+      placeholder: '请说明课件页面与单词如何配合，例如：先讲解所选页面，再做听音选词',
+      suggestions: [
+        { label: '讲解后练习', text: '先使用所选课件页讲解单词，再做听音选词练习' },
+        { label: '参考玩法拼写', text: '参考所选课件页的玩法结构，用这些单词做拼写闯关' },
+      ],
+    };
+  }
+
+  if (hasQuestions) {
+    return {
+      placeholder: '请说明所选题目用途，如把这些题做成3关闯关练习，答错后展示解析',
+      suggestions: [
+        { label: '互动练习', text: '把这些题做成互动练习，答题后即时反馈' },
+        { label: '闯关游戏', text: '把这些题做成3关闯关游戏，答错后展示解析' },
+        { label: '题目讲评', text: '逐题讲评这些题目，先作答再展示答案和解析' },
+      ],
+    };
+  }
+
+  if (hasWords) {
+    return {
+      placeholder: '请说明所选单词用途，如用这些单词做听音选词和拼写闯关',
+      suggestions: [
+        { label: '单词认读', text: '用这些单词做图文认读练习' },
+        { label: '听音选词', text: '用这些单词做听音选词练习' },
+        { label: '拼写闯关', text: '用这些单词做拼写闯关游戏' },
+        { label: '口语练习', text: '用这些单词做跟读和口语练习' },
+      ],
+    };
+  }
+
+  if (hasCloudPages) {
+    return {
+      placeholder: '请说明所选课件页用途，如提取教学内容、参考画面风格或参考玩法结构',
+      suggestions: [
+        { label: '使用教学内容', text: '使用所选页面的教学内容生成互动练习' },
+        { label: '参考画面风格', text: '参考所选页面的画面风格生成新课件' },
+        { label: '参考玩法结构', text: '参考所选页面的玩法结构生成新课件' },
+      ],
+    };
+  }
+
+  return null;
+};
 
 const HOVER_CSS = `
   .ci-icon-btn:hover { color: var(--agent-primary-text) !important; background: var(--agent-soft) !important; }
@@ -311,62 +405,6 @@ const MarkdownPromptPreview = ({ text }: { text: string }) => {
   return <div style={styles.markdownPreviewText}>{blocks}</div>;
 };
 
-const getSmartCompletion = (value: string) => {
-  const text = value.trim();
-  if (text.length < 4) return null;
-  if (
-    text.length > 90
-    || /已套用玩法|互动流程|答对时|答错时|整体视觉|课件分为|采用“|采用"/.test(text)
-  ) {
-    return null;
-  }
-  if (isFruitCoursewarePrompt(text)) {
-    return {
-      title: '可以补全成水果乐园互动课件',
-      text: '补齐9页课件结构、认读练、语音评测、抓取匹配游戏和低龄视觉要求',
-      finalText: FRUIT_COURSEWARE_PROMPT,
-    };
-  }
-  if (/颜色|color|colour/i.test(text)) {
-    const finalText = `${text}\n\n学习对象：5-8 岁英语启蒙或小学低段学生，适合课堂投屏、平板点击或白板互动。\n教学目标：让学生能听懂、认读并匹配常见颜色英文单词，在多轮操作中完成颜色词巩固。\n生成设置：单关卡学练融合，练习模式，允许多次尝试；默认采用明亮卡片风，保留大按钮、大色块和清晰反馈，不启用 3D 粘土质感。\n课堂玩法：彩虹修复师 + 单词图片配对。学生听到或看到颜色英文单词后，选择正确颜色卡，并拖到彩虹缺口完成修复。\n互动流程：展示任务说明 → 播放颜色单词 → 选择颜色卡 → 拖到彩虹缺口 → 自动校验 → 点亮彩虹 → 播放英文发音 → 获得星星奖励 → 进入下一轮。\n题目与关卡：围绕 red、blue、yellow、green、orange、purple 设计 3 轮递进；第 1 轮看英文选颜色，第 2 轮听发音选颜色，第 3 轮多个颜色混合挑战。\n画面与反馈：彩虹位于画面中心，颜色卡片放在底部，答对时彩虹缺口点亮并朗读单词，连续答对出现星星连击；答错时正确颜色边缘轻闪，不直接公布答案，允许再次尝试。\n生成注意事项：不要做成单纯选择题；要有拖拽、点亮和发音反馈；题目区、操作区、奖励区要清晰分层，适合老师课堂演示。`;
-    return {
-      title: '可以补全成颜色互动玩法',
-      text: '补齐学习对象、教学目标、3轮题目、拖拽流程、发音反馈',
-      finalText,
-    };
-  }
-  if (/口算|计算|加减法|20以内|数学/.test(text)) {
-    const finalText = `${text}\n\n学习对象：小学一年级到二年级学生，适合课堂练习、课前热身或单元复习。\n教学目标：帮助学生提升 20 以内加减法的计算熟练度，能在即时反馈中发现并修正计算错误。\n生成设置：多关卡学练融合，练习模式，默认采用逻辑风格 + 轻竞技进度反馈；如用于测验，可把提交方式改为严格模式。\n课堂玩法：口算赛车。学生每答对一道题，赛车向前加速；连续答对触发连击加速，答错进入维修站并获得计算提示。\n互动流程：选择关卡 → 出现口算题 → 点击答案 → 赛车前进或进入维修提示 → 显示本题计算思路 → 完成一组题目 → 到达终点解锁下一关。\n题目与关卡：设计 3 关，每关 6-8 题；第 1 关 10 以内加减，第 2 关 20 以内不进退位，第 3 关 20 以内混合计算，可加入 1-2 道易错题。\n画面与反馈：题目在中央大字号展示，答案按钮最多 4 个；答对赛车前进并获得星星，连续 3 次答对触发加速动画；答错展示拆数、数轴或简单算式提示，允许重新选择。\n生成注意事项：竞技元素不能遮挡题目；不要设置过强倒计时压力；每道题都要有明确答案和轻量解析。`;
-    return {
-      title: '可以补全成闯关练习',
-      text: '补齐年级目标、3关递进、错题提示、赛车进度反馈',
-      finalText,
-    };
-  }
-  if (/拼音|声母|韵母|b p m f|识字/.test(text)) {
-    const finalText = `${text}\n\n学习对象：幼小衔接或一年级学生，适合拼音新授后的听辨练习。\n教学目标：帮助学生听辨目标拼音，并能在多个相近拼音中找到正确卡片，减少易混读音错误。\n生成设置：微关卡学练融合，练习模式，允许多次尝试；默认采用启蒙卡通风，卡片大、读音反馈清楚。\n课堂玩法：拼音捉迷藏。系统播放目标拼音读音，学生在场景中找到对应拼音卡片，点击后由卡片角色朗读确认。\n互动流程：播放读音 → 学生观察 3-4 张拼音卡 → 点击目标卡 → 自动校验 → 角色朗读 → 易混提示或奖励反馈 → 进入下一轮。\n题目与关卡：围绕 b、p、m、f 或老师输入的拼音设计 8 轮听辨题；前 4 轮单一声母辨认，后 4 轮加入易混声母对比。\n画面与反馈：拼音卡片放在场景中但不能过度隐藏；答对时卡片跳出并朗读，答错时给出口型、发音部位或读音对比提示。\n生成注意事项：不要把拼音卡做得太小；每轮只播放一个目标读音；反馈应鼓励学生再试一次，而不是直接判失败。`;
-    return {
-      title: '可以补全成听音寻找玩法',
-      text: '补齐听辨目标、易混提示、8轮练习、卡片反馈',
-      finalText,
-    };
-  }
-  if (/古诗|诗句|排序|静夜思|背诵/.test(text)) {
-    const finalText = `${text}\n\n学习对象：小学语文学生，适合古诗学习后的排序巩固和背诵前热身。\n教学目标：让学生理解诗句顺序和诗意线索，通过拖拽排序完成结构记忆，再衔接完整朗读。\n生成设置：单关卡学练融合，练习模式，允许拖拽调整；默认采用温和国风课堂风，诗句区优先清晰。\n课堂玩法：诗句小路排序。学生把打乱的诗句拖回正确顺序，每排对一句，小路、月光或进度点亮一步。\n互动流程：展示古诗标题 → 打乱诗句 → 学生拖拽排序 → 点击校验 → 正确诗句吸附并点亮进度 → 全部完成后展示整首诗 → 播放朗读并进入背诵挑战。\n题目与关卡：先生成一关诗句排序；可增加“关键词提示”模式，如明月、霜、举头、低头；也可增加第二轮去掉提示后的背诵排序。\n画面与反馈：诗句卡片使用大字号，拖动时有吸附感；排序正确时点亮月光路径，错误时提示相邻诗句关系，不直接打断操作。\n生成注意事项：不要把国风背景做得喧宾夺主；诗句必须完整准确；反馈要帮助学生理解顺序，而不是只给对错。`;
-    return {
-      title: '可以补全成排序互动',
-      text: '补齐诗句排序、关键词提示、朗读巩固、国风反馈',
-      finalText,
-    };
-  }
-  const finalText = `${text}\n\n学习对象：默认面向小学阶段学生；如果老师输入中包含年龄、年级或学科，请优先按老师输入处理。\n教学目标：围绕老师输入的知识点，设计一节能直接用于课堂的互动课件，让学生在操作、反馈和复盘中完成理解与巩固。\n生成设置：单关卡学练融合，练习模式，允许多次尝试；默认采用清爽课堂风，后续可扩展为多关卡递进。\n课堂玩法：根据知识点自动匹配点击、拖拽、配对、排序、闯关或推理互动，不做单纯静态讲解页。\n互动流程：展示学习任务 → 给出操作规则 → 学生完成互动题 → 系统即时反馈 → 错误时给轻提示 → 完成挑战 → 展示总结或下一步练习。\n题目与关卡：先生成一组课堂可用题目，数量控制在 6-8 题；如果知识点适合递进，则拆成“认识规则、练习巩固、挑战应用”三段。\n画面与反馈：题目区、操作区、反馈区清晰分层；答对给进度、星星或点亮反馈；答错给提示并允许重试，避免只显示红叉。\n生成注意事项：不要生成空泛介绍页；必须包含明确可交互操作、答案校验、成功反馈和错误提示；按钮尺寸要适合课堂大屏。`;
-  return {
-    title: '可以让需求更完整',
-    text: '补齐对象目标、互动玩法、题目数量、反馈和生成注意事项',
-    finalText,
-  };
-};
-
 const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   disabled,
@@ -387,6 +425,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  const [teachingAttachments, setTeachingAttachments] = useState<UploadedAttachment[]>([]);
+  const [editingTeachingAttachment, setEditingTeachingAttachment] = useState<UploadedAttachment | null>(null);
+  const [generationPreferences, setGenerationPreferences] = useState<GenerationPreferences>({
+    visualStyleMode: 'smart',
+    voiceMode: 'smart',
+    htmlModelId: 'smart-html',
+    imageModelId: 'smart-image',
+  });
   const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
@@ -394,7 +440,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [placeholderAnimating, setPlaceholderAnimating] = useState(true);
   const [homepagePromptGroupIndex, setHomepagePromptGroupIndex] = useState(0);
-  const [activeUploadTooltip, setActiveUploadTooltip] = useState<'image' | 'document' | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -402,33 +447,25 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const [stopTooltip, setStopTooltip] = useState(false);
 
-  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || lockedAttachments.length > 0) && !disabled;
+  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0) && !disabled;
   const imageFiles = attachedFiles.filter(file => file.type === 'image');
   const documentFiles = attachedFiles.filter(file => file.type === 'document');
-  const smartCompletionCandidate = getSmartCompletion(text);
-  const smartCompletion = centered && smartCompletionCandidate && !text.includes(smartCompletionCandidate.text)
-    ? smartCompletionCandidate
-    : null;
   const appliedInspirationDraft = parseAppliedInspirationDraft(text);
   const draftPromptPreview = appliedInspirationDraft
     ? appliedInspirationDraft.prompt
     : '';
   const homepagePromptChips = HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length];
-  const shouldShowHomepageExamples = Boolean(
-    false
-    && centered
-    && !text
-    && attachedFiles.length === 0
-    && lockedAttachments.length === 0
-    && !appliedInspirationDraft
-  );
+  const shouldShowHomepageExamples = false;
   const shouldShowHomepagePromptChips = Boolean(
     centered
     && lockedAttachments.length === 0
+    && teachingAttachments.length === 0
     && !appliedInspirationDraft
   );
+  const teachingUsageGuidance = getTeachingUsageGuidance(teachingAttachments);
 
   const materialUsagePlaceholder = (() => {
+    if (teachingUsageGuidance) return teachingUsageGuidance.placeholder;
     if (imageFiles.length > 0 && documentFiles.length > 0) {
       return '请分别说明图片和文档的用途，例如：图片作为角色素材，文档用于提取题目内容';
     }
@@ -496,13 +533,21 @@ const ChatInput: React.FC<ChatInputProps> = ({
     const readyAttachments: UploadedAttachment[] = [
       ...lockedAttachments,
       ...readyFiles.map(({ id, type, name, url }) => ({ id, type, name, url })),
+      ...teachingAttachments,
     ];
     if ((!trimmed && readyAttachments.length === 0) || disabled) return;
-    onSend(trimmed, readyAttachments);
+    onSend(trimmed, readyAttachments, generationPreferences);
     setText('');
     onTextChange?.('');
     setAttachedFiles([]);
-  }, [text, attachedFiles, lockedAttachments, disabled, onSend, onTextChange]);
+    setTeachingAttachments([]);
+    setGenerationPreferences({
+      visualStyleMode: 'smart',
+      voiceMode: 'smart',
+      htmlModelId: 'smart-html',
+      imageModelId: 'smart-image',
+    });
+  }, [text, attachedFiles, teachingAttachments, lockedAttachments, generationPreferences, disabled, onSend, onTextChange]);
 
   const applyHomepagePromptChip = useCallback((value: string) => {
     setText(value);
@@ -512,6 +557,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
       textareaRef.current?.focus();
     });
   }, [onTextChange, resizeTextarea]);
+
+  const updateTeachingAttachment = useCallback((nextAttachment: UploadedAttachment) => {
+    setTeachingAttachments(previous => previous.map(item => item.id === nextAttachment.id ? nextAttachment : item));
+  }, []);
+
+  const removeTeachingAttachment = useCallback((attachmentId: string) => {
+    setTeachingAttachments(previous => previous.filter(item => item.id !== attachmentId));
+  }, []);
 
   const switchHomepagePromptGroup = useCallback(() => {
     setHomepagePromptGroupIndex(prev => (prev + 1) % HOMEPAGE_PROMPT_GROUPS.length);
@@ -698,20 +751,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     handleSend();
   };
 
-  const applySmartCompletion = () => {
-    if (!smartCompletion) return;
-    const current = text.trim();
-    const next = current.includes(smartCompletion.finalText)
-      ? current
-      : smartCompletion.finalText;
-    setText(next);
-    onTextChange?.(next);
-    requestAnimationFrame(() => {
-      resizeTextarea();
-      textareaRef.current?.focus();
-    });
-  };
-
   const moveAttachedFile = (fromId: string, toId: string) => {
     if (fromId === toId) return;
     setAttachedFiles(prev => {
@@ -835,32 +874,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
     })()
   );
 
-  const renderUploadTooltip = (type: 'image' | 'document') => (
-    <div style={styles.uploadTooltip} role="tooltip">
-      {type === 'image' ? (
-        <>
-          <div>数量：最多 {MAX_IMAGE_COUNT} 张</div>
-          <div>格式：png、jpg、jpeg、gif</div>
-          <div>大小：不超过 {MAX_IMAGE_FILE_SIZE_MB}MB</div>
-        </>
-      ) : (
-        <>
-          <div>数量：最多 {MAX_DOCUMENT_COUNT} 个</div>
-          <div>格式：pdf、doc、docx、md</div>
-          <div>大小：不超过 {MAX_DOCUMENT_FILE_SIZE_MB}MB</div>
-        </>
-      )}
-      <span style={styles.uploadTooltipArrow} />
-    </div>
-  );
-
   return (
     <>
       <style>{HOVER_CSS}</style>
       <input ref={imageInputRef} type="file" accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" multiple hidden onChange={handleImageSelect} />
       <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" multiple hidden onChange={handleFileSelect} />
-      <div style={centered ? styles.wrapperCentered : styles.wrapperBottom}>
+      <div className={`agent-chat-input-wrapper ${centered ? 'is-centered' : 'is-bottom'}`} style={centered ? styles.wrapperCentered : styles.wrapperBottom}>
         <div
+          className="agent-chat-input-shell"
           onDragEnter={(e) => {
             if (Array.from(e.dataTransfer.types).includes('Files')) {
               e.preventDefault();
@@ -942,6 +963,43 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
           )}
 
+          {teachingAttachments.length > 0 && (
+            <div className="aug-teaching-attachment-list">
+              {teachingAttachments.map(attachment => {
+                const source = attachment.teachingSource!;
+                const SourceIcon = source.type === 'question-bank' ? Database : source.type === 'word-book' ? BookOpenText : Presentation;
+                const countLabel = source.type === 'question-bank'
+                  ? `已选 ${source.itemCount} 题`
+                  : source.type === 'word-book'
+                    ? `已选 ${source.itemCount} 个单词`
+                    : `已选 ${source.itemCount} 页`;
+                const sourceMeta = source.type === 'cloud-pages'
+                  ? `${source.sourceLabel} · ${source.summary}`
+                  : `${source.sourceLabel} · ${source.summary.replace(/\s*·\s*已选\s*\d+\s*(?:题|个单词)\s*$/, '')}`;
+                return (
+                  <div
+                    key={attachment.id}
+                    className={`aug-teaching-attachment aug-teaching-attachment-${source.type}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setEditingTeachingAttachment(attachment)}
+                    onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') setEditingTeachingAttachment(attachment); }}
+                  >
+                    <span className="aug-teaching-attachment-icon"><SourceIcon size={18} strokeWidth={1.9} /></span>
+                    <span className="aug-teaching-attachment-body">
+                      <b>{source.name}</b>
+                      <small>{sourceMeta}</small>
+                      <em>{countLabel}</em>
+                    </span>
+                    <span className="aug-teaching-attachment-actions">
+                      <button type="button" onClick={event => { event.stopPropagation(); removeTeachingAttachment(attachment.id); }} aria-label={`移除${source.name}`}><X size={15} /></button>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {appliedInspirationDraft && (
             <div style={styles.structuredDraftPanel}>
               <div style={styles.structuredDraftTop}>
@@ -1018,7 +1076,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           )}
 
           {!appliedInspirationDraft && (
-            <div style={styles.textareaWrap}>
+            <div className="agent-chat-input-textarea-wrap" style={styles.textareaWrap}>
               {shouldShowHomepageExamples && (
                 <div style={styles.rotatingPlaceholder} aria-hidden="true">
                   <div
@@ -1056,59 +1114,44 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
           )}
 
-          {smartCompletion && !disabled && (
-            <div style={styles.smartCompletion}>
-              <div style={styles.smartCompletionIcon}>
-                <Sparkles size={14} />
-              </div>
-              <div style={styles.smartCompletionContent}>
-                <div style={styles.smartCompletionTitle}>{smartCompletion.title}</div>
-                <div style={styles.smartCompletionText}>{smartCompletion.text}</div>
-                <div style={styles.smartCompletionPreview}>采用后会整理成完整课件需求：对象目标、生成设置、互动流程、题目关卡、画面反馈和注意事项。</div>
-              </div>
-              <button type="button" style={styles.smartCompletionBtn} onClick={applySmartCompletion}>
-                采用
+          <div className="agent-chat-input-toolbar" style={styles.toolbar}>
+            <div className="aug-chat-tool-group" style={styles.toolGroup}>
+              <button
+                type="button"
+                className="ci-icon-btn"
+                style={styles.iconBtn}
+                disabled={disabled}
+                onClick={handleImageUpload}
+                aria-label="上传图片"
+              >
+                <ImagePlus size={19} />
               </button>
-            </div>
-          )}
-
-          <div style={styles.toolbar}>
-            <div style={styles.toolGroup}>
-              <div
-                style={styles.tooltipAnchor}
-                onMouseEnter={() => setActiveUploadTooltip('image')}
-                onMouseLeave={() => setActiveUploadTooltip(null)}
+              <button
+                type="button"
+                className="ci-icon-btn"
+                style={styles.iconBtn}
+                disabled={disabled}
+                onClick={handleFileUpload}
+                aria-label="上传附件"
               >
-                {activeUploadTooltip === 'image' && renderUploadTooltip('image')}
-                <button
-                  className="ci-icon-btn"
-                  style={styles.iconBtn}
-                  onClick={handleImageUpload}
-                  onFocus={() => setActiveUploadTooltip('image')}
-                  onBlur={() => setActiveUploadTooltip(null)}
-                  aria-label="上传图片"
-                >
-                  <Image size={20} />
-                </button>
-              </div>
+                <Paperclip size={19} />
+              </button>
+              <TeachingContentPicker
+                key={editingTeachingAttachment?.id || 'new-teaching-content'}
+                disabled={disabled}
+                onAdd={attachment => setTeachingAttachments(previous => [...previous, attachment])}
+                editAttachment={editingTeachingAttachment}
+                onUpdate={updateTeachingAttachment}
+                onEditEnd={() => setEditingTeachingAttachment(null)}
+              />
 
-              <div
-                style={styles.tooltipAnchor}
-                onMouseEnter={() => setActiveUploadTooltip('document')}
-                onMouseLeave={() => setActiveUploadTooltip(null)}
-              >
-                {activeUploadTooltip === 'document' && renderUploadTooltip('document')}
-                <button
-                  className="ci-icon-btn"
-                  style={styles.iconBtn}
-                  onClick={handleFileUpload}
-                  onFocus={() => setActiveUploadTooltip('document')}
-                  onBlur={() => setActiveUploadTooltip(null)}
-                  aria-label="上传文档"
-                >
-                  <Paperclip size={20} />
-                </button>
-              </div>
+              <span className="aug-toolbar-divider" />
+              <GenerationPreferencePicker
+                value={generationPreferences}
+                onChange={setGenerationPreferences}
+                prompt={text}
+                disabled={disabled}
+              />
 
               {isEmbedded && (
                 <button
@@ -1175,14 +1218,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </div>
 
         {shouldShowHomepagePromptChips && (
-          <div style={styles.homepagePromptRow}>
-            <span style={styles.homepagePromptLabel}>试试这些</span>
-            <div style={styles.homepagePromptChips}>
+          <div className="agent-home-prompt-row" style={styles.homepagePromptRow}>
+            <span className="agent-home-prompt-label" style={styles.homepagePromptLabel}>试试这些</span>
+            <div className="agent-home-prompt-chips" style={styles.homepagePromptChips}>
               {homepagePromptChips.map(item => (
                 <button
                   key={item}
                   type="button"
                   disabled={disabled}
+                  className="agent-home-prompt-chip"
                   style={styles.homepagePromptChip}
                   onClick={() => applyHomepagePromptChip(item)}
                 >
@@ -1193,6 +1237,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <button
               type="button"
               disabled={disabled}
+              className="agent-home-prompt-refresh"
               style={styles.homepagePromptRefresh}
               onClick={switchHomepagePromptGroup}
             >
@@ -1270,7 +1315,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       )}
 
-      {previewImage?.url && (
+      {previewImage?.url && createPortal(
         <div style={styles.previewMask} onClick={() => setPreviewImage(null)}>
           <div style={styles.previewDialog} onClick={e => e.stopPropagation()}>
             <img src={previewImage.url} alt={previewImage.name} style={styles.previewImage} />
@@ -1279,7 +1324,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <button onClick={() => setPreviewImage(null)} style={styles.previewClose}>关闭</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
@@ -1858,62 +1904,6 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     marginTop: 8,
   },
-  smartCompletion: {
-    display: 'grid',
-    gridTemplateColumns: '24px 1fr auto',
-    alignItems: 'flex-start',
-    gap: 9,
-    padding: '10px 11px',
-    marginTop: 10,
-    borderRadius: 10,
-    border: '1px solid var(--agent-action-border)',
-    background: 'linear-gradient(135deg, var(--agent-action-soft), #FFFFFF)',
-  },
-  smartCompletionIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 7,
-    background: 'var(--agent-action-soft)',
-    color: 'var(--agent-action-text)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  smartCompletionContent: {
-    minWidth: 0,
-  },
-  smartCompletionTitle: {
-    color: 'var(--agent-action-text)',
-    fontSize: 12,
-    fontWeight: 800,
-    marginBottom: 3,
-  },
-  smartCompletionText: {
-    color: '#334155',
-    fontSize: 12,
-    lineHeight: 1.45,
-  },
-  smartCompletionPreview: {
-    display: 'inline-flex',
-    marginTop: 6,
-    padding: '3px 7px',
-    borderRadius: 999,
-    background: '#FFFFFF',
-    color: '#64748B',
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  smartCompletionBtn: {
-    height: 28,
-    padding: '0 10px',
-    borderRadius: 7,
-    border: 'none',
-    background: 'var(--agent-action-gradient)',
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 800,
-    cursor: 'pointer',
-  },
   toolGroup: {
     display: 'flex',
     alignItems: 'center',
@@ -1980,7 +1970,7 @@ const styles: Record<string, React.CSSProperties> = {
   previewMask: {
     position: 'fixed',
     inset: 0,
-    zIndex: 3000,
+    zIndex: 24000,
     background: 'rgba(15, 23, 42, 0.62)',
     display: 'flex',
     alignItems: 'center',

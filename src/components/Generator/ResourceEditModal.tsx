@@ -1,8 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Image as ImageIcon, Music, Upload, RotateCcw, Play, Pause, Globe, ChevronDown, Wand2, ImagePlus, Check } from 'lucide-react';
-import type { EnhancedImageItem, AudioItem, VoiceOption } from '../../types';
+import { X, Image as ImageIcon, Music, Upload, RotateCcw, Play, Pause, Globe, ChevronDown, Wand2, ImagePlus, Check, Info } from 'lucide-react';
+import type { EnhancedImageItem, AudioItem, GenerationPreferences, VoiceOption } from '../../types';
 import toast from '../../utils/toast';
 import { useConversationStore } from '../../store/conversationStore';
+import { imageModelOptions } from '../../data/augustDemoData';
+import './augustDemo.css';
+
+export interface ResourceGenerationDefaults {
+  imageModelId: string;
+  voiceId: string;
+}
 
 interface ResourceEditModalProps {
   isOpen: boolean;
@@ -11,8 +18,11 @@ interface ResourceEditModalProps {
   images: EnhancedImageItem[];
   audios: AudioItem[];
   voices: VoiceOption[];
+  creationPreferences?: GenerationPreferences;
+  resourceDefaults: ResourceGenerationDefaults;
+  onResourceDefaultsChange?: (defaults: ResourceGenerationDefaults) => void;
   onImageReplace?: (imageId: string, file: File) => void;
-  onImageRegenerate?: (imageId: string, prompt: string) => void;
+  onImageRegenerate?: (imageId: string, prompt: string, imageModelId: string) => void;
   onAudioReplace?: (audioId: string, file: File) => void;
   onAudioRegenerate?: (audioId: string, voiceId: string) => void;
 }
@@ -63,9 +73,11 @@ const InlinePlayer: React.FC<{ label: string; duration?: number }> = ({ duration
 // 图片编辑卡片 - 新设计
 const ImageEditCard: React.FC<{
   image: EnhancedImageItem;
+  imageModelId: string;
+  imageModelName: string;
   onReplace?: (imageId: string, file: File) => void;
-  onRegenerate?: (imageId: string, prompt: string) => void;
-}> = ({ image, onRegenerate }) => {
+  onRegenerate?: (imageId: string, prompt: string, imageModelId: string) => void;
+}> = ({ image, imageModelId, imageModelName, onRegenerate }) => {
   const [activeTab, setActiveTab] = useState<'text' | 'image' | 'upload' | 'transparent'>('text');
   const [promptText, setPromptText] = useState('');
   const [img2imgPrompt, setImg2imgPrompt] = useState('');
@@ -84,7 +96,7 @@ const ImageEditCard: React.FC<{
     setTimeout(() => {
       setIsGenerating(false);
       setGeneratedPreview(image.src || '/images/background.png');
-      if (type === 'text') onRegenerate?.(image.id, prompt);
+      if (type === 'text') onRegenerate?.(image.id, prompt, imageModelId);
     }, 2500);
   };
 
@@ -194,7 +206,7 @@ const ImageEditCard: React.FC<{
                     width: '100%', padding: '8px 14px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                     background: !promptText.trim() ? '#F1F5F9' : 'var(--agent-primary)', color: !promptText.trim() ? '#CBD5E1' : '#fff',
                   }}>
-                    生成
+                    使用 {imageModelName} 生成
                   </button>
                 </>
               )}
@@ -208,7 +220,7 @@ const ImageEditCard: React.FC<{
                     width: '100%', padding: '8px 14px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                     background: 'var(--agent-primary)', color: '#fff',
                   }}>
-                    生成
+                    使用 {imageModelName} 生成
                   </button>
                 </>
               )}
@@ -284,6 +296,7 @@ const ImageEditCard: React.FC<{
 const AudioEditCard: React.FC<{
   audio: AudioItem;
   voices: VoiceOption[];
+  defaultVoiceId: string;
   selected?: boolean;
   onToggleSelect?: (audioId: string) => void;
   onReplace?: (audioId: string, file: File) => void;
@@ -292,8 +305,8 @@ const AudioEditCard: React.FC<{
   batchReady?: boolean;
   onBatchUse?: (audioId: string) => void;
   onBatchCancel?: (audioId: string) => void;
-}> = ({ audio, voices, selected, onToggleSelect, onReplace, onRegenerate, batchRegenerating, batchReady, onBatchUse, onBatchCancel }) => {
-  const [selectedVoice, setSelectedVoice] = useState(audio.voiceId || voices[0]?.id || '');
+}> = ({ audio, voices, defaultVoiceId, selected, onToggleSelect, onReplace, onRegenerate, batchRegenerating, batchReady, onBatchUse, onBatchCancel }) => {
+  const [selectedVoice, setSelectedVoice] = useState(defaultVoiceId || audio.voiceId || voices[0]?.id || '');
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [newAudioReady, setNewAudioReady] = useState(false);
@@ -476,35 +489,66 @@ const VoiceRegenerateDropdown: React.FC<{
   );
 };
 
-// 主弹窗组件
-const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
-  isOpen, onClose, onConfirmReplace, images, audios, voices,
-  onImageReplace, onImageRegenerate, onAudioReplace, onAudioRegenerate,
-}) => {
-  const [activeTab, setActiveTab] = useState<'images' | 'audios'>('images');
-  const [selectedAudioIds, setSelectedAudioIds] = useState<Set<string>>(new Set());
-  const [batchVoiceId, setBatchVoiceId] = useState(voices[0]?.id || '');
-  const [showBatchVoiceDropdown, setShowBatchVoiceDropdown] = useState(false);
-  const [batchRegeneratingIds, setBatchRegeneratingIds] = useState<Set<string>>(new Set());
-  const [batchReadyIds, setBatchReadyIds] = useState<Set<string>>(new Set());
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const batchVoiceRef = useRef<HTMLDivElement>(null);
-  const addUserMessage = useConversationStore(s => s.addUserMessage);
-  const activeConversationId = useConversationStore(s => s.activeConversationId);
+const ResourceOptionPicker: React.FC<{
+  value: string;
+  options: Array<{ id: string; name: string; description: string }>;
+  onChange: (value: string) => void;
+  ariaLabel: string;
+}> = ({ value, options, onChange, ariaLabel }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find(option => option.id === value) || options[0];
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (batchVoiceRef.current && !batchVoiceRef.current.contains(e.target as Node)) {
-        setShowBatchVoiceDropdown(false);
-      }
+    const handler = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  return (
+    <div className="aug-resource-option-picker" ref={ref}>
+      <button type="button" className={open ? 'is-open' : ''} onClick={() => setOpen(previous => !previous)} aria-label={ariaLabel} aria-expanded={open}>
+        <span><b>{selected?.name}</b><small>{selected?.description}</small></span>
+        <ChevronDown size={15} />
+      </button>
+      {open && <div className="aug-resource-option-menu">{options.map(option => (
+        <button key={option.id} type="button" className={option.id === value ? 'is-selected' : ''} onClick={() => { onChange(option.id); setOpen(false); }}>
+          <span><b>{option.name}</b><small>{option.description}</small></span>
+          {option.id === value && <Check size={15} />}
+        </button>
+      ))}</div>}
+    </div>
+  );
+};
+
+// 主弹窗组件
+const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
+  isOpen, onClose, onConfirmReplace, images, audios, voices,
+  creationPreferences, resourceDefaults, onResourceDefaultsChange,
+  onImageReplace, onImageRegenerate, onAudioReplace, onAudioRegenerate,
+}) => {
+  const [activeTab, setActiveTab] = useState<'images' | 'audios'>('images');
+  const [selectedAudioIds, setSelectedAudioIds] = useState<Set<string>>(new Set());
+  const [selectedImageModelId, setSelectedImageModelId] = useState(resourceDefaults.imageModelId);
+  const [selectedVoiceId, setSelectedVoiceId] = useState(resourceDefaults.voiceId);
+  const [saveImageAsDefault, setSaveImageAsDefault] = useState(false);
+  const [saveVoiceAsDefault, setSaveVoiceAsDefault] = useState(false);
+  const [showReplaceAllVoiceConfirm, setShowReplaceAllVoiceConfirm] = useState(false);
+  const [batchRegeneratingIds, setBatchRegeneratingIds] = useState<Set<string>>(new Set());
+  const [batchReadyIds, setBatchReadyIds] = useState<Set<string>>(new Set());
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const addUserMessage = useConversationStore(s => s.addUserMessage);
+  const activeConversationId = useConversationStore(s => s.activeConversationId);
+
   if (!isOpen) return null;
 
   const ttsAudios = audios.filter(a => a.type === 'tts');
+  const selectedImageModel = imageModelOptions.find(model => model.id === selectedImageModelId) || imageModelOptions[0];
+  const selectedVoice = voices.find(voice => voice.id === selectedVoiceId) || voices[0];
+  const creationImageModel = imageModelOptions.find(model => model.id === creationPreferences?.imageModelId) || imageModelOptions[0];
+  const creationVoice = voices.find(voice => voice.id === creationPreferences?.voiceId) || voices[0];
   const allTtsSelected = ttsAudios.length > 0 && ttsAudios.every(a => selectedAudioIds.has(a.id));
   const hasBatchReady = batchReadyIds.size > 0;
 
@@ -526,18 +570,18 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
   };
 
   const handleBatchRegenerate = () => {
-    if (selectedAudioIds.size === 0 || !batchVoiceId) return;
+    if (selectedAudioIds.size === 0 || !selectedVoiceId) return;
     const ids = new Set(selectedAudioIds);
     setBatchRegeneratingIds(ids);
     setBatchReadyIds(new Set());
-    const voiceName = voices.find(v => v.id === batchVoiceId)?.name || '';
+    const voiceName = voices.find(v => v.id === selectedVoiceId)?.name || '';
     toast(`正在为 ${ids.size} 条音频使用"${voiceName}"合成...`);
 
     setTimeout(() => {
       setBatchRegeneratingIds(new Set());
       setBatchReadyIds(ids);
       ids.forEach(id => {
-        onAudioRegenerate?.(id, batchVoiceId);
+        onAudioRegenerate?.(id, selectedVoiceId);
       });
     }, 2000);
     setSelectedAudioIds(new Set());
@@ -572,9 +616,24 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
     setBatchReadyIds(new Set());
   };
 
+  const handleReplaceAllVoice = () => {
+    const ids = new Set(ttsAudios.map(audio => audio.id));
+    setBatchRegeneratingIds(ids);
+    setShowReplaceAllVoiceConfirm(false);
+    ids.forEach(id => onAudioRegenerate?.(id, selectedVoiceId));
+    window.setTimeout(() => setBatchRegeneratingIds(new Set()), 2000);
+    toast(`正在使用“${selectedVoice?.name || '所选音色'}”替换全课 ${ids.size} 条语音`);
+  };
+
   const handleConfirm = () => {
     if (activeConversationId) {
       addUserMessage(activeConversationId, '替换图片和音频资源~');
+    }
+    if (saveImageAsDefault || saveVoiceAsDefault) {
+      onResourceDefaultsChange?.({
+        imageModelId: saveImageAsDefault ? selectedImageModelId : resourceDefaults.imageModelId,
+        voiceId: saveVoiceAsDefault ? selectedVoiceId : resourceDefaults.voiceId,
+      });
     }
     onConfirmReplace?.();
     toast('资源已替换');
@@ -583,7 +642,7 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 10000,
+      position: 'fixed', inset: 0, zIndex: 24000,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)',
     }}>
@@ -637,11 +696,32 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
 
         {/* 内容 */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
-          {activeTab === 'images' && images.map(img => (
-            <ImageEditCard key={img.id} image={img} onReplace={onImageReplace} onRegenerate={onImageRegenerate} />
-          ))}
+          {activeTab === 'images' && <>
+            <div className="aug-resource-generation-setting">
+              <div className="aug-resource-generation-copy"><span><ImageIcon size={16} /></span><div><b>本次生图模型</b><small>仅影响接下来新生成或重新生成的图片</small></div></div>
+              <ResourceOptionPicker value={selectedImageModelId} options={imageModelOptions} onChange={setSelectedImageModelId} ariaLabel="选择本次生图模型" />
+              <label className="aug-resource-default-check"><input type="checkbox" className="custom-checkbox" checked={saveImageAsDefault} onChange={event => setSaveImageAsDefault(event.target.checked)} />设为本课件后续默认</label>
+              <div className="aug-resource-creation-record"><Info size={12} />创建时使用：{creationImageModel.name}</div>
+            </div>
+            {images.map(img => (
+              <ImageEditCard key={img.id} image={img} imageModelId={selectedImageModel.id} imageModelName={selectedImageModel.name} onReplace={onImageReplace} onRegenerate={onImageRegenerate} />
+            ))}
+          </>}
           {activeTab === 'audios' && (
             <>
+              <div className="aug-resource-generation-setting">
+                <div className="aug-resource-generation-copy"><span><Music size={16} /></span><div><b>本次课件音色</b><small>仅影响接下来新生成或重新合成的语音</small></div></div>
+                <ResourceOptionPicker value={selectedVoiceId} options={voices.map(voice => ({ id: voice.id, name: voice.name, description: voice.description }))} onChange={setSelectedVoiceId} ariaLabel="选择本次课件音色" />
+                <div className="aug-resource-voice-actions">
+                  <label className="aug-resource-default-check"><input type="checkbox" className="custom-checkbox" checked={saveVoiceAsDefault} onChange={event => setSaveVoiceAsDefault(event.target.checked)} />设为本课件后续默认</label>
+                  <button type="button" className="aug-replace-all-voice" onClick={() => setShowReplaceAllVoiceConfirm(true)} disabled={!ttsAudios.length}><RotateCcw size={13} />全课替换音色</button>
+                </div>
+                <div className="aug-resource-creation-record"><Info size={12} />创建时使用：{creationVoice?.name || '智能选择'}</div>
+              </div>
+              {showReplaceAllVoiceConfirm && <div className="aug-replace-all-confirm">
+                <div><b>确认替换全课音色？</b><span>将使用“{selectedVoice?.name}”重新合成 {ttsAudios.length} 条语音，背景音乐不受影响；确认资源后会生成新版本。</span></div>
+                <div><button type="button" onClick={() => setShowReplaceAllVoiceConfirm(false)}>取消</button><button type="button" className="is-primary" onClick={handleReplaceAllVoice}>确认替换</button></div>
+              </div>}
               {/* 批量操作栏 */}
               {ttsAudios.length > 0 && (
                 <div style={{
@@ -661,38 +741,7 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
                     已选 {selectedAudioIds.size}/{ttsAudios.length}
                   </span>
                   <div style={{ flex: 1 }} />
-                  {/* 音色选择下拉 */}
-                  <div ref={batchVoiceRef} style={{ position: 'relative' }}>
-                    <button onClick={() => setShowBatchVoiceDropdown(!showBatchVoiceDropdown)} style={{
-                      padding: '5px 10px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#fff',
-                      fontSize: 11, color: '#334155', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-                      whiteSpace: 'nowrap', fontWeight: 500,
-                    }}>
-                      {voices.find(v => v.id === batchVoiceId)?.name || '选择音色'}
-                      <ChevronDown size={12} style={{ color: '#94A3B8', transform: showBatchVoiceDropdown ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
-                    </button>
-                    {showBatchVoiceDropdown && (
-                      <div style={{
-                        position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 10,
-                        background: '#fff', borderRadius: 6, border: '1px solid #E2E8F0',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'hidden', minWidth: 160, maxHeight: 200, overflowY: 'auto',
-                      }}>
-                        {voices.map(v => (
-                          <div key={v.id} onClick={() => { setBatchVoiceId(v.id); setShowBatchVoiceDropdown(false); }} style={{
-                            padding: '8px 12px', fontSize: 11, cursor: 'pointer',
-                            color: v.id === batchVoiceId ? 'var(--agent-primary)' : '#334155',
-                            background: v.id === batchVoiceId ? 'var(--agent-soft)' : '#fff',
-                            fontWeight: v.id === batchVoiceId ? 600 : 400,
-                          }}
-                            onMouseEnter={e => { if (v.id !== batchVoiceId) e.currentTarget.style.background = '#F8FAFC'; }}
-                            onMouseLeave={e => { if (v.id !== batchVoiceId) e.currentTarget.style.background = '#fff'; }}
-                          >
-                            {v.name}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <span className="aug-batch-voice-label">使用 {selectedVoice?.name}</span>
                   {/* 批量合成按钮 */}
                   <button onClick={handleBatchRegenerate} disabled={selectedAudioIds.size === 0} style={{
                     padding: '5px 12px', borderRadius: 5, border: 'none', fontSize: 11, fontWeight: 600, cursor: 'pointer',
@@ -724,9 +773,10 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
               )}
               {audios.map(audio => (
                 <AudioEditCard
-                  key={audio.id}
+                  key={`${audio.id}-${selectedVoiceId}`}
                   audio={audio}
                   voices={voices}
+                  defaultVoiceId={selectedVoiceId}
                   selected={selectedAudioIds.has(audio.id)}
                   onToggleSelect={handleToggleSelect}
                   onReplace={onAudioReplace}

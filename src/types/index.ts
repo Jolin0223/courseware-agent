@@ -25,12 +25,114 @@ export type MessageRole = 'user' | 'assistant';
 
 export type MessageType = 
   | 'text'
+  | 'courseware-recommendation'
   | 'requirement-framework'
+  | 'generation-settings'
   | 'generation-progress'
   | 'courseware-result'
   | 'material-intent-confirmation'
   | 'voice-capability-confirmation'
   | 'analyzing';
+
+export type TeachingContentSourceType = 'question-bank' | 'word-book' | 'cloud-pages';
+
+export interface TeachingQuestionItem {
+  id: string;
+  subject: '数学' | '语文' | '英语';
+  type: string;
+  level: string;
+  knowledge: string;
+  content: string;
+  options?: string[];
+  answer?: string;
+  analysis?: string;
+}
+
+export interface TeachingWordItem {
+  id: string;
+  word: string;
+  phonetic?: string;
+  meaning?: string;
+  audioAvailable?: boolean;
+}
+
+export interface TeachingCloudPageItem {
+  pageNumber: number;
+  title: string;
+  subtitle?: string;
+}
+
+export interface TeachingContentSource {
+  id: string;
+  type: TeachingContentSourceType;
+  name: string;
+  sourceLabel: string;
+  summary: string;
+  itemCount: number;
+  items?: string[];
+  questionItems?: TeachingQuestionItem[];
+  wordItems?: TeachingWordItem[];
+  pageNumbers?: number[];
+  pageItems?: TeachingCloudPageItem[];
+  cloudScope?: 'group' | 'school' | 'personal';
+  cloudFileId?: string;
+  unit?: string;
+}
+
+export interface CoursewareRecommendation {
+  id: string;
+  sourceType: 'courseware' | 'template' | 'custom';
+  badge: '同款课件' | '相似课件' | '推荐玩法' | '为你设计';
+  title: string;
+  subject: string;
+  grade: string;
+  author?: string;
+  reason: string;
+  flow: string[];
+  previewUrl?: string;
+  thumbnail?: string;
+  sameCount?: number;
+  usageCount?: number;
+}
+
+export interface GenerationPreferences {
+  visualStyleMode?: 'smart' | 'manual';
+  visualStyleId?: string;
+  visualStyleName?: string;
+  voiceMode?: 'smart' | 'manual';
+  voiceId?: string;
+  voiceName?: string;
+  voiceLanguage?: string;
+  htmlModelId?: string;
+  imageModelId?: string;
+  estimatedMinutes?: string;
+}
+
+export interface CoursewareRecommendationMessage {
+  promptForFramework: string;
+  teachingSources: TeachingContentSource[];
+  generationPreferences?: GenerationPreferences;
+  recommendations: CoursewareRecommendation[];
+  selectedRecommendationId?: string;
+  action?: 'clone' | 'new';
+}
+
+export interface AugustGenerationPlan {
+  teachingSources: TeachingContentSource[];
+  recommendations: CoursewareRecommendation[];
+  selectedRecommendationId: string;
+  visualStyleId: string;
+  visualStyleName: string;
+  visualStyleMode?: 'smart' | 'manual';
+  voiceId: string;
+  voiceName: string;
+  voiceLanguage: string;
+  voiceMode?: 'smart' | 'manual';
+  htmlModelId: string;
+  imageModelId: string;
+  advancedOpen?: boolean;
+  estimatedMinutes: string;
+}
 
 export interface RequirementFramework {
   generationSettings?: string;
@@ -45,6 +147,7 @@ export interface RequirementFramework {
     stylePrompt: string;
     previewImageUrl?: string;
   };
+  augustPlan?: AugustGenerationPlan;
 }
 
 export interface GenerationStage {
@@ -75,6 +178,7 @@ export interface CoursewareResult {
   thumbnail?: string;
   htmlContent?: string;
   visualStylePrompt?: string;
+  generationPreferences?: GenerationPreferences;
   learningDataRecovery?: LearningDataRecoverySummary;
 }
 
@@ -109,10 +213,11 @@ export interface VisualStyleRegenerationRequest {
   styleName: string;
   stylePrompt: string;
   previewImageUrl?: string;
+  generationPreferences?: GenerationPreferences;
   regenerationMode?: 'courseware-regeneration' | 'image-texture-only';
 }
 
-export type UploadedAttachmentType = 'image' | 'document' | 'html';
+export type UploadedAttachmentType = 'image' | 'document' | 'html' | TeachingContentSourceType;
 
 export interface UploadedAttachment {
   id: string;
@@ -122,6 +227,7 @@ export interface UploadedAttachment {
   locked?: boolean;
   hiddenContent?: string;
   sourceTitle?: string;
+  teachingSource?: TeachingContentSource;
 }
 
 export type MaterialIntent =
@@ -131,6 +237,9 @@ export type MaterialIntent =
   | 'generate-from-document'
   | 'use-as-requirement-doc'
   | 'extract-document-questions'
+  | 'use-cloud-content'
+  | 'use-cloud-style'
+  | 'use-cloud-structure'
   | 'custom';
 
 export interface MaterialIntentOption {
@@ -156,6 +265,8 @@ export interface MaterialIntentConfirmation {
   summary: string;
   confirmedResolutions?: MaterialIntentResolution[];
   confirmedAt?: string;
+  teachingSources?: TeachingContentSource[];
+  generationPreferences?: GenerationPreferences;
 }
 
 export type VoiceCapabilityIntent = 'english-oral' | 'record-only';
@@ -167,6 +278,8 @@ export interface VoiceCapabilityConfirmation {
   source: 'user-prompt' | 'material-intent';
   confirmedSelection?: VoiceCapabilitySelection;
   confirmedAt?: string;
+  teachingSources?: TeachingContentSource[];
+  generationPreferences?: GenerationPreferences;
 }
 
 export interface VoiceCapabilitySelection {
@@ -178,12 +291,13 @@ export interface UserMaterialMessage {
   text: string;
   attachments?: UploadedAttachment[];
   resolvedIntents?: MaterialIntentResolution[];
+  generationPreferences?: GenerationPreferences;
 }
 
 export interface ConversationMessage {
   id: string;
   role: MessageRole;
-  content: string | UserMaterialMessage | RequirementFramework | GenerationProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
+  content: string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
   type?: MessageType;
   timestamp: Date;
 }

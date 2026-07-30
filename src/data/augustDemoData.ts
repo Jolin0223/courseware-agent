@@ -17,6 +17,17 @@ export interface DemoModelOption {
   recommended?: boolean;
 }
 
+export interface DemoGenerationModeOption {
+  id: string;
+  name: string;
+  tag: string;
+  description: string;
+  suitableFor: string;
+  htmlModelId: string;
+  imageModelId: string;
+  notice: string;
+}
+
 export interface DemoVoiceOption {
   id: string;
   name: string;
@@ -40,6 +51,47 @@ export const imageModelOptions: DemoModelOption[] = [
   { id: 'jimeng-5.0', name: '即梦 5.0', description: '细节更丰富，生成时间更长', speedLabel: '较慢', duration: [5, 8] },
   { id: 'image-2', name: 'Image 2', description: '适合高一致性角色与场景', speedLabel: '较慢', duration: [7, 12] },
 ];
+
+export const generationModeOptions: DemoGenerationModeOption[] = [
+  {
+    id: 'smart',
+    name: '智能生成',
+    tag: '默认',
+    description: '系统根据课件内容自动平衡效果和等待时间。',
+    suitableFor: '适合大多数课堂互动、练习和讲评课件。',
+    htmlModelId: 'smart-html',
+    imageModelId: 'smart-image',
+    notice: '不确定时选择这一档即可。',
+  },
+  {
+    id: 'refined',
+    name: '精细生成',
+    tag: '画面更细',
+    description: '更重视画面细节、角色一致性和素材表现。',
+    suitableFor: '适合低龄启蒙、故事化、视觉要求高的课件。',
+    htmlModelId: 'gemini-3.1-pro',
+    imageModelId: 'jimeng-5.0',
+    notice: '等待时间通常会比智能生成更长。',
+  },
+  {
+    id: 'deep',
+    name: '深度生成',
+    tag: '逻辑更强',
+    description: '更重视复杂互动逻辑、多关卡结构和题目讲评。',
+    suitableFor: '适合规则复杂、题量多、要求更高的课件。',
+    htmlModelId: 'gpt-5.5',
+    imageModelId: 'image-2',
+    notice: '适合高要求任务，等待时间可能明显更长。',
+  },
+];
+
+export function getGenerationModeByModels(htmlModelId = 'smart-html', imageModelId = 'smart-image') {
+  const exact = generationModeOptions.find(mode => mode.htmlModelId === htmlModelId && mode.imageModelId === imageModelId);
+  if (exact) return exact;
+  if (htmlModelId === 'gpt-5.5' || imageModelId === 'image-2') return generationModeOptions.find(mode => mode.id === 'deep') || generationModeOptions[0];
+  if (imageModelId === 'jimeng-5.0') return generationModeOptions.find(mode => mode.id === 'refined') || generationModeOptions[0];
+  return generationModeOptions[0];
+}
 
 export const demoVoiceOptions: DemoVoiceOption[] = [
   { id: 'yunhao', name: '云皓', language: '中文', gender: '男生', tag: '通用' },

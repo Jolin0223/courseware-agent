@@ -39,7 +39,7 @@ import { mockCoursewares } from '../data/mockCoursewares';
 import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
 import toast from '../utils/toast';
-import { buildAugustGenerationPlan, htmlModelOptions, imageModelOptions } from '../data/augustDemoData';
+import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
 
 type GenerationPhase = 'input' | 'analyzing' | 'recommendation' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中~';
@@ -1192,8 +1192,10 @@ function UserMessage({
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
   const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
   const teachingSources = message.attachments?.filter(file => Boolean(file.teachingSource)).map(file => file.teachingSource!) || [];
-  const selectedHtmlModel = htmlModelOptions.find(model => model.id === message.generationPreferences?.htmlModelId);
-  const selectedImageModel = imageModelOptions.find(model => model.id === message.generationPreferences?.imageModelId);
+  const selectedGenerationMode = getGenerationModeByModels(
+    message.generationPreferences?.htmlModelId,
+    message.generationPreferences?.imageModelId,
+  );
   const selectedPreferences = [
     message.generationPreferences?.visualStyleMode === 'manual'
       ? `画面：${message.generationPreferences.visualStyleName}`
@@ -1201,8 +1203,8 @@ function UserMessage({
     message.generationPreferences?.voiceMode === 'manual'
       ? `音色：${message.generationPreferences.voiceName}`
       : null,
-    selectedHtmlModel && selectedImageModel && (selectedHtmlModel.id !== 'smart-html' || selectedImageModel.id !== 'smart-image')
-      ? `模型：${selectedHtmlModel.name} + ${selectedImageModel.name}`
+    selectedGenerationMode.id !== 'smart'
+      ? `生成：${selectedGenerationMode.name}`
       : null,
   ].filter((item): item is string => Boolean(item));
   const appliedPlaywayMessage = message.text ? parseAppliedPlaywayMessage(message.text) : null;
@@ -2579,11 +2581,10 @@ export default function GeneratorPage() {
       .find(message => message.type === 'requirement-framework')?.content as RequirementFramework | undefined;
     const plan = latestFramework?.augustPlan;
     const selectedRecommendation = plan?.recommendations.find(item => item.id === plan.selectedRecommendationId);
-    const htmlModel = htmlModelOptions.find(item => item.id === plan?.htmlModelId);
-    const imageModel = imageModelOptions.find(item => item.id === plan?.imageModelId);
+    const generationMode = plan ? getGenerationModeByModels(plan.htmlModelId, plan.imageModelId) : undefined;
     const referenceText = selectedRecommendation ? `一键同款「${selectedRecommendation.title}」` : '按当前教学需求新建';
     const confirmationText = plan
-      ? `我已确认生成方案：${referenceText}，画面使用「${plan.visualStyleName}」，音色使用「${plan.voiceName}」，HTML 生成使用「${htmlModel?.name || '智能选择'}」，图片生成使用「${imageModel?.name || '智能选择'}」。`
+      ? `我已确认生成方案：${referenceText}，画面使用「${plan.visualStyleName}」，音色使用「${plan.voiceName}」，生成模式使用「${generationMode?.name || '智能生成'}」。`
       : '我已确认需求，立即生成。';
 
     addUserMessage(activeConversationId, skipMessage || confirmationText);
@@ -2594,13 +2595,13 @@ export default function GeneratorPage() {
       
       const initialProgress: GenerationProgress = {
         introText: plan
-          ? `${plan.htmlModelId === 'gpt-5.5' || plan.imageModelId === 'jimeng-5.0' || plan.imageModelId === 'image-2' ? '已开始生成。所选模型生成时间较长' : '已开始生成'}，生成期间可以离开页面，完成后可在「我的创作」查看。`
+          ? `${generationMode?.id !== 'smart' ? `已开始${generationMode?.name || '生成'}。等待时间可能更长` : '已开始生成'}，生成期间可以离开页面，完成后可在「我的创作」查看。`
           : undefined,
         instantIntro: Boolean(plan),
         stages: [
-          { name: '图片生成', status: 'pending', progress: 0, detail: plan ? `使用${imageModel?.name || '智能选择'}生成课件所需画面素材。` : undefined },
+          { name: '图片生成', status: 'pending', progress: 0, detail: plan ? '生成课件所需画面素材。' : undefined },
           { name: '音频生成', status: 'pending', progress: 0, detail: plan ? `使用${plan.voiceName}合成讲解、发音与反馈音频。` : undefined },
-          { name: '代码生成', status: 'pending', progress: 0, detail: plan ? `使用${htmlModel?.name || '智能选择'}生成互动课件 HTML。` : undefined },
+          { name: '代码生成', status: 'pending', progress: 0, detail: plan ? '生成互动逻辑、页面结构和课件代码。' : undefined },
           { name: '代码审查', status: 'pending', progress: 0 },
           { name: '代码修复', status: 'pending', progress: 0 },
           { name: '学情数据回收数据设计', status: 'pending', progress: 0 },

@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, Code2, Image, Info, X } from 'lucide-react';
+import { Brain, Check, Layers3, Sparkles, Info, X } from 'lucide-react';
 import type { GenerationPreferences } from '../../types';
-import { htmlModelOptions, imageModelOptions } from '../../data/augustDemoData';
+import {
+  generationModeOptions,
+  getGenerationModeByModels,
+} from '../../data/augustDemoData';
 import './augustDemo.css';
 
 interface ModelPreferenceModalProps {
@@ -15,7 +18,8 @@ interface ModelPreferenceModalProps {
 export default function ModelPreferenceModal({ open, value, onChange, onClose }: ModelPreferenceModalProps) {
   const htmlModelId = value.htmlModelId || 'smart-html';
   const imageModelId = value.imageModelId || 'smart-image';
-  const slowerModelSelected = htmlModelId === 'gpt-5.5' || imageModelId === 'jimeng-5.0' || imageModelId === 'image-2';
+  const selectedMode = getGenerationModeByModels(htmlModelId, imageModelId);
+  const slowerModeSelected = selectedMode.id !== 'smart';
 
   useEffect(() => {
     if (!open) return undefined;
@@ -28,13 +32,12 @@ export default function ModelPreferenceModal({ open, value, onChange, onClose }:
 
   if (!open) return null;
 
-  const selectModel = (kind: 'html' | 'image', id: string) => {
-    const nextHtmlModelId = kind === 'html' ? id : htmlModelId;
-    const nextImageModelId = kind === 'image' ? id : imageModelId;
+  const selectMode = (modeId: string) => {
+    const mode = generationModeOptions.find(item => item.id === modeId) || generationModeOptions[0];
     onChange({
       ...value,
-      htmlModelId: nextHtmlModelId,
-      imageModelId: nextImageModelId,
+      htmlModelId: mode.htmlModelId,
+      imageModelId: mode.imageModelId,
       estimatedMinutes: undefined,
     });
   };
@@ -43,82 +46,42 @@ export default function ModelPreferenceModal({ open, value, onChange, onClose }:
     <div className="aug-modal-mask" onMouseDown={event => {
       if (event.target === event.currentTarget) onClose();
     }}>
-      <section className="aug-model-picker-modal" role="dialog" aria-modal="true" aria-label="选择生成模型">
+      <section className="aug-model-picker-modal" role="dialog" aria-modal="true" aria-label="选择生成模式">
         <header className="aug-modal-header">
           <div>
-            <h2>选择生成模型</h2>
-            <p>不熟悉模型时保持智能选择即可；指定后会按所选模型生成</p>
+            <h2>选择生成模式</h2>
+            <p>不确定时保持智能生成即可；选择更高模式后，系统会投入更多生成能力</p>
           </div>
           <button type="button" className="aug-icon-button" onClick={onClose} aria-label="关闭"><X size={19} /></button>
         </header>
 
-        <div className="aug-model-picker-body">
-          <ModelColumn
-            icon={Code2}
-            title="HTML 生成模型"
-            description="决定互动逻辑、页面结构和代码质量"
-            options={htmlModelOptions}
-            selectedId={htmlModelId}
-            onSelect={id => selectModel('html', id)}
-          />
-          <ModelColumn
-            icon={Image}
-            title="图片生成模型"
-            description="决定场景、角色和图片素材的表现"
-            options={imageModelOptions}
-            selectedId={imageModelId}
-            onSelect={id => selectModel('image', id)}
-          />
+        <div className="aug-mode-picker-body">
+          {generationModeOptions.map((mode, index) => {
+            const selected = selectedMode.id === mode.id;
+            const Icon = index === 0 ? Sparkles : index === 1 ? Layers3 : Brain;
+            return (
+              <button key={mode.id} type="button" className={`aug-mode-option ${selected ? 'is-selected' : ''}`} onClick={() => selectMode(mode.id)}>
+                <span className="aug-mode-option-icon"><Icon size={20} /></span>
+                <span className="aug-mode-option-copy">
+                  <span><b>{mode.name}</b><em>{mode.tag}</em></span>
+                  <strong>{mode.description}</strong>
+                  <small>{mode.suitableFor}</small>
+                </span>
+                <span className="aug-mode-check">{selected && <Check size={15} />}</span>
+              </button>
+            );
+          })}
         </div>
 
         <footer className="aug-model-picker-footer">
-          <div className={`aug-model-notice ${slowerModelSelected ? 'is-slow' : ''}`}>
+          <div className={`aug-model-notice ${slowerModeSelected ? 'is-slow' : ''}`}>
             <Info size={16} />
-            <span>{slowerModelSelected ? '所选模型生成时间较长，完成后可在「我的创作」查看' : '生成期间可以离开页面，完成后可在「我的创作」查看'}</span>
+            <span>{slowerModeSelected ? `${selectedMode.notice} 完成后可在「我的创作」查看。` : '生成期间可以离开页面，完成后可在「我的创作」查看。'}</span>
           </div>
           <button type="button" className="aug-button-primary aug-model-confirm" onClick={onClose}>确定</button>
         </footer>
       </section>
     </div>,
     document.body,
-  );
-}
-
-function ModelColumn({
-  icon: Icon,
-  title,
-  description,
-  options,
-  selectedId,
-  onSelect,
-}: {
-  icon: typeof Code2;
-  title: string;
-  description: string;
-  options: typeof htmlModelOptions;
-  selectedId: string;
-  onSelect: (id: string) => void;
-}) {
-  return (
-    <section className="aug-model-picker-column">
-      <header>
-        <span><Icon size={18} /></span>
-        <div><h3>{title}</h3><p>{description}</p></div>
-      </header>
-      <div className="aug-model-picker-options">
-        {options.map(option => {
-          const selected = selectedId === option.id;
-          return (
-            <button key={option.id} type="button" className={selected ? 'is-selected' : ''} onClick={() => onSelect(option.id)}>
-              <span className="aug-model-radio">{selected && <Check size={13} />}</span>
-              <span className="aug-model-option-copy">
-                <span><b>{option.name}</b><em>{option.speedLabel}</em></span>
-                <small>{option.description}</small>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
   );
 }

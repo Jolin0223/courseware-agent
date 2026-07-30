@@ -5,6 +5,7 @@ import type { GenerationPreferences } from '../../types';
 import {
   augustVisualStyleOptions,
   demoVoiceOptions,
+  getGenerationModeByModels,
   htmlModelOptions,
   imageModelOptions,
 } from '../../data/augustDemoData';
@@ -65,6 +66,7 @@ export default function GenerationPreferencePicker({
   const selectedVoice = demoVoiceOptions.find(voice => voice.id === value.voiceId);
   const selectedHtmlModel = htmlModelOptions.find(model => model.id === (value.htmlModelId || 'smart-html')) || htmlModelOptions[0];
   const selectedImageModel = imageModelOptions.find(model => model.id === (value.imageModelId || 'smart-image')) || imageModelOptions[0];
+  const selectedGenerationMode = getGenerationModeByModels(selectedHtmlModel.id, selectedImageModel.id);
 
   const visibleVoices = demoVoiceOptions.filter(voice => {
     const tabMatch = voiceTab === 'dedicated'
@@ -160,18 +162,18 @@ export default function GenerationPreferencePicker({
     </button>
   );
 
-  const modelSpecified = selectedHtmlModel.id !== 'smart-html' || selectedImageModel.id !== 'smart-image';
+  const modelSpecified = selectedGenerationMode.id !== 'smart';
   const modelTrigger = layout === 'input' ? (
     <button
       type="button"
       className={`aug-preference-trigger aug-model-trigger ${modelSpecified ? 'is-specified' : ''}`}
       disabled={disabled}
       onClick={() => setModelModalOpen(true)}
-      aria-label={`生成模型：${modelSpecified ? `${selectedHtmlModel.name} + ${selectedImageModel.name}` : '智能选择'}`}
+      aria-label={`生成模式：${selectedGenerationMode.name}`}
     >
       <Cpu size={16} />
       <span>
-        <b>{modelSpecified ? `${selectedHtmlModel.name} + ${selectedImageModel.name}` : '生成模型'}</b>
+        <b>{modelSpecified ? selectedGenerationMode.name : '生成模式'}</b>
       </span>
       <ChevronDown className="aug-preference-chevron" size={14} />
     </button>

@@ -1,19 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Cpu, Palette, Play, Sparkles, Volume2, X } from 'lucide-react';
 import type { GenerationPreferences } from '../../types';
 import {
   augustVisualStyleOptions,
   demoVoiceOptions,
+  generationModeOptions,
   getGenerationModeByModels,
-  htmlModelOptions,
-  imageModelOptions,
 } from '../../data/augustDemoData';
 import {
   getVisualStylePreviewStyle,
   visualStylePreviewImages,
 } from '../../data/visualStylePresets';
-import ModelPreferenceModal from './ModelPreferenceModal';
 import VisualStylePickerModal from './VisualStylePickerModal';
 import './augustDemo.css';
 
@@ -55,18 +53,60 @@ export default function GenerationPreferencePicker({
 }: GenerationPreferencePickerProps) {
   const [styleModalOpen, setStyleModalOpen] = useState(false);
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
-  const [modelModalOpen, setModelModalOpen] = useState(false);
+  const [modePopoverOpen, setModePopoverOpen] = useState(false);
   const [voiceTab, setVoiceTab] = useState<VoiceTab>('recommended');
   const [voiceLanguage, setVoiceLanguage] = useState('全部语言');
   const [voiceGender, setVoiceGender] = useState<VoiceGender>('全部声音');
   const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+  const modeTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const modePopoverRef = useRef<HTMLDivElement | null>(null);
+  const [modePopoverStyle, setModePopoverStyle] = useState<CSSProperties>({});
 
   const recommendedVoiceIds = useMemo(() => getRecommendedVoiceIds(prompt), [prompt]);
   const selectedStyle = augustVisualStyleOptions.find(style => style.id === value.visualStyleId);
   const selectedVoice = demoVoiceOptions.find(voice => voice.id === value.voiceId);
-  const selectedHtmlModel = htmlModelOptions.find(model => model.id === (value.htmlModelId || 'smart-html')) || htmlModelOptions[0];
-  const selectedImageModel = imageModelOptions.find(model => model.id === (value.imageModelId || 'smart-image')) || imageModelOptions[0];
-  const selectedGenerationMode = getGenerationModeByModels(selectedHtmlModel.id, selectedImageModel.id);
+  const selectedGenerationMode = getGenerationModeByModels(value.htmlModelId, value.imageModelId);
+
+  const updateModePopoverPosition = () => {
+    const trigger = modeTriggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(304, window.innerWidth - 32);
+    const estimatedHeight = 196;
+    const left = Math.min(Math.max(16, rect.right - width), Math.max(16, window.innerWidth - width - 16));
+    const top = rect.top - estimatedHeight - 8 >= 16
+      ? rect.top - estimatedHeight - 8
+      : Math.min(rect.bottom + 8, window.innerHeight - estimatedHeight - 16);
+    setModePopoverStyle({ left, top: Math.max(16, top), width });
+  };
+
+  useEffect(() => {
+    if (!modePopoverOpen) return undefined;
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (
+        !modePopoverRef.current?.contains(target)
+        && !modeTriggerRef.current?.contains(target)
+      ) {
+        setModePopoverOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setModePopoverOpen(false);
+    };
+    const handleResize = () => updateModePopoverPosition();
+    updateModePopoverPosition();
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize, true);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleResize, true);
+    };
+  }, [modePopoverOpen]);
 
   const visibleVoices = demoVoiceOptions.filter(voice => {
     const tabMatch = voiceTab === 'dedicated'
@@ -112,6 +152,17 @@ export default function GenerationPreferencePicker({
     utterance.onend = () => setPlayingVoiceId(null);
     utterance.onerror = () => setPlayingVoiceId(null);
     window.speechSynthesis?.speak(utterance);
+  };
+
+  const selectGenerationMode = (modeId: string) => {
+    const mode = generationModeOptions.find(item => item.id === modeId) || generationModeOptions[0];
+    onChange({
+      ...value,
+      htmlModelId: mode.htmlModelId,
+      imageModelId: mode.imageModelId,
+      estimatedMinutes: undefined,
+    });
+    setModePopoverOpen(false);
   };
 
   const styleTrigger = (
@@ -164,19 +215,45 @@ export default function GenerationPreferencePicker({
 
   const modelSpecified = selectedGenerationMode.id !== 'smart';
   const modelTrigger = layout === 'input' ? (
-    <button
-      type="button"
-      className={`aug-preference-trigger aug-model-trigger ${modelSpecified ? 'is-specified' : ''}`}
-      disabled={disabled}
-      onClick={() => setModelModalOpen(true)}
-      aria-label={`生成模式：${selectedGenerationMode.name}`}
-    >
-      <Cpu size={16} />
-      <span>
-        <b>{modelSpecified ? selectedGenerationMode.name : '生成模式'}</b>
-      </span>
-      <ChevronDown className="aug-preference-chevron" size={14} />
-    </button>
+    <div className="aug-mode-dropdown-wrap">
+      <button
+        ref={modeTriggerRef}
+        type="button"
+        className={`aug-preference-trigger aug-model-trigger ${modelSpecified ? 'is-specified' : ''}`}
+        disabled={disabled}
+        onClick={() => {
+          if (!modePopoverOpen) updateModePopoverPosition();
+          setModePopoverOpen(open => !open);
+        }}
+        aria-label={`生成模式：${selectedGenerationMode.name}`}
+        aria-expanded={modePopoverOpen}
+      >
+        <Cpu size={16} />
+        <span>
+          <b>{selectedGenerationMode.name}</b>
+        </span>
+        <ChevronDown className="aug-preference-chevron" size={14} />
+      </button>
+    </div>
+  ) : null;
+
+  const modePopover = layout === 'input' && modePopoverOpen ? createPortal(
+    <div className="aug-mode-popover" ref={modePopoverRef} role="menu" aria-label="选择生成模式" style={modePopoverStyle}>
+      {generationModeOptions.map(mode => {
+        const selected = selectedGenerationMode.id === mode.id;
+        return (
+          <button key={mode.id} type="button" className={selected ? 'is-selected' : ''} onClick={() => selectGenerationMode(mode.id)} role="menuitemradio" aria-checked={selected}>
+            <span>
+              <b>{mode.name}</b>
+              <small>{mode.description}</small>
+            </span>
+            <em>{mode.tag}</em>
+            {selected && <Check size={15} />}
+          </button>
+        );
+      })}
+    </div>,
+    document.body,
   ) : null;
 
   const overlay = voiceModalOpen ? createPortal(
@@ -235,12 +312,7 @@ export default function GenerationPreferencePicker({
         onSelectSmart={selectSmartStyle}
         onClose={() => setStyleModalOpen(false)}
       />
-      <ModelPreferenceModal
-        open={modelModalOpen}
-        value={value}
-        onChange={onChange}
-        onClose={() => setModelModalOpen(false)}
-      />
+      {modePopover}
       {overlay}
     </>
   );

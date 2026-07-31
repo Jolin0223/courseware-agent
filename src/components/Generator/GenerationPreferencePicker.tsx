@@ -72,12 +72,14 @@ export default function GenerationPreferencePicker({
     if (!trigger) return;
     const rect = trigger.getBoundingClientRect();
     const width = Math.min(304, window.innerWidth - 32);
-    const estimatedHeight = 196;
     const left = Math.min(Math.max(16, rect.right - width), Math.max(16, window.innerWidth - width - 16));
-    const top = rect.top - estimatedHeight - 8 >= 16
-      ? rect.top - estimatedHeight - 8
-      : Math.min(rect.bottom + 8, window.innerHeight - estimatedHeight - 16);
-    setModePopoverStyle({ left, top: Math.max(16, top), width });
+    const direction = rect.top < 330 ? 'down' : 'up';
+    setModePopoverStyle({
+      left,
+      width,
+      top: direction === 'down' ? rect.bottom + 8 : undefined,
+      bottom: direction === 'up' ? window.innerHeight - rect.top + 8 : undefined,
+    });
   };
 
   useEffect(() => {

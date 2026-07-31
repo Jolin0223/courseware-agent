@@ -447,6 +447,7 @@ export const mockCoursewares: Courseware[] = [
     htmlContent: hanziRushHTML,
     isOwn: true,
     isPublished: true,
+    isDeleted: true,
     resourceScope: 'personal',
     showConversation: true,
     learningDataRecovery: learningDataFor('汉字拼图Rush-部件拼字'),

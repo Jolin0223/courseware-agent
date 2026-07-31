@@ -16,6 +16,7 @@ export interface Courseware {
   htmlContent?: string;
   isOwn?: boolean;
   isPublished?: boolean;
+  isDeleted?: boolean;
   showConversation?: boolean;
   learningDataRecovery?: LearningDataRecoverySummary;
 }

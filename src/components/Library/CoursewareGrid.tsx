@@ -69,6 +69,51 @@ interface CardProps {
   showOwnerMeta: boolean;
 }
 
+const getStatusMeta = (courseware: Courseware, isHistoricalPublished: boolean) => {
+  if (courseware.isDeleted) {
+    return {
+      label: '已删除',
+      description: '资源已删除',
+      icon: <Trash2 size={13} strokeWidth={2.4} />,
+      background: 'rgba(255, 255, 255, 0.9)',
+      color: '#B42318',
+      borderColor: 'rgba(254, 202, 202, 0.95)',
+      shadow: 'rgba(180, 35, 24, 0.10)',
+    };
+  }
+  if (!courseware.isPublished) {
+    return {
+      label: '未发布',
+      description: '未发布草稿',
+      icon: <Clock3 size={13} strokeWidth={2.4} />,
+      background: 'rgba(255, 251, 235, 0.92)',
+      color: '#B45309',
+      borderColor: 'rgba(253, 230, 138, 0.96)',
+      shadow: 'rgba(180, 83, 9, 0.10)',
+    };
+  }
+  if (isHistoricalPublished) {
+    return {
+      label: '历史发布',
+      description: '历史发布版本',
+      icon: <CheckCircle2 size={13} strokeWidth={2.4} />,
+      background: 'rgba(239, 246, 255, 0.92)',
+      color: '#1D4ED8',
+      borderColor: 'rgba(191, 219, 254, 0.96)',
+      shadow: 'rgba(29, 78, 216, 0.10)',
+    };
+  }
+  return {
+    label: '已发布',
+    description: '已同步资源库',
+    icon: <CheckCircle2 size={13} strokeWidth={2.4} />,
+    background: 'rgba(240, 253, 249, 0.92)',
+    color: 'var(--agent-primary-text)',
+    borderColor: 'rgba(167, 243, 208, 0.96)',
+    shadow: 'rgba(15, 118, 110, 0.10)',
+  };
+};
+
 const CoursewareCard: React.FC<CardProps> = ({
   courseware,
   onPreview,
@@ -86,6 +131,8 @@ const CoursewareCard: React.FC<CardProps> = ({
   const { appMode, insertCourseware } = useUIStore();
   const isEmbedded = appMode === 'embedded';
   const isHistoricalPublished = Boolean(courseware.isPublished && (courseware.id === 4 || courseware.id === 6));
+  const isDeleted = Boolean(courseware.isDeleted);
+  const statusMeta = getStatusMeta(courseware, isHistoricalPublished);
 
   const handleInsert = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -116,6 +163,27 @@ const CoursewareCard: React.FC<CardProps> = ({
     transition: '0.15s',
     boxShadow: '0 6px 14px rgba(15, 23, 42, 0.12)',
   };
+  const mutedActionBtnStyle: React.CSSProperties = {
+    ...actionBtnStyle,
+    background: 'rgba(255,255,255,0.88)',
+    color: '#475569',
+  };
+
+  const renderActionButton = (
+    label: string,
+    icon: React.ReactNode,
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => void,
+    muted = false,
+  ) => (
+    <button
+      style={muted ? mutedActionBtnStyle : actionBtnStyle}
+      onClick={onClick}
+      onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = muted ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.95)'; }}
+    >
+      {icon} {label}
+    </button>
+  );
 
   return (
     <div
@@ -125,11 +193,11 @@ const CoursewareCard: React.FC<CardProps> = ({
         background: '#fff',
         borderRadius: 10,
         overflow: 'hidden',
-        border: `1px solid ${hovered ? 'var(--agent-border)' : '#E2E8F0'}`,
+        border: `1px solid ${isDeleted ? '#E5EAF0' : hovered ? 'var(--agent-border)' : '#E2E8F0'}`,
         transition: 'all 0.2s',
         cursor: 'pointer',
-        boxShadow: hovered ? '0 10px 26px var(--agent-shadow)' : '0 1px 2px rgba(15,23,42,0.03)',
-        transform: hovered ? 'translateY(-1px)' : 'none',
+        boxShadow: hovered && !isDeleted ? '0 10px 26px var(--agent-shadow)' : '0 1px 2px rgba(15,23,42,0.03)',
+        transform: hovered && !isDeleted ? 'translateY(-1px)' : 'none',
       }}
     >
       {/* Thumbnail */}
@@ -152,6 +220,8 @@ const CoursewareCard: React.FC<CardProps> = ({
               transformOrigin: 'top left',
               border: 'none',
               pointerEvents: 'none',
+              filter: isDeleted ? 'grayscale(0.3) saturate(0.75)' : 'none',
+              opacity: isDeleted ? 0.72 : 1,
             }}
           />
         ) : (
@@ -160,6 +230,17 @@ const CoursewareCard: React.FC<CardProps> = ({
               width: '100%',
               height: '100%',
               background: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #7DD3FC 100%)',
+            }}
+          />
+        )}
+
+        {isDeleted && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(180deg, rgba(248, 250, 252, 0.08), rgba(15, 23, 42, 0.18))',
+              pointerEvents: 'none',
             }}
           />
         )}
@@ -173,19 +254,20 @@ const CoursewareCard: React.FC<CardProps> = ({
               height: 26,
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 5,
-              padding: '0 9px',
-              borderRadius: 10,
-              background: 'rgba(255,255,255,0.94)',
-              color: courseware.isPublished ? 'var(--agent-primary-text)' : '#B45309',
+              gap: 4,
+              padding: '0 8px',
+              borderRadius: 999,
+              background: statusMeta.background,
+              color: statusMeta.color,
               fontSize: 12,
-              fontWeight: 800,
-              border: '1px solid rgba(226, 232, 240, 0.92)',
-              boxShadow: '0 4px 12px rgba(37, 74, 120, 0.08)',
+              fontWeight: 850,
+              border: `1px solid ${statusMeta.borderColor}`,
+              boxShadow: `0 5px 14px ${statusMeta.shadow}`,
+              backdropFilter: 'blur(8px)',
             }}
           >
-            {courseware.isPublished ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}
-            {courseware.isPublished ? (isHistoricalPublished ? '历史发布' : '已发布') : '未发布'}
+            {statusMeta.icon}
+            {statusMeta.label}
           </div>
         )}
 
@@ -205,50 +287,35 @@ const CoursewareCard: React.FC<CardProps> = ({
             transition: '0.2s',
           }}
         >
-          <button
-            style={actionBtnStyle}
-            onClick={(e) => { e.stopPropagation(); onPreview(courseware.id); }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
-          >
-            <Eye size={14} /> 预览
-          </button>
-          <button
-            style={actionBtnStyle}
-            onClick={(e) => { e.stopPropagation(); onClone(courseware.id); }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
-          >
-            <Copy size={14} /> 同款
-          </button>
+          {!isDeleted && renderActionButton(
+            '预览',
+            <Eye size={14} />,
+            (e) => { e.stopPropagation(); onPreview(courseware.id); },
+          )}
+          {(courseware.isPublished || isDeleted) && renderActionButton(
+            '同款',
+            <Copy size={14} />,
+            (e) => { e.stopPropagation(); onClone(courseware.id); },
+            isDeleted,
+          )}
           {showEditDelete && courseware.isOwn && (
             <>
-              <button
-                style={actionBtnStyle}
-                onClick={(e) => { e.stopPropagation(); onEdit?.(courseware.id); }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
-              >
-                <Edit3 size={14} /> 编辑
-              </button>
-              {!courseware.isPublished && onPublish && (
-                <button
-                  style={actionBtnStyle}
-                  onClick={(e) => { e.stopPropagation(); onPublish(courseware.id); }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
-                >
-                  <Send size={14} /> 发布
-                </button>
+              {!isDeleted && !isHistoricalPublished && renderActionButton(
+                '编辑',
+                <Edit3 size={14} />,
+                (e) => { e.stopPropagation(); onEdit?.(courseware.id); },
               )}
-              <button
-                style={actionBtnStyle}
-                onClick={(e) => { e.stopPropagation(); onDelete?.(courseware.id); }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; }}
-              >
-                <Trash2 size={14} /> 删除
-              </button>
+              {!isDeleted && !courseware.isPublished && onPublish && renderActionButton(
+                '发布',
+                <Send size={14} />,
+                (e) => { e.stopPropagation(); onPublish(courseware.id); },
+              )}
+              {renderActionButton(
+                isDeleted ? '移除' : '删除',
+                <Trash2 size={14} />,
+                (e) => { e.stopPropagation(); onDelete?.(courseware.id); },
+                isDeleted,
+              )}
             </>
           )}
         </div>
@@ -291,7 +358,7 @@ const CoursewareCard: React.FC<CardProps> = ({
             <span>·</span>
             <span>{courseware.grade}</span>
             <span>·</span>
-            <span>{courseware.isPublished ? '已同步资源库' : '未发布草稿'}</span>
+            <span>{statusMeta.description}</span>
           </div>
         )}
         {isEmbedded && showInsert && (

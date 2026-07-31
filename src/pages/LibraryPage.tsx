@@ -126,6 +126,66 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#1E293B',
     fontSize: 13,
   },
+  confirmMask: {
+    position: 'fixed' as const,
+    inset: 0,
+    zIndex: 24000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    background: 'rgba(15, 23, 42, 0.36)',
+    backdropFilter: 'blur(5px)',
+  },
+  confirmCard: {
+    width: 360,
+    maxWidth: 'calc(100vw - 40px)',
+    borderRadius: 12,
+    border: '1px solid rgba(226, 232, 240, 0.96)',
+    background: '#FFFFFF',
+    boxShadow: '0 24px 70px rgba(15, 23, 42, 0.24)',
+    padding: 18,
+  },
+  confirmTitle: {
+    fontSize: 16,
+    fontWeight: 800,
+    color: '#0F172A',
+    marginBottom: 6,
+  },
+  confirmBody: {
+    fontSize: 13,
+    lineHeight: 1.6,
+    color: '#64748B',
+    marginBottom: 18,
+  },
+  confirmActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  confirmCancel: {
+    height: 34,
+    padding: '0 14px',
+    borderRadius: 9,
+    border: '1px solid #D8E2EF',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  confirmPrimary: {
+    height: 34,
+    padding: '0 15px',
+    borderRadius: 9,
+    border: 'none',
+    background: 'linear-gradient(135deg, #EF4444, #F97316)',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: 'pointer',
+    boxShadow: '0 8px 18px rgba(239, 68, 68, 0.18)',
+  },
 };
 
 export default function LibraryPage() {
@@ -134,12 +194,14 @@ export default function LibraryPage() {
   const [keyword, setKeyword] = useState('');
   const [filterPublishScope, setFilterPublishScope] = useState<PublishScopeFilter>('全部');
   const [filterSchool, setFilterSchool] = useState('广州学校');
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const {
     coursewares,
     filterSubject,
     filterGrade,
     filterType,
     setFilter,
+    updateCourseware,
     deleteCourseware,
   } = useCoursewareStore();
   const {
@@ -154,10 +216,10 @@ export default function LibraryPage() {
     let result = coursewares.filter(courseware => courseware.isOwn);
 
     if (activeTab === 'published') {
-      result = result.filter(courseware => courseware.isPublished);
+      result = result.filter(courseware => courseware.isPublished && !courseware.isDeleted);
     }
     if (activeTab === 'draft') {
-      result = result.filter(courseware => !courseware.isPublished);
+      result = result.filter(courseware => !courseware.isPublished && !courseware.isDeleted);
     }
 
     if (filterSubject !== '全部') {
@@ -222,15 +284,41 @@ export default function LibraryPage() {
   };
 
   const handleDelete = (coursewareId: number) => {
-    const courseware = coursewares.find(item => item.id === coursewareId);
-    const message = courseware?.isPublished
-      ? '删除后该作品在生产 Agent 中不可见，确定删除吗？'
-      : '确定删除这个未发布草稿吗？';
-    if (confirm(message)) {
-      deleteCourseware(coursewareId);
-      markSourceDeleted(coursewareId);
-      toast('已删除作品');
+    setPendingDeleteId(coursewareId);
+  };
+
+  const pendingDeleteCourseware = coursewares.find(item => item.id === pendingDeleteId);
+  const deleteConfirmCopy = pendingDeleteCourseware?.isDeleted
+    ? {
+      title: '移除已删除记录',
+      body: '移除后这条记录将不再出现在我的创作列表中。',
+      action: '确认移除',
     }
+    : pendingDeleteCourseware?.isPublished
+      ? {
+        title: '删除已发布课件',
+        body: '删除后该作品在资源库中不可见，已插入的课件会提示源资源已删除。',
+        action: '确认删除',
+      }
+      : {
+        title: '删除未发布草稿',
+        body: '删除后这个草稿不会再保留。',
+        action: '确认删除',
+      };
+
+  const confirmDelete = () => {
+    if (!pendingDeleteCourseware) return;
+    const coursewareId = pendingDeleteCourseware.id;
+    if (pendingDeleteCourseware.isPublished && !pendingDeleteCourseware.isDeleted) {
+      updateCourseware(coursewareId, { isDeleted: true, isPublished: false });
+      markSourceDeleted(coursewareId);
+      toast('已标记为已删除');
+      setPendingDeleteId(null);
+      return;
+    }
+    deleteCourseware(coursewareId);
+    toast(pendingDeleteCourseware.isDeleted ? '已移除记录' : '已删除草稿');
+    setPendingDeleteId(null);
   };
 
   return (
@@ -309,6 +397,37 @@ export default function LibraryPage() {
           <div style={styles.emptyHint}>
             {activeTab === 'published' ? '暂无已发布作品' : activeTab === 'draft' ? '暂无未发布草稿' : '你还没有创建任何课件'}
           </div>
+        </div>
+      )}
+
+      {pendingDeleteCourseware && (
+        <div
+          style={styles.confirmMask}
+          onClick={() => setPendingDeleteId(null)}
+        >
+          <section
+            style={styles.confirmCard}
+            onClick={event => event.stopPropagation()}
+          >
+            <div style={styles.confirmTitle}>{deleteConfirmCopy.title}</div>
+            <div style={styles.confirmBody}>{deleteConfirmCopy.body}</div>
+            <div style={styles.confirmActions}>
+              <button
+                type="button"
+                style={styles.confirmCancel}
+                onClick={() => setPendingDeleteId(null)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                style={styles.confirmPrimary}
+                onClick={confirmDelete}
+              >
+                {deleteConfirmCopy.action}
+              </button>
+            </div>
+          </section>
         </div>
       )}
 

@@ -13,6 +13,7 @@ import toast from '../utils/toast';
 
 type TabKey = 'all' | 'published' | 'draft';
 type PublishScopeFilter = '全部' | 'group' | 'school' | 'personal';
+const emptyStateImageUrl = 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/AkBhExjm-d30cd552-7abd-4e4d-b052-1315735222da.png';
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: 'all', label: '全部' },
@@ -83,20 +84,20 @@ const styles: Record<string, React.CSSProperties> = {
   },
   emptyState: {
     textAlign: 'center',
-    padding: '80px 20px',
+    padding: '86px 20px',
     color: '#94A3B8',
   },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
+  emptyImage: {
+    width: 126,
+    height: 126,
+    objectFit: 'contain' as const,
+    marginBottom: 14,
+    opacity: 0.94,
   },
   emptyText: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  emptyHint: {
     fontSize: 14,
-    color: '#CBD5E1',
+    fontWeight: 700,
+    color: '#94A3B8',
   },
   filterSearchRow: {
     marginBottom: 16,
@@ -392,11 +393,8 @@ export default function LibraryPage() {
         />
       ) : (
         <div style={styles.emptyState}>
-          <div style={styles.emptyIcon}>📭</div>
-          <div style={styles.emptyText}>暂无课件</div>
-          <div style={styles.emptyHint}>
-            {activeTab === 'published' ? '暂无已发布作品' : activeTab === 'draft' ? '暂无未发布草稿' : '你还没有创建任何课件'}
-          </div>
+          <img src={emptyStateImageUrl} alt="" style={styles.emptyImage} />
+          <div style={styles.emptyText}>这里内容空空的哦~</div>
         </div>
       )}
 

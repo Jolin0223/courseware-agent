@@ -44,17 +44,18 @@ const schools = ['北京学校', '上海学校', '广州学校', '武汉学校',
 
 const styles: Record<string, React.CSSProperties> = {
   filterRow: {
-    display: 'flex',
+    display: 'grid',
+    gridTemplateColumns: '58px minmax(0, 1fr)',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 10,
+    columnGap: 10,
+    marginBottom: 8,
   },
   filterLabel: {
     fontSize: 13,
-    fontWeight: 600,
+    fontWeight: 750,
     color: '#1E293B',
-    flexShrink: 0,
-    minWidth: 40,
+    width: 58,
+    lineHeight: '32px',
   },
   filterTags: {
     display: 'flex',
@@ -79,7 +80,7 @@ const styles: Record<string, React.CSSProperties> = {
     outline: 'none',
   },
   publishLocationRow: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   publishLocationControls: {
     display: 'flex',
@@ -238,36 +239,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
   return (
     <div style={{ padding: 0, marginBottom: 16 }}>
-      {filters.map((f) => (
-        <div key={f.key} style={styles.filterRow}>
-          <span style={styles.filterLabel}>{f.label}</span>
-          <div style={styles.filterTags}>
-            {f.options.map((opt) => {
-              const isActive = f.value === opt || (opt === '全部' && f.value === '全部');
-              const stateKey = `${f.key}-${opt}`;
-              const isHovered = hoveredKey === stateKey;
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  style={{
-                    ...styles.filterTag,
-                    ...(isHovered && !isActive ? styles.filterTagHover : {}),
-                    ...(isActive ? styles.filterTagActive : {}),
-                  }}
-                  onMouseEnter={() => setHoveredKey(stateKey)}
-                  onMouseLeave={() => setHoveredKey(null)}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => onFilterChange(f.key, opt)}
-                >
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-
       {filterPublishScope && onPublishScopeChange && (
         <div style={{ ...styles.filterRow, ...styles.publishLocationRow }}>
           <span style={styles.filterLabel}>发布位置</span>
@@ -366,6 +337,36 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </div>
         </div>
       )}
+
+      {filters.map((f) => (
+        <div key={f.key} style={styles.filterRow}>
+          <span style={styles.filterLabel}>{f.label}</span>
+          <div style={styles.filterTags}>
+            {f.options.map((opt) => {
+              const isActive = f.value === opt || (opt === '全部' && f.value === '全部');
+              const stateKey = `${f.key}-${opt}`;
+              const isHovered = hoveredKey === stateKey;
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  style={{
+                    ...styles.filterTag,
+                    ...(isHovered && !isActive ? styles.filterTagHover : {}),
+                    ...(isActive ? styles.filterTagActive : {}),
+                  }}
+                  onMouseEnter={() => setHoveredKey(stateKey)}
+                  onMouseLeave={() => setHoveredKey(null)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => onFilterChange(f.key, opt)}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       {sortOptions.length > 0 && (
         <div style={styles.sortRow}>

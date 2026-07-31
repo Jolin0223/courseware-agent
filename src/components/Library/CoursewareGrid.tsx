@@ -69,7 +69,14 @@ interface CardProps {
   showOwnerMeta: boolean;
 }
 
+const getResourceScopeLabel = (courseware: Courseware) => {
+  if (courseware.resourceScope === 'group') return '集团资源库';
+  if (courseware.resourceScope === 'personal') return '个人资源库';
+  return '校本资源库';
+};
+
 const getStatusMeta = (courseware: Courseware, isHistoricalPublished: boolean) => {
+  const resourceScopeLabel = getResourceScopeLabel(courseware);
   if (courseware.isDeleted) {
     return {
       label: '已删除',
@@ -95,7 +102,7 @@ const getStatusMeta = (courseware: Courseware, isHistoricalPublished: boolean) =
   if (isHistoricalPublished) {
     return {
       label: '历史发布',
-      description: '历史发布版本',
+      description: `历史发布${resourceScopeLabel}`,
       icon: <CheckCircle2 size={13} strokeWidth={2.4} />,
       background: 'rgba(239, 246, 255, 0.92)',
       color: '#1D4ED8',
@@ -105,7 +112,7 @@ const getStatusMeta = (courseware: Courseware, isHistoricalPublished: boolean) =
   }
   return {
     label: '已发布',
-    description: '已同步资源库',
+    description: `已发布${resourceScopeLabel}`,
     icon: <CheckCircle2 size={13} strokeWidth={2.4} />,
     background: 'rgba(240, 253, 249, 0.92)',
     color: 'var(--agent-primary-text)',

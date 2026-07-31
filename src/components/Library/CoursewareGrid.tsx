@@ -121,6 +121,44 @@ const getStatusMeta = (courseware: Courseware, isHistoricalPublished: boolean) =
   };
 };
 
+const thumbnailFallbacks: Record<string, string> = {
+  '水果单词互动乐园': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/twVU397h-2600008999-AigcImage-507e80e381b5422aaf06d8e26c15290c_0.png',
+  '孙悟空换装搭配挑战': '/demo-history/sun-wukong-dressup/assets/images/cover-bg.webp',
+  '战舰逻辑挑战-行列推理': '/demo-history/battleship-logic/assets/battleships_cover.webp',
+  '转一转找答案-时钟认读': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/TMvevMXM-2600008999-AigcImage-3f6a6afce0544326859d3c8e807c82c6_0.png',
+  '分数披萨店-分数配餐': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/tKaqXQLA-2600008999-AigcImage-dfa186ad6f7d49b1b8383397bdaa4ed6_0.png',
+  '对话连连看-问答连线': '/demo-history/dialogue-linking/assets/dialog_connect_cover.webp',
+  'Make-a-Word果冻拼词': '/demo-history/make-a-word-jelly/assets/04_make_word_cover.webp',
+  '汉字拼图Rush-部件拼字': '/demo-history/hanzi-rush/assets/07_hanzi_cover.webp',
+  '单词神枪手': '/case-games/word-shooter/images/bg.webp',
+  '近义词大挑战': '/case-games/synonym/images/bg_default.webp',
+};
+
+const getThumbnailSrc = (courseware: Courseware) => courseware.thumbnail || thumbnailFallbacks[courseware.title];
+
+const createStaticThumbnailHtml = (html: string) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  doc.querySelectorAll('script, audio, video, source, iframe').forEach(element => element.remove());
+  doc.querySelectorAll('*').forEach(element => {
+    Array.from(element.attributes).forEach(attribute => {
+      if (attribute.name.startsWith('on') || ['autoplay', 'controls'].includes(attribute.name)) {
+        element.removeAttribute(attribute.name);
+      }
+    });
+  });
+
+  const muteStyle = doc.createElement('style');
+  muteStyle.textContent = `
+    * { pointer-events: none !important; }
+    body { overflow: hidden !important; }
+  `;
+  doc.head.appendChild(muteStyle);
+
+  return `<!doctype html>${doc.documentElement.outerHTML}`;
+};
+
 const CoursewareCard: React.FC<CardProps> = ({
   courseware,
   onPreview,
@@ -140,6 +178,7 @@ const CoursewareCard: React.FC<CardProps> = ({
   const isHistoricalPublished = Boolean(courseware.isPublished && (courseware.id === 4 || courseware.id === 6));
   const isDeleted = Boolean(courseware.isDeleted);
   const statusMeta = getStatusMeta(courseware, isHistoricalPublished);
+  const thumbnailSrc = getThumbnailSrc(courseware);
 
   const handleInsert = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -216,10 +255,27 @@ const CoursewareCard: React.FC<CardProps> = ({
           background: '#f8fafc',
         }}
       >
-        {courseware.htmlContent ? (
+        {thumbnailSrc ? (
+          <img
+            src={thumbnailSrc}
+            alt=""
+            loading="lazy"
+            draggable={false}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              filter: isDeleted ? 'grayscale(0.3) saturate(0.75)' : 'none',
+              opacity: isDeleted ? 0.72 : 1,
+            }}
+          />
+        ) : courseware.htmlContent ? (
           <iframe
-            srcDoc={courseware.htmlContent}
+            srcDoc={createStaticThumbnailHtml(courseware.htmlContent)}
             title={courseware.title}
+            sandbox=""
+            loading="lazy"
             style={{
               width: '200%',
               height: '200%',

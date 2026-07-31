@@ -19,6 +19,7 @@ export interface Courseware {
   isDeleted?: boolean;
   showConversation?: boolean;
   learningDataRecovery?: LearningDataRecoverySummary;
+  learningDataReportCapability?: LearningDataReportCapability;
 }
 
 // 对话消息类型
@@ -181,9 +182,11 @@ export interface CoursewareResult {
   visualStylePrompt?: string;
   generationPreferences?: GenerationPreferences;
   learningDataRecovery?: LearningDataRecoverySummary;
+  learningDataReportCapability?: LearningDataReportCapability;
 }
 
 export type LearningDataRecoveryStatus = 'not-started' | 'configured';
+export type LearningDataReportCapability = 'supported' | 'requires-regeneration';
 
 export interface LearningDataRecoveryItem {
   id: string;
@@ -201,7 +204,7 @@ export interface LearningDataRecoveryRequest {
   coursewareTitle: string;
   htmlContent?: string;
   version?: string;
-  mode?: 'create' | 'edit';
+  mode?: 'create' | 'edit' | 'upgrade-legacy';
   initialItems?: LearningDataRecoveryItem[];
 }
 

@@ -40,6 +40,7 @@ import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
 import toast from '../utils/toast';
 import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
+import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
 
 type GenerationPhase = 'input' | 'analyzing' | 'recommendation' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中~';
@@ -1969,8 +1970,12 @@ function AssistantMessage({
           isCurrentPublished?: boolean;
           isHistoricalPublished?: boolean;
           isRemoved?: boolean;
+          createdAt?: string;
         } | undefined
       : undefined;
+    const learningDataReportCapability = result.learningDataReportCapability
+      || courseware.learningDataReportCapability
+      || getLearningDataReportCapability(linkedDemoVersion?.createdAt || message.timestamp || courseware.publishTime);
     const isPublishedResult = Boolean(
       courseware.isPublished
       || linkedDemoVersion?.isCurrentPublished
@@ -1992,6 +1997,7 @@ function AssistantMessage({
             onVisualStyleRegenerate={onVisualStyleRegenerate}
             publishBadgeLabel={publishBadgeLabel}
             generationPreferences={result.generationPreferences}
+            learningDataReportCapability={learningDataReportCapability}
           />
         </div>
       </div>
@@ -2919,6 +2925,143 @@ export default function GeneratorPage() {
       confirmation.generationPreferences || {},
     );
   }, [activeConversationId, activeConversation, addUserMessage, startRecommendationFlow]);
+
+  const handleLearningDataRecoveryRequest = useCallback((request: LearningDataRecoveryRequest) => {
+    if (!activeConversationId || request.mode !== 'upgrade-legacy') return;
+
+    const newCoursewareId = Date.now();
+    const stageNames = ['埋点方案生成', '课件代码重生成', '代码审查', '报告预览配置', '发布前检查'];
+
+    addUserMessage(activeConversationId, `为「${request.coursewareTitle}」生成可回收学情数据的新版本`);
+    addAssistantMessage(
+      activeConversationId,
+      '正在为历史课件补齐学情数据回收能力，会生成一个新版本。确认没问题后，你可以再替换发布。',
+      'text'
+    );
+
+    setPhase('generating');
+    startGeneration(activeConversationId);
+
+    const initialProgress: GenerationProgress = {
+      introText: `正在为「${request.coursewareTitle}」补齐学情埋点和报告配置，原历史课件不会被直接覆盖。`,
+      instantIntro: true,
+      stages: stageNames.map((name, index) => ({
+        name,
+        status: index === 0 ? 'in-progress' : 'pending',
+        progress: 0,
+        detail: name === '埋点方案生成'
+          ? '识别互动节点、答题结果、用时和奖励等需要回收的数据。'
+          : name === '课件代码重生成'
+            ? '在保留原课件内容和玩法的基础上，生成带学情埋点的新版本。'
+            : name === '报告预览配置'
+              ? '配置老师侧可查看的报告字段和展示结构。'
+              : name === '发布前检查'
+                ? '检查新版本可预览、可替换发布，历史版本不自动覆盖。'
+                : undefined,
+      })),
+    };
+    addAssistantMessage(activeConversationId, initialProgress, 'generation-progress');
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const updateLatestProgress = (updatedProgress: GenerationProgress) => {
+      const progressWithIntro: GenerationProgress = {
+        ...updatedProgress,
+        introText: initialProgress.introText,
+        instantIntro: true,
+        stages: updatedProgress.stages.map(stage => ({
+          ...stage,
+          detail: stage.name === '埋点方案生成'
+            ? '识别互动节点、答题结果、用时和奖励等需要回收的数据。'
+            : stage.name === '课件代码重生成'
+              ? '在保留原课件内容和玩法的基础上，生成带学情埋点的新版本。'
+              : stage.name === '报告预览配置'
+                ? '配置老师侧可查看的报告字段和展示结构。'
+                : stage.name === '发布前检查'
+                  ? '检查新版本可预览、可替换发布，历史版本不自动覆盖。'
+                  : stage.detail,
+        })),
+      };
+      useConversationStore.setState(state => ({
+        conversations: state.conversations.map(conversation => {
+          if (conversation.id !== activeConversationId) return conversation;
+
+          const lastProgressIndex = conversation.messages.reduce(
+            (latestIndex, message, index) => (
+              message.type === 'generation-progress' ? index : latestIndex
+            ),
+            -1
+          );
+
+          return {
+            ...conversation,
+            messages: conversation.messages.map((message, index) => (
+              index === lastProgressIndex
+                ? { ...message, content: progressWithIntro }
+                : message
+            )),
+          };
+        }),
+      }));
+    };
+
+    simulateGeneration(
+      activeConversationId,
+      updateLatestProgress,
+      (result) => {
+        const upgradedResult: CoursewareResult = {
+          coursewareId: newCoursewareId,
+          title: request.coursewareTitle,
+          version: request.version || '下一版',
+          htmlContent: request.htmlContent || result.htmlContent,
+          learningDataRecovery: result.learningDataRecovery,
+          learningDataReportCapability: 'supported',
+        };
+        const nextCourseware: Courseware = {
+          id: newCoursewareId,
+          title: request.coursewareTitle,
+          subject: '英语',
+          grade: '一年级',
+          type: '学情报告升级',
+          author: '张老师',
+          publishTime: new Date().toISOString().split('T')[0],
+          views: 0,
+          favorites: 0,
+          likes: 0,
+          htmlContent: upgradedResult.htmlContent,
+          isOwn: true,
+          isPublished: false,
+          resourceScope: 'personal',
+          learningDataRecovery: upgradedResult.learningDataRecovery,
+          learningDataReportCapability: 'supported',
+        };
+        addCourseware(nextCourseware);
+        addAssistantMessage(activeConversationId, upgradedResult, 'courseware-result');
+        completeGeneration(activeConversationId, upgradedResult, newCoursewareId);
+        setPhase('completed');
+        setSidebarCollapsed(true);
+        openPreview(newCoursewareId);
+        abortControllerRef.current = null;
+      },
+      controller.signal,
+      undefined,
+      stageNames
+    );
+
+    window.setTimeout(() => {
+      forceBottomScrollRef.current = true;
+    }, demoMs(100));
+  }, [
+    activeConversationId,
+    addUserMessage,
+    addAssistantMessage,
+    startGeneration,
+    addCourseware,
+    completeGeneration,
+    setSidebarCollapsed,
+    openPreview,
+  ]);
   
   const renderContent = () => {
     if (!activeConversationId || (!hasMessages && phase === 'input')) {
@@ -3044,7 +3187,7 @@ export default function GeneratorPage() {
                         onOpenPreview={(coursewareId, version) => {
                           openPreview(coursewareId, version);
                         }}
-                        onLearningDataRecoveryRequest={() => {}}
+                        onLearningDataRecoveryRequest={handleLearningDataRecoveryRequest}
                         onVisualStyleRegenerate={(request) => {
                           if (!activeConversationId) return;
                           const newCoursewareId = Date.now();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Courseware, GenerationPreferences, LearningDataRecoveryItem, LearningDataRecoveryRequest, VisualStyleRegenerationRequest, VoiceOption } from '../../types';
+import type { Courseware, GenerationPreferences, LearningDataRecoveryItem, LearningDataRecoveryRequest, LearningDataReportCapability, VisualStyleRegenerationRequest, VoiceOption } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
 import toast from '../../utils/toast';
@@ -54,6 +54,7 @@ export default function CoursewareCard({
   onVisualStyleRegenerate,
   publishBadgeLabel,
   generationPreferences,
+  learningDataReportCapability,
 }: {
   courseware: Courseware;
   version?: string;
@@ -63,6 +64,7 @@ export default function CoursewareCard({
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
   publishBadgeLabel?: string;
   generationPreferences?: GenerationPreferences;
+  learningDataReportCapability?: LearningDataReportCapability;
 }) {
   const [copied, setCopied] = useState(false);
   const [feedbackCopied, setFeedbackCopied] = useState(false);
@@ -102,6 +104,12 @@ export default function CoursewareCard({
   const versionNumberMatch = currentVersion.match(/第(\d+)版/);
   const previewVersionKey = versionNumberMatch?.[1] ? `v${versionNumberMatch[1]}` : currentVersion;
   const metaItems = ['刚刚生成', publishBadgeLabel].filter(Boolean);
+  const reportCapability = learningDataReportCapability || courseware.learningDataReportCapability || 'supported';
+  const shouldUpgradeLegacyReport = reportCapability === 'requires-regeneration';
+  const reportButtonLabel = shouldUpgradeLegacyReport ? '生成报告' : '预览报告';
+  const reportDisabledText = shouldUpgradeLegacyReport
+    ? '当前为旧版，请在最新版上生成报告'
+    : '当前为旧版，请在最新版上查看报告';
   const feedbackText = `【AI互动课件问题反馈】
 课件名称：${courseware.title}
 当前版本：${currentVersion}
@@ -288,6 +296,10 @@ export default function CoursewareCard({
   }, [courseware.id, version, courseware.learningDataRecovery?.selectedItems]);
 
   useEffect(() => {
+    setIsLatest(isLatestProp);
+  }, [courseware.id, version, isLatestProp]);
+
+  useEffect(() => {
     if (!previewingStyle) return;
 
     const handlePreviewKeyDown = (event: KeyboardEvent) => {
@@ -333,6 +345,51 @@ export default function CoursewareCard({
       },
       regenerationMode,
     });
+  };
+
+  const getReportButtonStyle = (enabled = true): React.CSSProperties => {
+    const baseStyle = getActionButtonStyle('secondary', enabled);
+    if (!enabled || !shouldUpgradeLegacyReport) return baseStyle;
+
+    return {
+      ...baseStyle,
+      borderColor: 'rgba(20, 184, 166, 0.42)',
+      background: 'linear-gradient(180deg, #F8FEFF 0%, #ECFEFF 100%)',
+      color: '#0F766E',
+      boxShadow: '0 1px 4px rgba(20, 184, 166, 0.08)',
+    };
+  };
+
+  const handleReportClick = () => {
+    if (!isLatest) return;
+
+    if (shouldUpgradeLegacyReport) {
+      setIsLatest(false);
+      onLearningDataRecoveryRequest?.({
+        coursewareTitle: courseware.title,
+        htmlContent: courseware.htmlContent,
+        version: '下一版',
+        mode: 'upgrade-legacy',
+        initialItems: localLearningDataItems || courseware.learningDataRecovery?.selectedItems,
+      });
+      return;
+    }
+
+    setShowLearningDataModal(true);
+  };
+
+  const handleReportEnter = (event: React.MouseEvent<HTMLButtonElement>, enabled = true) => {
+    if (!enabled) return;
+    event.currentTarget.style.borderColor = 'var(--agent-primary)';
+    event.currentTarget.style.color = shouldUpgradeLegacyReport ? '#0F766E' : 'var(--agent-primary-text)';
+    event.currentTarget.style.background = shouldUpgradeLegacyReport ? '#ECFEFF' : '#FFFFFF';
+  };
+
+  const handleReportLeave = (event: React.MouseEvent<HTMLButtonElement> | React.FocusEvent<HTMLButtonElement>) => {
+    const nextStyle = getReportButtonStyle(isLatest);
+    event.currentTarget.style.borderColor = String(nextStyle.borderColor || '');
+    event.currentTarget.style.color = String(nextStyle.color || '');
+    event.currentTarget.style.background = String(nextStyle.background || '');
   };
 
   const getActionButtonStyle = (
@@ -535,15 +592,15 @@ export default function CoursewareCard({
             onMouseLeave={() => setReportDisabledTooltip(false)}
           >
             <button
-              onClick={() => { if (isLatest) setShowLearningDataModal(true); }}
-              style={getActionButtonStyle('secondary', isLatest)}
+              onClick={handleReportClick}
+              style={getReportButtonStyle(isLatest)}
               onMouseDown={e => e.preventDefault()}
-              onMouseEnter={e => handleActionEnter(e, isLatest)}
-              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest)}
-              onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
+              onMouseEnter={e => handleReportEnter(e, isLatest)}
+              onMouseLeave={handleReportLeave}
+              onBlur={handleReportLeave}
             >
-              <BarChart3 size={15} />
-              预览报告
+              {shouldUpgradeLegacyReport ? <Wand2 size={15} /> : <BarChart3 size={15} />}
+              {reportButtonLabel}
             </button>
             {reportDisabledTooltip && !isLatest && (
               <div style={{
@@ -551,7 +608,7 @@ export default function CoursewareCard({
                 marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff',
                 fontSize: 11, whiteSpace: 'nowrap', zIndex: 40, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}>
-                当前为旧版，请在最新版上查看和操作
+                {reportDisabledText}
               </div>
             )}
           </div>

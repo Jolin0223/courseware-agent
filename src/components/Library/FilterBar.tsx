@@ -56,6 +56,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#1E293B',
     width: 58,
     lineHeight: '32px',
+    textAlign: 'right' as const,
   },
   filterTags: {
     display: 'flex',
@@ -270,68 +271,71 @@ const FilterBar: React.FC<FilterBarProps> = ({
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
 
-            {filterPublishScope === 'school' && onSchoolChange && (
-              <div style={styles.schoolDropdownWrap} ref={schoolDropdownRef}>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.schoolSelect,
-                    ...(schoolOpen ? styles.schoolSelectActive : {}),
-                  }}
-                  onClick={() => setSchoolOpen(open => !open)}
-                >
-                  <span>{filterSchool || '选择分校'}</span>
-                  <ChevronDown
-                    size={14}
-                    color="#64748B"
-                    style={{
-                      transform: schoolOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.15s',
-                    }}
+      {filterPublishScope === 'school' && onSchoolChange && (
+        <div style={styles.filterRow}>
+          <span style={styles.filterLabel}>选择分校</span>
+          <div style={styles.schoolDropdownWrap} ref={schoolDropdownRef}>
+            <button
+              type="button"
+              style={{
+                ...styles.schoolSelect,
+                ...(schoolOpen ? styles.schoolSelectActive : {}),
+              }}
+              onClick={() => setSchoolOpen(open => !open)}
+            >
+              <span>{filterSchool || '选择分校'}</span>
+              <ChevronDown
+                size={14}
+                color="#64748B"
+                style={{
+                  transform: schoolOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.15s',
+                }}
+              />
+            </button>
+            {schoolOpen && (
+              <div style={styles.schoolDropdown}>
+                <div style={styles.schoolSearchBox}>
+                  <Search size={14} color="#94A3B8" />
+                  <input
+                    value={schoolSearch}
+                    onChange={event => setSchoolSearch(event.target.value)}
+                    placeholder="搜索分校"
+                    style={styles.schoolSearchInput}
+                    autoFocus
                   />
-                </button>
-                {schoolOpen && (
-                  <div style={styles.schoolDropdown}>
-                    <div style={styles.schoolSearchBox}>
-                      <Search size={14} color="#94A3B8" />
-                      <input
-                        value={schoolSearch}
-                        onChange={event => setSchoolSearch(event.target.value)}
-                        placeholder="搜索分校"
-                        style={styles.schoolSearchInput}
-                        autoFocus
-                      />
-                    </div>
-                    <div style={styles.schoolOptionList}>
-                      {filteredSchools.length === 0 ? (
-                        <div style={styles.schoolEmpty}>未找到匹配分校</div>
-                      ) : (
-                        filteredSchools.map(school => {
-                          const active = filterSchool === school;
-                          return (
-                            <button
-                              key={school}
-                              type="button"
-                              style={{
-                                ...styles.schoolOption,
-                                ...(active ? styles.schoolOptionActive : {}),
-                              }}
-                              onClick={() => {
-                                onSchoolChange(school);
-                                setSchoolOpen(false);
-                                setSchoolSearch('');
-                              }}
-                            >
-                              <span>{school}</span>
-                              {active && <Check size={14} color="#00A67D" strokeWidth={2.5} />}
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                )}
+                </div>
+                <div style={styles.schoolOptionList}>
+                  {filteredSchools.length === 0 ? (
+                    <div style={styles.schoolEmpty}>未找到匹配分校</div>
+                  ) : (
+                    filteredSchools.map(school => {
+                      const active = filterSchool === school;
+                      return (
+                        <button
+                          key={school}
+                          type="button"
+                          style={{
+                            ...styles.schoolOption,
+                            ...(active ? styles.schoolOptionActive : {}),
+                          }}
+                          onClick={() => {
+                            onSchoolChange(school);
+                            setSchoolOpen(false);
+                            setSchoolSearch('');
+                          }}
+                        >
+                          <span>{school}</span>
+                          {active && <Check size={14} color="#00A67D" strokeWidth={2.5} />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             )}
           </div>

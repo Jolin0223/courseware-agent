@@ -2935,7 +2935,7 @@ export default function GeneratorPage() {
     addUserMessage(activeConversationId, `为「${request.coursewareTitle}」生成可回收学情数据的新版本`);
     addAssistantMessage(
       activeConversationId,
-      '正在为历史课件补齐学情数据回收能力，会生成一个新版本。确认没问题后，你可以再替换发布。',
+      '正在为该互动课件补齐学情埋点和报告配置，会生成一个新版本，确认没问题后，可直接替换发布~',
       'text'
     );
 
@@ -2943,8 +2943,6 @@ export default function GeneratorPage() {
     startGeneration(activeConversationId);
 
     const initialProgress: GenerationProgress = {
-      introText: `正在为「${request.coursewareTitle}」补齐学情埋点和报告配置，原历史课件不会被直接覆盖。`,
-      instantIntro: true,
       stages: stageNames.map((name, index) => ({
         name,
         status: index === 0 ? 'in-progress' : 'pending',
@@ -2968,8 +2966,6 @@ export default function GeneratorPage() {
     const updateLatestProgress = (updatedProgress: GenerationProgress) => {
       const progressWithIntro: GenerationProgress = {
         ...updatedProgress,
-        introText: initialProgress.introText,
-        instantIntro: true,
         stages: updatedProgress.stages.map(stage => ({
           ...stage,
           detail: stage.name === '埋点方案生成'

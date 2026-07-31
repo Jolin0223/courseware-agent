@@ -1,23 +1,36 @@
 import type { LearningDataRecoveryItem, LearningDataRecoverySummary, LearningDataReportCapability } from '../types';
 
 export const learningDataRecoveryHelpText = '支持回收得分、正确率、用时、答对题数、完成次数和奖励数量等学情指标。';
-export const learningDataReportLaunchDate = '2026-07-24';
+export const learningDataReportLaunchTime = '2026-04-06 00:00:00';
+
+const formatLocalDateTime = (date: Date) => [
+  date.getFullYear(),
+  String(date.getMonth() + 1).padStart(2, '0'),
+  String(date.getDate()).padStart(2, '0'),
+].join('-') + ` ${[
+  String(date.getHours()).padStart(2, '0'),
+  String(date.getMinutes()).padStart(2, '0'),
+  String(date.getSeconds()).padStart(2, '0'),
+].join(':')}`;
+
+const normalizeDateTimeText = (value: string) => {
+  const normalized = value.trim().replace(/\//g, '-').replace('T', ' ');
+  const match = normalized.match(/^(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2})(?::(\d{2}))?)?/);
+  if (!match) return null;
+  return `${match[1]} ${match[2] || '00:00'}:${match[3] || '00'}`;
+};
 
 export const getLearningDataReportCapability = (
   createdAt?: string | Date | null,
 ): LearningDataReportCapability => {
   if (!createdAt) return 'supported';
 
-  const datePart = createdAt instanceof Date
-    ? [
-        createdAt.getFullYear(),
-        String(createdAt.getMonth() + 1).padStart(2, '0'),
-        String(createdAt.getDate()).padStart(2, '0'),
-      ].join('-')
-    : createdAt.trim().replace(/\//g, '-').slice(0, 10);
+  const dateTimeText = createdAt instanceof Date
+    ? formatLocalDateTime(createdAt)
+    : normalizeDateTimeText(createdAt);
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return 'supported';
-  return datePart < learningDataReportLaunchDate ? 'requires-regeneration' : 'supported';
+  if (!dateTimeText) return 'supported';
+  return dateTimeText < learningDataReportLaunchTime ? 'requires-regeneration' : 'supported';
 };
 
 const metricItems: Record<string, Omit<LearningDataRecoveryItem, 'checked'>> = {

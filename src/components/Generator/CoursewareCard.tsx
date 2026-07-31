@@ -347,19 +347,6 @@ export default function CoursewareCard({
     });
   };
 
-  const getReportButtonStyle = (enabled = true): React.CSSProperties => {
-    const baseStyle = getActionButtonStyle('secondary', enabled);
-    if (!enabled || !shouldUpgradeLegacyReport) return baseStyle;
-
-    return {
-      ...baseStyle,
-      borderColor: 'rgba(20, 184, 166, 0.42)',
-      background: 'linear-gradient(180deg, #F8FEFF 0%, #ECFEFF 100%)',
-      color: '#0F766E',
-      boxShadow: '0 1px 4px rgba(20, 184, 166, 0.08)',
-    };
-  };
-
   const handleReportClick = () => {
     if (!isLatest) return;
 
@@ -376,20 +363,6 @@ export default function CoursewareCard({
     }
 
     setShowLearningDataModal(true);
-  };
-
-  const handleReportEnter = (event: React.MouseEvent<HTMLButtonElement>, enabled = true) => {
-    if (!enabled) return;
-    event.currentTarget.style.borderColor = 'var(--agent-primary)';
-    event.currentTarget.style.color = shouldUpgradeLegacyReport ? '#0F766E' : 'var(--agent-primary-text)';
-    event.currentTarget.style.background = shouldUpgradeLegacyReport ? '#ECFEFF' : '#FFFFFF';
-  };
-
-  const handleReportLeave = (event: React.MouseEvent<HTMLButtonElement> | React.FocusEvent<HTMLButtonElement>) => {
-    const nextStyle = getReportButtonStyle(isLatest);
-    event.currentTarget.style.borderColor = String(nextStyle.borderColor || '');
-    event.currentTarget.style.color = String(nextStyle.color || '');
-    event.currentTarget.style.background = String(nextStyle.background || '');
   };
 
   const getActionButtonStyle = (
@@ -593,13 +566,13 @@ export default function CoursewareCard({
           >
             <button
               onClick={handleReportClick}
-              style={getReportButtonStyle(isLatest)}
+              style={getActionButtonStyle('secondary', isLatest)}
               onMouseDown={e => e.preventDefault()}
-              onMouseEnter={e => handleReportEnter(e, isLatest)}
-              onMouseLeave={handleReportLeave}
-              onBlur={handleReportLeave}
+              onMouseEnter={e => handleActionEnter(e, isLatest)}
+              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest)}
+              onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
             >
-              {shouldUpgradeLegacyReport ? <Wand2 size={15} /> : <BarChart3 size={15} />}
+              <BarChart3 size={15} />
               {reportButtonLabel}
             </button>
             {reportDisabledTooltip && !isLatest && (

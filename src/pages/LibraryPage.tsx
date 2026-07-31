@@ -88,8 +88,8 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#94A3B8',
   },
   emptyImage: {
-    width: 126,
-    height: 126,
+    width: 252,
+    height: 252,
     objectFit: 'contain' as const,
     marginBottom: 14,
     opacity: 0.94,

@@ -13,7 +13,7 @@ import toast from '../utils/toast';
 
 type TabKey = 'all' | 'published' | 'draft';
 type PublishScopeFilter = '全部' | 'group' | 'school' | 'personal';
-const emptyStateImageUrl = 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/AkBhExjm-d30cd552-7abd-4e4d-b052-1315735222da.png';
+const emptyStateImageUrl = 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/riHClEj5-640638f5-44cd-44db-ad19-67bf535ceb3f.png';
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: 'all', label: '全部' },

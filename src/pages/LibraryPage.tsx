@@ -12,6 +12,7 @@ import { openCoursewarePreview } from '../utils/previewWindow';
 import toast from '../utils/toast';
 
 type TabKey = 'all' | 'published' | 'draft';
+type PublishScopeFilter = '全部' | 'group' | 'school' | 'personal';
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: 'all', label: '全部' },
@@ -39,8 +40,14 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#64748B',
   },
   tabs: {
-    display: 'flex',
-    gap: 7,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 3,
+    padding: 3,
+    borderRadius: 12,
+    border: '1px solid #DDE7F0',
+    background: 'linear-gradient(180deg, #FFFFFF 0%, #F7FAFD 100%)',
+    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
     width: 'fit-content',
   },
   tabsSearchRow: {
@@ -51,31 +58,28 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 24,
   },
   tab: {
-    height: 34,
-    minWidth: 88,
-    padding: '0 16px',
-    borderRadius: 10,
+    height: 30,
+    minWidth: 76,
+    padding: '0 14px',
+    borderRadius: 9,
     fontSize: 14,
     fontWeight: 700,
-    border: '1px solid #CBD5E1',
-    borderColor: '#CBD5E1',
-    background: '#F8FAFC',
+    border: 'none',
+    background: 'transparent',
     color: '#475569',
     cursor: 'pointer',
     transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s',
     outline: 'none',
   },
   tabHover: {
-    background: '#F6FCFF',
-    borderColor: '#BFE9F5',
+    background: 'rgba(240, 251, 255, 0.86)',
     color: 'var(--agent-primary-text)',
-    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.08)',
+    boxShadow: 'inset 0 0 0 1px #DDF3FA',
   },
   tabActive: {
-    background: '#F1FAFF',
-    borderColor: '#BFE9F5',
-    color: 'var(--agent-primary-text)',
-    boxShadow: 'none',
+    background: '#FFFFFF',
+    color: '#0759C9',
+    boxShadow: '0 7px 18px rgba(2, 116, 252, 0.12), inset 0 0 0 1px #BFE9F5',
   },
   emptyState: {
     textAlign: 'center',
@@ -128,6 +132,8 @@ export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('all');
   const [hoveredTab, setHoveredTab] = useState<TabKey | null>(null);
   const [keyword, setKeyword] = useState('');
+  const [filterPublishScope, setFilterPublishScope] = useState<PublishScopeFilter>('全部');
+  const [filterSchool, setFilterSchool] = useState('广州学校');
   const {
     coursewares,
     filterSubject,
@@ -163,6 +169,16 @@ export default function LibraryPage() {
     if (filterType !== '全部') {
       result = result.filter(courseware => courseware.type === filterType);
     }
+    if (filterPublishScope !== '全部') {
+      result = result.filter(courseware => {
+        const scope = courseware.resourceScope || (!courseware.isPublished ? 'personal' : 'school');
+        if (scope !== filterPublishScope) return false;
+        if (scope === 'school') {
+          return (courseware.schoolName || '广州学校') === filterSchool;
+        }
+        return true;
+      });
+    }
     const query = keyword.trim().toLowerCase();
     if (query) {
       result = result.filter(courseware => (
@@ -173,7 +189,7 @@ export default function LibraryPage() {
     }
 
     return [...result].sort((a, b) => new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime());
-  }, [activeTab, coursewares, filterGrade, filterSubject, filterType, keyword]);
+  }, [activeTab, coursewares, filterGrade, filterPublishScope, filterSchool, filterSubject, filterType, keyword]);
 
   const handlePreview = (coursewareId: number) => {
     const courseware = coursewares.find(item => item.id === coursewareId);
@@ -260,8 +276,12 @@ export default function LibraryPage() {
             filterSubject={filterSubject}
             filterGrade={filterGrade}
             filterType={filterType}
+            filterPublishScope={filterPublishScope}
+            filterSchool={filterSchool}
             sortBy="最新"
             onFilterChange={setFilter}
+            onPublishScopeChange={setFilterPublishScope}
+            onSchoolChange={setFilterSchool}
             onSortChange={() => undefined}
             sortOptions={[]}
           />
@@ -279,6 +299,7 @@ export default function LibraryPage() {
           showEditDelete
           showInsert={false}
           showStats={false}
+          showOwnerMeta={false}
           showPublishStatus
         />
       ) : (

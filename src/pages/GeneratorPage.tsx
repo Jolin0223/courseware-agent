@@ -2662,6 +2662,7 @@ export default function GeneratorPage() {
             htmlContent: mockCoursewares[0].htmlContent,
             isOwn: true,
             isPublished: false,
+            resourceScope: 'personal',
             learningDataRecovery: resultWithPreferences.learningDataRecovery,
           };
           addCourseware(newCourseware);
@@ -2737,6 +2738,7 @@ export default function GeneratorPage() {
           id: coursewareId, title: result.title, subject: '英语', grade: '一年级', type: '水果单词',
           author: '张老师', publishTime: new Date().toISOString().split('T')[0],
           views: 0, favorites: 0, likes: 0, htmlContent: mockCoursewares[0].htmlContent, isOwn: true, isPublished: false,
+          resourceScope: 'personal',
           learningDataRecovery: result.learningDataRecovery,
         };
         addCourseware(newCourseware);
@@ -2788,6 +2790,7 @@ export default function GeneratorPage() {
           id: coursewareId, title: result.title, subject: '英语', grade: '一年级', type: '水果单词',
           author: '张老师', publishTime: new Date().toISOString().split('T')[0],
           views: 0, favorites: 0, likes: 0, htmlContent: mockCoursewares[0].htmlContent, isOwn: true, isPublished: false,
+          resourceScope: 'personal',
           learningDataRecovery: result.learningDataRecovery,
         };
         addCourseware(newCourseware);
@@ -3153,6 +3156,7 @@ export default function GeneratorPage() {
                                 htmlContent: request.htmlContent,
                                 isOwn: true,
                                 isPublished: false,
+                                resourceScope: 'personal',
                                 learningDataRecovery: result.learningDataRecovery,
                               };
                               addCourseware(nextCourseware);

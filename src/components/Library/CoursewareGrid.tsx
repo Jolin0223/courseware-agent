@@ -15,6 +15,7 @@ interface CoursewareGridProps {
   showInsert?: boolean;
   showStats?: boolean;
   showPublishStatus?: boolean;
+  showOwnerMeta?: boolean;
 }
 
 const CoursewareGrid: React.FC<CoursewareGridProps> = ({
@@ -28,14 +29,11 @@ const CoursewareGrid: React.FC<CoursewareGridProps> = ({
   showInsert = true,
   showStats = true,
   showPublishStatus = false,
+  showOwnerMeta = true,
 }) => {
   return (
     <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: 20,
-      }}
+      className="library-courseware-grid"
     >
       {coursewares.map((cw) => (
         <CoursewareCard
@@ -50,6 +48,7 @@ const CoursewareGrid: React.FC<CoursewareGridProps> = ({
           showInsert={showInsert}
           showStats={showStats}
           showPublishStatus={showPublishStatus}
+          showOwnerMeta={showOwnerMeta}
         />
       ))}
     </div>
@@ -67,6 +66,7 @@ interface CardProps {
   showInsert: boolean;
   showStats: boolean;
   showPublishStatus: boolean;
+  showOwnerMeta: boolean;
 }
 
 const CoursewareCard: React.FC<CardProps> = ({
@@ -80,6 +80,7 @@ const CoursewareCard: React.FC<CardProps> = ({
   showInsert,
   showStats,
   showPublishStatus,
+  showOwnerMeta,
 }) => {
   const [hovered, setHovered] = useState(false);
   const { appMode, insertCourseware } = useUIStore();
@@ -100,18 +101,20 @@ const CoursewareCard: React.FC<CardProps> = ({
   };
 
   const actionBtnStyle: React.CSSProperties = {
-    height: 30,
-    padding: '0 12px',
+    height: 29,
+    padding: '0 10px',
     background: 'rgba(255,255,255,0.95)',
-    borderRadius: 10,
+    borderRadius: 9,
     fontSize: 12,
-    color: '#334155',
+    fontWeight: 750,
+    color: '#1E3A5F',
     display: 'flex',
     alignItems: 'center',
     gap: 4,
     cursor: 'pointer',
-    border: '1px solid rgba(255,255,255,0.72)',
+    border: '1px solid rgba(226, 242, 250, 0.92)',
     transition: '0.15s',
+    boxShadow: '0 6px 14px rgba(15, 23, 42, 0.12)',
   };
 
   return (
@@ -194,9 +197,9 @@ const CoursewareCard: React.FC<CardProps> = ({
             left: 0,
             right: 0,
             background: 'linear-gradient(transparent, rgba(15, 23, 42, 0.58))',
-            padding: 12,
+            padding: 10,
             display: 'flex',
-            gap: 8,
+            gap: 6,
             justifyContent: 'center',
             opacity: hovered ? 1 : 0,
             transition: '0.2s',
@@ -252,7 +255,7 @@ const CoursewareCard: React.FC<CardProps> = ({
       </div>
 
       {/* Info area */}
-      <div style={{ padding: 14 }}>
+      <div style={{ padding: '12px 12px 13px' }}>
         <div
           style={{
             fontSize: 14,
@@ -265,9 +268,11 @@ const CoursewareCard: React.FC<CardProps> = ({
         >
           {courseware.title}
         </div>
-        <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>
-          {courseware.author} · {courseware.publishTime}
-        </div>
+        {showOwnerMeta && (
+          <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>
+            {courseware.author} · {courseware.publishTime}
+          </div>
+        )}
         {showStats ? (
           <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#94A3B8', marginTop: 8 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>

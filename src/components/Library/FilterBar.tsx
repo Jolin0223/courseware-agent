@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Check, ChevronDown, Search } from 'lucide-react';
 
 interface FilterBarProps {
   subjects?: string[];
@@ -7,10 +8,16 @@ interface FilterBarProps {
   filterSubject: string;
   filterGrade: string;
   filterType: string;
+  filterPublishScope?: PublishScopeFilter;
+  filterSchool?: string;
   sortBy: string;
   onFilterChange: (key: string, value: string) => void;
+  onPublishScopeChange?: (value: PublishScopeFilter) => void;
+  onSchoolChange?: (value: string) => void;
   onSortChange: (value: string) => void;
 }
+
+type PublishScopeFilter = '全部' | 'group' | 'school' | 'personal';
 
 const defaultSubjects = [
   '全部', '双语故事表演', '脑力与思维', '博文妙笔',
@@ -25,6 +32,15 @@ const defaultGrades = [
 ];
 
 const defaultSortOptions = ['最热', '最新', '最多收藏', '最多下载'];
+
+const publishScopeOptions: { value: PublishScopeFilter; label: string }[] = [
+  { value: '全部', label: '全部' },
+  { value: 'group', label: '集团资源库' },
+  { value: 'school', label: '校本资源库' },
+  { value: 'personal', label: '个人资源库' },
+];
+
+const schools = ['北京学校', '上海学校', '广州学校', '武汉学校', '天津学校', '西安学校', '南京学校', '深圳学校'];
 
 const styles: Record<string, React.CSSProperties> = {
   filterRow: {
@@ -62,6 +78,110 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap' as const,
     outline: 'none',
   },
+  publishLocationRow: {
+    alignItems: 'flex-start',
+  },
+  publishLocationControls: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
+    flex: 1,
+  },
+  schoolDropdownWrap: {
+    position: 'relative' as const,
+    flexShrink: 0,
+  },
+  schoolSelect: {
+    height: 32,
+    minWidth: 132,
+    borderRadius: 10,
+    border: '1px solid #CBD5E1',
+    borderColor: '#CBD5E1',
+    background: '#FFFFFF',
+    color: '#334155',
+    padding: '0 10px 0 12px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    outline: 'none',
+    transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s',
+  },
+  schoolSelectActive: {
+    background: '#F6FCFF',
+    borderColor: '#BFE9F5',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 6px 14px rgba(14, 165, 233, 0.09)',
+  },
+  schoolDropdown: {
+    position: 'absolute',
+    top: 38,
+    left: 0,
+    width: 220,
+    padding: 8,
+    borderRadius: 10,
+    border: '1px solid #D8E5EF',
+    background: '#FFFFFF',
+    boxShadow: '0 14px 32px rgba(15, 23, 42, 0.14)',
+    zIndex: 20,
+  },
+  schoolSearchBox: {
+    height: 34,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 7,
+    padding: '0 9px',
+    borderRadius: 8,
+    border: '1px solid #E2E8F0',
+    background: '#F8FAFE',
+    marginBottom: 6,
+  },
+  schoolSearchInput: {
+    flex: 1,
+    minWidth: 0,
+    border: 'none',
+    outline: 'none',
+    background: 'transparent',
+    color: '#1E293B',
+    fontSize: 13,
+  },
+  schoolOptionList: {
+    maxHeight: 208,
+    overflowY: 'auto',
+  },
+  schoolOption: {
+    width: '100%',
+    minHeight: 34,
+    border: 'none',
+    borderRadius: 8,
+    background: '#FFFFFF',
+    color: '#334155',
+    fontSize: 13,
+    fontWeight: 650,
+    padding: '0 9px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    textAlign: 'left',
+    outline: 'none',
+  },
+  schoolOptionActive: {
+    background: '#F1FAFF',
+    color: 'var(--agent-primary-text)',
+    fontWeight: 800,
+  },
+  schoolEmpty: {
+    padding: '12px 8px',
+    textAlign: 'center',
+    color: '#94A3B8',
+    fontSize: 13,
+  },
   filterTagHover: {
     background: '#F6FCFF',
     borderColor: '#BFE9F5',
@@ -88,15 +208,33 @@ const FilterBar: React.FC<FilterBarProps> = ({
   sortOptions = defaultSortOptions,
   filterSubject,
   filterGrade,
+  filterPublishScope,
+  filterSchool = '广州学校',
   sortBy,
   onFilterChange,
+  onPublishScopeChange,
+  onSchoolChange,
   onSortChange,
 }) => {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [schoolOpen, setSchoolOpen] = useState(false);
+  const [schoolSearch, setSchoolSearch] = useState('');
+  const schoolDropdownRef = useRef<HTMLDivElement>(null);
   const filters: { label: string; key: string; value: string; options: string[] }[] = [
     { label: '学科', key: 'subject', value: filterSubject, options: subjects },
     { label: '年级', key: 'grade', value: filterGrade, options: grades },
   ];
+  const filteredSchools = schools.filter(school => school.includes(schoolSearch.trim()));
+
+  useEffect(() => {
+    const handleClickAway = (event: MouseEvent) => {
+      if (schoolDropdownRef.current && !schoolDropdownRef.current.contains(event.target as Node)) {
+        setSchoolOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickAway);
+    return () => document.removeEventListener('mousedown', handleClickAway);
+  }, []);
 
   return (
     <div style={{ padding: 0, marginBottom: 16 }}>
@@ -129,6 +267,105 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </div>
         </div>
       ))}
+
+      {filterPublishScope && onPublishScopeChange && (
+        <div style={{ ...styles.filterRow, ...styles.publishLocationRow }}>
+          <span style={styles.filterLabel}>发布位置</span>
+          <div style={styles.publishLocationControls}>
+            <div style={styles.filterTags}>
+              {publishScopeOptions.map((opt) => {
+                const isActive = filterPublishScope === opt.value;
+                const stateKey = `publish-scope-${opt.value}`;
+                const isHovered = hoveredKey === stateKey;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    style={{
+                      ...styles.filterTag,
+                      ...(isHovered && !isActive ? styles.filterTagHover : {}),
+                      ...(isActive ? styles.filterTagActive : {}),
+                    }}
+                    onMouseEnter={() => setHoveredKey(stateKey)}
+                    onMouseLeave={() => setHoveredKey(null)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      onPublishScopeChange(opt.value);
+                      if (opt.value !== 'school') setSchoolOpen(false);
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {filterPublishScope === 'school' && onSchoolChange && (
+              <div style={styles.schoolDropdownWrap} ref={schoolDropdownRef}>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.schoolSelect,
+                    ...(schoolOpen ? styles.schoolSelectActive : {}),
+                  }}
+                  onClick={() => setSchoolOpen(open => !open)}
+                >
+                  <span>{filterSchool || '选择分校'}</span>
+                  <ChevronDown
+                    size={14}
+                    color="#64748B"
+                    style={{
+                      transform: schoolOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.15s',
+                    }}
+                  />
+                </button>
+                {schoolOpen && (
+                  <div style={styles.schoolDropdown}>
+                    <div style={styles.schoolSearchBox}>
+                      <Search size={14} color="#94A3B8" />
+                      <input
+                        value={schoolSearch}
+                        onChange={event => setSchoolSearch(event.target.value)}
+                        placeholder="搜索分校"
+                        style={styles.schoolSearchInput}
+                        autoFocus
+                      />
+                    </div>
+                    <div style={styles.schoolOptionList}>
+                      {filteredSchools.length === 0 ? (
+                        <div style={styles.schoolEmpty}>未找到匹配分校</div>
+                      ) : (
+                        filteredSchools.map(school => {
+                          const active = filterSchool === school;
+                          return (
+                            <button
+                              key={school}
+                              type="button"
+                              style={{
+                                ...styles.schoolOption,
+                                ...(active ? styles.schoolOptionActive : {}),
+                              }}
+                              onClick={() => {
+                                onSchoolChange(school);
+                                setSchoolOpen(false);
+                                setSchoolSearch('');
+                              }}
+                            >
+                              <span>{school}</span>
+                              {active && <Check size={14} color="#00A67D" strokeWidth={2.5} />}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {sortOptions.length > 0 && (
         <div style={styles.sortRow}>

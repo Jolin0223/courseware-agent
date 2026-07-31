@@ -45,18 +45,22 @@ const schools = ['北京学校', '上海学校', '广州学校', '武汉学校',
 const styles: Record<string, React.CSSProperties> = {
   filterRow: {
     display: 'grid',
-    gridTemplateColumns: '58px minmax(0, 1fr)',
+    gridTemplateColumns: '64px minmax(0, 1fr)',
     alignItems: 'center',
     columnGap: 10,
     marginBottom: 8,
   },
   filterLabel: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     fontSize: 13,
     fontWeight: 750,
     color: '#1E293B',
-    width: 58,
+    width: 64,
+    minWidth: 64,
     lineHeight: '32px',
-    textAlign: 'right' as const,
+    whiteSpace: 'nowrap' as const,
   },
   filterTags: {
     display: 'flex',
@@ -227,6 +231,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
     { label: '年级', key: 'grade', value: filterGrade, options: grades },
   ];
   const filteredSchools = schools.filter(school => school.includes(schoolSearch.trim()));
+  const renderFilterLabel = (label: string) => (
+    <span style={styles.filterLabel} aria-label={label}>
+      {Array.from(label).map((char, index) => (
+        <span key={`${label}-${index}`}>{char}</span>
+      ))}
+    </span>
+  );
 
   useEffect(() => {
     const handleClickAway = (event: MouseEvent) => {
@@ -242,7 +253,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
     <div style={{ padding: 0, marginBottom: 16 }}>
       {filterPublishScope && onPublishScopeChange && (
         <div style={{ ...styles.filterRow, ...styles.publishLocationRow }}>
-          <span style={styles.filterLabel}>发布位置</span>
+          {renderFilterLabel('发布位置')}
           <div style={styles.publishLocationControls}>
             <div style={styles.filterTags}>
               {publishScopeOptions.map((opt) => {
@@ -277,7 +288,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
       {filterPublishScope === 'school' && onSchoolChange && (
         <div style={styles.filterRow}>
-          <span style={styles.filterLabel}>选择分校</span>
+          {renderFilterLabel('选择分校')}
           <div style={styles.schoolDropdownWrap} ref={schoolDropdownRef}>
             <button
               type="button"
@@ -344,7 +355,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
       {filters.map((f) => (
         <div key={f.key} style={styles.filterRow}>
-          <span style={styles.filterLabel}>{f.label}</span>
+          {renderFilterLabel(f.label)}
           <div style={styles.filterTags}>
             {f.options.map((opt) => {
               const isActive = f.value === opt || (opt === '全部' && f.value === '全部');

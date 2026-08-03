@@ -9,6 +9,7 @@ export interface Courseware {
   type: string;
   author: string;
   publishTime: string;
+  editedAt?: string;
   views: number;
   favorites: number;
   likes: number;

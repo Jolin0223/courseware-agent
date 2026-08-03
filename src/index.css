@@ -214,9 +214,20 @@ body {
   gap: 16px;
 }
 
+.library-courseware-grid.is-draft-list {
+  grid-template-columns: repeat(3, 340px);
+  gap: 12px;
+  max-width: 1044px;
+}
+
 @media (max-width: 1180px) {
   .library-courseware-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .library-courseware-grid.is-draft-list {
+    grid-template-columns: repeat(3, 340px);
+    max-width: 1044px;
   }
 }
 
@@ -224,10 +235,19 @@ body {
   .library-courseware-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .library-courseware-grid.is-draft-list {
+    grid-template-columns: repeat(3, 340px);
+    max-width: 1044px;
+  }
 }
 
 @media (max-width: 560px) {
   .library-courseware-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .library-courseware-grid.is-draft-list {
     grid-template-columns: 1fr;
   }
 }

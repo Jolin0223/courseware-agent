@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, Copy, Edit3, Trash2, Heart, Star, Download, Clock3, CheckCircle2 } from 'lucide-react';
+import { Eye, Copy, Edit3, Trash2, Heart, Star, Download } from 'lucide-react';
 import type { Courseware } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import toast from '../../utils/toast';
@@ -9,6 +9,7 @@ interface CoursewareGridProps {
   onClone: (id: number) => void;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
+  layout?: 'grid' | 'draft-list';
   showEditDelete?: boolean;
   showInsert?: boolean;
   showStats?: boolean;
@@ -21,15 +22,15 @@ const CoursewareGrid: React.FC<CoursewareGridProps> = ({
   onClone,
   onEdit,
   onDelete,
+  layout = 'grid',
   showEditDelete = false,
   showInsert = true,
   showStats = true,
-  showPublishStatus = false,
   showOwnerMeta = true,
 }) => {
   return (
     <div
-      className="library-courseware-grid"
+      className={`library-courseware-grid${layout === 'draft-list' ? ' is-draft-list' : ''}`}
     >
       {coursewares.map((cw) => (
         <CoursewareCard
@@ -41,7 +42,6 @@ const CoursewareGrid: React.FC<CoursewareGridProps> = ({
           showEditDelete={showEditDelete}
           showInsert={showInsert}
           showStats={showStats}
-          showPublishStatus={showPublishStatus}
           showOwnerMeta={showOwnerMeta}
         />
       ))}
@@ -57,7 +57,6 @@ interface CardProps {
   showEditDelete: boolean;
   showInsert: boolean;
   showStats: boolean;
-  showPublishStatus: boolean;
   showOwnerMeta: boolean;
 }
 
@@ -65,55 +64,6 @@ const getResourceScopeLabel = (courseware: Courseware) => {
   if (courseware.resourceScope === 'group') return '集团资源库';
   if (courseware.resourceScope === 'personal') return '个人资源库';
   return '校本资源库';
-};
-
-const getStatusMeta = (courseware: Courseware, isHistoricalPublished: boolean) => {
-  const resourceScopeLabel = getResourceScopeLabel(courseware);
-  if (courseware.isDeleted) {
-    return {
-      label: '已删除',
-      description: '资源已删除',
-      icon: <Trash2 size={13} strokeWidth={2.4} />,
-      background: 'rgba(255, 255, 255, 0.9)',
-      color: '#B42318',
-      borderColor: 'rgba(254, 202, 202, 0.95)',
-      shadow: 'rgba(180, 35, 24, 0.10)',
-    };
-  }
-  if (!courseware.isPublished) {
-    const draftPrefix = courseware.draftVersionCount && courseware.draftVersionCount > 1
-      ? `共 ${courseware.draftVersionCount} 个草稿 · `
-      : '';
-    return {
-      label: '未发布草稿',
-      description: `${draftPrefix}编辑于 ${courseware.publishTime}`,
-      icon: <Clock3 size={13} strokeWidth={2.4} />,
-      background: 'rgba(255, 251, 235, 0.92)',
-      color: '#B45309',
-      borderColor: 'rgba(253, 230, 138, 0.96)',
-      shadow: 'rgba(180, 83, 9, 0.10)',
-    };
-  }
-  if (isHistoricalPublished) {
-    return {
-      label: '历史发布',
-      description: `历史发布${resourceScopeLabel}`,
-      icon: <CheckCircle2 size={13} strokeWidth={2.4} />,
-      background: 'rgba(239, 246, 255, 0.92)',
-      color: '#1D4ED8',
-      borderColor: 'rgba(191, 219, 254, 0.96)',
-      shadow: 'rgba(29, 78, 216, 0.10)',
-    };
-  }
-  return {
-    label: '已发布',
-    description: `已发布${resourceScopeLabel}`,
-    icon: <CheckCircle2 size={13} strokeWidth={2.4} />,
-    background: 'rgba(240, 253, 249, 0.92)',
-    color: 'var(--agent-primary-text)',
-    borderColor: 'rgba(167, 243, 208, 0.96)',
-    shadow: 'rgba(15, 118, 110, 0.10)',
-  };
 };
 
 const thumbnailFallbacks: Record<string, string> = {
@@ -130,6 +80,11 @@ const thumbnailFallbacks: Record<string, string> = {
 };
 
 const getThumbnailSrc = (courseware: Courseware) => courseware.thumbnail || thumbnailFallbacks[courseware.title];
+const draftThumbnailUrl = '/assets/library/draft-placeholder.jpg';
+const getDraftEditedAtLabel = (courseware: Courseware) => {
+  const rawTime = courseware.editedAt || `${courseware.publishTime} 00:00:00`;
+  return rawTime.replace('T', ' ').slice(0, 19);
+};
 
 const createStaticThumbnailHtml = (html: string) => {
   const parser = new DOMParser();
@@ -162,7 +117,6 @@ const CoursewareCard: React.FC<CardProps> = ({
   showEditDelete,
   showInsert,
   showStats,
-  showPublishStatus,
   showOwnerMeta,
 }) => {
   const [hovered, setHovered] = useState(false);
@@ -170,12 +124,163 @@ const CoursewareCard: React.FC<CardProps> = ({
   const isEmbedded = appMode === 'embedded';
   const isHistoricalPublished = Boolean(courseware.isPublished && (courseware.id === 4 || courseware.id === 6));
   const isDeleted = Boolean(courseware.isDeleted);
+  const isDraftCard = !courseware.isPublished && !isDeleted;
   const shouldShowCloneAction = !isDeleted && courseware.isPublished;
   const shouldShowEditAction = showEditDelete && courseware.isOwn && !isDeleted && !isHistoricalPublished;
   const shouldShowDeleteAction = showEditDelete && courseware.isOwn && !isDeleted && courseware.isPublished;
   const hasCardActions = shouldShowCloneAction || shouldShowEditAction || shouldShowDeleteAction;
-  const statusMeta = getStatusMeta(courseware, isHistoricalPublished);
   const thumbnailSrc = getThumbnailSrc(courseware);
+  const draftVersionCount = courseware.draftVersionCount || 1;
+  const draftVersionLabel = draftVersionCount > 1 ? `共 ${draftVersionCount} 个草稿` : '1 个草稿';
+
+  const draftPreviewStyles: Record<string, React.CSSProperties> = {
+    root: {
+      position: 'relative',
+      display: 'grid',
+      gridTemplateColumns: '76px minmax(0, 1fr) 30px',
+      gap: 10,
+      padding: '10px 11px',
+      alignItems: 'center',
+      minHeight: 82,
+      background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+    },
+    thumb: {
+      position: 'relative',
+      height: 58,
+      borderRadius: 10,
+      overflow: 'hidden',
+      background: 'linear-gradient(180deg, #EAF3FF 0%, #F6FAFF 100%)',
+      border: '1px solid rgba(191,219,254,0.72)',
+      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    thumbGlow: {
+      position: 'absolute',
+      inset: 'auto -10px -18px auto',
+      width: 46,
+      height: 46,
+      borderRadius: '50%',
+      background: 'radial-gradient(circle, rgba(59,130,246,0.14), rgba(59,130,246,0))',
+      pointerEvents: 'none',
+    },
+    thumbImage: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      display: 'block',
+      position: 'relative',
+      zIndex: 1,
+    },
+    body: {
+      minWidth: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+    },
+    count: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: '#0759C9',
+      whiteSpace: 'nowrap',
+      flexShrink: 0,
+      width: 'fit-content',
+      height: 20,
+      padding: '0 7px',
+      borderRadius: 999,
+      background: '#EFF6FF',
+      border: '1px solid rgba(191, 219, 254, 0.95)',
+      display: 'inline-flex',
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 12,
+      lineHeight: 1.25,
+      fontWeight: 800,
+      color: '#0F172A',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      flex: 1,
+      minWidth: 0,
+    },
+    footer: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      fontSize: 11,
+      color: '#64748B',
+      fontWeight: 650,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    },
+    actions: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      flexShrink: 0,
+    },
+    actionMini: {
+      width: 26,
+      height: 26,
+      borderRadius: 8,
+      border: '1px solid rgba(226,232,240,0.95)',
+      background: '#FFFFFF',
+      color: '#334155',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 4px 10px rgba(15,23,42,0.06)',
+      cursor: 'pointer',
+    },
+  };
+
+  const renderDraftPreview = () => (
+    <div style={draftPreviewStyles.root}>
+      <div style={draftPreviewStyles.thumb}>
+        <div style={draftPreviewStyles.thumbGlow} />
+        <img
+          src={draftThumbnailUrl}
+          alt=""
+          loading="lazy"
+          draggable={false}
+          style={draftPreviewStyles.thumbImage}
+        />
+      </div>
+      <div style={draftPreviewStyles.body}>
+        <div style={draftPreviewStyles.title}>{courseware.title}</div>
+        <div style={draftPreviewStyles.footer}>
+          <span>编辑于 {getDraftEditedAtLabel(courseware)}</span>
+        </div>
+        <span style={draftPreviewStyles.count}>{draftVersionLabel}</span>
+      </div>
+      <div style={draftPreviewStyles.actions}>
+        {showEditDelete && courseware.isOwn && shouldShowEditAction && (
+          <button
+            type="button"
+            style={draftPreviewStyles.actionMini}
+            onClick={(e) => { e.stopPropagation(); onEdit?.(courseware.id); }}
+            aria-label="编辑"
+          >
+            <Edit3 size={14} />
+          </button>
+        )}
+        {showEditDelete && courseware.isOwn && shouldShowDeleteAction && (
+          <button
+            type="button"
+            style={draftPreviewStyles.actionMini}
+            onClick={(e) => { e.stopPropagation(); onDelete?.(courseware.id); }}
+            aria-label="删除"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   const handleInsert = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -247,12 +352,15 @@ const CoursewareCard: React.FC<CardProps> = ({
       <div
         style={{
           position: 'relative',
-          aspectRatio: '16/9',
+          height: isDraftCard ? 'auto' : undefined,
+          aspectRatio: isDraftCard ? undefined : '16/9',
           overflow: 'hidden',
           background: '#f8fafc',
         }}
       >
-        {thumbnailSrc ? (
+        {isDraftCard ? (
+          renderDraftPreview()
+        ) : thumbnailSrc ? (
           <img
             src={thumbnailSrc}
             alt=""
@@ -310,73 +418,49 @@ const CoursewareCard: React.FC<CardProps> = ({
           />
         )}
 
-        {showPublishStatus && (
+        {!isDraftCard && (
           <div
             style={{
               position: 'absolute',
-              top: 10,
-              left: 10,
-              height: 26,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '0 8px',
-              borderRadius: 999,
-              background: statusMeta.background,
-              color: statusMeta.color,
-              fontSize: 12,
-              fontWeight: 850,
-              border: `1px solid ${statusMeta.borderColor}`,
-              boxShadow: `0 5px 14px ${statusMeta.shadow}`,
-              backdropFilter: 'blur(8px)',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: 'linear-gradient(transparent, rgba(15, 23, 42, 0.58))',
+              padding: 10,
+              display: 'flex',
+              gap: 6,
+              justifyContent: 'center',
+              opacity: hovered && hasCardActions ? 1 : 0,
+              transition: '0.2s',
+              pointerEvents: hasCardActions ? 'auto' : 'none',
             }}
           >
-            {statusMeta.icon}
-            {statusMeta.label}
+            {shouldShowCloneAction && renderActionButton(
+              '同款',
+              <Copy size={14} />,
+              (e) => { e.stopPropagation(); onClone(courseware.id); },
+            )}
+            {showEditDelete && courseware.isOwn && (
+              <>
+                {shouldShowEditAction && renderActionButton(
+                  '编辑',
+                  <Edit3 size={14} />,
+                  (e) => { e.stopPropagation(); onEdit?.(courseware.id); },
+                )}
+                {shouldShowDeleteAction && renderActionButton(
+                  '删除',
+                  <Trash2 size={14} />,
+                  (e) => { e.stopPropagation(); onDelete?.(courseware.id); },
+                )}
+              </>
+            )}
           </div>
         )}
-
-        {/* Action overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(transparent, rgba(15, 23, 42, 0.58))',
-            padding: 10,
-            display: 'flex',
-            gap: 6,
-            justifyContent: 'center',
-            opacity: hovered && hasCardActions ? 1 : 0,
-            transition: '0.2s',
-            pointerEvents: hasCardActions ? 'auto' : 'none',
-          }}
-        >
-          {shouldShowCloneAction && renderActionButton(
-            '同款',
-            <Copy size={14} />,
-            (e) => { e.stopPropagation(); onClone(courseware.id); },
-          )}
-          {showEditDelete && courseware.isOwn && (
-            <>
-              {shouldShowEditAction && renderActionButton(
-                '编辑',
-                <Edit3 size={14} />,
-                (e) => { e.stopPropagation(); onEdit?.(courseware.id); },
-              )}
-              {shouldShowDeleteAction && renderActionButton(
-                '删除',
-                <Trash2 size={14} />,
-                (e) => { e.stopPropagation(); onDelete?.(courseware.id); },
-              )}
-            </>
-          )}
-        </div>
       </div>
 
       {/* Info area */}
-      <div style={{ padding: '12px 12px 13px' }}>
+      {!isDraftCard && (
+        <div style={{ padding: '12px 12px 13px' }}>
         <div
           style={{
             fontSize: 14,
@@ -412,7 +496,7 @@ const CoursewareCard: React.FC<CardProps> = ({
             <span>·</span>
             <span>{courseware.grade}</span>
             <span>·</span>
-            <span>{statusMeta.description}</span>
+            <span>{getResourceScopeLabel(courseware)}</span>
           </div>
         )}
         {isEmbedded && showInsert && (
@@ -429,7 +513,8 @@ const CoursewareCard: React.FC<CardProps> = ({
             <Download size={12} /> 插入课件
           </button>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

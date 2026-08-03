@@ -27,9 +27,20 @@ const draftTimeFilters: { key: DraftTimeFilterKey; label: string }[] = [
   { key: 'earlier', label: '更早' },
 ];
 
+const getCoursewareEditTime = (courseware: Courseware) => courseware.editedAt || `${courseware.publishTime} 00:00:00`;
+
+const parseLocalDateTime = (dateText: string) => {
+  const normalized = dateText.includes('T')
+    ? dateText
+    : dateText.includes(' ')
+      ? dateText.replace(' ', 'T')
+      : `${dateText}T00:00:00`;
+  return new Date(`${normalized}+08:00`);
+};
+
 const getDayDiff = (dateText: string) => {
   const currentDate = new Date('2026-08-03T00:00:00+08:00');
-  const targetDate = new Date(`${dateText}T00:00:00+08:00`);
+  const targetDate = parseLocalDateTime(dateText);
   const oneDay = 24 * 60 * 60 * 1000;
   return Math.floor((currentDate.getTime() - targetDate.getTime()) / oneDay);
 };
@@ -48,7 +59,7 @@ const aggregateDraftCoursewares = (drafts: Courseware[]) => {
 
   return Array.from(groups.values()).map(group => {
     const sorted = [...group].sort((a, b) => (
-      new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime()
+      parseLocalDateTime(getCoursewareEditTime(b)).getTime() - parseLocalDateTime(getCoursewareEditTime(a)).getTime()
     ));
     return {
       ...sorted[0],
@@ -309,7 +320,7 @@ export default function LibraryPage() {
       result = result.filter(courseware => !courseware.isPublished && !courseware.isDeleted);
       if (draftTimeFilter !== 'all') {
         result = result.filter(courseware => {
-          const diff = getDayDiff(courseware.publishTime);
+          const diff = getDayDiff(getCoursewareEditTime(courseware));
           if (draftTimeFilter === 'today') return diff === 0;
           if (draftTimeFilter === 'week') return diff >= 0 && diff <= 7;
           if (draftTimeFilter === 'month') return diff >= 0 && diff <= 30;
@@ -352,7 +363,9 @@ export default function LibraryPage() {
       ));
     }
 
-    return [...result].sort((a, b) => new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime());
+    return [...result].sort((a, b) => (
+      parseLocalDateTime(getCoursewareEditTime(b)).getTime() - parseLocalDateTime(getCoursewareEditTime(a)).getTime()
+    ));
   }, [activeTab, coursewares, draftTimeFilter, filterGrade, filterPublishScope, filterSchool, filterSubject, filterType, keyword]);
 
   const navigate = useNavigate();
@@ -500,6 +513,7 @@ export default function LibraryPage() {
           onClone={handleClone}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          layout={activeTab === 'draft' ? 'draft-list' : 'grid'}
           showEditDelete
           showInsert={false}
           showStats={false}

@@ -4,6 +4,7 @@ import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, P
 import type { Courseware, GenerationPreferences, LearningDataRecoveryItem, LearningDataRecoveryRequest, LearningDataReportCapability, VisualStyleRegenerationRequest, VoiceOption } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
+import { CLONE_COURSEWARE_PROMPT } from '../../constants/cloneCourseware';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
 import LearningDataRecoveryModal from './LearningDataRecoveryModal';
@@ -96,7 +97,7 @@ export default function CoursewareCard({
     kind: 'base' | 'enhancement';
   } | null>(null);
   const navigate = useNavigate();
-  const { appMode, insertCourseware, closePreview } = useUIStore();
+  const { appMode, insertCourseware, openPreview, setPendingAssistantPrompt } = useUIStore();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
   const isEmbedded = appMode === 'embedded';
   const feedbackLocator = '2fc7b609481e45868a38a74b4490400a';
@@ -160,10 +161,11 @@ export default function CoursewareCard({
 
   const handleClone = () => {
     const framework = getFrameworkForCourseware(courseware.id);
-    createCloneConversation(courseware.title, framework, courseware.htmlContent);
-    closePreview();
+    const clone = createCloneConversation(courseware.title, framework, courseware.htmlContent);
+    openPreview(clone.coursewareId, 'v1');
+    setPendingAssistantPrompt(CLONE_COURSEWARE_PROMPT);
     setCopied(true);
-    toast('已带入原课件 HTML，可补充同款需求');
+    toast('已创建同款课件第一版');
     setTimeout(() => {
       setCopied(false);
       navigate('/');
@@ -508,7 +510,7 @@ export default function CoursewareCard({
             onBlur={e => handleActionLeave(e, 'primary')}
           >
             {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
-            {copied ? '已带入' : '一键同款'}
+            {copied ? '已创建' : '一键同款'}
           </button>
           <div style={{ position: 'relative', display: 'inline-flex' }}
             onMouseEnter={() => { if (!isLatest) setEditDisabledTooltip(true); }}

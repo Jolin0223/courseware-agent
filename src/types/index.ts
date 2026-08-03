@@ -17,6 +17,9 @@ export interface Courseware {
   isOwn?: boolean;
   isPublished?: boolean;
   isDeleted?: boolean;
+  draftStage?: 'new' | 'revision';
+  draftGroupId?: string;
+  draftVersionCount?: number;
   showConversation?: boolean;
   learningDataRecovery?: LearningDataRecoverySummary;
   learningDataReportCapability?: LearningDataReportCapability;

@@ -1,25 +1,61 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { Search } from 'lucide-react';
 import CoursewareGrid from '../components/Library/CoursewareGrid';
 import FilterBar from '../components/Library/FilterBar';
-import PublishModal from '../components/Library/PublishModal';
 import { useCoursewareStore } from '../store/coursewareStore';
 import { useUIStore } from '../store/uiStore';
-import { useConversationStore, getFrameworkForCourseware } from '../store/conversationStore';
-import { openCoursewarePreview } from '../utils/previewWindow';
 import toast from '../utils/toast';
+import type { Courseware } from '../types';
 
-type TabKey = 'all' | 'published' | 'draft';
+type TabKey = 'published' | 'draft' | 'deleted';
+type DraftTimeFilterKey = 'all' | 'today' | 'week' | 'month' | 'earlier';
 type PublishScopeFilter = '全部' | 'group' | 'school' | 'personal';
 const emptyStateImageUrl = 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/riHClEj5-640638f5-44cd-44db-ad19-67bf535ceb3f.png';
 
 const tabs: { key: TabKey; label: string }[] = [
-  { key: 'all', label: '全部' },
   { key: 'published', label: '已发布' },
-  { key: 'draft', label: '未发布' },
+  { key: 'draft', label: '未发布草稿' },
+  { key: 'deleted', label: '已删除' },
 ];
+
+const draftTimeFilters: { key: DraftTimeFilterKey; label: string }[] = [
+  { key: 'all', label: '全部时间' },
+  { key: 'today', label: '今天' },
+  { key: 'week', label: '近7天' },
+  { key: 'month', label: '近30天' },
+  { key: 'earlier', label: '更早' },
+];
+
+const getDayDiff = (dateText: string) => {
+  const currentDate = new Date('2026-08-03T00:00:00+08:00');
+  const targetDate = new Date(`${dateText}T00:00:00+08:00`);
+  const oneDay = 24 * 60 * 60 * 1000;
+  return Math.floor((currentDate.getTime() - targetDate.getTime()) / oneDay);
+};
+
+const getDraftGroupKey = (courseware: Courseware) => (
+  courseware.draftGroupId
+  || [courseware.title, courseware.subject, courseware.grade, courseware.type].join('|')
+);
+
+const aggregateDraftCoursewares = (drafts: Courseware[]) => {
+  const groups = new Map<string, Courseware[]>();
+  drafts.forEach(courseware => {
+    const key = getDraftGroupKey(courseware);
+    groups.set(key, [...(groups.get(key) || []), courseware]);
+  });
+
+  return Array.from(groups.values()).map(group => {
+    const sorted = [...group].sort((a, b) => (
+      new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime()
+    ));
+    return {
+      ...sorted[0],
+      draftVersionCount: group.length,
+    };
+  });
+};
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -101,6 +137,59 @@ const styles: Record<string, React.CSSProperties> = {
   },
   filterSearchRow: {
     marginBottom: 16,
+  },
+  draftFilterRow: {
+    display: 'grid',
+    gridTemplateColumns: '64px minmax(0, 1fr)',
+    alignItems: 'center',
+    columnGap: 10,
+    marginBottom: 12,
+  },
+  draftFilterLabel: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: 64,
+    minWidth: 64,
+    fontSize: 13,
+    fontWeight: 750,
+    color: '#1E293B',
+    lineHeight: '32px',
+    whiteSpace: 'nowrap',
+  },
+  draftFilterTags: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 7,
+    overflowX: 'auto',
+    scrollbarWidth: 'none',
+  },
+  draftFilterTag: {
+    height: 32,
+    padding: '0 12px',
+    borderRadius: 10,
+    border: '1px solid #CBD5E1',
+    borderColor: '#CBD5E1',
+    background: '#F8FAFC',
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: 850,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    outline: 'none',
+    transition: 'border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s',
+  },
+  draftFilterTagHover: {
+    background: '#F6FCFF',
+    borderColor: '#BFE9F5',
+    color: 'var(--agent-primary-text)',
+    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.08)',
+  },
+  draftFilterTagActive: {
+    background: '#F1FAFF',
+    borderColor: '#BFE9F5',
+    color: 'var(--agent-primary-text)',
+    fontWeight: 700,
   },
   filterArea: {
     flex: 1,
@@ -190,8 +279,10 @@ const styles: Record<string, React.CSSProperties> = {
 };
 
 export default function LibraryPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>('all');
+  const [activeTab, setActiveTab] = useState<TabKey>('published');
   const [hoveredTab, setHoveredTab] = useState<TabKey | null>(null);
+  const [draftTimeFilter, setDraftTimeFilter] = useState<DraftTimeFilterKey>('all');
+  const [hoveredDraftTimeFilter, setHoveredDraftTimeFilter] = useState<DraftTimeFilterKey | null>(null);
   const [keyword, setKeyword] = useState('');
   const [filterPublishScope, setFilterPublishScope] = useState<PublishScopeFilter>('全部');
   const [filterSchool, setFilterSchool] = useState('广州学校');
@@ -203,13 +294,8 @@ export default function LibraryPage() {
     filterType,
     setFilter,
     updateCourseware,
-    deleteCourseware,
   } = useCoursewareStore();
   const {
-    publishModalOpen,
-    publishCoursewareId,
-    closePublishModal,
-    openPublishModal,
     markSourceDeleted,
   } = useUIStore();
 
@@ -221,26 +307,41 @@ export default function LibraryPage() {
     }
     if (activeTab === 'draft') {
       result = result.filter(courseware => !courseware.isPublished && !courseware.isDeleted);
+      if (draftTimeFilter !== 'all') {
+        result = result.filter(courseware => {
+          const diff = getDayDiff(courseware.publishTime);
+          if (draftTimeFilter === 'today') return diff === 0;
+          if (draftTimeFilter === 'week') return diff >= 0 && diff <= 7;
+          if (draftTimeFilter === 'month') return diff >= 0 && diff <= 30;
+          return diff > 30;
+        });
+      }
+      result = aggregateDraftCoursewares(result);
+    }
+    if (activeTab === 'deleted') {
+      result = result.filter(courseware => courseware.isDeleted);
     }
 
-    if (filterSubject !== '全部') {
-      result = result.filter(courseware => courseware.subject === filterSubject);
-    }
-    if (filterGrade !== '全部') {
-      result = result.filter(courseware => courseware.grade === filterGrade);
-    }
-    if (filterType !== '全部') {
-      result = result.filter(courseware => courseware.type === filterType);
-    }
-    if (filterPublishScope !== '全部') {
-      result = result.filter(courseware => {
-        const scope = courseware.resourceScope || (!courseware.isPublished ? 'personal' : 'school');
-        if (scope !== filterPublishScope) return false;
-        if (scope === 'school') {
-          return (courseware.schoolName || '广州学校') === filterSchool;
-        }
-        return true;
-      });
+    if (activeTab === 'published') {
+      if (filterSubject !== '全部') {
+        result = result.filter(courseware => courseware.subject === filterSubject);
+      }
+      if (filterGrade !== '全部') {
+        result = result.filter(courseware => courseware.grade === filterGrade);
+      }
+      if (filterType !== '全部') {
+        result = result.filter(courseware => courseware.type === filterType);
+      }
+      if (filterPublishScope !== '全部') {
+        result = result.filter(courseware => {
+          const scope = courseware.resourceScope || (!courseware.isPublished ? 'personal' : 'school');
+          if (scope !== filterPublishScope) return false;
+          if (scope === 'school') {
+            return (courseware.schoolName || '广州学校') === filterSchool;
+          }
+          return true;
+        });
+      }
     }
     const query = keyword.trim().toLowerCase();
     if (query) {
@@ -252,27 +353,16 @@ export default function LibraryPage() {
     }
 
     return [...result].sort((a, b) => new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime());
-  }, [activeTab, coursewares, filterGrade, filterPublishScope, filterSchool, filterSubject, filterType, keyword]);
-
-  const handlePreview = (coursewareId: number) => {
-    const courseware = coursewares.find(item => item.id === coursewareId);
-    if (courseware) {
-      openCoursewarePreview(courseware, coursewares);
-    }
-  };
+  }, [activeTab, coursewares, draftTimeFilter, filterGrade, filterPublishScope, filterSchool, filterSubject, filterType, keyword]);
 
   const navigate = useNavigate();
-  const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
   const closePreview = useUIStore((s) => s.closePreview);
 
   const handleClone = (coursewareId: number) => {
     const courseware = coursewares.find(item => item.id === coursewareId);
     if (!courseware) return;
-    const framework = getFrameworkForCourseware(coursewareId);
-    createCloneConversation(courseware.title, framework, courseware.htmlContent);
     closePreview();
-    toast('已带入原课件 HTML，可补充同款需求');
-    navigate('/');
+    navigate(`/?cloneCoursewareId=${coursewareId}`);
   };
 
   const handleEdit = (coursewareId: number) => {
@@ -289,26 +379,18 @@ export default function LibraryPage() {
   };
 
   const pendingDeleteCourseware = coursewares.find(item => item.id === pendingDeleteId);
-  const deleteConfirmCopy = pendingDeleteCourseware?.isDeleted
-    ? {
-      title: '移除已删除记录',
-      body: '移除后这条记录将不再出现在我的创作列表中。',
-      action: '确认移除',
-    }
-    : pendingDeleteCourseware?.isPublished
-      ? {
-        title: '删除已发布课件',
-        body: '删除后该作品在资源库中不可见，已插入的课件会提示源资源已删除。',
-        action: '确认删除',
-      }
-      : {
-        title: '删除未发布草稿',
-        body: '删除后这个草稿不会再保留。',
-        action: '确认删除',
-      };
+  const deleteConfirmCopy = {
+    title: '删除已发布课件',
+    body: '删除后该作品在资源库中不可见，已插入的课件会提示源资源已删除。',
+    action: '确认删除',
+  };
 
   const confirmDelete = () => {
     if (!pendingDeleteCourseware) return;
+    if (!pendingDeleteCourseware.isPublished || pendingDeleteCourseware.isDeleted) {
+      setPendingDeleteId(null);
+      return;
+    }
     const coursewareId = pendingDeleteCourseware.id;
     if (pendingDeleteCourseware.isPublished && !pendingDeleteCourseware.isDeleted) {
       updateCourseware(coursewareId, { isDeleted: true, isPublished: false });
@@ -317,10 +399,15 @@ export default function LibraryPage() {
       setPendingDeleteId(null);
       return;
     }
-    deleteCourseware(coursewareId);
-    toast(pendingDeleteCourseware.isDeleted ? '已移除记录' : '已删除草稿');
-    setPendingDeleteId(null);
   };
+
+  const renderDraftFilterLabel = (label: string) => (
+    <span style={styles.draftFilterLabel} aria-label={label}>
+      {Array.from(label).map((char, index) => (
+        <span key={`${label}-${index}`}>{char}</span>
+      ))}
+    </span>
+  );
 
   return (
     <div style={styles.container}>
@@ -360,7 +447,36 @@ export default function LibraryPage() {
       </div>
 
       <div style={styles.filterSearchRow}>
-        <div style={styles.filterArea}>
+        {activeTab === 'draft' && (
+          <div style={styles.draftFilterRow}>
+            {renderDraftFilterLabel('编辑时间')}
+            <div style={styles.draftFilterTags}>
+              {draftTimeFilters.map(filter => {
+                const active = draftTimeFilter === filter.key;
+                const hovered = hoveredDraftTimeFilter === filter.key;
+                return (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    style={{
+                      ...styles.draftFilterTag,
+                      ...(hovered && !active ? styles.draftFilterTagHover : {}),
+                      ...(active ? styles.draftFilterTagActive : {}),
+                    }}
+                    onMouseEnter={() => setHoveredDraftTimeFilter(filter.key)}
+                    onMouseLeave={() => setHoveredDraftTimeFilter(null)}
+                    onMouseDown={event => event.preventDefault()}
+                    onClick={() => setDraftTimeFilter(filter.key)}
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {activeTab === 'published' && (
+          <div style={styles.filterArea}>
           <FilterBar
             filterSubject={filterSubject}
             filterGrade={filterGrade}
@@ -374,17 +490,16 @@ export default function LibraryPage() {
             onSortChange={() => undefined}
             sortOptions={[]}
           />
-        </div>
+          </div>
+        )}
       </div>
 
       {filteredCoursewares.length > 0 ? (
         <CoursewareGrid
           coursewares={filteredCoursewares}
-          onPreview={handlePreview}
           onClone={handleClone}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onPublish={openPublishModal}
           showEditDelete
           showInsert={false}
           showStats={false}
@@ -429,14 +544,6 @@ export default function LibraryPage() {
         </div>
       )}
 
-      <AnimatePresence>
-        {publishModalOpen && publishCoursewareId && (
-          <PublishModal
-            coursewareId={publishCoursewareId}
-            onClose={closePublishModal}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, MousePointer2, Highlighter, CheckCircle2, AlertCircle, Loader2, Copy } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
+import { useConversationStore } from '../../store/conversationStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
 import { demoPublishedTargets, demoSessionVersions } from '../../data/demoCoursewareVersions';
+import type { CoursewareResult } from '../../types';
 import PublishModal from '../Library/PublishModal';
 import toast from '../../utils/toast';
 
@@ -107,7 +109,7 @@ const buildSessionVersions = (courseware?: { title?: string; htmlContent?: strin
   }
   const baseHtml = courseware.htmlContent || '';
   const baseTitle = courseware.title || '互动课件';
-  if (isRealCaseCourseware(baseTitle)) {
+  if (isRealCaseCourseware(baseTitle) || baseTitle.endsWith('-同款版')) {
     return [
       {
         version: 'v1',
@@ -187,18 +189,49 @@ const buildPublishedTargets = (courseware?: { title?: string; subject?: string }
 
 export default function PreviewPanel({ coursewareId, initialVersion, onClose }: PreviewPanelProps) {
   const { coursewares, updateCourseware } = useCoursewareStore();
+  const conversations = useConversationStore((s) => s.conversations);
   const { appMode, insertCourseware } = useUIStore();
   const isEmbedded = appMode === 'embedded';
 
+  const generatedCourseware = useMemo(() => {
+    if (!coursewareId) return undefined;
+    for (const conversation of conversations) {
+      for (const message of conversation.messages) {
+        if (message.type !== 'courseware-result') continue;
+        const result = message.content as CoursewareResult;
+        if (result.coursewareId !== coursewareId) continue;
+        return {
+          id: coursewareId,
+          title: result.title,
+          subject: '英语',
+          grade: '一年级',
+          type: '互动课件',
+          author: '陈佳玲',
+          publishTime: new Date(message.timestamp).toISOString().split('T')[0],
+          views: 0,
+          favorites: 0,
+          likes: 0,
+          htmlContent: result.htmlContent,
+          thumbnail: result.thumbnail,
+          isOwn: true,
+          learningDataRecovery: result.learningDataRecovery,
+          learningDataReportCapability: result.learningDataReportCapability,
+        };
+      }
+    }
+    return undefined;
+  }, [conversations, coursewareId]);
+
   const courseware = useMemo(() => {
     const resolved = coursewares.find(c => c.id === coursewareId)
-      || mockCoursewares.find(c => c.id === coursewareId);
+      || mockCoursewares.find(c => c.id === coursewareId)
+      || generatedCourseware;
     if (!resolved) return resolved;
     if (resolved.title.includes('动物单词拼写') || resolved.htmlContent?.includes('动物单词拼写')) {
       return { ...mockCoursewares[0], id: resolved.id };
     }
     return resolved;
-  }, [coursewareId, coursewares]);
+  }, [coursewareId, coursewares, generatedCourseware]);
 
   const versionSourceCourseware = useMemo(() => {
     if (coursewareId === 1 && courseware) {

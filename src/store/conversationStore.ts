@@ -18,7 +18,7 @@ interface ConversationState {
   setActiveConversation: (id: string | null) => void;
   openPublishedConversation: (conversationId?: string | null, resourceId?: string | null) => { conversationId: string; coursewareId: number };
   createNewConversation: (initialPrompt?: string) => string;
-  createCloneConversation: (title: string, framework: RequirementFramework, htmlContent?: string) => string;
+  createCloneConversation: (title: string, framework: RequirementFramework, htmlContent?: string) => { conversationId: string; coursewareId: number };
   deleteConversation: (id: string) => void;
   renameConversation: (id: string, title: string) => void;
   togglePinConversation: (id: string) => void;
@@ -76,25 +76,45 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
   },
 
   createCloneConversation: (title, framework, htmlContent) => {
+    void framework;
+
     const newConv = createEmptyConversation();
-    newConv.title = `同款-${title}`;
-    newConv.messages = [];
-    newConv.cloneDraft = {
-      prompt: buildClonePrompt(title, framework),
-      attachment: {
-        id: `clone_html_${Date.now()}`,
-        type: 'html',
-        name: `${title}.html`,
-        locked: true,
-        hiddenContent: htmlContent,
-        sourceTitle: title,
+    const createdAt = new Date();
+    const resultTime = new Date(createdAt.getTime() + 1000);
+    const coursewareId = Date.now();
+    const sourceTitle = title.startsWith('同款-') ? title.slice(3) : title;
+    const normalizedTitle = sourceTitle.endsWith('-同款版') ? sourceTitle.slice(0, -4) : sourceTitle;
+    const resultTitle = `${normalizedTitle}-同款版`;
+
+    newConv.title = `同款-${normalizedTitle}`;
+    newConv.coursewareId = coursewareId;
+    newConv.messages = [
+      {
+        id: generateId(),
+        role: 'user',
+        content: `一键同款「${normalizedTitle}」`,
+        type: 'text',
+        timestamp: createdAt,
       },
-    };
+      {
+        id: generateId(),
+        role: 'assistant',
+        content: {
+          coursewareId,
+          title: resultTitle,
+          version: 'v1.0',
+          htmlContent: htmlContent || fruitGardenHTML,
+          learningDataRecovery: createLearningDataRecoverySummary(getRecoveryItemsForCourseware(normalizedTitle)),
+        },
+        type: 'courseware-result',
+        timestamp: resultTime,
+      },
+    ];
     set((state) => ({
       conversations: [newConv, ...state.conversations],
       activeConversationId: newConv.id,
     }));
-    return newConv.id;
+    return { conversationId: newConv.id, coursewareId };
   },
 
   deleteConversation: (id) => set((state) => ({
@@ -196,14 +216,6 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     }));
   },
 }));
-
-const buildClonePrompt = (title: string, framework: RequirementFramework) => {
-  void framework;
-
-  return `制作一个同款教学互动课件，具体需求包括：
-1. 参考附件中的原始 HTML 课件「${title}」，只复用其玩法结构、交互逻辑、反馈节奏和适合课堂演示的视觉方向。
-2. 请根据我接下来补充的新主题或新知识点，生成一份同款但内容不同的互动课件。`;
-};
 
 // Helper function to simulate generation process
 export async function simulateGeneration(

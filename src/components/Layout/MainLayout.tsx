@@ -3,13 +3,14 @@ import Sidebar from './Sidebar';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore } from '../../store/conversationStore';
 import { PlusCircle, FolderOpen } from 'lucide-react';
+import type React from 'react';
 
 const embeddedTabs = [
   { key: '/', label: '新建互动课件', icon: PlusCircle },
   { key: '/library', label: '我的创作', icon: FolderOpen },
 ];
 
-const MainLayout = ({ embedded }: { embedded?: boolean }) => {
+const MainLayout = ({ embedded, pageOverride }: { embedded?: boolean; pageOverride?: React.ReactNode }) => {
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const closePreview = useUIStore((s) => s.closePreview);
   const setActiveConversation = useConversationStore((s) => s.setActiveConversation);
@@ -51,7 +52,7 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
           })}
         </div>
         <main data-app-scroll-container="true" style={{ flex: 1, overflowY: 'auto', background: 'var(--agent-page-bg)' }}>
-          <Outlet />
+          {pageOverride || <Outlet />}
         </main>
       </div>
     );
@@ -73,7 +74,7 @@ const MainLayout = ({ embedded }: { embedded?: boolean }) => {
           position: 'relative',
         }}
       >
-        <Outlet />
+        {pageOverride || <Outlet />}
       </main>
     </div>
   );

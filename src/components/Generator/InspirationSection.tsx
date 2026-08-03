@@ -5,6 +5,7 @@ import {
   Brain,
   Calculator,
   CheckCircle2,
+  Copy,
   Flame,
   PlayCircle,
   Puzzle,
@@ -33,11 +34,15 @@ export interface GameplayInspiration {
   promptEnhancement: string;
   sourceType: string;
   typeLabel: string;
+  examplePreviewUrl?: string;
+  coverUrl?: string;
+  materialId?: string;
 }
 
 interface InspirationSectionProps {
   selectedInspirationId?: string | null;
   onApplyInspiration?: (item: GameplayInspiration, sourceElement?: HTMLElement | null) => void;
+  onCloneInspiration?: (item: GameplayInspiration, sourceElement?: HTMLElement | null) => void;
 }
 
 const tabIcons: Record<InspirationTabId, React.ElementType> = {
@@ -71,6 +76,25 @@ const getVisibleCardTags = (playway: InspirationPlayway) => (
 const getVisibleSuitableTags = (playway: InspirationPlayway) => (
   playway.suitableTags.filter(item => item && item !== '未标注')
 );
+
+const createCloneMeta = (playway: InspirationPlayway) => {
+  const materialId = playway.exampleId || playway.id.replace(/-/g, '');
+  const contentTags = getVisibleSuitableTags(playway);
+  const knowledgePoints = [
+    playway.secondaryLabel,
+    ...getVisibleSuitableTags(playway).filter(item => item !== playway.secondaryLabel),
+  ].slice(0, 3);
+
+  return {
+    materialId,
+    resourceOwner: '集团资源 / 双语故事表演 / S3',
+    contentTags: contentTags.length ? contentTags : [playway.secondaryLabel],
+    knowledgePoints: knowledgePoints.length ? knowledgePoints : [playway.displayTitle],
+    uploader: '陈佳玲 2026-07-30 18:20:09',
+    modifier: '陈佳玲 2026-07-30 18:20:09',
+    size: `${Math.max(2.1, Math.min(8.8, playway.templatePrompt.length / 4200)).toFixed(2)}K`,
+  };
+};
 
 const renderCardCover = (playway: InspirationPlayway) => {
   return (
@@ -109,6 +133,9 @@ const toGameplayInspiration = (playway: InspirationPlayway): GameplayInspiration
   promptEnhancement: playway.templatePrompt,
   sourceType: playway.primaryCategory,
   typeLabel: playway.secondaryLabel,
+  examplePreviewUrl: playway.examplePreviewUrl,
+  coverUrl: playway.coverUrl,
+  materialId: playway.exampleId,
 });
 
 export const buildStructuredInspirationPrompt = (item: GameplayInspiration, currentInput: string) => {
@@ -146,13 +173,19 @@ ${item.promptEnhancement}
 export default function InspirationSection({
   selectedInspirationId,
   onApplyInspiration,
+  onCloneInspiration,
 }: InspirationSectionProps) {
   const [activeTab, setActiveTab] = useState<InspirationTabId>('featured');
   const [activeSecondary, setActiveSecondary] = useState('all');
   const [visibleCount, setVisibleCount] = useState(cardsPerPage);
   const [examplePlaywayId, setExamplePlaywayId] = useState<string | null>(null);
+  const [clonePreviewPlaywayId, setClonePreviewPlaywayId] = useState<string | null>(null);
   const [examplePreviewLoaded, setExamplePreviewLoaded] = useState(false);
+  const [clonePreviewLoaded, setClonePreviewLoaded] = useState(false);
+  const [recommendationMode, setRecommendationMode] = useState<'clone' | 'template'>('clone');
+  const [copiedMaterialId, setCopiedMaterialId] = useState<string | null>(null);
   const lastActionKeyRef = useRef('');
+  const titleClickStateRef = useRef<{ count: number; timer: number | null }>({ count: 0, timer: null });
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const subNavWrapRef = useRef<HTMLDivElement | null>(null);
@@ -206,22 +239,45 @@ export default function InspirationSection({
     visiblePlayways.slice(0, visibleCount)
   ), [visibleCount, visiblePlayways]);
 
-  const hasMorePlayways = visibleCount < visiblePlayways.length;
+  const clonePlayways = useMemo(() => (
+    sortByFinalSeedOrder(inspirationSeedData.playways.filter(item => item.isFeatured))
+  ), []);
+
+  const currentVisiblePlayways = recommendationMode === 'clone' ? clonePlayways : visiblePlayways;
+  const currentDisplayedPlayways = recommendationMode === 'clone'
+    ? clonePlayways.slice(0, visibleCount)
+    : displayedPlayways;
+  const currentHasMorePlayways = visibleCount < currentVisiblePlayways.length;
 
   const examplePlayway = useMemo(
     () => inspirationSeedData.playways.find(item => item.id === examplePlaywayId) || null,
     [examplePlaywayId],
   );
 
+  const clonePreviewPlayway = useMemo(
+    () => inspirationSeedData.playways.find(item => item.id === clonePreviewPlaywayId) || null,
+    [clonePreviewPlaywayId],
+  );
+
   useEffect(() => {
     setExamplePreviewLoaded(false);
   }, [examplePlaywayId]);
+
+  useEffect(() => {
+    setClonePreviewLoaded(false);
+  }, [clonePreviewPlaywayId]);
+
+  useEffect(() => () => {
+    const timer = titleClickStateRef.current.timer;
+    if (timer) window.clearTimeout(timer);
+  }, []);
 
   const handleTabChange = (tab: InspirationTabId) => {
     setActiveTab(tab);
     setActiveSecondary('all');
     setVisibleCount(cardsPerPage);
     setExamplePlaywayId(null);
+    setClonePreviewPlaywayId(null);
   };
 
   useEffect(() => {
@@ -249,25 +305,65 @@ export default function InspirationSection({
     setActiveSecondary(secondary);
     setVisibleCount(cardsPerPage);
     setExamplePlaywayId(null);
+    setClonePreviewPlaywayId(null);
   };
 
   useEffect(() => {
-    if (!hasMorePlayways) return undefined;
+    if (!currentHasMorePlayways) return undefined;
 
     const node = loadMoreRef.current;
     if (!node) return undefined;
 
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return;
-      setVisibleCount(prev => Math.min(prev + cardsPerPage, visiblePlayways.length));
+      setVisibleCount(prev => Math.min(prev + cardsPerPage, currentVisiblePlayways.length));
     }, { rootMargin: '240px 0px' });
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [hasMorePlayways, visiblePlayways.length]);
+  }, [currentHasMorePlayways, currentVisiblePlayways.length]);
 
   const handleApply = (playway: InspirationPlayway, sourceElement?: HTMLElement | null) => {
     onApplyInspiration?.(toGameplayInspiration(playway), sourceElement);
+  };
+
+  const handleClone = (playway: InspirationPlayway, sourceElement?: HTMLElement | null) => {
+    onCloneInspiration?.(toGameplayInspiration(playway), sourceElement);
+  };
+
+  const handleTitleClick = () => {
+    const clickState = titleClickStateRef.current;
+    clickState.count += 1;
+
+    if (clickState.timer) {
+      window.clearTimeout(clickState.timer);
+    }
+
+    if (clickState.count >= 3) {
+      clickState.count = 0;
+      clickState.timer = null;
+      setRecommendationMode(prev => (prev === 'clone' ? 'template' : 'clone'));
+      setExamplePlaywayId(null);
+      setClonePreviewPlaywayId(null);
+      return;
+    }
+
+    clickState.timer = window.setTimeout(() => {
+      clickState.count = 0;
+      clickState.timer = null;
+    }, 850);
+  };
+
+  const handleCopyMaterialId = async (materialId: string) => {
+    try {
+      await navigator.clipboard?.writeText(materialId);
+      setCopiedMaterialId(materialId);
+      window.setTimeout(() => {
+        setCopiedMaterialId(current => (current === materialId ? null : current));
+      }, 1200);
+    } catch {
+      setCopiedMaterialId(null);
+    }
   };
 
   const runOnce = (key: string, action: () => void) => {
@@ -299,109 +395,134 @@ export default function InspirationSection({
             width: calc(100vw - 28px) !important;
             max-height: calc(100vh - 28px) !important;
           }
+          .inspiration-clone-body {
+            grid-template-columns: 1fr !important;
+          }
         }
         @media (max-width: 760px) {
           .inspiration-example-body {
             grid-template-columns: 1fr !important;
           }
+          .inspiration-clone-drawer {
+            width: calc(100vw - 24px) !important;
+            max-height: calc(100vh - 24px) !important;
+            margin: 12px !important;
+            border-radius: 16px !important;
+          }
+          .inspiration-clone-body {
+            grid-template-columns: 1fr !important;
+          }
         }
       `}</style>
       <div className="inspiration-header" style={styles.header}>
-        <div style={styles.eyebrow}>
+        <div
+          style={styles.eyebrow}
+          onClick={handleTitleClick}
+          aria-label="灵感推荐区"
+        >
           <Sparkles size={15} />
           灵感推荐区
         </div>
       </div>
 
-      <div style={styles.filterPanel}>
-        <div
-          ref={tabsRef}
-          className="inspiration-scroll"
-          style={styles.tabs}
-          onScroll={updateSubNavPointer}
-        >
-          {inspirationSeedData.categories.tabs.map(tab => {
-            const Icon = tabIcons[tab.id];
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                ref={(node) => {
-                  if (node) {
-                    tabRefs.current.set(tab.id, node);
-                  } else {
-                    tabRefs.current.delete(tab.id);
-                  }
-                }}
-                style={{
-                  ...styles.tab,
-                  ...(hoveredFilterKey === `tab-${tab.id}` && !active ? styles.filterButtonHover : {}),
-                  ...(active ? styles.tabActive : {}),
-                }}
-                onMouseEnter={() => setHoveredFilterKey(`tab-${tab.id}`)}
-                onMouseLeave={() => setHoveredFilterKey(null)}
-                onMouseDown={event => event.preventDefault()}
-                onClick={() => handleTabChange(tab.id)}
-              >
-                {tab.id === 'featured' ? (
-                  <span style={styles.featuredTabIcon}>🔥</span>
-                ) : (
-                  <Icon size={15} />
-                )}
-                {tab.id === 'featured' ? '精选推荐' : tab.name}
-              </button>
-            );
-          })}
-        </div>
-
-        {activeTab !== 'featured' && secondaryOptions.length > 0 && (
-          <div ref={subNavWrapRef} style={styles.subNavWrap}>
-            <div style={{ ...styles.subNavPointer, left: subNavPointerLeft }} />
-            <div className="inspiration-scroll" style={styles.subNav}>
-              <button
-                type="button"
-                style={{
-                  ...styles.subNavPill,
-                  ...(hoveredFilterKey === 'secondary-all' && activeSecondary !== 'all' ? styles.filterButtonHover : {}),
-                  ...(activeSecondary === 'all' ? styles.subNavPillActive : {}),
-                }}
-                onMouseEnter={() => setHoveredFilterKey('secondary-all')}
-                onMouseLeave={() => setHoveredFilterKey(null)}
-                onMouseDown={event => event.preventDefault()}
-                onClick={() => handleSecondaryChange('all')}
-              >
-                全部
-              </button>
-              {secondaryOptions.map(option => {
-                const active = activeSecondary === option.id;
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    style={{
-                      ...styles.subNavPill,
-                      ...(hoveredFilterKey === `secondary-${option.id}` && !active ? styles.filterButtonHover : {}),
-                      ...(active ? styles.subNavPillActive : {}),
-                    }}
-                    onMouseEnter={() => setHoveredFilterKey(`secondary-${option.id}`)}
-                    onMouseLeave={() => setHoveredFilterKey(null)}
-                    onMouseDown={event => event.preventDefault()}
-                    onClick={() => handleSecondaryChange(option.id)}
-                  >
-                    {option.name}
-                  </button>
-                );
-              })}
-            </div>
+      {recommendationMode === 'template' && (
+        <div style={styles.filterPanel}>
+          <div
+            ref={tabsRef}
+            className="inspiration-scroll"
+            style={styles.tabs}
+            onScroll={updateSubNavPointer}
+          >
+            {inspirationSeedData.categories.tabs.map(tab => {
+              const Icon = tabIcons[tab.id];
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  ref={(node) => {
+                    if (node) {
+                      tabRefs.current.set(tab.id, node);
+                    } else {
+                      tabRefs.current.delete(tab.id);
+                    }
+                  }}
+                  style={{
+                    ...styles.tab,
+                    ...(hoveredFilterKey === `tab-${tab.id}` && !active ? styles.filterButtonHover : {}),
+                    ...(active ? styles.tabActive : {}),
+                  }}
+                  onMouseEnter={() => setHoveredFilterKey(`tab-${tab.id}`)}
+                  onMouseLeave={() => setHoveredFilterKey(null)}
+                  onMouseDown={event => event.preventDefault()}
+                  onClick={() => handleTabChange(tab.id)}
+                >
+                  {tab.id === 'featured' ? (
+                    <span style={styles.featuredTabIcon}>🔥</span>
+                  ) : (
+                    <Icon size={15} />
+                  )}
+                  {tab.id === 'featured' ? '精选推荐' : tab.name}
+                </button>
+              );
+            })}
           </div>
-        )}
-      </div>
+
+          {activeTab !== 'featured' && secondaryOptions.length > 0 && (
+            <div ref={subNavWrapRef} style={styles.subNavWrap}>
+              <div style={{ ...styles.subNavPointer, left: subNavPointerLeft }} />
+              <div className="inspiration-scroll" style={styles.subNav}>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.subNavPill,
+                    ...(hoveredFilterKey === 'secondary-all' && activeSecondary !== 'all' ? styles.filterButtonHover : {}),
+                    ...(activeSecondary === 'all' ? styles.subNavPillActive : {}),
+                  }}
+                  onMouseEnter={() => setHoveredFilterKey('secondary-all')}
+                  onMouseLeave={() => setHoveredFilterKey(null)}
+                  onMouseDown={event => event.preventDefault()}
+                  onClick={() => handleSecondaryChange('all')}
+                >
+                  全部
+                </button>
+                {secondaryOptions.map(option => {
+                  const active = activeSecondary === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      style={{
+                        ...styles.subNavPill,
+                        ...(hoveredFilterKey === `secondary-${option.id}` && !active ? styles.filterButtonHover : {}),
+                        ...(active ? styles.subNavPillActive : {}),
+                      }}
+                      onMouseEnter={() => setHoveredFilterKey(`secondary-${option.id}`)}
+                      onMouseLeave={() => setHoveredFilterKey(null)}
+                      onMouseDown={event => event.preventDefault()}
+                      onClick={() => handleSecondaryChange(option.id)}
+                    >
+                      {option.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="inspiration-card-grid" style={styles.templateGrid}>
-        {displayedPlayways.map(playway => {
+        {currentDisplayedPlayways.map(playway => {
           const selected = selectedInspirationId === playway.id;
           return (
-            <article key={playway.id} style={{ ...styles.card, ...(selected ? styles.cardSelected : {}) }}>
+            <article
+              key={playway.id}
+              style={{
+                ...styles.card,
+                ...(recommendationMode === 'clone' ? styles.cloneCard : {}),
+                ...(selected ? styles.cardSelected : {}),
+              }}
+            >
               {renderCardCover(playway)}
 
               <div style={styles.cardBody}>
@@ -412,36 +533,62 @@ export default function InspirationSection({
                   {selected && (
                     <span style={styles.selectedBadge}>
                       <CheckCircle2 size={12} />
-                      已套用
+                      {recommendationMode === 'clone' ? '已同款' : '已套用'}
                     </span>
                   )}
                 </div>
 
-                <p style={styles.description} aria-label={`课堂流程：${playway.flowSteps.slice(0, 4).join('，')}`}>
-                  <span style={styles.descriptionIconBox} aria-hidden="true">
-                    <Route size={13} style={styles.descriptionIcon} />
-                  </span>
-                  {playway.flowSteps.slice(0, 4).join(' → ')}
-                </p>
+                {recommendationMode === 'template' && (
+                  <p style={styles.description} aria-label={`课堂流程：${playway.flowSteps.slice(0, 4).join('，')}`}>
+                    <span style={styles.descriptionIconBox} aria-hidden="true">
+                      <Route size={13} style={styles.descriptionIcon} />
+                    </span>
+                    {playway.flowSteps.slice(0, 4).join(' → ')}
+                  </p>
+                )}
 
                 <div style={styles.cardActions}>
                   <button
                     style={styles.detailBtn}
-                    aria-label={`${playway.displayTitle}模板效果示例`}
+                    aria-label={`${playway.displayTitle}效果预览`}
                     data-playway-id={playway.id}
                     data-example-id={playway.exampleId}
-                    onPointerUp={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
-                    onClick={() => runOnce(`example-${playway.id}`, () => setExamplePlaywayId(playway.id))}
+                    onPointerUp={() => runOnce(`example-${playway.id}`, () => {
+                      if (recommendationMode === 'clone') {
+                        setClonePreviewPlaywayId(playway.id);
+                      } else {
+                        setExamplePlaywayId(playway.id);
+                      }
+                    })}
+                    onClick={() => runOnce(`example-${playway.id}`, () => {
+                      if (recommendationMode === 'clone') {
+                        setClonePreviewPlaywayId(playway.id);
+                      } else {
+                        setExamplePlaywayId(playway.id);
+                      }
+                    })}
                   >
                     <PlayCircle size={14} />
                     试玩一下
                   </button>
                   <button
                     style={styles.primaryBtn}
-                    onPointerUp={(event) => runOnce(`apply-${playway.id}`, () => handleApply(playway, event.currentTarget))}
-                    onClick={(event) => runOnce(`apply-${playway.id}`, () => handleApply(playway, event.currentTarget))}
+                    onPointerUp={(event) => runOnce(`${recommendationMode}-${playway.id}`, () => {
+                      if (recommendationMode === 'clone') {
+                        handleClone(playway, event.currentTarget);
+                      } else {
+                        handleApply(playway, event.currentTarget);
+                      }
+                    })}
+                    onClick={(event) => runOnce(`${recommendationMode}-${playway.id}`, () => {
+                      if (recommendationMode === 'clone') {
+                        handleClone(playway, event.currentTarget);
+                      } else {
+                        handleApply(playway, event.currentTarget);
+                      }
+                    })}
                   >
-                    套用模板
+                    {recommendationMode === 'clone' ? '一键同款' : '套用模板'}
                   </button>
                 </div>
               </div>
@@ -450,21 +597,156 @@ export default function InspirationSection({
         })}
       </div>
 
-      {displayedPlayways.length === 0 && (
+      {currentDisplayedPlayways.length === 0 && (
         <div style={styles.emptyState}>当前分类下暂无匹配玩法，可以切换年龄段或点击其他分类看看。</div>
       )}
 
-      {hasMorePlayways && (
+      {currentHasMorePlayways && (
         <div ref={loadMoreRef} style={styles.loadMoreSentinel}>
-          向下浏览，自动加载更多玩法
+          向下浏览，自动加载更多课件
         </div>
       )}
 
-      {!hasMorePlayways && visiblePlayways.length > cardsPerPage && (
-        <div style={styles.loadMoreSentinel}>已展示全部玩法</div>
+      {!currentHasMorePlayways && currentVisiblePlayways.length > cardsPerPage && (
+        <div style={styles.loadMoreSentinel}>
+          {recommendationMode === 'clone' ? '已展示全部课件' : '已展示全部玩法'}
+        </div>
       )}
 
-      {examplePlayway && createPortal((
+      {recommendationMode === 'clone' && clonePreviewPlayway && createPortal((
+        <div style={styles.clonePreviewOverlay} onClick={() => setClonePreviewPlaywayId(null)}>
+          <aside
+            className="inspiration-clone-drawer"
+            style={styles.cloneDrawer}
+            onClick={event => event.stopPropagation()}
+          >
+            <div style={styles.cloneDrawerHeader}>
+              <div style={{ minWidth: 0 }}>
+                <div style={styles.cloneDrawerEyebrow}>互动课件资源</div>
+                <h3 style={styles.cloneDrawerTitle}>{clonePreviewPlayway.displayTitle}</h3>
+              </div>
+              <button
+                aria-label="关闭课件预览"
+                style={styles.exampleCloseBtn}
+                onClick={() => setClonePreviewPlaywayId(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="inspiration-clone-body" style={styles.cloneDrawerBody}>
+              <div style={styles.clonePreviewStage}>
+                {clonePreviewPlayway.examplePreviewUrl ? (
+                  <>
+                    <iframe
+                      title={`${clonePreviewPlayway.displayTitle}试玩`}
+                      sandbox="allow-scripts allow-same-origin"
+                      src={clonePreviewPlayway.examplePreviewUrl}
+                      style={styles.exampleIframe}
+                      onLoad={() => setClonePreviewLoaded(true)}
+                    />
+                    {!clonePreviewLoaded && (
+                      <PageLoadingState
+                        fill
+                        variant="dots"
+                        title="正在加载中"
+                      />
+                    )}
+                  </>
+                ) : clonePreviewPlayway.coverUrl ? (
+                  <img src={clonePreviewPlayway.coverUrl} alt={`${clonePreviewPlayway.displayTitle}封面`} style={styles.clonePreviewImage} />
+                ) : (
+                  <div style={styles.exampleEmptyPreview}>该课件暂未配置试玩</div>
+                )}
+              </div>
+
+              <div style={styles.cloneDetailPanel}>
+                {(() => {
+                  const meta = createCloneMeta(clonePreviewPlayway);
+                  const shortenedId = meta.materialId.length > 24
+                    ? `${meta.materialId.slice(0, 24)}...`
+                    : meta.materialId;
+                  const auditRows = [
+                    { label: '上传', value: meta.uploader },
+                    { label: '修改', value: meta.modifier },
+                    { label: '大小', value: meta.size },
+                  ];
+                  return (
+                    <div style={styles.cloneResourcePanel}>
+                      <div style={styles.cloneHeroMeta}>
+                        <span style={styles.cloneFieldLabel}>素材ID</span>
+                        <div style={styles.cloneMaterialValue}>
+                          <span style={styles.cloneMaterialId}>{shortenedId}</span>
+                          <button
+                            type="button"
+                            aria-label="复制素材ID"
+                            style={styles.copyButton}
+                            onClick={() => handleCopyMaterialId(meta.materialId)}
+                          >
+                            {copiedMaterialId === meta.materialId ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={styles.cloneDetailSection}>
+                        <span style={styles.cloneFieldLabel}>资源归属</span>
+                        <div style={styles.cloneOwnerPill}>{meta.resourceOwner}</div>
+                      </div>
+
+                      <div style={styles.cloneDetailSection}>
+                        <span style={styles.cloneFieldLabel}>内容标签</span>
+                        <div style={styles.cloneTagGrid}>
+                          {meta.contentTags.map(tag => (
+                            <span key={tag} style={styles.cloneContentTag}>{tag}</span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={styles.cloneDetailSection}>
+                        <span style={styles.cloneFieldLabel}>知识点</span>
+                        <div style={styles.cloneTagGrid}>
+                          {meta.knowledgePoints.map(point => (
+                            <span key={point} style={styles.cloneKnowledgeTag}>{point}</span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={styles.cloneAuditBox}>
+                        {auditRows.map(row => (
+                          <div key={row.label} style={styles.cloneAuditRow}>
+                            <span style={styles.cloneAuditLabel}>{row.label}</span>
+                            <span style={styles.cloneAuditValue}>{row.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div style={styles.cloneDrawerFooter}>
+              <button
+                style={styles.cloneSecondaryBtn}
+                onClick={() => setClonePreviewPlaywayId(null)}
+              >
+                关闭
+              </button>
+              <button
+                style={styles.clonePrimaryBtn}
+                onClick={(event) => {
+                  handleClone(clonePreviewPlayway, event.currentTarget);
+                  setClonePreviewPlaywayId(null);
+                }}
+              >
+                一键同款
+              </button>
+            </div>
+          </aside>
+        </div>
+      ), document.body)}
+
+      {recommendationMode === 'template' && examplePlayway && createPortal((
         <div style={styles.exampleOverlay} onClick={() => setExamplePlaywayId(null)}>
           <div
             className="inspiration-example-dialog"
@@ -584,6 +866,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 20,
     fontWeight: 900,
     marginBottom: 0,
+    cursor: 'default',
+    userSelect: 'none',
   },
   countBadge: {
     height: 22,
@@ -721,6 +1005,11 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 10px 24px rgba(37, 74, 120, 0.07)',
     overflow: 'hidden',
   },
+  cloneCard: {
+    minHeight: 198,
+    borderRadius: 12,
+    boxShadow: '0 8px 22px rgba(37, 74, 120, 0.065)',
+  },
   cardSelected: {
     borderColor: 'var(--agent-primary)',
     boxShadow: '0 10px 24px var(--agent-focus-ring-strong)',
@@ -783,6 +1072,40 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900,
     whiteSpace: 'nowrap',
     flexShrink: 0,
+  },
+  cloneMetaLine: {
+    minHeight: 20,
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 750,
+    lineHeight: 1.45,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  cloneTagLine: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+    minHeight: 25,
+    marginTop: 7,
+    overflow: 'hidden',
+  },
+  cloneTinyTag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    maxWidth: 74,
+    height: 22,
+    padding: '0 7px',
+    borderRadius: 7,
+    background: '#F8FAFC',
+    border: '1px solid #E2E8F0',
+    color: '#475569',
+    fontSize: 11,
+    fontWeight: 800,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   description: {
     margin: 0,
@@ -873,6 +1196,270 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 20,
     background: 'rgba(15, 23, 42, 0.34)',
     backdropFilter: 'blur(10px)',
+  },
+  clonePreviewOverlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 20000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    background: 'rgba(15, 23, 42, 0.30)',
+    backdropFilter: 'blur(8px)',
+  },
+  cloneDrawer: {
+    width: 'min(1240px, calc(100vw - 40px))',
+    maxHeight: 'calc(100vh - 40px)',
+    margin: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    borderRadius: 18,
+    border: '1px solid rgba(255, 255, 255, 0.76)',
+    background: '#FFFFFF',
+    boxShadow: '0 28px 80px rgba(15, 23, 42, 0.22)',
+  },
+  cloneDrawerHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 14,
+    padding: '16px 18px 13px',
+    borderBottom: '1px solid #E2E8F0',
+    background: 'linear-gradient(180deg, #F8FDFF 0%, #FFFFFF 100%)',
+  },
+  cloneDrawerEyebrow: {
+    marginBottom: 5,
+    color: '#0F8FB2',
+    fontSize: 12,
+    fontWeight: 900,
+    lineHeight: 1,
+  },
+  cloneDrawerTitle: {
+    margin: 0,
+    color: '#0F172A',
+    fontSize: 18,
+    fontWeight: 950,
+    lineHeight: 1.25,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  cloneDrawerBody: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(620px, 1fr) 330px',
+    gap: 16,
+    minHeight: 0,
+    padding: 16,
+    overflowY: 'auto',
+    background: '#FFFFFF',
+  },
+  clonePreviewStage: {
+    position: 'relative',
+    width: '100%',
+    aspectRatio: '16 / 9',
+    margin: 0,
+    flexShrink: 0,
+    overflow: 'hidden',
+    borderRadius: 12,
+    border: '1px solid #DDEAF0',
+    background: '#000000',
+    boxShadow: '0 14px 34px rgba(15, 23, 42, 0.14)',
+  },
+  clonePreviewImage: {
+    display: 'block',
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  cloneDetailPanel: {
+    display: 'grid',
+    alignContent: 'start',
+    minWidth: 0,
+    padding: '1px 0 4px',
+    overflowY: 'auto',
+  },
+  cloneResourcePanel: {
+    display: 'grid',
+    gap: 11,
+    padding: 12,
+    borderRadius: 14,
+    border: '1px solid #DCEAF2',
+    background: 'linear-gradient(180deg, #F9FDFF 0%, #FFFFFF 46%)',
+    boxShadow: '0 14px 34px rgba(37, 74, 120, 0.08)',
+  },
+  cloneHeroMeta: {
+    display: 'grid',
+    gap: 7,
+    padding: '12px 12px 11px',
+    borderRadius: 11,
+    border: '1px solid #CFEAF7',
+    background: 'linear-gradient(135deg, rgba(240, 251, 255, 0.96), rgba(245, 253, 250, 0.94))',
+  },
+  cloneDetailSection: {
+    display: 'grid',
+    gap: 8,
+    padding: '10px 11px',
+    borderRadius: 11,
+    border: '1px solid #E2EAF1',
+    background: '#FFFFFF',
+  },
+  cloneFieldLabel: {
+    color: '#8DA0B3',
+    fontSize: 12,
+    fontWeight: 900,
+    lineHeight: 1,
+  },
+  cloneMaterialValue: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    maxWidth: '100%',
+    minWidth: 0,
+    gap: 6,
+  },
+  cloneMaterialId: {
+    display: 'inline-block',
+    maxWidth: 'calc(100% - 30px)',
+    verticalAlign: 'middle',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    color: '#13233A',
+    fontSize: 13,
+    fontWeight: 950,
+    lineHeight: 1.4,
+  },
+  cloneOwnerPill: {
+    minWidth: 0,
+    width: 'fit-content',
+    maxWidth: '100%',
+    padding: '5px 9px',
+    borderRadius: 999,
+    border: '1px solid #BFE9F5',
+    background: '#F0FBFF',
+    color: '#0E7490',
+    fontSize: 12,
+    fontWeight: 900,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  cloneTagGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 7,
+  },
+  cloneContentTag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: 24,
+    padding: '0 8px',
+    borderRadius: 8,
+    border: '1px solid #C7F3EE',
+    background: '#F0FDFA',
+    color: '#0F766E',
+    fontSize: 12,
+    fontWeight: 850,
+    lineHeight: 1.2,
+  },
+  cloneKnowledgeTag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: 24,
+    padding: '0 8px',
+    borderRadius: 8,
+    border: '1px solid #DFE9F2',
+    background: '#F8FAFC',
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: 850,
+    lineHeight: 1.2,
+  },
+  cloneAuditBox: {
+    display: 'grid',
+    gap: 8,
+    padding: '10px 11px',
+    borderRadius: 11,
+    border: '1px solid #E2EAF1',
+    background: '#F8FAFC',
+  },
+  cloneAuditRow: {
+    display: 'grid',
+    gridTemplateColumns: '38px minmax(0, 1fr)',
+    gap: 10,
+    alignItems: 'center',
+    minHeight: 22,
+    fontSize: 12,
+    lineHeight: 1.45,
+  },
+  cloneAuditLabel: {
+    color: '#8DA0B3',
+    fontWeight: 900,
+    textAlign: 'justify',
+    textAlignLast: 'justify',
+  },
+  cloneAuditValue: {
+    minWidth: 0,
+    color: '#2F3B4A',
+    fontWeight: 850,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  copyButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 22,
+    height: 22,
+    marginLeft: 5,
+    borderRadius: 6,
+    border: '1px solid #DDEAF0',
+    background: '#FFFFFF',
+    color: '#64748B',
+    cursor: 'pointer',
+    verticalAlign: 'middle',
+  },
+  cloneDrawerFooter: {
+    marginTop: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 10,
+    padding: '13px 18px 16px',
+    borderTop: '1px solid #E2E8F0',
+    background: '#FFFFFF',
+  },
+  cloneSecondaryBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 34,
+    padding: '0 16px',
+    borderRadius: 10,
+    border: '1px solid #CBD5E1',
+    background: '#FFFFFF',
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: 'pointer',
+  },
+  clonePrimaryBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 34,
+    padding: '0 18px',
+    borderRadius: 10,
+    border: 'none',
+    background: 'var(--agent-action-gradient)',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 950,
+    cursor: 'pointer',
+    boxShadow: '0 10px 22px var(--agent-shadow)',
   },
   exampleDialog: {
     width: 'min(1180px, calc(100vw - 40px))',

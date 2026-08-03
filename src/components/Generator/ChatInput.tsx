@@ -32,6 +32,7 @@ interface ChatInputProps {
   injectedTextVersion?: number;
   onTextChange?: (text: string) => void;
   lockedAttachments?: UploadedAttachment[];
+  forceHighlight?: boolean;
 }
 
 const HOMEPAGE_CONTENT_MAX_WIDTH = 1080;
@@ -416,6 +417,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   injectedTextVersion,
   onTextChange,
   lockedAttachments = [],
+  forceHighlight = false,
 }) => {
   const appMode = useUIStore((s) => s.appMode);
   const linkedCoursewareCount = useUIStore((s) => s.linkedCoursewareCount);
@@ -446,6 +448,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const dragFileIdRef = useRef<string | null>(null);
 
   const [stopTooltip, setStopTooltip] = useState(false);
+  const isInputHighlighted = isFocused || forceHighlight;
 
   const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0) && !disabled;
   const imageFiles = attachedFiles.filter(file => file.type === 'image');
@@ -910,13 +913,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
             ...(centered ? styles.containerCentered : {}),
             border: isDraggingFiles
               ? '2px dashed var(--agent-primary)'
-              : isFocused ? '2px solid transparent' : '1px solid transparent',
+              : isInputHighlighted ? '2px solid transparent' : '1px solid transparent',
             background: isDraggingFiles
               ? 'linear-gradient(#FFFFFF, #FFFFFF) padding-box, var(--agent-gradient) border-box'
-              : isFocused
+              : isInputHighlighted
                 ? 'linear-gradient(#FFFFFF, #FFFFFF) padding-box, var(--agent-gradient) border-box'
                 : 'linear-gradient(#FFFFFF, #FFFFFF) padding-box, var(--agent-gradient) border-box',
-            boxShadow: isFocused
+            boxShadow: isInputHighlighted
               ? '0 10px 28px var(--agent-focus-ring-strong)'
               : '0 2px 8px rgba(0,0,0,0.06)',
           }}

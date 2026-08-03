@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from './components/Layout/MainLayout';
 import GeneratorPage from './pages/GeneratorPage';
@@ -6,9 +6,11 @@ import LibraryPage from './pages/LibraryPage';
 import EditorPage from './pages/EditorPage';
 import EditorDrawer from './components/Layout/EditorDrawer';
 import InspirationAssistant from './components/Generator/InspirationAssistant';
+import CoursewareEntryLoading, { type CoursewareEntryLoadingMode } from './components/common/CoursewareEntryLoading';
 import { useUIStore } from './store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from './store/conversationStore';
 import { useCoursewareStore } from './store/coursewareStore';
+import { CLONE_COURSEWARE_PROMPT } from './constants/cloneCourseware';
 import toast from './utils/toast';
 
 const NO_PERMISSION_ICON = 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/0yfywsZi-2fc4cc73-45eb-4d17-9c50-89c25838bf23.png';
@@ -20,6 +22,12 @@ const isNoPermissionQuery = (search: string) => {
 };
 
 function AppContent() {
+  const [entryLoading, setEntryLoading] = useState<{
+    mode: CoursewareEntryLoadingMode;
+    title?: string;
+    resourceId?: string;
+  } | null>(null);
+  const pendingEntryKeyRef = useRef<string | null>(null);
   const appMode = useUIStore((s) => s.appMode);
   const closePreview = useUIStore((s) => s.closePreview);
   const openPreview = useUIStore((s) => s.openPreview);
@@ -54,18 +62,35 @@ function AppContent() {
     const cw = coursewares.find(c => c.id === cloneCoursewareId);
     if (!cw) return;
 
-    const handledKey = `cloneCourseware:${cloneCoursewareId}`;
-    if (window.sessionStorage.getItem(handledKey)) return;
-    window.sessionStorage.setItem(handledKey, '1');
-
-    const framework = getFrameworkForCourseware(cw.id);
-    createCloneConversation(cw.title, framework, cw.htmlContent);
+    const pendingKey = `clone:${cloneCoursewareId}`;
+    if (pendingEntryKeyRef.current === pendingKey) return;
+    pendingEntryKeyRef.current = pendingKey;
+    setSidebarCollapsed(false);
     closePreview();
-    toast('已带入原课件 HTML，可补充同款需求');
-    params.delete('cloneCoursewareId');
-    window.history.replaceState(null, '', `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`);
-    navigate('/');
-  }, [coursewares, createCloneConversation, closePreview, navigate]);
+    setEntryLoading({
+      mode: 'clone',
+      title: cw.title,
+      resourceId: `AI-DEMO-${String(cw.id).padStart(4, '0')}`,
+    });
+
+    const timer = window.setTimeout(() => {
+      const framework = getFrameworkForCourseware(cw.id);
+      const clone = createCloneConversation(cw.title, framework, cw.htmlContent);
+      openPreview(clone.coursewareId, 'v1');
+      setPendingAssistantPrompt(CLONE_COURSEWARE_PROMPT);
+      toast('已创建同款课件第一版');
+      pendingEntryKeyRef.current = null;
+      setEntryLoading(null);
+      navigate('/', { replace: true });
+    }, 760);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (pendingEntryKeyRef.current === pendingKey) {
+        pendingEntryKeyRef.current = null;
+      }
+    };
+  }, [coursewares, createCloneConversation, closePreview, navigate, openPreview, setPendingAssistantPrompt, setSidebarCollapsed]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -73,17 +98,39 @@ function AppContent() {
 
     const conversationId = params.get('conversationId');
     const resourceId = params.get('resourceId');
-    const target = openPublishedConversation(conversationId, resourceId);
-    window.sessionStorage.setItem('openPublishedConversation:scrollToBottom', '1');
-    setSidebarCollapsed(true);
-    openPreview(target.coursewareId);
-    toast('已打开已发布作品，可继续修改并替换发布版本');
-    params.delete('mode');
-    params.delete('conversationId');
-    params.delete('resourceId');
-    window.history.replaceState(null, '', `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`);
-    navigate('/');
-  }, [openPublishedConversation, openPreview, setSidebarCollapsed, navigate]);
+    const pendingKey = `edit:${conversationId || ''}:${resourceId || ''}`;
+    if (pendingEntryKeyRef.current === pendingKey) return;
+    const normalizedCoursewareId = Number(resourceId?.replace(/[^\d]/g, '')) || 1;
+    const courseware = coursewares.find(item => item.id === normalizedCoursewareId);
+    pendingEntryKeyRef.current = pendingKey;
+    closePreview();
+    setSidebarCollapsed(false);
+    setEntryLoading({
+      mode: 'edit',
+      title: courseware?.title,
+      resourceId: resourceId || undefined,
+    });
+
+    const timer = window.setTimeout(() => {
+      const target = openPublishedConversation(conversationId, resourceId);
+      window.sessionStorage.setItem('openPublishedConversation:scrollToBottom', '1');
+      setSidebarCollapsed(true);
+      openPreview(target.coursewareId);
+      toast(courseware?.isPublished
+        ? '已打开已发布作品，可继续修改并替换发布版本'
+        : '已打开未发布草稿，可继续编辑后发布');
+      pendingEntryKeyRef.current = null;
+      setEntryLoading(null);
+      navigate('/', { replace: true });
+    }, 720);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (pendingEntryKeyRef.current === pendingKey) {
+        pendingEntryKeyRef.current = null;
+      }
+    };
+  }, [closePreview, coursewares, navigate, openPreview, openPublishedConversation, setSidebarCollapsed]);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -91,15 +138,16 @@ function AppContent() {
         const cw = coursewares.find(c => c.id === e.data.coursewareId);
         if (!cw) return;
         const framework = getFrameworkForCourseware(cw.id);
-        createCloneConversation(cw.title, framework, cw.htmlContent);
-        closePreview();
-        toast('已带入原课件 HTML，可补充同款需求');
+        const clone = createCloneConversation(cw.title, framework, cw.htmlContent);
+        openPreview(clone.coursewareId, 'v1');
+        setPendingAssistantPrompt(CLONE_COURSEWARE_PROMPT);
+        toast('已创建同款课件第一版');
         navigate('/');
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [coursewares, createCloneConversation, closePreview, navigate]);
+  }, [coursewares, createCloneConversation, navigate, openPreview, setPendingAssistantPrompt]);
 
   const handleApplyAssistantPrompt = useCallback((prompt: string) => {
     setPendingAssistantPrompt(prompt);
@@ -127,7 +175,10 @@ function AppContent() {
       <>
         <EditorPage />
         <EditorDrawer>
-          <MainLayout embedded />
+          <MainLayout
+            embedded
+            pageOverride={entryLoading ? <CoursewareEntryLoading {...entryLoading} /> : undefined}
+          />
         </EditorDrawer>
         {assistantNode}
       </>
@@ -136,7 +187,7 @@ function AppContent() {
 
   return (
     <>
-      <MainLayout />
+      <MainLayout pageOverride={entryLoading ? <CoursewareEntryLoading {...entryLoading} /> : undefined} />
       {assistantNode}
     </>
   );

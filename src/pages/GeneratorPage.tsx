@@ -38,12 +38,51 @@ import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
 import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
+import { CLONE_COURSEWARE_PROMPT } from '../constants/cloneCourseware';
 import toast from '../utils/toast';
 import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
 import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
 
 type GenerationPhase = 'input' | 'analyzing' | 'recommendation' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中~';
+
+const buildCloneReferenceHtml = (item: GameplayInspiration) => {
+  const previewUrl = item.examplePreviewUrl || item.coverUrl || '';
+  const escapedTitle = item.title
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+  const escapedPreviewUrl = previewUrl
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;');
+
+  if (!escapedPreviewUrl) {
+    return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#F8FAFC;color:#64748B;font:600 16px system-ui,sans-serif;">${escapedTitle}</div>`;
+  }
+
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapedTitle}</title>
+  <style>
+    html, body { width: 100%; height: 100%; margin: 0; background: #000; overflow: hidden; }
+    .clone-reference-stage { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #000; }
+    .clone-reference-frame { width: 100%; height: 100%; border: 0; background: #000; }
+    .clone-reference-image { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
+  </style>
+</head>
+<body>
+  <main class="clone-reference-stage" aria-label="${escapedTitle}">
+    ${item.examplePreviewUrl
+      ? `<iframe class="clone-reference-frame" src="${escapedPreviewUrl}" title="${escapedTitle}" allow="autoplay; fullscreen"></iframe>`
+      : `<img class="clone-reference-image" src="${escapedPreviewUrl}" alt="${escapedTitle}" />`}
+  </main>
+</body>
+</html>`;
+};
 
 type PromptFlyState = {
   id: number;
@@ -2049,6 +2088,7 @@ export default function GeneratorPage() {
     conversations,
     activeConversationId,
     createNewConversation,
+    createCloneConversation,
     addUserMessage,
     addAssistantMessage,
     isGenerating,
@@ -2122,6 +2162,11 @@ export default function GeneratorPage() {
   const activeConversation = conversations.find(c => c.id === activeConversationId);
   const hasMessages = activeConversation && activeConversation.messages.length > 0;
   const activeCloneDraft = !hasMessages ? activeConversation?.cloneDraft : undefined;
+  const isCloneDemandInput = Boolean(
+    activeConversation?.title.startsWith('同款-')
+    && draftPrompt.trim() === CLONE_COURSEWARE_PROMPT
+    && previewPanelOpen
+  );
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const chatContentMaxWidth = previewPanelOpen ? CHAT_CONTENT_MAX_WITH_PREVIEW : CHAT_CONTENT_MAX_FULL;
   const chatContentVars = { '--chat-content-max': `${chatContentMaxWidth}px` } as React.CSSProperties;
@@ -2281,6 +2326,14 @@ export default function GeneratorPage() {
     const next = buildStructuredInspirationPrompt(item, draftPrompt);
     injectPromptWithApplyMotion(item, next, sourceElement);
   }, [draftPrompt, injectPromptWithApplyMotion]);
+
+  const handleCloneInspiration = useCallback((item: GameplayInspiration) => {
+    const framework = generateRequirementFromPrompt(item.promptEnhancement);
+    const clone = createCloneConversation(item.title, framework, buildCloneReferenceHtml(item));
+    openPreview(clone.coursewareId, 'v1');
+    injectPrompt(CLONE_COURSEWARE_PROMPT);
+    toast('已创建同款课件第一版');
+  }, [createCloneConversation, injectPrompt, openPreview]);
 
   const startRequirementFlow = useCallback((
     convId: string,
@@ -3094,6 +3147,7 @@ export default function GeneratorPage() {
                   injectedTextVersion={draftVersion}
                   onTextChange={handleDraftPromptChange}
                   lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
+                  forceHighlight={isCloneDemandInput}
                 />
               </div>
             </div>
@@ -3102,6 +3156,7 @@ export default function GeneratorPage() {
             <InspirationSection
               selectedInspirationId={selectedInspiration?.id}
               onApplyInspiration={handleApplyInspiration}
+              onCloneInspiration={handleCloneInspiration}
             />
           </div>
           {showBackToInput && (
@@ -3405,6 +3460,7 @@ export default function GeneratorPage() {
               injectedTextVersion={draftVersion}
               onTextChange={handleDraftPromptChange}
               lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
+              forceHighlight={isCloneDemandInput}
             />
           </div>
         </div>

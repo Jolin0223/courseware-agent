@@ -1,16 +1,14 @@
 import { useState } from 'react';
-import { Eye, Copy, Edit3, Trash2, Heart, Star, Download, Send, Clock3, CheckCircle2 } from 'lucide-react';
+import { Eye, Copy, Edit3, Trash2, Heart, Star, Download, Clock3, CheckCircle2 } from 'lucide-react';
 import type { Courseware } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import toast from '../../utils/toast';
 
 interface CoursewareGridProps {
   coursewares: Courseware[];
-  onPreview: (id: number) => void;
   onClone: (id: number) => void;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
-  onPublish?: (id: number) => void;
   showEditDelete?: boolean;
   showInsert?: boolean;
   showStats?: boolean;
@@ -20,11 +18,9 @@ interface CoursewareGridProps {
 
 const CoursewareGrid: React.FC<CoursewareGridProps> = ({
   coursewares,
-  onPreview,
   onClone,
   onEdit,
   onDelete,
-  onPublish,
   showEditDelete = false,
   showInsert = true,
   showStats = true,
@@ -39,11 +35,9 @@ const CoursewareGrid: React.FC<CoursewareGridProps> = ({
         <CoursewareCard
           key={cw.id}
           courseware={cw}
-          onPreview={onPreview}
           onClone={onClone}
           onEdit={onEdit}
           onDelete={onDelete}
-          onPublish={onPublish}
           showEditDelete={showEditDelete}
           showInsert={showInsert}
           showStats={showStats}
@@ -57,11 +51,9 @@ const CoursewareGrid: React.FC<CoursewareGridProps> = ({
 
 interface CardProps {
   courseware: Courseware;
-  onPreview: (id: number) => void;
   onClone: (id: number) => void;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
-  onPublish?: (id: number) => void;
   showEditDelete: boolean;
   showInsert: boolean;
   showStats: boolean;
@@ -89,9 +81,12 @@ const getStatusMeta = (courseware: Courseware, isHistoricalPublished: boolean) =
     };
   }
   if (!courseware.isPublished) {
+    const draftPrefix = courseware.draftVersionCount && courseware.draftVersionCount > 1
+      ? `共 ${courseware.draftVersionCount} 个草稿 · `
+      : '';
     return {
-      label: '未发布',
-      description: '未发布草稿',
+      label: '未发布草稿',
+      description: `${draftPrefix}编辑于 ${courseware.publishTime}`,
       icon: <Clock3 size={13} strokeWidth={2.4} />,
       background: 'rgba(255, 251, 235, 0.92)',
       color: '#B45309',
@@ -161,11 +156,9 @@ const createStaticThumbnailHtml = (html: string) => {
 
 const CoursewareCard: React.FC<CardProps> = ({
   courseware,
-  onPreview,
   onClone,
   onEdit,
   onDelete,
-  onPublish,
   showEditDelete,
   showInsert,
   showStats,
@@ -177,6 +170,10 @@ const CoursewareCard: React.FC<CardProps> = ({
   const isEmbedded = appMode === 'embedded';
   const isHistoricalPublished = Boolean(courseware.isPublished && (courseware.id === 4 || courseware.id === 6));
   const isDeleted = Boolean(courseware.isDeleted);
+  const shouldShowCloneAction = !isDeleted && courseware.isPublished;
+  const shouldShowEditAction = showEditDelete && courseware.isOwn && !isDeleted && !isHistoricalPublished;
+  const shouldShowDeleteAction = showEditDelete && courseware.isOwn && !isDeleted && courseware.isPublished;
+  const hasCardActions = shouldShowCloneAction || shouldShowEditAction || shouldShowDeleteAction;
   const statusMeta = getStatusMeta(courseware, isHistoricalPublished);
   const thumbnailSrc = getThumbnailSrc(courseware);
 
@@ -266,8 +263,8 @@ const CoursewareCard: React.FC<CardProps> = ({
               height: '100%',
               objectFit: 'cover',
               display: 'block',
-              filter: isDeleted ? 'grayscale(0.3) saturate(0.75)' : 'none',
-              opacity: isDeleted ? 0.72 : 1,
+              filter: isDeleted ? 'saturate(0.72) brightness(0.92) contrast(0.98)' : 'none',
+              opacity: isDeleted ? 0.86 : 1,
             }}
           />
         ) : courseware.htmlContent ? (
@@ -283,8 +280,8 @@ const CoursewareCard: React.FC<CardProps> = ({
               transformOrigin: 'top left',
               border: 'none',
               pointerEvents: 'none',
-              filter: isDeleted ? 'grayscale(0.3) saturate(0.75)' : 'none',
-              opacity: isDeleted ? 0.72 : 1,
+              filter: isDeleted ? 'saturate(0.72) brightness(0.92) contrast(0.98)' : 'none',
+              opacity: isDeleted ? 0.86 : 1,
             }}
           />
         ) : (
@@ -302,7 +299,12 @@ const CoursewareCard: React.FC<CardProps> = ({
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(180deg, rgba(248, 250, 252, 0.08), rgba(15, 23, 42, 0.18))',
+              background: [
+                'linear-gradient(180deg, rgba(15, 23, 42, 0.03) 0%, rgba(15, 23, 42, 0.18) 54%, rgba(15, 23, 42, 0.58) 100%)',
+                'linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(15, 23, 42, 0.2))',
+              ].join(', '),
+              boxShadow: 'inset 0 0 0 1px rgba(15, 23, 42, 0.06), inset 0 -54px 78px rgba(15, 23, 42, 0.34)',
+              backdropFilter: 'saturate(0.78)',
               pointerEvents: 'none',
             }}
           />
@@ -346,38 +348,27 @@ const CoursewareCard: React.FC<CardProps> = ({
             display: 'flex',
             gap: 6,
             justifyContent: 'center',
-            opacity: hovered ? 1 : 0,
+            opacity: hovered && hasCardActions ? 1 : 0,
             transition: '0.2s',
+            pointerEvents: hasCardActions ? 'auto' : 'none',
           }}
         >
-          {!isDeleted && renderActionButton(
-            '预览',
-            <Eye size={14} />,
-            (e) => { e.stopPropagation(); onPreview(courseware.id); },
-          )}
-          {(courseware.isPublished || isDeleted) && renderActionButton(
+          {shouldShowCloneAction && renderActionButton(
             '同款',
             <Copy size={14} />,
             (e) => { e.stopPropagation(); onClone(courseware.id); },
-            isDeleted,
           )}
           {showEditDelete && courseware.isOwn && (
             <>
-              {!isDeleted && !isHistoricalPublished && renderActionButton(
+              {shouldShowEditAction && renderActionButton(
                 '编辑',
                 <Edit3 size={14} />,
                 (e) => { e.stopPropagation(); onEdit?.(courseware.id); },
               )}
-              {!isDeleted && !courseware.isPublished && onPublish && renderActionButton(
-                '发布',
-                <Send size={14} />,
-                (e) => { e.stopPropagation(); onPublish(courseware.id); },
-              )}
-              {renderActionButton(
-                isDeleted ? '移除' : '删除',
+              {shouldShowDeleteAction && renderActionButton(
+                '删除',
                 <Trash2 size={14} />,
                 (e) => { e.stopPropagation(); onDelete?.(courseware.id); },
-                isDeleted,
               )}
             </>
           )}

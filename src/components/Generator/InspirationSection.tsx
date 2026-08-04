@@ -380,6 +380,20 @@ export default function InspirationSection({
       <style>{`
         .inspiration-scroll { scrollbar-width: none; }
         .inspiration-scroll::-webkit-scrollbar { display: none; }
+        .clone-scroll-tags {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(148, 163, 184, 0.42) transparent;
+        }
+        .clone-scroll-tags::-webkit-scrollbar {
+          width: 4px;
+        }
+        .clone-scroll-tags::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.36);
+          border-radius: 999px;
+        }
+        .clone-scroll-tags::-webkit-scrollbar-track {
+          background: transparent;
+        }
         @media (max-width: 980px) {
           .inspiration-header {
             flex-direction: column;
@@ -695,7 +709,7 @@ export default function InspirationSection({
 
                       <div style={styles.cloneDetailSection}>
                         <span style={styles.cloneFieldLabel}>内容标签</span>
-                        <div style={styles.cloneTagGrid}>
+                        <div className="clone-scroll-tags" style={styles.cloneScrollableTagGrid}>
                           {meta.contentTags.map(tag => (
                             <span key={tag} style={styles.cloneContentTag}>{tag}</span>
                           ))}
@@ -704,7 +718,7 @@ export default function InspirationSection({
 
                       <div style={styles.cloneDetailSection}>
                         <span style={styles.cloneFieldLabel}>知识点</span>
-                        <div style={styles.cloneTagGrid}>
+                        <div className="clone-scroll-tags" style={styles.cloneScrollableTagGrid}>
                           {meta.knowledgePoints.map(point => (
                             <span key={point} style={styles.cloneKnowledgeTag}>{point}</span>
                           ))}
@@ -1250,16 +1264,18 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'grid',
     gridTemplateColumns: 'minmax(620px, 1fr) 330px',
     gap: 16,
+    alignItems: 'center',
     minHeight: 0,
     padding: 16,
-    overflowY: 'auto',
+    overflow: 'hidden',
     background: '#FFFFFF',
   },
   clonePreviewStage: {
     position: 'relative',
     width: '100%',
+    maxHeight: '100%',
     aspectRatio: '16 / 9',
-    margin: 0,
+    margin: '0 auto',
     flexShrink: 0,
     overflow: 'hidden',
     borderRadius: 12,
@@ -1275,14 +1291,19 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cloneDetailPanel: {
     display: 'grid',
-    alignContent: 'start',
+    alignContent: 'center',
     minWidth: 0,
-    padding: '1px 0 4px',
-    overflowY: 'auto',
+    height: '100%',
+    minHeight: 0,
+    padding: 0,
+    overflow: 'hidden',
   },
   cloneResourcePanel: {
     display: 'grid',
-    gap: 11,
+    gridTemplateRows: '42px 58px 96px 96px 1fr',
+    gap: 8,
+    height: 424,
+    maxHeight: '100%',
     padding: 12,
     borderRadius: 14,
     border: '1px solid #DCEAF2',
@@ -1291,16 +1312,21 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cloneHeroMeta: {
     display: 'grid',
-    gap: 7,
-    padding: '12px 12px 11px',
+    gridTemplateColumns: '48px minmax(0, 1fr)',
+    alignItems: 'center',
+    gap: 9,
+    minHeight: 42,
+    padding: '0 10px',
     borderRadius: 11,
     border: '1px solid #CFEAF7',
     background: 'linear-gradient(135deg, rgba(240, 251, 255, 0.96), rgba(245, 253, 250, 0.94))',
   },
   cloneDetailSection: {
     display: 'grid',
-    gap: 8,
-    padding: '10px 11px',
+    gridTemplateRows: '14px minmax(0, 1fr)',
+    gap: 6,
+    minHeight: 0,
+    padding: '9px 10px',
     borderRadius: 11,
     border: '1px solid #E2EAF1',
     background: '#FFFFFF',
@@ -1350,6 +1376,16 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexWrap: 'wrap',
     gap: 7,
+  },
+  cloneScrollableTagGrid: {
+    display: 'flex',
+    alignContent: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 7,
+    maxHeight: 55,
+    minHeight: 0,
+    overflowY: 'auto',
+    paddingRight: 2,
   },
   cloneContentTag: {
     display: 'inline-flex',

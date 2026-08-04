@@ -709,7 +709,7 @@ export default function InspirationSection({
 
                       <div style={styles.cloneDetailSection}>
                         <span style={styles.cloneFieldLabel}>内容标签</span>
-                        <div className="clone-scroll-tags" style={styles.cloneScrollableTagGrid}>
+                        <div className="clone-scroll-tags" style={styles.cloneContentTagGrid}>
                           {meta.contentTags.map(tag => (
                             <span key={tag} style={styles.cloneContentTag}>{tag}</span>
                           ))}
@@ -718,7 +718,7 @@ export default function InspirationSection({
 
                       <div style={styles.cloneDetailSection}>
                         <span style={styles.cloneFieldLabel}>知识点</span>
-                        <div className="clone-scroll-tags" style={styles.cloneScrollableTagGrid}>
+                        <div className="clone-scroll-tags" style={styles.cloneKnowledgeTagGrid}>
                           {meta.knowledgePoints.map(point => (
                             <span key={point} style={styles.cloneKnowledgeTag}>{point}</span>
                           ))}
@@ -1387,6 +1387,31 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 55,
     minHeight: 0,
     overflowY: 'auto',
+    paddingRight: 2,
+  },
+  cloneContentTagGrid: {
+    display: 'flex',
+    alignContent: 'center',
+    flexWrap: 'wrap',
+    gap: 7,
+    height: 55,
+    maxHeight: 55,
+    minHeight: 0,
+    boxSizing: 'border-box',
+    overflowY: 'auto',
+    paddingRight: 2,
+  },
+  cloneKnowledgeTagGrid: {
+    display: 'flex',
+    alignContent: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 7,
+    height: 55,
+    maxHeight: 55,
+    minHeight: 0,
+    boxSizing: 'border-box',
+    overflowY: 'auto',
+    paddingTop: 7,
     paddingRight: 2,
   },
   cloneContentTag: {

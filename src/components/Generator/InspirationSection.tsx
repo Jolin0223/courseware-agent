@@ -710,18 +710,22 @@ export default function InspirationSection({
                       <div style={styles.cloneDetailSection}>
                         <span style={styles.cloneFieldLabel}>内容标签</span>
                         <div className="clone-scroll-tags" style={styles.cloneContentTagGrid}>
-                          {meta.contentTags.map(tag => (
-                            <span key={tag} style={styles.cloneContentTag}>{tag}</span>
-                          ))}
+                          <div style={styles.cloneTagCloudInner}>
+                            {meta.contentTags.map(tag => (
+                              <span key={tag} style={styles.cloneContentTag}>{tag}</span>
+                            ))}
+                          </div>
                         </div>
                       </div>
 
                       <div style={styles.cloneDetailSection}>
                         <span style={styles.cloneFieldLabel}>知识点</span>
                         <div className="clone-scroll-tags" style={styles.cloneKnowledgeTagGrid}>
-                          {meta.knowledgePoints.map(point => (
-                            <span key={point} style={styles.cloneKnowledgeTag}>{point}</span>
-                          ))}
+                          <div style={styles.cloneTagCloudInner}>
+                            {meta.knowledgePoints.map(point => (
+                              <span key={point} style={styles.cloneKnowledgeTag}>{point}</span>
+                            ))}
+                          </div>
                         </div>
                       </div>
 
@@ -1379,23 +1383,11 @@ const styles: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap',
     gap: 7,
   },
-  cloneScrollableTagGrid: {
-    display: 'flex',
-    alignContent: 'flex-start',
-    flexWrap: 'wrap',
-    gap: 7,
-    maxHeight: 55,
-    minHeight: 0,
-    overflowY: 'auto',
-    paddingRight: 2,
-  },
   cloneContentTagGrid: {
     display: 'flex',
-    alignContent: 'center',
-    flexWrap: 'wrap',
-    gap: 7,
-    height: 55,
-    maxHeight: 55,
+    alignItems: 'center',
+    height: 64,
+    maxHeight: 64,
     minHeight: 0,
     boxSizing: 'border-box',
     overflowY: 'auto',
@@ -1403,16 +1395,19 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cloneKnowledgeTagGrid: {
     display: 'flex',
-    alignContent: 'flex-start',
-    flexWrap: 'wrap',
-    gap: 7,
-    height: 55,
-    maxHeight: 55,
+    alignItems: 'center',
+    height: 64,
+    maxHeight: 64,
     minHeight: 0,
     boxSizing: 'border-box',
     overflowY: 'auto',
-    paddingTop: 7,
     paddingRight: 2,
+  },
+  cloneTagCloudInner: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 7,
+    width: '100%',
   },
   cloneContentTag: {
     display: 'inline-flex',

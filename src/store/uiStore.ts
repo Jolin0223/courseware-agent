@@ -7,6 +7,12 @@ interface AssistantPromptTransfer {
   prompt: string;
 }
 
+export interface CoursewareEntryLoadingRequest {
+  mode: 'clone' | 'edit';
+  title?: string;
+  resourceId?: string;
+}
+
 interface UIState {
   appMode: AppMode;
   setAppMode: (mode: AppMode) => void;
@@ -19,6 +25,7 @@ interface UIState {
   editorDrawerOpen: boolean;
   insertedCoursewares: InsertedCourseware[];
   pendingAssistantPrompt: AssistantPromptTransfer | null;
+  coursewareEntryLoading: CoursewareEntryLoadingRequest | null;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   openPreview: (coursewareId: number, initialVersion?: string | null) => void;
@@ -34,6 +41,7 @@ interface UIState {
   markSourceDeleted: (id: number) => void;
   setPendingAssistantPrompt: (prompt: string) => void;
   clearPendingAssistantPrompt: (id: number) => void;
+  setCoursewareEntryLoading: (loading: CoursewareEntryLoadingRequest | null) => void;
   linkedCoursewareCount: number;
   setLinkedCoursewareCount: (count: number) => void;
 }
@@ -61,6 +69,7 @@ export const useUIStore = create<UIState>((set) => ({
   editorDrawerOpen: false,
   insertedCoursewares: [],
   pendingAssistantPrompt: null,
+  coursewareEntryLoading: null,
   
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
@@ -96,6 +105,7 @@ export const useUIStore = create<UIState>((set) => ({
   clearPendingAssistantPrompt: (id) => set((state) => (
     state.pendingAssistantPrompt?.id === id ? { pendingAssistantPrompt: null } : {}
   )),
+  setCoursewareEntryLoading: (coursewareEntryLoading) => set({ coursewareEntryLoading }),
   linkedCoursewareCount: 0,
   setLinkedCoursewareCount: (count) => set({ linkedCoursewareCount: count }),
 }));

@@ -208,10 +208,23 @@ body {
   display: none;
 }
 
+.agent-library-page {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px 30px 52px 50px;
+}
+
+.agent-library-content {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
 .library-courseware-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .library-courseware-grid.is-draft-list {
@@ -221,8 +234,14 @@ body {
 }
 
 @media (max-width: 1180px) {
-  .library-courseware-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .library-card-action {
+    width: 30px !important;
+    padding: 0 !important;
+    justify-content: center;
+  }
+
+  .library-card-action-label {
+    display: none;
   }
 
   .library-courseware-grid.is-draft-list {
@@ -231,19 +250,29 @@ body {
   }
 }
 
-@media (max-width: 900px) {
-  .library-courseware-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 760px) {
+  .agent-library-page {
+    padding: 20px 12px 32px;
+  }
+
+  .agent-library-content {
+    padding: 8px;
+  }
+
+  .library-courseware-grid:not(.is-draft-list),
+  .inspiration-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .library-courseware-grid.is-draft-list {
-    grid-template-columns: repeat(3, 340px);
-    max-width: 1044px;
+    grid-template-columns: repeat(2, minmax(0, 340px));
+    max-width: 692px;
   }
 }
 
 @media (max-width: 560px) {
-  .library-courseware-grid {
+  .library-courseware-grid,
+  .inspiration-card-grid {
     grid-template-columns: 1fr;
   }
 

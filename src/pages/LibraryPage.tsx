@@ -70,9 +70,7 @@ const aggregateDraftCoursewares = (drafts: Courseware[]) => {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    padding: '32px 40px',
-    maxWidth: 1400,
-    margin: '0 auto',
+    width: '100%',
   },
   header: {
     marginBottom: 24,
@@ -423,7 +421,8 @@ export default function LibraryPage() {
   );
 
   return (
-    <div style={styles.container}>
+    <div className="agent-library-page">
+      <div className="agent-library-content" style={styles.container}>
       <div style={styles.header}>
         <h1 style={styles.title}>我的创作</h1>
         <p style={styles.subtitle}>管理你创建的互动课件</p>
@@ -558,6 +557,7 @@ export default function LibraryPage() {
         </div>
       )}
 
+      </div>
     </div>
   );
 }

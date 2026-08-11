@@ -104,6 +104,7 @@ export interface CoursewareRecommendation {
 export interface GenerationPreferences {
   visualStyleMode?: 'smart' | 'manual';
   visualStyleId?: string;
+  visualStyleEnhancementIds?: string[];
   visualStyleName?: string;
   voiceMode?: 'smart' | 'manual';
   voiceId?: string;
@@ -111,6 +112,7 @@ export interface GenerationPreferences {
   voiceLanguage?: string;
   htmlModelId?: string;
   imageModelId?: string;
+  generationModeId?: 'fast' | 'smart' | 'deep';
   estimatedMinutes?: string;
 }
 
@@ -128,6 +130,7 @@ export interface AugustGenerationPlan {
   recommendations: CoursewareRecommendation[];
   selectedRecommendationId: string;
   visualStyleId: string;
+  visualStyleEnhancementIds?: string[];
   visualStyleName: string;
   visualStyleMode?: 'smart' | 'manual';
   voiceId: string;
@@ -136,6 +139,8 @@ export interface AugustGenerationPlan {
   voiceMode?: 'smart' | 'manual';
   htmlModelId: string;
   imageModelId: string;
+  generationModeId: string;
+  generationArchitecture: 'accelerated' | 'standard';
   advancedOpen?: boolean;
   estimatedMinutes: string;
 }

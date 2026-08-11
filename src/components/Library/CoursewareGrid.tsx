@@ -324,12 +324,14 @@ const CoursewareCard: React.FC<CardProps> = ({
     muted = false,
   ) => (
     <button
+      className="library-card-action"
       style={muted ? mutedActionBtnStyle : actionBtnStyle}
       onClick={onClick}
+      aria-label={label}
       onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = muted ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.95)'; }}
     >
-      {icon} {label}
+      {icon}<span className="library-card-action-label">{label}</span>
     </button>
   );
 
@@ -339,12 +341,13 @@ const CoursewareCard: React.FC<CardProps> = ({
       onMouseLeave={() => setHovered(false)}
       style={{
         background: '#fff',
-        borderRadius: 10,
+        borderRadius: isDraftCard ? 10 : 12,
+        minHeight: isDraftCard ? undefined : 198,
         overflow: 'hidden',
         border: `1px solid ${isDeleted ? '#E5EAF0' : hovered ? 'var(--agent-border)' : '#E2E8F0'}`,
         transition: 'all 0.2s',
-        cursor: 'pointer',
-        boxShadow: hovered && !isDeleted ? '0 10px 26px var(--agent-shadow)' : '0 1px 2px rgba(15,23,42,0.03)',
+        cursor: isDeleted ? 'default' : 'pointer',
+        boxShadow: hovered && !isDeleted ? '0 10px 26px var(--agent-shadow)' : isDeleted ? 'none' : '0 1px 2px rgba(15,23,42,0.03)',
         transform: hovered && !isDeleted ? 'translateY(-1px)' : 'none',
       }}
     >
@@ -371,8 +374,8 @@ const CoursewareCard: React.FC<CardProps> = ({
               height: '100%',
               objectFit: 'cover',
               display: 'block',
-              filter: isDeleted ? 'saturate(0.72) brightness(0.92) contrast(0.98)' : 'none',
-              opacity: isDeleted ? 0.86 : 1,
+              filter: isDeleted ? 'grayscale(0.22) saturate(0.72) brightness(0.98)' : 'none',
+              opacity: 1,
             }}
           />
         ) : courseware.htmlContent ? (
@@ -388,8 +391,8 @@ const CoursewareCard: React.FC<CardProps> = ({
               transformOrigin: 'top left',
               border: 'none',
               pointerEvents: 'none',
-              filter: isDeleted ? 'saturate(0.72) brightness(0.92) contrast(0.98)' : 'none',
-              opacity: isDeleted ? 0.86 : 1,
+              filter: isDeleted ? 'grayscale(0.22) saturate(0.72) brightness(0.98)' : 'none',
+              opacity: 1,
             }}
           />
         ) : (
@@ -403,19 +406,39 @@ const CoursewareCard: React.FC<CardProps> = ({
         )}
 
         {isDeleted && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: [
-                'linear-gradient(180deg, rgba(15, 23, 42, 0.03) 0%, rgba(15, 23, 42, 0.18) 54%, rgba(15, 23, 42, 0.58) 100%)',
-                'linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(15, 23, 42, 0.2))',
-              ].join(', '),
-              boxShadow: 'inset 0 0 0 1px rgba(15, 23, 42, 0.06), inset 0 -54px 78px rgba(15, 23, 42, 0.34)',
-              backdropFilter: 'saturate(0.78)',
-              pointerEvents: 'none',
-            }}
-          />
+          <>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(180deg, rgba(248, 250, 252, 0.02), rgba(248, 250, 252, 0.14))',
+                boxShadow: 'inset 0 0 0 1px rgba(148, 163, 184, 0.08)',
+                pointerEvents: 'none',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                height: 24,
+                padding: '0 8px',
+                borderRadius: 6,
+                border: '1px solid rgba(226, 232, 240, 0.96)',
+                background: 'rgba(255, 255, 255, 0.92)',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.10)',
+                color: '#64748B',
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: 11,
+                fontWeight: 750,
+                lineHeight: 1,
+                pointerEvents: 'none',
+              }}
+            >
+              已删除
+            </span>
+          </>
         )}
 
         {!isDraftCard && (
@@ -460,12 +483,12 @@ const CoursewareCard: React.FC<CardProps> = ({
 
       {/* Info area */}
       {!isDraftCard && (
-        <div style={{ padding: '12px 12px 13px' }}>
+        <div style={{ padding: '12px 12px 13px', minHeight: 92, background: isDeleted ? '#FBFCFE' : '#FFFFFF' }}>
         <div
           style={{
             fontSize: 14,
             fontWeight: 600,
-            color: '#1E293B',
+            color: isDeleted ? '#475569' : '#1E293B',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',

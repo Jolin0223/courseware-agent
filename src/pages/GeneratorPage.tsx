@@ -2105,6 +2105,7 @@ export default function GeneratorPage() {
     setSidebarCollapsed,
     pendingAssistantPrompt,
     clearPendingAssistantPrompt,
+    setCoursewareEntryLoading,
   } = useUIStore();
   const { addCourseware } = useCoursewareStore();
   
@@ -2129,6 +2130,15 @@ export default function GeneratorPage() {
   const welcomeHeroPanelRef = useRef<HTMLDivElement>(null);
   const welcomeScrollRef = useRef<HTMLDivElement>(null);
   const splitContainerRef = useRef<HTMLDivElement>(null);
+  const cloneEntryTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (cloneEntryTimerRef.current) {
+      window.clearTimeout(cloneEntryTimerRef.current);
+      cloneEntryTimerRef.current = null;
+    }
+    setCoursewareEntryLoading(null);
+  }, [setCoursewareEntryLoading]);
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -2328,12 +2338,24 @@ export default function GeneratorPage() {
   }, [draftPrompt, injectPromptWithApplyMotion]);
 
   const handleCloneInspiration = useCallback((item: GameplayInspiration) => {
-    const framework = generateRequirementFromPrompt(item.promptEnhancement);
-    const clone = createCloneConversation(item.title, framework, buildCloneReferenceHtml(item));
-    openPreview(clone.coursewareId, 'v1');
-    injectPrompt(CLONE_COURSEWARE_PROMPT);
-    toast('已创建同款课件第一版');
-  }, [createCloneConversation, injectPrompt, openPreview]);
+    if (cloneEntryTimerRef.current) return;
+
+    setCoursewareEntryLoading({
+      mode: 'clone',
+      title: item.title,
+      resourceId: item.materialId || item.id,
+    });
+
+    cloneEntryTimerRef.current = window.setTimeout(() => {
+      const framework = generateRequirementFromPrompt(item.promptEnhancement);
+      const clone = createCloneConversation(item.title, framework, buildCloneReferenceHtml(item));
+      openPreview(clone.coursewareId, 'v1');
+      injectPrompt(CLONE_COURSEWARE_PROMPT);
+      toast('已创建同款课件第一版');
+      setCoursewareEntryLoading(null);
+      cloneEntryTimerRef.current = null;
+    }, 760);
+  }, [createCloneConversation, injectPrompt, openPreview, setCoursewareEntryLoading]);
 
   const startRequirementFlow = useCallback((
     convId: string,
@@ -2654,7 +2676,11 @@ export default function GeneratorPage() {
       
       const initialProgress: GenerationProgress = {
         introText: plan
-          ? `${generationMode?.id !== 'smart' ? `已开始${generationMode?.name || '生成'}。等待时间可能更长` : '已开始生成'}，生成期间可以离开页面，完成后可在「我的创作」查看。`
+          ? `${generationMode?.id === 'fast'
+            ? '已开始极速生成，预计很快完成'
+            : generationMode?.id === 'deep'
+              ? '已开始深度生成，生成时间会明显更长'
+              : '已开始智能生成'}，生成期间可以离开页面，完成后可在「我的创作」查看。`
           : undefined,
         instantIntro: Boolean(plan),
         stages: [
@@ -2698,6 +2724,7 @@ export default function GeneratorPage() {
             generationPreferences: plan ? {
               visualStyleMode: plan.visualStyleMode,
               visualStyleId: plan.visualStyleId,
+              visualStyleEnhancementIds: plan.visualStyleEnhancementIds,
               visualStyleName: plan.visualStyleName,
               voiceMode: plan.voiceMode,
               voiceId: plan.voiceId,

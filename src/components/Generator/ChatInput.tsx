@@ -432,8 +432,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [generationPreferences, setGenerationPreferences] = useState<GenerationPreferences>({
     visualStyleMode: 'smart',
     voiceMode: 'smart',
-    htmlModelId: 'smart-html',
-    imageModelId: 'smart-image',
+    voiceLanguage: '英语-英音',
+    generationModeId: 'smart',
+    htmlModelId: 'gemini-3.1-pro',
+    imageModelId: 'jimeng-5.0',
   });
   const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
@@ -546,9 +548,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
     setTeachingAttachments([]);
     setGenerationPreferences({
       visualStyleMode: 'smart',
+      visualStyleEnhancementIds: undefined,
       voiceMode: 'smart',
-      htmlModelId: 'smart-html',
-      imageModelId: 'smart-image',
+      voiceLanguage: '英语-英音',
+      generationModeId: 'smart',
+      htmlModelId: 'gemini-3.1-pro',
+      imageModelId: 'jimeng-5.0',
     });
   }, [text, attachedFiles, teachingAttachments, lockedAttachments, generationPreferences, disabled, onSend, onTextChange]);
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette, X, Wand2, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette } from 'lucide-react';
 import type { Courseware, GenerationPreferences, LearningDataRecoveryItem, LearningDataRecoveryRequest, LearningDataReportCapability, VisualStyleRegenerationRequest, VoiceOption } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
@@ -8,16 +8,11 @@ import { CLONE_COURSEWARE_PROMPT } from '../../constants/cloneCourseware';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
 import LearningDataRecoveryModal from './LearningDataRecoveryModal';
+import VisualStylePickerModal from './VisualStylePickerModal';
+import GenerationModeDropdown from './GenerationModeDropdown';
 import HtmlTypeBadge from '../common/HtmlTypeBadge';
-import { demoVoiceOptions, htmlModelOptions, imageModelOptions } from '../../data/augustDemoData';
-import {
-  baseVisualStylePresets,
-  enhancementVisualStylePreviewImages,
-  enhancementVisualStylePresets,
-  getVisualStylePreviewStyle,
-  getVisualStyleSelection,
-  visualStylePreviewImages,
-} from '../../data/visualStylePresets';
+import { demoVoiceOptions, generationModeOptions, getGenerationModeByModels, imageModelOptions } from '../../data/augustDemoData';
+import { getVisualStyleSelection } from '../../data/visualStylePresets';
 
 // 默认音色选项
 const RESOURCE_VOICES: VoiceOption[] = demoVoiceOptions.map((voice, index) => ({
@@ -86,16 +81,10 @@ export default function CoursewareCard({
   });
   const [selectedBaseStyleId, setSelectedBaseStyleId] = useState<string | null>(null);
   const [selectedEnhancementIds, setSelectedEnhancementIds] = useState<string[]>([]);
-  const [styleHtmlModelId, setStyleHtmlModelId] = useState(generationPreferences?.htmlModelId || 'smart-html');
-  const [styleImageModelId, setStyleImageModelId] = useState(generationPreferences?.imageModelId || resourceDefaults.imageModelId || 'smart-image');
-  const [previewingStyle, setPreviewingStyle] = useState<{
-    id: string;
-    name: string;
-    desc: string;
-    image: string;
-    aspectRatio?: string;
-    kind: 'base' | 'enhancement';
-  } | null>(null);
+  const [styleGenerationModeId, setStyleGenerationModeId] = useState(
+    generationPreferences?.generationModeId
+      || getGenerationModeByModels(generationPreferences?.htmlModelId, generationPreferences?.imageModelId).id,
+  );
   const navigate = useNavigate();
   const { appMode, insertCourseware, openPreview, setPendingAssistantPrompt } = useUIStore();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
@@ -230,23 +219,8 @@ export default function CoursewareCard({
   const selectedStylePrompt = visualStyleSelection.stylePrompt;
   const hasStyleSelection = Boolean(selectedBaseStyle || selectedEnhancementIds.length > 0);
   const regenerationMode = selectedBaseStyle ? 'courseware-regeneration' : 'image-texture-only';
-  const selectedFlowLabel = selectedBaseStyle
-    ? selectedEnhancementIds.length > 0
-      ? '重新生成课件，并在资产规划阶段叠加图片质感'
-      : '按基础风格 UI 规范重新生成课件'
-    : selectedEnhancementIds.length > 0
-      ? '仅对现有图片资产做图生图质感叠加'
-      : '请选择基础风格或叠加图片质感';
-  const selectedStyleHtmlModel = htmlModelOptions.find(model => model.id === styleHtmlModelId) || htmlModelOptions[0];
-  const selectedStyleImageModel = imageModelOptions.find(model => model.id === styleImageModelId) || imageModelOptions[0];
-  const previewStyleList = previewingStyle
-    ? (previewingStyle.kind === 'base' ? baseVisualStylePresets : enhancementVisualStylePresets)
-      .filter(style => Boolean((previewingStyle.kind === 'base' ? visualStylePreviewImages : enhancementVisualStylePreviewImages)[style.id]))
-    : [];
-  const previewStyleIndex = previewingStyle
-    ? Math.max(0, previewStyleList.findIndex(style => style.id === previewingStyle.id))
-    : 0;
-  const hasPreviewSwitcher = previewStyleList.length > 1;
+  const selectedStyleGenerationMode = generationModeOptions.find(mode => mode.id === styleGenerationModeId)
+    || getGenerationModeByModels(generationPreferences?.htmlModelId, generationPreferences?.imageModelId);
 
   const toggleEnhancement = (styleId: string) => {
     setSelectedEnhancementIds(prev =>
@@ -256,43 +230,6 @@ export default function CoursewareCard({
     );
   };
 
-  const getPreviewStyle = (kind: 'base' | 'enhancement', styleId: string) => {
-    const styleList = kind === 'base' ? baseVisualStylePresets : enhancementVisualStylePresets;
-    const imageMap = kind === 'base' ? visualStylePreviewImages : enhancementVisualStylePreviewImages;
-    const style = styleList.find(item => item.id === styleId);
-    const image = imageMap[styleId];
-    if (!style || !image) return null;
-
-    return {
-      id: style.id,
-      name: style.name,
-      desc: style.desc,
-      image,
-      aspectRatio: kind === 'base' ? '16 / 9' : '1 / 1',
-      kind,
-    };
-  };
-
-  const openStylePreview = (kind: 'base' | 'enhancement', styleId: string) => {
-    const nextPreview = getPreviewStyle(kind, styleId);
-    if (nextPreview) {
-      setPreviewingStyle(nextPreview);
-    }
-  };
-
-  const switchPreviewStyle = (direction: -1 | 1) => {
-    if (!previewingStyle) return;
-    const styleList = previewingStyle.kind === 'base' ? baseVisualStylePresets : enhancementVisualStylePresets;
-    const imageMap = previewingStyle.kind === 'base' ? visualStylePreviewImages : enhancementVisualStylePreviewImages;
-    const availableStyles = styleList.filter(style => Boolean(imageMap[style.id]));
-    if (availableStyles.length <= 1) return;
-
-    const currentIndex = availableStyles.findIndex(style => style.id === previewingStyle.id);
-    const safeIndex = currentIndex >= 0 ? currentIndex : 0;
-    const nextIndex = (safeIndex + direction + availableStyles.length) % availableStyles.length;
-    openStylePreview(previewingStyle.kind, availableStyles[nextIndex].id);
-  };
-
   useEffect(() => {
     setLocalLearningDataItems(courseware.learningDataRecovery?.selectedItems);
   }, [courseware.id, version, courseware.learningDataRecovery?.selectedItems]);
@@ -300,27 +237,6 @@ export default function CoursewareCard({
   useEffect(() => {
     setIsLatest(isLatestProp);
   }, [courseware.id, version, isLatestProp]);
-
-  useEffect(() => {
-    if (!previewingStyle) return;
-
-    const handlePreviewKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        switchPreviewStyle(-1);
-      }
-      if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        switchPreviewStyle(1);
-      }
-      if (event.key === 'Escape') {
-        setPreviewingStyle(null);
-      }
-    };
-
-    window.addEventListener('keydown', handlePreviewKeyDown);
-    return () => window.removeEventListener('keydown', handlePreviewKeyDown);
-  }, [previewingStyle]);
 
   const handleVisualStyleRegenerate = () => {
     if (!hasStyleSelection) return;
@@ -342,8 +258,9 @@ export default function CoursewareCard({
         voiceMode: generationPreferences?.voiceMode,
         voiceId: generationPreferences?.voiceId,
         voiceName: generationPreferences?.voiceName,
-        htmlModelId: selectedBaseStyle ? styleHtmlModelId : generationPreferences?.htmlModelId || 'smart-html',
-        imageModelId: styleImageModelId,
+        generationModeId: selectedStyleGenerationMode.id as GenerationPreferences['generationModeId'],
+        htmlModelId: selectedStyleGenerationMode.htmlModelId,
+        imageModelId: selectedStyleGenerationMode.imageModelId,
       },
       regenerationMode,
     });
@@ -542,7 +459,13 @@ export default function CoursewareCard({
             onMouseLeave={() => setStyleDisabledTooltip(false)}
           >
             <button
-              onClick={() => { if (isLatest) setShowVisualStyleModal(true); }}
+              onClick={() => {
+                if (!isLatest) return;
+                const inheritedMode = generationModeOptions.find(mode => mode.id === generationPreferences?.generationModeId)
+                  || getGenerationModeByModels(generationPreferences?.htmlModelId, generationPreferences?.imageModelId);
+                setStyleGenerationModeId(inheritedMode.id);
+                setShowVisualStyleModal(true);
+              }}
               style={getActionButtonStyle('secondary', isLatest)}
               onMouseDown={e => e.preventDefault()}
               onMouseEnter={e => handleActionEnter(e, isLatest)}
@@ -690,694 +613,21 @@ export default function CoursewareCard({
         }}
       />
 
-      {showVisualStyleModal && (
-        <div
-          onClick={() => setShowVisualStyleModal(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 24000,
-            background: 'rgba(15, 23, 42, 0.36)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: 'min(920px, 94vw)',
-              maxHeight: 'min(760px, 90vh)',
-              display: 'flex',
-              flexDirection: 'column',
-              borderRadius: 18,
-              overflow: 'hidden',
-              background: '#FFFFFF',
-              boxShadow: '0 28px 80px rgba(15, 23, 42, 0.24)',
-            }}
-          >
-            <div style={{
-              padding: '18px 22px',
-              borderBottom: '1px solid #E2E8F0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              gap: 16,
-            }}>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 850, color: '#0F172A' }}>调整画面风格</div>
-                <div style={{ marginTop: 5, fontSize: 13, lineHeight: 1.55, color: '#64748B' }}>
-                  基础风格会按该风格的 UI 规范重新生成课件；图片质感可单独使用，也可叠加到基础风格中一起生成
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowVisualStyleModal(false)}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  border: '1px solid #E2E8F0',
-                  background: '#fff',
-                  color: '#64748B',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <X size={16} />
-              </button>
-            </div>
+      <VisualStylePickerModal
+        open={showVisualStyleModal}
+        variant="adjust"
+        selectedBaseStyleId={selectedBaseStyleId}
+        selectedEnhancementStyleIds={selectedEnhancementIds}
+        onSelectBaseStyle={setSelectedBaseStyleId}
+        onToggleEnhancementStyle={toggleEnhancement}
+        onClose={() => setShowVisualStyleModal(false)}
+        onConfirm={handleVisualStyleRegenerate}
+        confirmDisabled={!hasStyleSelection}
+        footerControls={(
+          <GenerationModeDropdown value={styleGenerationModeId} onChange={setStyleGenerationModeId} />
+        )}
+      />
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.45fr) minmax(260px, 0.85fr)',
-              gap: 0,
-              minHeight: 0,
-              overflow: 'hidden',
-            }}>
-              <div style={{ padding: 18, overflowY: 'auto', maxHeight: 'calc(90vh - 170px)' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 12,
-                }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 850, color: '#0F172A' }}>1. 基础风格</div>
-                    <div style={{ marginTop: 3, fontSize: 12, color: '#64748B' }}>可选。选择后按该风格的 UI 规范重新生成课件</div>
-                  </div>
-                  <span style={{ fontSize: 12, color: '#94A3B8' }}>15 种</span>
-                </div>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                  gap: 10,
-                }}>
-                  {baseVisualStylePresets.map(style => {
-                    const selected = style.id === selectedBaseStyleId;
-                    const previewImage = visualStylePreviewImages[style.id];
-                    return (
-                      <button
-                        key={style.id}
-                        type="button"
-                        onClick={() => setSelectedBaseStyleId(style.id)}
-                        style={{
-                          minHeight: 174,
-                          padding: 10,
-                          borderRadius: 14,
-                          border: selected ? '1px solid var(--agent-primary)' : '1px solid #E2E8F0',
-                          borderColor: selected ? 'var(--agent-primary)' : '#E2E8F0',
-                          background: selected ? 'var(--agent-soft)' : '#FFFFFF',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          transition: 'all 0.15s',
-                          boxShadow: selected ? '0 8px 18px var(--agent-focus-ring)' : 'none',
-                          outline: 'none',
-                        }}
-                      >
-                        <div style={{
-                          position: 'relative',
-                          aspectRatio: '16 / 9',
-                          borderRadius: 11,
-                          overflow: 'hidden',
-                          ...getVisualStylePreviewStyle(style.id),
-                          marginBottom: 9,
-                          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.55), 0 8px 18px rgba(15, 23, 42, 0.08)',
-                        }}>
-                          {previewImage ? (
-                            <>
-                              <img
-                                src={previewImage}
-                                alt={`${style.name}参考图`}
-                                loading="eager"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  openStylePreview('base', style.id);
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  inset: 0,
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                  display: 'block',
-                                  cursor: 'zoom-in',
-                                }}
-                              />
-                              <span
-                                role="button"
-                                tabIndex={0}
-                                title="查看大图"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  openStylePreview('base', style.id);
-                                }}
-                                onKeyDown={(event) => {
-                                  if (event.key === 'Enter' || event.key === ' ') {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    openStylePreview('base', style.id);
-                                  }
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  top: 8,
-                                  right: 8,
-                                  width: 28,
-                                  height: 28,
-                                  borderRadius: 9,
-                                  border: '1px solid rgba(255,255,255,0.72)',
-                                  background: 'rgba(15, 23, 42, 0.42)',
-                                  color: '#FFFFFF',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  cursor: 'zoom-in',
-                                  backdropFilter: 'blur(8px)',
-                                  boxShadow: '0 6px 14px rgba(15, 23, 42, 0.16)',
-                                }}
-                              >
-                                <ZoomIn size={15} />
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <div style={{
-                                position: 'absolute',
-                                left: '7%',
-                                top: '11%',
-                                width: '42%',
-                                height: '14%',
-                                borderRadius: 999,
-                                background: 'rgba(255,255,255,0.78)',
-                              }} />
-                              <div style={{
-                                position: 'absolute',
-                                left: '8%',
-                                bottom: '14%',
-                                width: '46%',
-                                height: '38%',
-                                borderRadius: 14,
-                                background: 'rgba(255,255,255,0.82)',
-                                boxShadow: '0 5px 14px rgba(15, 23, 42, 0.10)',
-                              }} />
-                              <div style={{
-                                position: 'absolute',
-                                right: '12%',
-                                bottom: '18%',
-                                width: '22%',
-                                height: '42%',
-                                borderRadius: '45% 45% 38% 38%',
-                                background: 'rgba(255,255,255,0.68)',
-                                boxShadow: '0 5px 14px rgba(15, 23, 42, 0.10)',
-                              }} />
-                              <div style={{
-                                position: 'absolute',
-                                right: '18%',
-                                top: '22%',
-                                width: '17%',
-                                height: '17%',
-                                borderRadius: '50%',
-                                background: 'rgba(255,255,255,0.72)',
-                              }} />
-                            </>
-                          )}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                          <span style={{ fontSize: 13, fontWeight: 850, color: selected ? 'var(--agent-primary)' : '#0F172A' }}>{style.name}</span>
-                          {selected && <CheckCircle2 size={15} color="var(--agent-primary)" />}
-                        </div>
-                        <div style={{ marginTop: 5, fontSize: 12, lineHeight: 1.45, color: '#64748B' }}>{style.desc}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div style={{
-                borderLeft: '1px solid #E2E8F0',
-                background: '#F8FAFC',
-                padding: 18,
-                overflowY: 'auto',
-                maxHeight: 'calc(90vh - 170px)',
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 850, color: '#0F172A' }}>2. 图片质感</div>
-                <div style={{ marginTop: 3, marginBottom: 14, fontSize: 12, lineHeight: 1.5, color: '#64748B' }}>
-                  可选。未选基础风格时只对现有图片做质感叠加
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                  {enhancementVisualStylePresets.map(style => {
-                    const selected = selectedEnhancementIds.includes(style.id);
-                    const previewImage = enhancementVisualStylePreviewImages[style.id];
-                    return (
-                      <button
-                        key={style.id}
-                        type="button"
-                        onClick={() => toggleEnhancement(style.id)}
-                        style={{
-                          position: 'relative',
-                          display: 'grid',
-                          gridTemplateColumns: '76px minmax(0, 1fr)',
-                          alignItems: 'center',
-                          gap: 10,
-                          width: '100%',
-                          minHeight: 92,
-                          padding: 8,
-                          borderRadius: 14,
-                          border: selected ? '1px solid var(--agent-primary)' : '1px solid #E2E8F0',
-                          borderColor: selected ? 'var(--agent-primary)' : '#E2E8F0',
-                          background: selected ? 'var(--agent-soft)' : 'rgba(255,255,255,0.82)',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          boxShadow: selected ? '0 6px 14px var(--agent-focus-ring)' : 'none',
-                          outline: 'none',
-                        }}
-                      >
-                        {previewImage && (
-                          <span style={{
-                            position: 'relative',
-                            display: 'block',
-                            width: 76,
-                            height: 76,
-                            aspectRatio: '1 / 1',
-                            overflow: 'hidden',
-                            borderRadius: 12,
-                            border: selected ? '1px solid var(--agent-border)' : '1px solid rgba(203, 213, 225, 0.9)',
-                            background: 'linear-gradient(45deg, #F8FAFC 25%, #EEF2F7 25%, #EEF2F7 50%, #F8FAFC 50%, #F8FAFC 75%, #EEF2F7 75%, #EEF2F7 100%)',
-                            backgroundSize: '18px 18px',
-                          }}>
-                            <img
-                              src={previewImage}
-                              alt={`${style.name}示例`}
-                              loading="eager"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openStylePreview('enhancement', style.id);
-                              }}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'contain',
-                                display: 'block',
-                                cursor: 'zoom-in',
-                                padding: 4,
-                              }}
-                            />
-                            <span
-                              title="查看大图"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openStylePreview('enhancement', style.id);
-                              }}
-                              style={{
-                                position: 'absolute',
-                                right: 6,
-                                bottom: 6,
-                                width: 24,
-                                height: 24,
-                                borderRadius: 8,
-                                border: '1px solid rgba(255,255,255,0.78)',
-                                background: 'rgba(15, 23, 42, 0.38)',
-                                color: '#FFFFFF',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'zoom-in',
-                                backdropFilter: 'blur(8px)',
-                              }}
-                            >
-                              <ZoomIn size={14} />
-                            </span>
-                          </span>
-                        )}
-                        <span style={{
-                          position: 'absolute',
-                          top: 10,
-                          left: 10,
-                          width: 20,
-                          height: 20,
-                          borderRadius: 7,
-                          border: selected ? 'none' : '1px solid #CBD5E1',
-                          background: selected ? 'var(--agent-primary)' : 'rgba(255,255,255,0.86)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 4px 10px rgba(15, 23, 42, 0.12)',
-                        }}>
-                          {selected && <CheckCircle2 size={13} color="#fff" />}
-                        </span>
-                        <span style={{ display: 'block', minWidth: 0 }}>
-                          <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: selected ? 'var(--agent-primary)' : '#1E293B' }}>{style.name}</span>
-                          <span style={{
-                            display: '-webkit-box',
-                            marginTop: 4,
-                            fontSize: 12,
-                            lineHeight: 1.42,
-                            color: '#64748B',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}>
-                            {style.desc}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              borderTop: '1px solid #E2E8F0',
-              padding: '14px 18px',
-              display: 'grid',
-              gridTemplateColumns: 'minmax(190px, 1fr) minmax(260px, 1.35fr) auto',
-              alignItems: 'center',
-              gap: 14,
-              background: '#FFFFFF',
-            }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 12, color: '#64748B', marginBottom: 4 }}>{selectedFlowLabel}</div>
-                <div style={{
-                  color: '#0F172A',
-                  fontSize: 14,
-                  fontWeight: 850,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}>
-                  {selectedStyleName || '暂未选择风格'}
-                </div>
-              </div>
-              <div style={{ minWidth: 0, display: 'grid', gap: 8 }}>
-                {selectedBaseStyle && (
-                  <div style={{ minWidth: 0, display: 'grid', gridTemplateColumns: '58px minmax(0, 1fr)', alignItems: 'center', gap: 8 }}>
-                    <span style={{ color: '#64748B', fontSize: 11, fontWeight: 750 }}>课件模型</span>
-                    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' }}>
-                      {htmlModelOptions.map(model => {
-                        const selected = model.id === styleHtmlModelId;
-                        return (
-                          <button
-                            key={model.id}
-                            type="button"
-                            onClick={() => setStyleHtmlModelId(model.id)}
-                            style={{
-                              height: 28,
-                              padding: '0 9px',
-                              borderRadius: 8,
-                              border: selected ? '1px solid var(--agent-primary)' : '1px solid #DCE6EF',
-                              background: selected ? 'var(--agent-soft)' : '#FFFFFF',
-                              color: selected ? 'var(--agent-primary-text)' : '#536273',
-                              fontSize: 11,
-                              fontWeight: 750,
-                              cursor: 'pointer',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {model.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                <div style={{ minWidth: 0, display: 'grid', gridTemplateColumns: '58px minmax(0, 1fr)', alignItems: 'center', gap: 8 }}>
-                  <span style={{ color: '#64748B', fontSize: 11, fontWeight: 750 }}>生图模型</span>
-                  <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' }}>
-                    {imageModelOptions.map(model => {
-                      const selected = model.id === styleImageModelId;
-                      return (
-                        <button
-                          key={model.id}
-                          type="button"
-                          onClick={() => setStyleImageModelId(model.id)}
-                          style={{
-                            height: 28,
-                            padding: '0 9px',
-                            borderRadius: 8,
-                            border: selected ? '1px solid var(--agent-primary)' : '1px solid #DCE6EF',
-                            background: selected ? 'var(--agent-soft)' : '#FFFFFF',
-                            color: selected ? 'var(--agent-primary-text)' : '#536273',
-                            fontSize: 11,
-                            fontWeight: 750,
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {model.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div style={{ color: '#94A3B8', fontSize: 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  当前：{selectedBaseStyle ? `${selectedStyleHtmlModel.name} · ` : ''}{selectedStyleImageModel.name}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleVisualStyleRegenerate}
-                disabled={!hasStyleSelection}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 7,
-                  minHeight: 38,
-                  padding: '0 16px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background: hasStyleSelection ? 'var(--agent-gradient)' : '#E2E8F0',
-                  color: hasStyleSelection ? '#fff' : '#94A3B8',
-                  fontSize: 14,
-                  fontWeight: 750,
-                  cursor: hasStyleSelection ? 'pointer' : 'default',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <Wand2 size={16} />
-                重新生成课件
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {previewingStyle && (
-        <div
-          onClick={() => setPreviewingStyle(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 25000,
-            background: 'rgba(15, 23, 42, 0.58)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 28,
-          }}
-        >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            style={{
-              width: previewingStyle.kind === 'enhancement' ? 'min(520px, 92vw)' : 'min(960px, 94vw)',
-              borderRadius: 18,
-              overflow: 'hidden',
-              background: '#FFFFFF',
-              boxShadow: '0 30px 90px rgba(15, 23, 42, 0.32)',
-            }}
-          >
-            <div style={{
-              position: 'relative',
-              aspectRatio: previewingStyle.aspectRatio || '16 / 9',
-              maxHeight: previewingStyle.kind === 'enhancement' ? 'min(560px, 68vh)' : '74vh',
-              background: previewingStyle.kind === 'enhancement'
-                ? 'linear-gradient(45deg, #F8FAFC 25%, #EEF2F7 25%, #EEF2F7 50%, #F8FAFC 50%, #F8FAFC 75%, #EEF2F7 75%, #EEF2F7 100%)'
-                : '#0F172A',
-              backgroundSize: previewingStyle.kind === 'enhancement' ? '24px 24px' : undefined,
-              padding: previewingStyle.kind === 'enhancement' ? 24 : 0,
-              boxSizing: 'border-box',
-            }}>
-              <img
-                src={previewingStyle.image}
-                alt={`${previewingStyle.name}大图参考`}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
-              {hasPreviewSwitcher && (
-                <>
-                  <button
-                    type="button"
-                    aria-label="查看上一张风格参考图"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      switchPreviewStyle(-1);
-                    }}
-                    style={{
-                      position: 'absolute',
-                      left: 10,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      width: 40,
-                      height: 40,
-                      borderRadius: 14,
-                      border: '1px solid rgba(255,255,255,0.7)',
-                      background: 'rgba(15, 23, 42, 0.42)',
-                      color: '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      backdropFilter: 'blur(10px)',
-                      boxShadow: '0 10px 24px rgba(15, 23, 42, 0.18)',
-                    }}
-                  >
-                    <ChevronLeft size={22} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="查看下一张风格参考图"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      switchPreviewStyle(1);
-                    }}
-                    style={{
-                      position: 'absolute',
-                      right: 10,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      width: 40,
-                      height: 40,
-                      borderRadius: 14,
-                      border: '1px solid rgba(255,255,255,0.7)',
-                      background: 'rgba(15, 23, 42, 0.42)',
-                      color: '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      backdropFilter: 'blur(10px)',
-                      boxShadow: '0 10px 24px rgba(15, 23, 42, 0.18)',
-                    }}
-                  >
-                    <ChevronRight size={22} />
-                  </button>
-                  <div style={{
-                    position: 'absolute',
-                    left: '50%',
-                    bottom: 14,
-                    transform: 'translateX(-50%)',
-                    minWidth: 58,
-                    height: 28,
-                    padding: '0 11px',
-                    borderRadius: 999,
-                    background: 'rgba(15, 23, 42, 0.46)',
-                    color: '#FFFFFF',
-                    fontSize: 12,
-                    fontWeight: 800,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backdropFilter: 'blur(10px)',
-                  }}>
-                    {previewStyleIndex + 1} / {previewStyleList.length}
-                  </div>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => setPreviewingStyle(null)}
-                style={{
-                  position: 'absolute',
-                  top: 14,
-                  right: 14,
-                  width: 34,
-                  height: 34,
-                  borderRadius: 10,
-                  border: '1px solid rgba(255,255,255,0.64)',
-                  background: 'rgba(15, 23, 42, 0.46)',
-                  color: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(8px)',
-                }}
-              >
-                <X size={17} />
-              </button>
-            </div>
-            <div style={{
-              padding: '15px 18px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 16,
-              borderTop: '1px solid #E2E8F0',
-            }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ color: '#0F172A', fontSize: 16, fontWeight: 900 }}>{previewingStyle.name}</div>
-                <div style={{ marginTop: 4, color: '#64748B', fontSize: 13, lineHeight: 1.45 }}>{previewingStyle.desc}</div>
-              </div>
-              {previewingStyle.kind === 'base' ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedBaseStyleId(previewingStyle.id);
-                    setPreviewingStyle(null);
-                  }}
-                  style={{
-                    minHeight: 38,
-                    padding: '0 16px',
-                    borderRadius: 10,
-                    border: 'none',
-                    background: 'var(--agent-gradient)',
-                    color: '#FFFFFF',
-                    fontSize: 14,
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  选择此风格
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    toggleEnhancement(previewingStyle.id);
-                    setPreviewingStyle(null);
-                  }}
-                  style={{
-                    minHeight: 38,
-                    padding: '0 16px',
-                    borderRadius: 10,
-                    border: 'none',
-                    background: selectedEnhancementIds.includes(previewingStyle.id) ? '#E2E8F0' : 'var(--agent-gradient)',
-                    color: selectedEnhancementIds.includes(previewingStyle.id) ? '#475569' : '#FFFFFF',
-                    fontSize: 14,
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {selectedEnhancementIds.includes(previewingStyle.id) ? '取消叠加' : '叠加此质感'}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

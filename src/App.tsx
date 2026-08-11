@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from './components/Layout/MainLayout';
 import GeneratorPage from './pages/GeneratorPage';
@@ -7,6 +8,7 @@ import EditorPage from './pages/EditorPage';
 import EditorDrawer from './components/Layout/EditorDrawer';
 import InspirationAssistant from './components/Generator/InspirationAssistant';
 import CoursewareEntryLoading, { type CoursewareEntryLoadingMode } from './components/common/CoursewareEntryLoading';
+import GlobalLoadingOverlay from './components/common/GlobalLoadingOverlay';
 import { useUIStore } from './store/uiStore';
 import { useConversationStore, getFrameworkForCourseware } from './store/conversationStore';
 import { useCoursewareStore } from './store/coursewareStore';
@@ -33,6 +35,7 @@ function AppContent() {
   const openPreview = useUIStore((s) => s.openPreview);
   const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
   const setPendingAssistantPrompt = useUIStore((s) => s.setPendingAssistantPrompt);
+  const coursewareEntryLoading = useUIStore((s) => s.coursewareEntryLoading);
   const navigate = useNavigate();
   const location = useLocation();
   const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
@@ -165,6 +168,16 @@ function AppContent() {
       preferExpandedLauncher={location.pathname === '/' && activeConversationId === null}
     />
   );
+  const coursewareEntryLoadingNode = coursewareEntryLoading && createPortal(
+    <div
+      role="status"
+      aria-label="正在创建同款课件"
+      style={coursewareEntryLoadingOverlayStyle}
+    >
+      <GlobalLoadingOverlay title="正在创建同款课件" />
+    </div>,
+    document.body,
+  );
 
   if (showNoPermissionPage) {
     return <NoPermissionPage />;
@@ -181,6 +194,7 @@ function AppContent() {
           />
         </EditorDrawer>
         {assistantNode}
+        {coursewareEntryLoadingNode}
       </>
     );
   }
@@ -189,9 +203,17 @@ function AppContent() {
     <>
       <MainLayout pageOverride={entryLoading ? <CoursewareEntryLoading {...entryLoading} /> : undefined} />
       {assistantNode}
+      {coursewareEntryLoadingNode}
     </>
   );
 }
+
+const coursewareEntryLoadingOverlayStyle: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 32000,
+  overflow: 'hidden',
+};
 
 function NoPermissionPage() {
   return (

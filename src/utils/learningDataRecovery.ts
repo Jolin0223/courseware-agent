@@ -1,17 +1,8 @@
 import type { LearningDataRecoveryItem, LearningDataRecoverySummary, LearningDataReportCapability } from '../types';
+import { formatLocalDateTime } from './dateTime';
 
 export const learningDataRecoveryHelpText = '支持回收得分、正确率、用时、答对题数、完成次数和奖励数量等学情指标。';
 export const learningDataReportLaunchTime = '2026-04-06 00:00:00';
-
-const formatLocalDateTime = (date: Date) => [
-  date.getFullYear(),
-  String(date.getMonth() + 1).padStart(2, '0'),
-  String(date.getDate()).padStart(2, '0'),
-].join('-') + ` ${[
-  String(date.getHours()).padStart(2, '0'),
-  String(date.getMinutes()).padStart(2, '0'),
-  String(date.getSeconds()).padStart(2, '0'),
-].join(':')}`;
 
 const normalizeDateTimeText = (value: string) => {
   const normalized = value.trim().replace(/\//g, '-').replace('T', ' ');

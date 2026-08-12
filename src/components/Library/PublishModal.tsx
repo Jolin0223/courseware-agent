@@ -6,6 +6,7 @@ import { useCoursewareStore } from '../../store/coursewareStore';
 import { knowledgeTagTree, autoTagByTitle, getTagLabel } from '../../data/knowledgeTags';
 import type { KnowledgeTag } from '../../data/knowledgeTags';
 import toast from '../../utils/toast';
+import { formatLocalDateTime } from '../../utils/dateTime';
 
 const subjects = [
   '双语故事表演', '脑力与思维', '博文妙笔',
@@ -695,6 +696,7 @@ export default function PublishModal({
     }
     if (mode === 'new-game' && courseware) {
       const nextId = Math.max(...coursewares.map(item => item.id), coursewareId) + 1;
+      const publishedAt = formatLocalDateTime(new Date());
       addCourseware({
         ...courseware,
         id: nextId,
@@ -703,7 +705,8 @@ export default function PublishModal({
         schoolName: effectiveSchoolName,
         subject: effectiveSubject,
         grade,
-        publishTime: new Date().toISOString().split('T')[0],
+        publishTime: publishedAt.slice(0, 10),
+        publishedAt,
         views: 0,
         favorites: 0,
         likes: 0,
@@ -711,6 +714,7 @@ export default function PublishModal({
         isPublished: true,
       });
     } else {
+      const publishedAt = formatLocalDateTime(new Date());
       updateCourseware(coursewareId, {
         title: title.trim(),
         resourceScope: effectivePublishScope,
@@ -718,6 +722,8 @@ export default function PublishModal({
         subject: effectiveSubject,
         grade,
         isPublished: true,
+        publishTime: publishedAt.slice(0, 10),
+        publishedAt,
       });
     }
     toast(mode === 'new-game' ? `已发布为新互动课件，并同步到${scopeLabel}~` : `发布成功，已同步到${scopeLabel}~`);

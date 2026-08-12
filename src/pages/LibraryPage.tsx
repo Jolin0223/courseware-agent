@@ -6,6 +6,7 @@ import FilterBar from '../components/Library/FilterBar';
 import { useCoursewareStore } from '../store/coursewareStore';
 import { useUIStore } from '../store/uiStore';
 import toast from '../utils/toast';
+import { formatLocalDateTime } from '../utils/dateTime';
 import type { Courseware } from '../types';
 
 type TabKey = 'published' | 'draft' | 'deleted';
@@ -404,7 +405,11 @@ export default function LibraryPage() {
     }
     const coursewareId = pendingDeleteCourseware.id;
     if (pendingDeleteCourseware.isPublished && !pendingDeleteCourseware.isDeleted) {
-      updateCourseware(coursewareId, { isDeleted: true, isPublished: false });
+      updateCourseware(coursewareId, {
+        isDeleted: true,
+        isPublished: false,
+        deletedAt: formatLocalDateTime(new Date()),
+      });
       markSourceDeleted(coursewareId);
       toast('已标记为已删除');
       setPendingDeleteId(null);

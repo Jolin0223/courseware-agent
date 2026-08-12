@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, Copy, Edit3, Trash2, Heart, Star, Download } from 'lucide-react';
+import { Eye, Copy, Edit3, Trash2, Heart, Star, Download, Clock3 } from 'lucide-react';
 import type { Courseware } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import toast from '../../utils/toast';
@@ -63,8 +63,15 @@ interface CardProps {
 const getResourceScopeLabel = (courseware: Courseware) => {
   if (courseware.resourceScope === 'group') return '集团资源库';
   if (courseware.resourceScope === 'personal') return '个人资源库';
-  return '校本资源库';
+  const schoolName = courseware.schoolName?.trim();
+  if (!schoolName) return '校本资源库';
+  return `校本资源库·${schoolName.replace(/学校$/, '分校')}`;
 };
+
+const getStatusTime = (courseware: Courseware, isDeleted: boolean) => ({
+  label: isDeleted ? '删除时间' : '发布时间',
+  value: (isDeleted ? courseware.deletedAt : courseware.publishedAt) || courseware.publishTime,
+});
 
 const thumbnailFallbacks: Record<string, string> = {
   '水果单词互动乐园': 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/twVU397h-2600008999-AigcImage-507e80e381b5422aaf06d8e26c15290c_0.png',
@@ -132,6 +139,8 @@ const CoursewareCard: React.FC<CardProps> = ({
   const thumbnailSrc = getThumbnailSrc(courseware);
   const draftVersionCount = courseware.draftVersionCount || 1;
   const draftVersionLabel = draftVersionCount > 1 ? `共 ${draftVersionCount} 个草稿` : '1 个草稿';
+  const resourceMeta = `${courseware.subject} · ${courseware.grade} · ${getResourceScopeLabel(courseware)}`;
+  const statusTime = getStatusTime(courseware, isDeleted);
 
   const draftPreviewStyles: Record<string, React.CSSProperties> = {
     root: {
@@ -487,7 +496,7 @@ const CoursewareCard: React.FC<CardProps> = ({
         <div
           style={{
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: 400,
             color: isDeleted ? '#475569' : '#1E293B',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -514,13 +523,50 @@ const CoursewareCard: React.FC<CardProps> = ({
             </span>
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 12, color: '#94A3B8', marginTop: 8 }}>
-            <span>{courseware.subject}</span>
-            <span>·</span>
-            <span>{courseware.grade}</span>
-            <span>·</span>
-            <span>{getResourceScopeLabel(courseware)}</span>
-          </div>
+          <>
+            <div
+              aria-label={resourceMeta}
+              style={{
+                minWidth: 0,
+                marginTop: 8,
+                overflow: 'hidden',
+                color: '#94A3B8',
+                fontSize: 12,
+                lineHeight: '16px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {resourceMeta}
+            </div>
+            <div
+              aria-label={`${statusTime.label} ${statusTime.value}`}
+              style={{
+                minWidth: 0,
+                marginTop: 6,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                overflow: 'hidden',
+                color: isDeleted ? '#94A3B8' : '#7C8DA3',
+                fontSize: 11,
+                fontWeight: 400,
+                lineHeight: '14px',
+              }}
+            >
+              <Clock3 size={12} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+              <span
+                style={{
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {statusTime.value}
+              </span>
+            </div>
+          </>
         )}
         {isEmbedded && showInsert && (
           <button

@@ -102,6 +102,9 @@ export interface CoursewareRecommendation {
   knowledgePoints?: string[];
   materialId?: string;
   resourceOwner?: string;
+  isAccessible?: boolean;
+  isDeleted?: boolean;
+  supportsClone?: boolean;
   previewUrl?: string;
   thumbnail?: string;
   sameCount?: number;
@@ -128,8 +131,9 @@ export interface CoursewareRecommendationMessage {
   teachingSources: TeachingContentSource[];
   generationPreferences?: GenerationPreferences;
   recommendations: CoursewareRecommendation[];
+  previewedRecommendationIds?: string[];
   selectedRecommendationId?: string;
-  action?: 'clone' | 'new';
+  action?: 'clone' | 'new' | 'iteach' | 'used';
 }
 
 export interface AugustGenerationPlan {

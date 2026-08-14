@@ -575,6 +575,9 @@ function getEligibleRecommendations(content: string) {
 
   return [...mathRecommendations, ...chineseRecommendations, ...englishRecommendations]
     .filter(recommendation => {
+      if (recommendation.isAccessible === false) return false;
+      if (recommendation.isDeleted === true) return false;
+      if (recommendation.supportsClone === false) return false;
       if (subject && recommendation.subject !== subject) return false;
       const profile = recommendationProfiles[recommendation.id];
       if (!profile) return false;

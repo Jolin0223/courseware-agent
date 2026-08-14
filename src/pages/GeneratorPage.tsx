@@ -45,6 +45,25 @@ import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
 
 type GenerationPhase = 'input' | 'analyzing' | 'recommendation' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中~';
+const ITEACH_RESOURCE_LIBRARY_URL = (import.meta.env.VITE_ITEACH_RESOURCE_LIBRARY_URL || 'https://iteach-cloudwps.xdf.cn/source').replace(/\/$/, '');
+
+const buildIteachResourceUrl = ({
+  resourceId,
+  conversationId,
+  recommendationRequestId,
+}: {
+  resourceId: string;
+  conversationId: string;
+  recommendationRequestId: string;
+}) => {
+  const url = new URL(ITEACH_RESOURCE_LIBRARY_URL);
+  url.searchParams.set('resourceId', resourceId);
+  url.searchParams.set('highlightResourceId', resourceId);
+  url.searchParams.set('conversationId', conversationId);
+  url.searchParams.set('recommendationRequestId', recommendationRequestId);
+  url.searchParams.set('source', 'ai-courseware-agent');
+  return url.toString();
+};
 
 const buildCloneReferenceHtml = (item: GameplayInspiration) => {
   const previewUrl = item.examplePreviewUrl || item.coverUrl || '';
@@ -1869,6 +1888,8 @@ function AssistantMessage({
   onMaterialIntentConfirm,
   onVoiceCapabilityConfirm,
   onRecommendationChoose,
+  onRecommendationPreview,
+  onRecommendationUseInIteach,
   onOpenPreview,
   onLearningDataRecoveryRequest,
   onVisualStyleRegenerate,
@@ -1883,6 +1904,8 @@ function AssistantMessage({
   onMaterialIntentConfirm?: (messageId: string, resolutions: MaterialIntentResolution[]) => void;
   onVoiceCapabilityConfirm?: (messageId: string, selection: VoiceCapabilitySelection) => void;
   onRecommendationChoose?: (messageId: string, recommendationId?: string) => void;
+  onRecommendationPreview?: (messageId: string, recommendationId: string) => void;
+  onRecommendationUseInIteach?: (messageId: string, recommendationId: string) => void;
   onOpenPreview?: (coursewareId: number, version?: string | null) => void;
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
@@ -1904,6 +1927,8 @@ function AssistantMessage({
             data={data}
             readOnly={Boolean(data.action)}
             onChoose={recommendationId => onRecommendationChoose?.(message.id, recommendationId)}
+            onPreview={recommendationId => onRecommendationPreview?.(message.id, recommendationId)}
+            onUseInIteach={recommendationId => onRecommendationUseInIteach?.(message.id, recommendationId)}
           />
         </div>
       </div>
@@ -2612,6 +2637,73 @@ export default function GeneratorPage() {
     maybeAskVoiceCapability(convId, text, text, 'user-prompt', teachingSources, generationPreferences);
   }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
 
+  const handleRecommendationPreview = useCallback((messageId: string, recommendationId: string) => {
+    if (!activeConversationId) return;
+
+    useConversationStore.setState(state => ({
+      conversations: state.conversations.map(conversation => (
+        conversation.id === activeConversationId
+          ? {
+              ...conversation,
+              messages: conversation.messages.map(item => {
+                if (item.id !== messageId || item.type !== 'courseware-recommendation') return item;
+                const recommendation = item.content as CoursewareRecommendationMessage;
+                return {
+                  ...item,
+                  content: {
+                    ...recommendation,
+                    previewedRecommendationIds: Array.from(new Set([
+                      ...(recommendation.previewedRecommendationIds || []),
+                      recommendationId,
+                    ])),
+                  },
+                };
+              }),
+            }
+          : conversation
+      )),
+    }));
+  }, [activeConversationId]);
+
+  const handleRecommendationUseInIteach = useCallback((messageId: string, recommendationId: string) => {
+    if (!activeConversationId) return;
+    const message = activeConversation?.messages.find(item => item.id === messageId);
+    if (!message || message.type !== 'courseware-recommendation') return;
+    const data = message.content as CoursewareRecommendationMessage;
+    if (data.action) return;
+    const recommendation = data.recommendations.find(item => item.id === recommendationId);
+    if (!recommendation) return;
+
+    window.open(buildIteachResourceUrl({
+      resourceId: recommendation.materialId || recommendation.id,
+      conversationId: activeConversationId,
+      recommendationRequestId: messageId,
+    }), '_blank', 'noopener,noreferrer');
+
+    useConversationStore.setState(state => ({
+      conversations: state.conversations.map(conversation => (
+        conversation.id === activeConversationId
+          ? {
+              ...conversation,
+              messages: conversation.messages.map(item => (
+                item.id === messageId
+                  ? {
+                      ...item,
+                      content: {
+                        ...(item.content as CoursewareRecommendationMessage),
+                        action: 'iteach',
+                        selectedRecommendationId: recommendation.id,
+                      },
+                    }
+                  : item
+              )),
+            }
+          : conversation
+      )),
+    }));
+    setPhase('input');
+  }, [activeConversationId, activeConversation]);
+
   const handleRecommendationChoose = useCallback((messageId: string, recommendationId?: string) => {
     if (!activeConversationId) return;
     const message = activeConversation?.messages.find(item => item.id === messageId);
@@ -3266,6 +3358,8 @@ export default function GeneratorPage() {
                         onMaterialIntentConfirm={handleMaterialIntentConfirm}
                         onVoiceCapabilityConfirm={handleVoiceCapabilityConfirm}
                         onRecommendationChoose={handleRecommendationChoose}
+                        onRecommendationPreview={handleRecommendationPreview}
+                        onRecommendationUseInIteach={handleRecommendationUseInIteach}
                         onOpenPreview={(coursewareId, version) => {
                           openPreview(coursewareId, version);
                         }}

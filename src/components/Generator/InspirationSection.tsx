@@ -5,7 +5,6 @@ import {
   Brain,
   Calculator,
   CheckCircle2,
-  Copy,
   Flame,
   PlayCircle,
   Puzzle,
@@ -20,6 +19,7 @@ import {
   type InspirationTabId,
 } from '../../data/inspirationSeedData';
 import PageLoadingState from '../common/PageLoadingState';
+import CoursewareResourcePreviewModal from './CoursewareResourcePreviewModal';
 
 export interface GameplayInspiration {
   id: string;
@@ -181,9 +181,7 @@ export default function InspirationSection({
   const [examplePlaywayId, setExamplePlaywayId] = useState<string | null>(null);
   const [clonePreviewPlaywayId, setClonePreviewPlaywayId] = useState<string | null>(null);
   const [examplePreviewLoaded, setExamplePreviewLoaded] = useState(false);
-  const [clonePreviewLoaded, setClonePreviewLoaded] = useState(false);
   const [recommendationMode, setRecommendationMode] = useState<'clone' | 'template'>('clone');
-  const [copiedMaterialId, setCopiedMaterialId] = useState<string | null>(null);
   const lastActionKeyRef = useRef('');
   const titleClickStateRef = useRef<{ count: number; timer: number | null }>({ count: 0, timer: null });
   const tabsRef = useRef<HTMLDivElement | null>(null);
@@ -259,13 +257,21 @@ export default function InspirationSection({
     [clonePreviewPlaywayId],
   );
 
+  const clonePreviewResource = useMemo(() => {
+    if (!clonePreviewPlayway) return null;
+    const meta = createCloneMeta(clonePreviewPlayway);
+    return {
+      id: clonePreviewPlayway.id,
+      title: clonePreviewPlayway.displayTitle,
+      previewUrl: clonePreviewPlayway.examplePreviewUrl,
+      coverUrl: clonePreviewPlayway.coverUrl,
+      ...meta,
+    };
+  }, [clonePreviewPlayway]);
+
   useEffect(() => {
     setExamplePreviewLoaded(false);
   }, [examplePlaywayId]);
-
-  useEffect(() => {
-    setClonePreviewLoaded(false);
-  }, [clonePreviewPlaywayId]);
 
   useEffect(() => () => {
     const timer = titleClickStateRef.current.timer;
@@ -352,18 +358,6 @@ export default function InspirationSection({
       clickState.count = 0;
       clickState.timer = null;
     }, 850);
-  };
-
-  const handleCopyMaterialId = async (materialId: string) => {
-    try {
-      await navigator.clipboard?.writeText(materialId);
-      setCopiedMaterialId(materialId);
-      window.setTimeout(() => {
-        setCopiedMaterialId(current => (current === materialId ? null : current));
-      }, 1200);
-    } catch {
-      setCopiedMaterialId(null);
-    }
   };
 
   const runOnce = (key: string, action: () => void) => {
@@ -627,142 +621,17 @@ export default function InspirationSection({
         </div>
       )}
 
-      {recommendationMode === 'clone' && clonePreviewPlayway && createPortal((
-        <div style={styles.clonePreviewOverlay} onClick={() => setClonePreviewPlaywayId(null)}>
-          <aside
-            className="inspiration-clone-drawer"
-            style={styles.cloneDrawer}
-            onClick={event => event.stopPropagation()}
-          >
-            <div style={styles.cloneDrawerHeader}>
-              <div style={{ minWidth: 0 }}>
-                <div style={styles.cloneDrawerEyebrow}>互动课件资源</div>
-                <h3 style={styles.cloneDrawerTitle}>{clonePreviewPlayway.displayTitle}</h3>
-              </div>
-              <button
-                aria-label="关闭课件预览"
-                style={styles.exampleCloseBtn}
-                onClick={() => setClonePreviewPlaywayId(null)}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="inspiration-clone-body" style={styles.cloneDrawerBody}>
-              <div style={styles.clonePreviewStage}>
-                {clonePreviewPlayway.examplePreviewUrl ? (
-                  <>
-                    <iframe
-                      title={`${clonePreviewPlayway.displayTitle}试玩`}
-                      sandbox="allow-scripts allow-same-origin"
-                      src={clonePreviewPlayway.examplePreviewUrl}
-                      style={styles.exampleIframe}
-                      onLoad={() => setClonePreviewLoaded(true)}
-                    />
-                    {!clonePreviewLoaded && (
-                      <PageLoadingState
-                        fill
-                        variant="dots"
-                        title="正在加载中"
-                      />
-                    )}
-                  </>
-                ) : clonePreviewPlayway.coverUrl ? (
-                  <img src={clonePreviewPlayway.coverUrl} alt={`${clonePreviewPlayway.displayTitle}封面`} style={styles.clonePreviewImage} />
-                ) : (
-                  <div style={styles.exampleEmptyPreview}>该课件暂未配置试玩</div>
-                )}
-              </div>
-
-              <div style={styles.cloneDetailPanel}>
-                {(() => {
-                  const meta = createCloneMeta(clonePreviewPlayway);
-                  const shortenedId = meta.materialId.length > 24
-                    ? `${meta.materialId.slice(0, 24)}...`
-                    : meta.materialId;
-                  const auditRows = [
-                    { label: '上传', value: meta.uploader },
-                    { label: '修改', value: meta.modifier },
-                    { label: '大小', value: meta.size },
-                  ];
-                  return (
-                    <div style={styles.cloneResourcePanel}>
-                      <div style={styles.cloneHeroMeta}>
-                        <span style={styles.cloneFieldLabel}>素材ID</span>
-                        <div style={styles.cloneMaterialValue}>
-                          <span style={styles.cloneMaterialId}>{shortenedId}</span>
-                          <button
-                            type="button"
-                            aria-label="复制素材ID"
-                            style={styles.copyButton}
-                            onClick={() => handleCopyMaterialId(meta.materialId)}
-                          >
-                            {copiedMaterialId === meta.materialId ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div style={styles.cloneDetailSection}>
-                        <span style={styles.cloneFieldLabel}>资源归属</span>
-                        <div style={styles.cloneOwnerPill}>{meta.resourceOwner}</div>
-                      </div>
-
-                      <div style={styles.cloneDetailSection}>
-                        <span style={styles.cloneFieldLabel}>内容标签</span>
-                        <div className="clone-scroll-tags" style={styles.cloneContentTagGrid}>
-                          <div style={styles.cloneTagCloudInner}>
-                            {meta.contentTags.map(tag => (
-                              <span key={tag} style={styles.cloneContentTag}>{tag}</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={styles.cloneDetailSection}>
-                        <span style={styles.cloneFieldLabel}>知识点</span>
-                        <div className="clone-scroll-tags" style={styles.cloneKnowledgeTagGrid}>
-                          <div style={styles.cloneTagCloudInner}>
-                            {meta.knowledgePoints.map(point => (
-                              <span key={point} style={styles.cloneKnowledgeTag}>{point}</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={styles.cloneAuditBox}>
-                        {auditRows.map(row => (
-                          <div key={row.label} style={styles.cloneAuditRow}>
-                            <span style={styles.cloneAuditLabel}>{row.label}</span>
-                            <span style={styles.cloneAuditValue}>{row.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-
-            <div style={styles.cloneDrawerFooter}>
-              <button
-                style={styles.cloneSecondaryBtn}
-                onClick={() => setClonePreviewPlaywayId(null)}
-              >
-                关闭
-              </button>
-              <button
-                style={styles.clonePrimaryBtn}
-                onClick={(event) => {
-                  handleClone(clonePreviewPlayway, event.currentTarget);
-                  setClonePreviewPlaywayId(null);
-                }}
-              >
-                一键同款
-              </button>
-            </div>
-          </aside>
-        </div>
-      ), document.body)}
+      {recommendationMode === 'clone' && clonePreviewPlayway && clonePreviewResource && (
+        <CoursewareResourcePreviewModal
+          key={clonePreviewResource.id}
+          resource={clonePreviewResource}
+          onClose={() => setClonePreviewPlaywayId(null)}
+          onClone={() => {
+            handleClone(clonePreviewPlayway);
+            setClonePreviewPlaywayId(null);
+          }}
+        />
+      )}
 
       {recommendationMode === 'template' && examplePlayway && createPortal((
         <div style={styles.exampleOverlay} onClick={() => setExamplePlaywayId(null)}>

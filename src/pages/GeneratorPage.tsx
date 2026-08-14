@@ -2670,7 +2670,7 @@ export default function GeneratorPage() {
     const message = activeConversation?.messages.find(item => item.id === messageId);
     if (!message || message.type !== 'courseware-recommendation') return;
     const data = message.content as CoursewareRecommendationMessage;
-    if (data.action) return;
+    if (data.action && data.action !== 'iteach') return;
     const recommendation = data.recommendations.find(item => item.id === recommendationId);
     if (!recommendation) return;
 
@@ -2679,6 +2679,8 @@ export default function GeneratorPage() {
       conversationId: activeConversationId,
       recommendationRequestId: messageId,
     }), '_blank', 'noopener,noreferrer');
+
+    if (data.action === 'iteach') return;
 
     useConversationStore.setState(state => ({
       conversations: state.conversations.map(conversation => (

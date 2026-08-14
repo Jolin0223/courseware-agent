@@ -34,6 +34,7 @@ type DemoWord = TeachingWordItem & { unit: string };
 
 interface TeachingContentPickerProps {
   disabled?: boolean;
+  hasSelection?: boolean;
   onAdd: (attachment: UploadedAttachment) => void;
   editAttachment?: UploadedAttachment | null;
   onUpdate?: (attachment: UploadedAttachment) => void;
@@ -119,6 +120,7 @@ const createAttachment = (source: TeachingContentSource): UploadedAttachment => 
 
 export default function TeachingContentPicker({
   disabled,
+  hasSelection = false,
   onAdd,
   editAttachment,
   onUpdate,
@@ -449,7 +451,7 @@ export default function TeachingContentPicker({
 
   return (
     <div className="aug-add-content" ref={menuRef}>
-      <button className="aug-add-trigger" type="button" disabled={disabled} onClick={() => {
+      <button className={`aug-add-trigger ${hasSelection ? 'is-selected' : ''}`} type="button" disabled={disabled} onClick={() => {
         if (!menuOpen && menuRef.current) {
           const rect = menuRef.current.getBoundingClientRect();
           const direction = rect.top < 330 ? 'down' : 'up';

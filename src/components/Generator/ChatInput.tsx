@@ -1147,6 +1147,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <TeachingContentPicker
                 key={editingTeachingAttachment?.id || 'new-teaching-content'}
                 disabled={disabled}
+                hasSelection={teachingAttachments.length > 0}
                 onAdd={attachment => setTeachingAttachments(previous => [...previous, attachment])}
                 editAttachment={editingTeachingAttachment}
                 onUpdate={updateTeachingAttachment}

@@ -2408,6 +2408,10 @@ export default function GeneratorPage() {
         teachingSources,
         generationPreferences,
       );
+      if (plan.recommendations.length === 0) {
+        startRequirementFlow(convId, promptForFramework, teachingSources, generationPreferences);
+        return;
+      }
       addAssistantMessage(convId, {
         promptForFramework,
         teachingSources,
@@ -2416,7 +2420,7 @@ export default function GeneratorPage() {
       }, 'courseware-recommendation');
       setPhase('recommendation');
     }, demoMs(1800));
-  }, [addAssistantMessage]);
+  }, [addAssistantMessage, startRequirementFlow]);
 
   const maybeAskVoiceCapability = useCallback((
     convId: string,

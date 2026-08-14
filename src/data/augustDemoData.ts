@@ -34,23 +34,30 @@ export interface DemoVoiceOption {
   name: string;
   sourceName: string;
   language: DemoVoiceLanguage;
-  gender: '女生' | '男生' | '组合' | '本人';
+  gender: '女生' | '男生' | '女孩' | '男孩' | '本人';
   accent: string;
   tag: string;
   scene: string;
   avatarUrl: string;
   avatarPrompt: string;
   platformVoiceId?: string;
-  platformVoiceIds?: {
-    chinese: string;
-    english: string;
-  };
   dedicated?: boolean;
 }
 
 export const voiceLanguageOptions = ['英语-英音', '英语-美音', '中英双语', '中文'] as const;
 export type DemoVoiceLanguage = typeof voiceLanguageOptions[number];
 export const DEFAULT_VOICE_LANGUAGE: DemoVoiceLanguage = '英语-英音';
+
+export function getDemoVoiceDisplayName(voice: DemoVoiceOption) {
+  if (voice.dedicated) return voice.name;
+  const audience = voice.gender === '女孩' || voice.gender === '男孩' ? '儿童' : '成人';
+  const gender = voice.gender === '女生'
+    ? '女声'
+    : voice.gender === '男生'
+      ? '男声'
+      : voice.gender;
+  return `${audience} · ${gender} · ${voice.name}`;
+}
 
 export const htmlModelOptions: DemoModelOption[] = [
   { id: 'smart-html', name: '智能选择', description: '根据内容复杂度自动匹配', speedLabel: '推荐', duration: [5, 9], recommended: true },
@@ -112,137 +119,71 @@ export function getGenerationModeByModels(htmlModelId = 'gemini-3.1-pro', imageM
 export const demoVoiceOptions: DemoVoiceOption[] = [
   {
     id: 'british-explorer', name: '探索讲述者', sourceName: 'Expressive Narrator', language: '英语-英音',
-    gender: '男生', accent: '英式英语', tag: '清亮有张力', scene: '互动讲解、闯关旁白',
-    avatarUrl: '/voice-avatars/british-explorer.png', platformVoiceId: 'English_expressive_narrator',
-    avatarPrompt: '1:1方形AI课件音色头像，青年男性英式英语探索讲述者，浅棕卷发，湖蓝教师夹克，神情清朗自信，柔和3D黏土插画，淡薄荷绿与天蓝背景，半身居中，教育产品角色系列，无文字无水印。',
+    gender: '男生', accent: '英式英语', tag: '清亮有张力', scene: '互动讲解、闯关旁白', avatarUrl: '/voice-avatars/british-explorer.webp', platformVoiceId: 'English_expressive_narrator', avatarPrompt: '1:1方形AI课件音色头像，青年男性英式英语探索讲述者，湖蓝教师夹克，柔和3D黏土插画，无文字无水印。',
   },
   {
     id: 'british-storyteller', name: '英伦故事家', sourceName: 'Compelling Lady', language: '英语-英音',
-    gender: '女生', accent: '英式英语', tag: '温暖有感染力', scene: '绘本、故事叙述',
-    avatarUrl: '/voice-avatars/british-storyteller.png', platformVoiceId: 'English_compelling_lady1',
-    avatarPrompt: '1:1方形AI课件音色头像，青年女性英伦故事老师，栗色长发，酒红针织外套，手持一本打开的绘本，温暖有感染力，柔和3D黏土插画，淡玫瑰与雾蓝背景，半身居中，无文字无水印。',
+    gender: '女生', accent: '英式英语', tag: '温暖有感染力', scene: '绘本、故事叙述', avatarUrl: '/voice-avatars/british-storyteller.webp', platformVoiceId: 'English_compelling_lady1', avatarPrompt: '1:1方形AI课件音色头像，青年女性英伦故事老师，手持绘本，柔和3D黏土插画，无文字无水印。',
   },
   {
     id: 'british-star', name: '英伦小星星', sourceName: 'Lovely Girl', language: '英语-英音',
-    gender: '女生', accent: '英式英语', tag: '甜美亲切', scene: '低龄启蒙、单词跟读',
-    avatarUrl: '/voice-avatars/british-star.png', platformVoiceId: 'English_LovelyGirl',
-    avatarPrompt: '1:1方形AI课件音色头像，青春女性英式英语启蒙伙伴，短卷发与星星发夹，明黄色毛衣，笑容甜美亲切，柔和3D黏土插画，淡柠檬黄与天蓝背景，半身居中，无文字无水印。',
+    gender: '女生', accent: '英式英语', tag: '甜美亲切', scene: '低龄启蒙、单词跟读', avatarUrl: '/voice-avatars/british-star.webp', platformVoiceId: 'English_LovelyGirl', avatarPrompt: '1:1方形AI课件音色头像，英式英语启蒙伙伴，星星发夹，柔和3D黏土插画，无文字无水印。',
   },
   {
     id: 'british-guide', name: '知性引导者', sourceName: 'Wise Lady', language: '英语-英音',
-    gender: '女生', accent: '英式英语', tag: '沉稳清晰', scene: '知识讲解、课堂总结',
-    avatarUrl: '/voice-avatars/british-guide.png', platformVoiceId: 'English_Wiselady',
-    avatarPrompt: '1:1方形AI课件音色头像，知性女性英式英语导师，深棕齐肩发，细框眼镜，青绿色衬衫，沉稳清晰，柔和3D黏土插画，浅青与米白背景，半身居中，无文字无水印。',
+    gender: '女生', accent: '英式英语', tag: '沉稳清晰', scene: '知识讲解、课堂总结', avatarUrl: '/voice-avatars/british-guide.webp', platformVoiceId: 'English_Wiselady', avatarPrompt: '1:1方形AI课件音色头像，知性女性英式英语导师，青绿色衬衫，柔和3D黏土插画，无文字无水印。',
   },
   {
     id: 'british-comedian', name: '欢乐戏剧家', sourceName: 'Comedian', language: '英语-英音',
-    gender: '男生', accent: '英式英语', tag: '夸张有节奏', scene: '游戏角色、趣味反馈',
-    avatarUrl: '/voice-avatars/british-comedian.png', platformVoiceId: 'English_Comedian',
-    avatarPrompt: '1:1方形AI课件音色头像，青年男性英伦戏剧老师，蓬松卷发，橙色领结与深绿外套，表情灵动幽默，柔和3D黏土插画，浅橙与薄荷绿背景，半身居中，无文字无水印。',
+    gender: '男生', accent: '英式英语', tag: '夸张有节奏', scene: '游戏角色、趣味反馈', avatarUrl: '/voice-avatars/british-comedian.webp', platformVoiceId: 'English_Comedian', avatarPrompt: '1:1方形AI课件音色头像，青年男性英伦戏剧老师，橙色领结，柔和3D黏土插画，无文字无水印。',
   },
   {
     id: 'british-nature', name: '自然科学家', sourceName: 'Nature Show Host', language: '英语-英音',
-    gender: '男生', accent: '英式英语', tag: '磁性自然', scene: '科学观察、纪录式旁白',
-    avatarUrl: '/voice-avatars/british-nature.png', platformVoiceId: 'English_Magnetic_Male_12',
-    avatarPrompt: '1:1方形AI课件音色头像，中青年男性自然科学讲解员，卡其色野外夹克，手持放大镜，气质可靠好奇，柔和3D黏土插画，森林绿与浅天蓝背景，半身居中，无文字无水印。',
+    gender: '男生', accent: '英式英语', tag: '磁性自然', scene: '科学观察、知识旁白', avatarUrl: '/voice-avatars/british-nature.webp', platformVoiceId: 'English_Magnetic_Male_12', avatarPrompt: '1:1方形AI课件音色头像，自然科学讲解员，野外夹克，柔和3D黏土插画，无文字无水印。',
   },
   {
-    id: 'american-sunshine', name: '阳光学姐', sourceName: 'Radiant Girl', language: '英语-美音',
-    gender: '女生', accent: '美式英语', tag: '明亮利落', scene: '单词教学、课堂反馈',
-    avatarUrl: '/voice-avatars/american-sunshine.png', platformVoiceId: 'English_radiant_girl',
-    avatarPrompt: '1:1方形AI课件音色头像，青年女性美式英语课堂学姐，高马尾，亮黄色运动外套，笑容阳光利落，柔和3D黏土插画，淡黄色与湖蓝背景，半身居中，无文字无水印。',
+    id: 'british-bubbly-girl', name: '泡泡女孩', sourceName: 'Bubbly Kid', language: '英语-英音',
+    gender: '女孩', accent: '英式英语', tag: '活泼跳脱', scene: '趣味互动、即时反馈', avatarUrl: '/voice-avatars/chinese-fun.webp', platformVoiceId: 'BritishChild_female_1_v1', avatarPrompt: '1:1方形AI课件音色头像，活泼的英式英语小女孩，薄荷绿连帽衫，柔和3D黏土插画，无文字无水印。',
   },
   {
-    id: 'american-captivating', name: '知识领航员', sourceName: 'Captivating Female', language: '英语-美音',
-    gender: '女生', accent: '美式英语', tag: '清晰有感染力', scene: '知识讲解、任务引导',
-    avatarUrl: '/voice-avatars/american-captivating.png', platformVoiceId: 'English_captivating_female1',
-    avatarPrompt: '1:1方形AI课件音色头像，青年女性美式英语知识领航员，利落短发，蓝色教师夹克，手持路线卡片，清晰自信，柔和3D黏土插画，天蓝与淡珊瑚背景，半身居中，无文字无水印。',
+    id: 'british-teen-boy', name: '机灵少年', sourceName: 'Teen Boy', language: '英语-英音',
+    gender: '男孩', accent: '英式英语', tag: '清亮有张力', scene: '闯关旁白、角色对话', avatarUrl: '/voice-avatars/british-comedian.webp', platformVoiceId: 'English_SadTeen', avatarPrompt: '1:1方形AI课件音色头像，机灵自信的英式英语男孩，湖蓝运动夹克，柔和3D黏土插画，无文字无水印。',
   },
   {
-    id: 'american-coach', name: '活力教练', sourceName: 'Upbeat Woman', language: '英语-美音',
-    gender: '女生', accent: '美式英语', tag: '活泼有节奏', scene: '闯关、课堂竞赛',
-    avatarUrl: '/voice-avatars/american-coach.png', platformVoiceId: 'English_Upbeat_Woman',
-    avatarPrompt: '1:1方形AI课件音色头像，青年女性美式英语活力教练，卷发马尾，珊瑚橙运动夹克，佩戴小哨子，动作有节奏，柔和3D黏土插画，浅橙与青绿背景，半身居中，无文字无水印。',
+    id: 'british-kindergarten-boy', name: '元气小骑士', sourceName: 'Kindergarten Boy', language: '英语-英音',
+    gender: '男孩', accent: '英式英语', tag: '清脆有奶气', scene: '低龄游戏、任务反馈', avatarUrl: '/voice-avatars/british-explorer.webp', platformVoiceId: 'BritishChild_male_1_v1', avatarPrompt: '1:1方形AI课件音色头像，天真有活力的英式英语小男孩，黄蓝运动衫，柔和3D黏土插画，无文字无水印。',
   },
-  {
-    id: 'american-calm', name: '沉静导师', sourceName: 'Calm Woman', language: '英语-美音',
-    gender: '女生', accent: '美式英语', tag: '舒缓稳定', scene: '阅读、长文本讲解',
-    avatarUrl: '/voice-avatars/american-calm.png', platformVoiceId: 'English_CalmWoman',
-    avatarPrompt: '1:1方形AI课件音色头像，成熟女性美式英语阅读导师，深色长发，淡紫蓝开衫，神情专注平和，柔和3D黏土插画，雾蓝与淡绿背景，半身居中，无文字无水印。',
-  },
-  {
-    id: 'american-gentle', name: '温和老师', sourceName: 'Gentle Teacher', language: '英语-美音',
-    gender: '女生', accent: '美式英语', tag: '亲切耐听', scene: '低龄引导、练习讲评',
-    avatarUrl: '/voice-avatars/american-gentle.png', platformVoiceId: 'English_GentleTeacher',
-    avatarPrompt: '1:1方形AI课件音色头像，青年女性美式英语温和老师，柔顺棕发，薄荷绿针织衫，手持小卡片，亲切耐听，柔和3D黏土插画，淡薄荷与暖白背景，半身居中，无文字无水印。',
-  },
-  {
-    id: 'american-steady', name: '稳健讲解员', sourceName: 'Magnetic-voiced Male', language: '英语-美音',
-    gender: '男生', accent: '美式英语', tag: '低沉清晰', scene: '科学、知识旁白',
-    avatarUrl: '/voice-avatars/american-steady.png', platformVoiceId: 'English_magnetic_voiced_man',
-    avatarPrompt: '1:1方形AI课件音色头像，中青年男性美式英语讲解员，深棕短发，灰蓝衬衫，可靠稳健，声音感低沉清晰，柔和3D黏土插画，浅灰蓝与淡金背景，半身居中，无文字无水印。',
-  },
-  {
-    id: 'bilingual-dawn', name: '晨光双语', sourceName: '活力讲师 + Expressive Narrator', language: '中英双语',
-    gender: '组合', accent: '中文普通话 + 英式英语', tag: '明快有层次', scene: '双语指令、课堂讲解',
-    avatarUrl: '/voice-avatars/bilingual-dawn.png',
-    platformVoiceIds: { chinese: 'Chinese_casual_instructor_vv2', english: 'English_expressive_narrator' },
-    avatarPrompt: '1:1方形AI课件双语音色头像，中英双语课堂搭档，一位活力中文女教师与一位清朗英音男讲述者并肩，青蓝教学服，柔和3D黏土插画，晨光黄与天蓝背景，双人半身居中，无文字无水印。',
-  },
-  {
-    id: 'bilingual-wise', name: '知性双语', sourceName: '温柔学姐 + Compelling Lady', language: '中英双语',
-    gender: '组合', accent: '中文普通话 + 英式英语', tag: '温和连贯', scene: '双语故事、阅读引导',
-    avatarUrl: '/voice-avatars/bilingual-wise.png',
-    platformVoiceIds: { chinese: 'Chinese (Mandarin)_Gentle_Senior', english: 'English_compelling_lady1' },
-    avatarPrompt: '1:1方形AI课件双语音色头像，两位知性女性双语故事老师并肩，一位中文温柔学姐与一位英伦故事家，手持同一本绘本，柔和3D黏土插画，淡紫蓝与玫瑰粉背景，双人半身居中，无文字无水印。',
-  },
-  {
-    id: 'bilingual-vitality', name: '活力双语', sourceName: '温暖少女 + Radiant Girl', language: '中英双语',
-    gender: '组合', accent: '中文普通话 + 美式英语', tag: '活泼明亮', scene: '双语闯关、即时反馈',
-    avatarUrl: '/voice-avatars/bilingual-vitality.png',
-    platformVoiceIds: { chinese: 'Chinese (Mandarin)_Warm_Girl', english: 'English_radiant_girl' },
-    avatarPrompt: '1:1方形AI课件双语音色头像，两位活力女性课堂伙伴并肩，一位暖心中文少女与一位阳光美音学姐，明亮运动风教学服，柔和3D黏土插画，珊瑚粉与青绿色背景，双人半身居中，无文字无水印。',
-  },
-  {
-    id: 'chinese-instructor', name: '活力讲师', sourceName: '活力讲师', language: '中文',
-    gender: '女生', accent: '中文普通话', tag: '自然有节奏', scene: '课堂讲解、任务引导',
-    avatarUrl: '/voice-avatars/chinese-instructor.png', platformVoiceId: 'Chinese_casual_instructor_vv2',
-    avatarPrompt: '1:1方形AI课件音色头像，青年女性中文活力讲师，利落短发，青绿色教学夹克，手持任务板，自然有节奏，柔和3D黏土插画，浅青与暖黄背景，半身居中，无文字无水印。',
-  },
-  {
-    id: 'chinese-neighbor', name: '邻家老师', sourceName: '播报男声', language: '中文',
-    gender: '男生', accent: '中文普通话', tag: '清楚可靠', scene: '知识播报、规则说明',
-    avatarUrl: '/voice-avatars/chinese-neighbor.png', platformVoiceId: 'Chinese (Mandarin)_Male_Announcer',
-    avatarPrompt: '1:1方形AI课件音色头像，青年男性中文邻家老师，整洁短发，浅蓝衬衫，神情可靠亲切，表达清楚，柔和3D黏土插画，天蓝与浅灰背景，半身居中，无文字无水印。',
-  },
-  {
-    id: 'chinese-senior', name: '温柔学姐', sourceName: '温柔学姐', language: '中文',
-    gender: '女生', accent: '中文普通话', tag: '温柔陪伴', scene: '低龄引导、故事旁白',
-    avatarUrl: '/voice-avatars/chinese-senior.png', platformVoiceId: 'Chinese (Mandarin)_Gentle_Senior',
-    avatarPrompt: '1:1方形AI课件音色头像，青年女性中文温柔学姐，栗色半长发，淡粉针织衫，手持绘本，神情耐心陪伴，柔和3D黏土插画，淡粉与薄荷绿背景，半身居中，无文字无水印。',
-  },
-  {
-    id: 'chinese-intellectual', name: '智性学姐', sourceName: '智性少女', language: '中文',
-    gender: '女生', accent: '中文普通话', tag: '清晰知性', scene: '知识讲解、阅读总结',
-    avatarUrl: '/voice-avatars/chinese-intellectual.png', platformVoiceId: 'Chinese (Mandarin)_IntellectualGirl',
-    avatarPrompt: '1:1方形AI课件音色头像，青年女性中文智性学姐，黑色齐肩发，圆框眼镜，淡紫蓝衬衫，清晰知性，柔和3D黏土插画，雾蓝与浅紫背景，半身居中，无文字无水印。',
-  },
-  {
-    id: 'chinese-warm', name: '暖心少女', sourceName: '温暖少女', language: '中文',
-    gender: '女生', accent: '中文普通话', tag: '明亮温暖', scene: '鼓励反馈、课堂陪伴',
-    avatarUrl: '/voice-avatars/chinese-warm.png', platformVoiceId: 'Chinese (Mandarin)_Warm_Girl',
-    avatarPrompt: '1:1方形AI课件音色头像，青春女性中文暖心课堂伙伴，双马尾，淡黄色卫衣，笑容明亮温暖，柔和3D黏土插画，暖黄与天空蓝背景，半身居中，无文字无水印。',
-  },
-  {
-    id: 'chinese-fun', name: '萌趣伙伴', sourceName: '憨憨萌兽', language: '中文',
-    gender: '女生', accent: '中文普通话', tag: '萌趣活泼', scene: '低龄游戏、角色反馈',
-    avatarUrl: '/voice-avatars/chinese-fun.png', platformVoiceId: 'Chinese (Mandarin)_Cute_Spirit',
-    avatarPrompt: '1:1方形AI课件音色头像，拟人化萌趣课堂小伙伴，圆润脸型，薄荷绿连帽衫，神情活泼友好，不使用真实动物特征，柔和3D黏土插画，浅绿与珊瑚粉背景，半身居中，无文字无水印。',
-  },
+
+  { id: 'american-sunshine', name: '阳光学姐', sourceName: 'Radiant Girl', language: '英语-美音', gender: '女生', accent: '美式英语', tag: '明亮利落', scene: '单词教学、课堂反馈', avatarUrl: '/voice-avatars/american-sunshine.webp', platformVoiceId: 'English_radiant_girl', avatarPrompt: '1:1方形AI课件音色头像，美式英语阳光课堂学姐，柔和3D黏土插画，无文字无水印。' },
+  { id: 'american-captivating', name: '知识领航员', sourceName: 'Captivating Female', language: '英语-美音', gender: '女生', accent: '美式英语', tag: '清晰有感染力', scene: '知识讲解、任务引导', avatarUrl: '/voice-avatars/american-captivating.webp', platformVoiceId: 'English_captivating_female1', avatarPrompt: '1:1方形AI课件音色头像，美式英语知识领航员，柔和3D黏土插画，无文字无水印。' },
+  { id: 'american-coach', name: '活力教练', sourceName: 'Upbeat Woman', language: '英语-美音', gender: '女生', accent: '美式英语', tag: '活泼有节奏', scene: '闯关、课堂竞赛', avatarUrl: '/voice-avatars/american-coach.webp', platformVoiceId: 'English_Upbeat_Woman', avatarPrompt: '1:1方形AI课件音色头像，美式英语活力教练，柔和3D黏土插画，无文字无水印。' },
+  { id: 'american-calm', name: '沉静导师', sourceName: 'Calm Woman', language: '英语-美音', gender: '女生', accent: '美式英语', tag: '舒缓稳定', scene: '阅读、长文本讲解', avatarUrl: '/voice-avatars/american-calm.webp', platformVoiceId: 'English_CalmWoman', avatarPrompt: '1:1方形AI课件音色头像，美式英语沉静阅读导师，柔和3D黏土插画，无文字无水印。' },
+  { id: 'american-gentle', name: '温和老师', sourceName: 'Gentle Teacher', language: '英语-美音', gender: '女生', accent: '美式英语', tag: '亲切耐听', scene: '低龄引导、练习讲评', avatarUrl: '/voice-avatars/american-gentle.webp', platformVoiceId: 'English_GentleTeacher', avatarPrompt: '1:1方形AI课件音色头像，美式英语温和老师，柔和3D黏土插画，无文字无水印。' },
+  { id: 'american-steady', name: '稳健讲解员', sourceName: 'Magnetic-voiced Male', language: '英语-美音', gender: '男生', accent: '美式英语', tag: '低沉清晰', scene: '科学、知识旁白', avatarUrl: '/voice-avatars/american-steady.webp', platformVoiceId: 'English_magnetic_voiced_man', avatarPrompt: '1:1方形AI课件音色头像，美式英语稳健男讲解员，柔和3D黏土插画，无文字无水印。' },
+
+  { id: 'bilingual-storyteller', name: '双语故事家', sourceName: '臻之萌', language: '中英双语', gender: '女生', accent: '中英双语', tag: '自然有叙事感', scene: '双语故事、阅读引导', avatarUrl: '/voice-avatars/bilingual-wise.webp', platformVoiceId: '008CB6D451AD99A9', avatarPrompt: '1:1方形AI课件音色头像，青年女性中英双语故事老师，手持绘本，柔和3D黏土插画，半身居中，单人，无文字无水印。' },
+  { id: 'bilingual-warm-guide', name: '暖心引导者', sourceName: '臻之鸿', language: '中英双语', gender: '女生', accent: '中英双语', tag: '甜美亲切', scene: '低龄启蒙、鼓励反馈', avatarUrl: '/voice-avatars/bilingual-dawn.webp', platformVoiceId: '65F53B62F879AAFC', avatarPrompt: '1:1方形AI课件音色头像，青年女性中英双语课堂引导者，暖黄色针织衫，亲切微笑，柔和3D黏土插画，半身居中，单人，无文字无水印。' },
+  { id: 'bilingual-host', name: '双语主持人', sourceName: '臻之萱', language: '中英双语', gender: '女生', accent: '中英双语', tag: '清晰大方', scene: '课堂开场、规则播报', avatarUrl: '/voice-avatars/bilingual-vitality.webp', platformVoiceId: 'DE4AED2AAFAEAFA1', avatarPrompt: '1:1方形AI课件音色头像，青年女性中英双语课堂主持人，湖蓝西装，清晰自信，柔和3D黏土插画，半身居中，单人，无文字无水印。' },
+  { id: 'bilingual-navigator', name: '双语领航员', sourceName: '臻之林', language: '中英双语', gender: '男生', accent: '中英双语', tag: '稳健清楚', scene: '任务引导、知识讲解', avatarUrl: '/voice-avatars/bilingual-dawn.webp', platformVoiceId: '0423377F66C704AB', avatarPrompt: '1:1方形AI课件音色头像，青年男性中英双语课堂领航员，深青教师夹克，稳健亲和，柔和3D黏土插画，半身居中，单人，无文字无水印。' },
+  { id: 'bilingual-narrator', name: '双语讲述者', sourceName: '臻之宁', language: '中英双语', gender: '男生', accent: '中英双语', tag: '沉稳有故事感', scene: '知识旁白、长文本讲解', avatarUrl: '/voice-avatars/bilingual-wise.webp', platformVoiceId: '9B738A5354535FC9', avatarPrompt: '1:1方形AI课件音色头像，青年男性中英双语知识讲述者，灰蓝衬衫，沉稳温和，柔和3D黏土插画，半身居中，单人，无文字无水印。' },
+  { id: 'bilingual-senior', name: '活力学长', sourceName: '臻之辉', language: '中英双语', gender: '男生', accent: '中英双语', tag: '年轻明快', scene: '互动闯关、即时反馈', avatarUrl: '/voice-avatars/bilingual-vitality.webp', platformVoiceId: '3017A4D76F5663F5', avatarPrompt: '1:1方形AI课件音色头像，年轻男性中英双语课堂学长，白色运动外套，阳光有活力，柔和3D黏土插画，半身居中，单人，无文字无水印。' },
+  { id: 'bilingual-star-girl', name: '星光女孩', sourceName: '可爱女孩', language: '中英双语', gender: '女孩', accent: '中英双语', tag: '可爱清甜', scene: '双语启蒙、绘本跟读', avatarUrl: '/voice-avatars/british-star.webp', platformVoiceId: 'HVGO1CG2VDX7CEOH', avatarPrompt: '1:1方形AI课件音色头像，约8岁中英双语小女孩，星星发夹，甜美亲切，柔和3D黏土插画，半身居中，无文字无水印。' },
+  { id: 'bilingual-vitality-girl', name: '活力女孩', sourceName: '卡通女孩01', language: '中英双语', gender: '女孩', accent: '中英双语', tag: '活泼灵动', scene: '双语互动、游戏反馈', avatarUrl: '/voice-avatars/chinese-fun.webp', platformVoiceId: 'WQYN6M5BD3NKXKHP', avatarPrompt: '1:1方形AI课件音色头像，约9岁中英双语小女孩，薄荷绿连帽衫，活泼灵动，柔和3D黏土插画，半身居中，无文字无水印。' },
+  { id: 'bilingual-clever-boy', name: '聪慧男孩', sourceName: '聪明男孩', language: '中英双语', gender: '男孩', accent: '中英双语', tag: '清亮机灵', scene: '知识问答、闯关旁白', avatarUrl: '/voice-avatars/british-comedian.webp', platformVoiceId: 'P3PFHB1M0JZEU5GQ', avatarPrompt: '1:1方形AI课件音色头像，约10岁中英双语小男孩，湖蓝运动夹克，聪明自信，柔和3D黏土插画，半身居中，无文字无水印。' },
+  { id: 'bilingual-energy-boy', name: '元气男孩', sourceName: '可爱男孩', language: '中英双语', gender: '男孩', accent: '中英双语', tag: '可爱有朝气', scene: '低龄游戏、任务反馈', avatarUrl: '/voice-avatars/british-explorer.webp', platformVoiceId: 'J7EFBHZ0SP1FLDGJ', avatarPrompt: '1:1方形AI课件音色头像，约7岁中英双语小男孩，黄蓝运动衫，天真有朝气，柔和3D黏土插画，半身居中，无文字无水印。' },
+
+  { id: 'chinese-instructor', name: '活力讲师', sourceName: '活力讲师', language: '中文', gender: '女生', accent: '普通话', tag: '自然有节奏', scene: '课堂讲解、任务引导', avatarUrl: '/voice-avatars/chinese-instructor.webp', platformVoiceId: 'Chinese_casual_instructor_vv2', avatarPrompt: '1:1方形AI课件音色头像，中文活力讲师，柔和3D黏土插画，无文字无水印。' },
+  { id: 'chinese-neighbor', name: '邻家老师', sourceName: '播报男声', language: '中文', gender: '男生', accent: '普通话', tag: '清楚可靠', scene: '知识播报、规则说明', avatarUrl: '/voice-avatars/chinese-neighbor.webp', platformVoiceId: 'Chinese (Mandarin)_Male_Announcer', avatarPrompt: '1:1方形AI课件音色头像，中文邻家男老师，柔和3D黏土插画，无文字无水印。' },
+  { id: 'chinese-senior', name: '温柔学姐', sourceName: '温柔学姐', language: '中文', gender: '女生', accent: '普通话', tag: '温柔陪伴', scene: '低龄引导、故事旁白', avatarUrl: '/voice-avatars/chinese-senior.webp', platformVoiceId: 'Chinese (Mandarin)_Gentle_Senior', avatarPrompt: '1:1方形AI课件音色头像，中文温柔课堂学姐，柔和3D黏土插画，无文字无水印。' },
+  { id: 'chinese-intellectual', name: '智性学姐', sourceName: '智性少女', language: '中文', gender: '女生', accent: '普通话', tag: '清晰知性', scene: '知识讲解、阅读总结', avatarUrl: '/voice-avatars/chinese-intellectual.webp', platformVoiceId: 'Chinese (Mandarin)_IntellectualGirl', avatarPrompt: '1:1方形AI课件音色头像，中文智性课堂学姐，柔和3D黏土插画，无文字无水印。' },
+  { id: 'chinese-warm', name: '暖心少女', sourceName: '温暖少女', language: '中文', gender: '女生', accent: '普通话', tag: '明亮温暖', scene: '鼓励反馈、课堂陪伴', avatarUrl: '/voice-avatars/chinese-warm.webp', platformVoiceId: 'Chinese (Mandarin)_Warm_Girl', avatarPrompt: '1:1方形AI课件音色头像，中文暖心课堂伙伴，柔和3D黏土插画，无文字无水印。' },
+  { id: 'chinese-fun', name: '萌趣伙伴', sourceName: '憨憨萌兽', language: '中文', gender: '女生', accent: '普通话', tag: '萌趣活泼', scene: '低龄游戏、角色反馈', avatarUrl: '/voice-avatars/chinese-fun.webp', platformVoiceId: 'Chinese (Mandarin)_Cute_Spirit', avatarPrompt: '1:1方形AI课件音色头像，中文萌趣课堂伙伴，柔和3D黏土插画，无文字无水印。' },
+  { id: 'chinese-child-girl-1', name: '漫游女孩', sourceName: '漫游少女', language: '中文', gender: '女孩', accent: '普通话', tag: '好奇灵动', scene: '故事探索、任务引导', avatarUrl: '/voice-avatars/chinese-warm.webp', platformVoiceId: 'Chinese (Mandarin)_ExplorativeGirl', avatarPrompt: '1:1方形AI课件音色头像，约9岁中文小女孩，旅行小挎包，柔和3D黏土插画，无文字无水印。' },
+  { id: 'chinese-child-girl-2', name: '含笑女孩', sourceName: '腼腆女孩', language: '中文', gender: '女孩', accent: '普通话', tag: '柔和腼腆', scene: '绘本跟读、温柔反馈', avatarUrl: '/voice-avatars/chinese-senior.webp', platformVoiceId: 'Chinese (Mandarin)_BashfulGirl', avatarPrompt: '1:1方形AI课件音色头像，约8岁中文小女孩，淡粉针织衫，柔和3D黏土插画，无文字无水印。' },
 ];
 
 export function getDefaultVoiceForLanguage(language: DemoVoiceLanguage) {
-  return demoVoiceOptions.find(voice => voice.language === language && !voice.dedicated) || demoVoiceOptions[0];
+  return demoVoiceOptions.find(voice => voice.language === language && !voice.dedicated);
 }
 
 const additionalAugustStyles: VisualStylePreset[] = [
@@ -279,58 +220,67 @@ export const augustVisualStyleOptions = [
 
 const englishRecommendations: CoursewareRecommendation[] = [
   {
-    id: 'rec-word-shooter', sourceType: 'courseware', badge: '同款课件', title: '单词神枪手',
+    id: 'rec-word-shooter', sourceType: 'courseware', title: '单词神枪手',
     subject: '英语', grade: '三年级', author: '张老师',
-    reason: '同样以快速识别单词为核心，替换词书内容后即可使用。',
-    flow: ['听/看目标词', '点击对应目标', '即时判断', '连对奖励'],
     previewUrl: '/case-games/word-shooter/index.html',
     thumbnail: '/case-games/word-shooter/images/bg.webp',
     sameCount: 186, usageCount: 324,
   },
   {
-    id: 'rec-make-word', sourceType: 'courseware', badge: '相似课件', title: 'Make-a-Word 果冻拼词',
+    id: 'rec-make-word', sourceType: 'courseware', title: 'Make-a-Word 果冻拼词',
     subject: '英语', grade: '二年级', author: 'Jolin',
-    reason: '适合把已选单词转为拖拽拼写练习，课堂操作感更强。',
-    flow: ['展示目标词', '拖拽字母', '吸附校验', '播放发音'],
     previewUrl: '/demo-history/make-a-word-jelly/index.html',
     thumbnail: '/demo-history/make-a-word-jelly/assets/04_make_word_cover.webp',
     sameCount: 132, usageCount: 276,
   },
   {
-    id: 'rec-dialogue', sourceType: 'template', badge: '推荐玩法', title: '对话连连看',
+    id: 'rec-dialogue', sourceType: 'template', title: '对话连连看',
     subject: '英语', grade: '二年级',
-    reason: '适合把词汇扩展为简单问答，兼顾认读和语境应用。',
-    flow: ['查看问句', '匹配答句', '连线校验', '完成复盘'],
     previewUrl: '/demo-history/dialogue-linking/index.html',
     thumbnail: '/demo-history/dialogue-linking/assets/dialog_connect_cover.webp',
     sameCount: 98, usageCount: 241,
+  },
+  {
+    id: 'rec-animal-forest', sourceType: 'courseware', title: '动物森林单词配对',
+    subject: '英语', grade: '二年级', author: '陈老师',
+    previewUrl: '/demo-history/animal-forest/index.html',
+    thumbnail: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/mdRmM1fT-2600008999-AigcImage-eb845ecb04b64fb1bb55438818678e86_0.png',
+    sameCount: 92, usageCount: 218,
+  },
+  {
+    id: 'rec-fruit-garden', sourceType: 'courseware', title: '水果单词互动乐园',
+    subject: '英语', grade: '一年级', author: '张老师',
+    previewUrl: '/demo-history/fruit-garden.html',
+    thumbnail: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/twVU397h-2600008999-AigcImage-507e80e381b5422aaf06d8e26c15290c_0.png',
+    sameCount: 88, usageCount: 205,
+  },
+  {
+    id: 'rec-fruit-read', sourceType: 'courseware', title: '水果单词跟读卡',
+    subject: '英语', grade: '一年级', author: '李老师',
+    previewUrl: '/demo-history/fruit-read-aloud.html',
+    thumbnail: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/twVU397h-2600008999-AigcImage-507e80e381b5422aaf06d8e26c15290c_0.png',
+    sameCount: 74, usageCount: 181,
   },
 ];
 
 const mathRecommendations: CoursewareRecommendation[] = [
   {
-    id: 'rec-fraction', sourceType: 'courseware', badge: '同款课件', title: '分数披萨店',
+    id: 'rec-fraction', sourceType: 'courseware', title: '分数披萨店',
     subject: '数学', grade: '三年级', author: 'Jolin',
-    reason: '题目结构与数学应用题适配，可直接替换为题库中的本次题目。',
-    flow: ['读取任务', '操作配餐', '提交答案', '获得反馈'],
     previewUrl: '/demo-history/fraction-pizza.html',
     thumbnail: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/tKaqXQLA-2600008999-AigcImage-dfa186ad6f7d49b1b8383397bdaa4ed6_0.png',
     sameCount: 164, usageCount: 308,
   },
   {
-    id: 'rec-battleship', sourceType: 'courseware', badge: '相似课件', title: '战舰逻辑挑战',
+    id: 'rec-battleship', sourceType: 'courseware', title: '战舰逻辑挑战',
     subject: '数学', grade: '三年级', author: 'Jolin',
-    reason: '适合需要观察、排除和多步推理的题目，反馈结构完整。',
-    flow: ['查看线索', '标记答案', '提交校验', '修正通关'],
     previewUrl: '/demo-history/battleship-logic/index.html',
     thumbnail: '/demo-history/battleship-logic/assets/battleships_cover.webp',
     sameCount: 121, usageCount: 265,
   },
   {
-    id: 'rec-clock', sourceType: 'template', badge: '推荐玩法', title: '转一转找答案',
+    id: 'rec-clock', sourceType: 'template', title: '转一转找答案',
     subject: '数学', grade: '一年级',
-    reason: '适合口算和单项选择题，轮次短，课堂节奏清楚。',
-    flow: ['转动指针', '显示题目', '选择答案', '累计进度'],
     previewUrl: '/demo-history/clock-reading.html',
     thumbnail: 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/TMvevMXM-2600008999-AigcImage-3f6a6afce0544326859d3c8e807c82c6_0.png',
     sameCount: 87, usageCount: 219,
@@ -339,33 +289,356 @@ const mathRecommendations: CoursewareRecommendation[] = [
 
 const chineseRecommendations: CoursewareRecommendation[] = [
   {
-    id: 'rec-hanzi', sourceType: 'courseware', badge: '同款课件', title: '汉字拼图 Rush',
+    id: 'rec-hanzi', sourceType: 'courseware', title: '汉字拼图 Rush',
     subject: '语文', grade: '二年级', author: 'Jolin',
-    reason: '适合部件、偏旁和识字内容，可把所选题目替换进关卡。',
-    flow: ['查看目标字', '选择部件', '完成拼合', '即时讲解'],
     previewUrl: '/demo-history/hanzi-rush/index.html',
     thumbnail: '/demo-history/hanzi-rush/assets/07_hanzi_cover.webp',
     sameCount: 148, usageCount: 287,
   },
   {
-    id: 'rec-synonym', sourceType: 'courseware', badge: '相似课件', title: '近义词大挑战',
+    id: 'rec-synonym', sourceType: 'courseware', title: '近义词大挑战',
     subject: '语文', grade: '三年级', author: '王老师',
-    reason: '适合词语辨析和语境选择，能够保留题库答案与解析。',
-    flow: ['阅读语境', '选择词语', '判断反馈', '查看解析'],
     previewUrl: '/case-games/synonym/index.html',
     thumbnail: '/case-games/synonym/images/bg_default.webp',
     sameCount: 116, usageCount: 252,
   },
   {
-    id: 'rec-story-sort', sourceType: 'template', badge: '推荐玩法', title: '课文情节排序',
+    id: 'rec-story-sort', sourceType: 'template', title: '课文情节排序',
     subject: '语文', grade: '三年级',
-    reason: '适合从云盘课件页面提取段落、事件和顺序关系。',
-    flow: ['提取情节', '拖拽排序', '逐步校验', '完整复述'],
     previewUrl: '/demo-history/sun-wukong-dressup/index.html',
     thumbnail: '/demo-history/sun-wukong-dressup/assets/images/cover-bg.webp',
     sameCount: 81, usageCount: 198,
   },
 ];
+
+interface RecommendationProfile {
+  knowledgePoints: string[];
+  questionTypes: string[];
+  interactions: string[];
+  playMechanisms: string[];
+  interactiveCapabilities: string[];
+}
+
+const recommendationProfiles: Record<string, RecommendationProfile> = {
+  'rec-word-shooter': {
+    knowledgePoints: ['word', 'vocabulary', 'color-word'],
+    questionTypes: ['choice'],
+    interactions: ['click'],
+    playMechanisms: ['challenge'],
+    interactiveCapabilities: ['auto-check', 'reward'],
+  },
+  'rec-make-word': {
+    knowledgePoints: ['word', 'spelling', 'phonics'],
+    questionTypes: ['spelling'],
+    interactions: ['drag'],
+    playMechanisms: ['word-building'],
+    interactiveCapabilities: ['auto-check', 'pronunciation-feedback'],
+  },
+  'rec-dialogue': {
+    knowledgePoints: ['word', 'dialogue'],
+    questionTypes: ['matching'],
+    interactions: ['connect'],
+    playMechanisms: ['matching'],
+    interactiveCapabilities: ['auto-check'],
+  },
+  'rec-animal-forest': {
+    knowledgePoints: ['word', 'vocabulary', 'phonics'],
+    questionTypes: ['matching'],
+    interactions: ['click', 'record'],
+    playMechanisms: ['matching', 'challenge'],
+    interactiveCapabilities: ['auto-check', 'pronunciation-feedback', 'reward'],
+  },
+  'rec-fruit-garden': {
+    knowledgePoints: ['word', 'vocabulary'],
+    questionTypes: ['matching'],
+    interactions: ['click', 'record'],
+    playMechanisms: ['matching', 'challenge'],
+    interactiveCapabilities: ['auto-check', 'pronunciation-feedback', 'reward'],
+  },
+  'rec-fruit-read': {
+    knowledgePoints: ['word', 'vocabulary', 'phonics'],
+    questionTypes: ['qa'],
+    interactions: ['click', 'record'],
+    playMechanisms: ['exploration'],
+    interactiveCapabilities: ['pronunciation-feedback', 'reward'],
+  },
+  'rec-fraction': {
+    knowledgePoints: ['fraction'],
+    questionTypes: ['application'],
+    interactions: ['drag'],
+    playMechanisms: ['challenge'],
+    interactiveCapabilities: ['auto-check', 'error-feedback', 'reward'],
+  },
+  'rec-battleship': {
+    knowledgePoints: ['logic'],
+    questionTypes: ['reasoning'],
+    interactions: ['click'],
+    playMechanisms: ['challenge'],
+    interactiveCapabilities: ['auto-check', 'error-feedback'],
+  },
+  'rec-clock': {
+    knowledgePoints: ['clock', 'mental-math'],
+    questionTypes: ['choice'],
+    interactions: ['click'],
+    playMechanisms: ['spinner'],
+    interactiveCapabilities: ['auto-check', 'score'],
+  },
+  'rec-hanzi': {
+    knowledgePoints: ['hanzi', 'radical'],
+    questionTypes: ['word-building'],
+    interactions: ['click'],
+    playMechanisms: ['puzzle'],
+    interactiveCapabilities: ['auto-check', 'explanation'],
+  },
+  'rec-synonym': {
+    knowledgePoints: ['synonym'],
+    questionTypes: ['choice'],
+    interactions: ['click'],
+    playMechanisms: ['challenge'],
+    interactiveCapabilities: ['auto-check', 'explanation'],
+  },
+  'rec-story-sort': {
+    knowledgePoints: ['text', 'plot', 'paragraph'],
+    questionTypes: ['sorting'],
+    interactions: ['drag'],
+    playMechanisms: ['sorting'],
+    interactiveCapabilities: ['auto-check', 'error-feedback'],
+  },
+};
+
+const knowledgePointRules = [
+  { tag: 'fraction', pattern: /分数/ },
+  { tag: 'within-20', pattern: /20以内|二十以内/ },
+  { tag: 'within-10', pattern: /10以内|十以内/ },
+  { tag: 'addition', pattern: /加法/ },
+  { tag: 'subtraction', pattern: /减法/ },
+  { tag: 'multiplication', pattern: /乘法/ },
+  { tag: 'division', pattern: /除法/ },
+  { tag: 'clock', pattern: /时钟|钟表/ },
+  { tag: 'mental-math', pattern: /口算/ },
+  { tag: 'hanzi', pattern: /汉字/ },
+  { tag: 'pinyin', pattern: /拼音/ },
+  { tag: 'poem', pattern: /古诗/ },
+  { tag: 'synonym', pattern: /近义词/ },
+  { tag: 'antonym', pattern: /反义词/ },
+  { tag: 'radical', pattern: /偏旁|部首/ },
+  { tag: 'text', pattern: /课文/ },
+  { tag: 'plot', pattern: /情节/ },
+  { tag: 'paragraph', pattern: /段落/ },
+  { tag: 'word', pattern: /单词|word/i },
+  { tag: 'vocabulary', pattern: /词汇|vocabulary/i },
+  { tag: 'spelling', pattern: /拼写/ },
+  { tag: 'phonics', pattern: /自然拼读|phonics/i },
+  { tag: 'color-word', pattern: /颜色词|颜色单词/ },
+];
+
+const structureRules = {
+  questionTypes: [
+    { tag: 'choice', pattern: /选择题|选答案|看图选/ },
+    { tag: 'fill', pattern: /填空题/ },
+    { tag: 'matching', pattern: /连线题|匹配题/ },
+    { tag: 'sorting', pattern: /排序题/ },
+    { tag: 'judgement', pattern: /判断题/ },
+    { tag: 'qa', pattern: /问答题/ },
+    { tag: 'mental-math', pattern: /口算题/ },
+  ],
+  interactions: [
+    { tag: 'click', pattern: /点击/ },
+    { tag: 'drag', pattern: /拖拽/ },
+    { tag: 'connect', pattern: /连线/ },
+    { tag: 'record', pattern: /录音/ },
+    { tag: 'spelling', pattern: /拼写/ },
+    { tag: 'swipe', pattern: /滑动/ },
+    { tag: 'choice', pattern: /选择/ },
+  ],
+  playMechanisms: [
+    { tag: 'challenge', pattern: /闯关/ },
+    { tag: 'matching', pattern: /配对/ },
+    { tag: 'elimination', pattern: /消除/ },
+    { tag: 'race', pattern: /竞速/ },
+    { tag: 'exploration', pattern: /探索/ },
+    { tag: 'spinner', pattern: /转盘/ },
+    { tag: 'puzzle', pattern: /拼图/ },
+    { tag: 'quiz', pattern: /抢答/ },
+    { tag: 'sorting', pattern: /排序/ },
+  ],
+  interactiveCapabilities: [
+    { tag: 'auto-check', pattern: /自动判题/ },
+    { tag: 'explanation', pattern: /错题解析|解析/ },
+    { tag: 'error-feedback', pattern: /答错/ },
+    { tag: 'pronunciation-feedback', pattern: /发音反馈/ },
+    { tag: 'reward', pattern: /星级奖励|奖励/ },
+    { tag: 'score', pattern: /计分/ },
+    { tag: 'countdown', pattern: /倒计时/ },
+  ],
+};
+
+const recommendationTagLabels: Record<string, string> = {
+  fraction: '分数',
+  'within-20': '20以内',
+  'within-10': '10以内',
+  addition: '加法',
+  subtraction: '减法',
+  multiplication: '乘法',
+  division: '除法',
+  clock: '时钟认读',
+  'mental-math': '口算',
+  logic: '逻辑推理',
+  hanzi: '汉字',
+  pinyin: '拼音',
+  poem: '古诗',
+  synonym: '近义词',
+  antonym: '反义词',
+  radical: '偏旁部首',
+  text: '课文',
+  plot: '课文情节',
+  paragraph: '段落',
+  word: '单词认读',
+  vocabulary: '词汇',
+  spelling: '单词拼写',
+  phonics: '自然拼读',
+  'color-word': '颜色单词',
+  dialogue: '英语问答',
+  choice: '选择题',
+  fill: '填空题',
+  matching: '匹配题',
+  sorting: '排序题',
+  judgement: '判断题',
+  qa: '问答题',
+  application: '应用题',
+  reasoning: '推理题',
+  'word-building': '拼词',
+  click: '点击',
+  drag: '拖拽',
+  connect: '连线',
+  record: '录音',
+  swipe: '滑动',
+  challenge: '闯关',
+  elimination: '消除',
+  race: '竞速',
+  exploration: '探索',
+  spinner: '转盘',
+  puzzle: '拼图',
+  quiz: '抢答',
+  'auto-check': '自动判题',
+  explanation: '解析',
+  'error-feedback': '答错反馈',
+  'pronunciation-feedback': '发音反馈',
+  reward: '奖励反馈',
+  score: '计分',
+  countdown: '倒计时',
+};
+
+function extractTags(content: string, rules: { tag: string; pattern: RegExp }[]) {
+  return rules.filter(rule => rule.pattern.test(content)).map(rule => rule.tag);
+}
+
+function hasSharedTag(queryTags: string[], candidateTags: string[]) {
+  return queryTags.some(tag => candidateTags.includes(tag));
+}
+
+function getSharedTags(queryTags: string[], candidateTags: string[]) {
+  return queryTags.filter(tag => candidateTags.includes(tag));
+}
+
+function getTagLabels(tags: string[]) {
+  return tags.map(tag => recommendationTagLabels[tag] || tag);
+}
+
+function getQuerySubject(content: string) {
+  if (/数学|口算|计算|分数|几何|加法|减法|乘法|除法|时钟|钟表/.test(content)) return '数学';
+  if (/语文|汉字|拼音|古诗|课文|近义词|反义词|偏旁|部首/.test(content)) return '语文';
+  if (/英语|英文|单词|词汇|字母|自然拼读|phonics|vocabulary|word/i.test(content)) return '英语';
+  return undefined;
+}
+
+function getGradeNumber(content: string) {
+  if (/幼儿园/.test(content)) return 0;
+  const match = content.match(/([一二三四五六1-6])年级/);
+  if (!match) return null;
+  const gradeMap: Record<string, number> = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6 };
+  return gradeMap[match[1]] || Number(match[1]);
+}
+
+function getEligibleRecommendations(content: string) {
+  const subject = getQuerySubject(content);
+  const queryGrade = getGradeNumber(content);
+  const queryKnowledgePoints = extractTags(content, knowledgePointRules);
+  const queryStructureTags = {
+    questionTypes: extractTags(content, structureRules.questionTypes),
+    interactions: extractTags(content, structureRules.interactions),
+    playMechanisms: extractTags(content, structureRules.playMechanisms),
+    interactiveCapabilities: extractTags(content, structureRules.interactiveCapabilities),
+  };
+  const hasEnoughStructureEvidence = Object.values(queryStructureTags).filter(tags => tags.length > 0).length >= 2;
+  if (queryKnowledgePoints.length === 0 && !hasEnoughStructureEvidence) return [];
+
+  return [...mathRecommendations, ...chineseRecommendations, ...englishRecommendations]
+    .filter(recommendation => {
+      if (subject && recommendation.subject !== subject) return false;
+      const profile = recommendationProfiles[recommendation.id];
+      if (!profile) return false;
+
+      const candidateGrade = getGradeNumber(recommendation.grade || '');
+      const knowledgePointMatched = hasSharedTag(queryKnowledgePoints, profile.knowledgePoints);
+      if (queryGrade !== null) {
+        if (candidateGrade === null || Math.abs(queryGrade - candidateGrade) >= 2) return false;
+        if (Math.abs(queryGrade - candidateGrade) === 1 && !knowledgePointMatched) return false;
+      }
+
+      if (queryKnowledgePoints.length > 0) return knowledgePointMatched;
+      const matchedDimensions = (Object.keys(queryStructureTags) as (keyof typeof queryStructureTags)[])
+        .filter(dimension => hasSharedTag(queryStructureTags[dimension], profile[dimension]))
+        .length;
+      return matchedDimensions >= 2;
+    })
+    .map(recommendation => {
+      const profile = recommendationProfiles[recommendation.id];
+      const matchPoints: NonNullable<CoursewareRecommendation['matchPoints']> = [];
+      const knowledgePointMatches = getSharedTags(queryKnowledgePoints, profile.knowledgePoints);
+      if (knowledgePointMatches.length > 0) {
+        matchPoints.push({ dimension: '知识点', label: getTagLabels(knowledgePointMatches).join('、') });
+      }
+      if (subject && recommendation.subject === subject) {
+        matchPoints.push({ dimension: '学科', label: recommendation.subject });
+      }
+      const candidateGrade = getGradeNumber(recommendation.grade || '');
+      if (queryGrade !== null && candidateGrade !== null) {
+        matchPoints.push({ dimension: '年级', label: queryGrade === candidateGrade ? recommendation.grade : `相邻年级：${recommendation.grade}` });
+      }
+
+      const structureDimensions: Array<{
+        key: keyof typeof queryStructureTags;
+        dimension: NonNullable<CoursewareRecommendation['matchPoints']>[number]['dimension'];
+      }> = [
+        { key: 'questionTypes', dimension: '题型' },
+        { key: 'interactions', dimension: '交互机制' },
+        { key: 'playMechanisms', dimension: '玩法机制' },
+        { key: 'interactiveCapabilities', dimension: '互动能力' },
+      ];
+      structureDimensions.forEach(({ key, dimension }) => {
+        const matches = getSharedTags(queryStructureTags[key], profile[key]);
+        if (matches.length > 0) matchPoints.push({ dimension, label: getTagLabels(matches).join('、') });
+      });
+
+      const contentTags = getTagLabels([
+        ...profile.questionTypes,
+        ...profile.interactions,
+        ...profile.playMechanisms,
+        ...profile.interactiveCapabilities,
+      ]).filter((tag, index, tags) => tags.indexOf(tag) === index);
+
+      return {
+        ...recommendation,
+        matchPoints,
+        materialId: recommendation.id,
+        resourceOwner: recommendation.sourceType === 'template' ? '集团资源库' : '当前账号可见资源',
+        knowledgePoints: getTagLabels(profile.knowledgePoints),
+        contentTags,
+      };
+    })
+    .slice(0, 6);
+}
 
 export function calculateEstimate(htmlModelId: string, imageModelId: string) {
   const html = htmlModelOptions.find(item => item.id === htmlModelId) || htmlModelOptions[0];
@@ -383,11 +656,11 @@ export function buildAugustGenerationPlan(
   selectedRecommendationId?: string,
 ): AugustGenerationPlan {
   const content = `${prompt}\n${framework.userRequirement}`;
-  const recommendations = /数学|口算|计算|分数|几何|题库/.test(content)
-    ? mathRecommendations
-    : /语文|汉字|拼音|古诗|课文/.test(content)
-      ? chineseRecommendations
-      : englishRecommendations;
+  const evidenceContent = [
+    prompt,
+    ...teachingSources.flatMap(source => [source.name, source.sourceLabel, source.summary, ...(source.items || [])]),
+  ].join('\n');
+  const recommendations = getEligibleRecommendations(evidenceContent);
   const isEnglish = /英语|英文|单词|词书|word|english/i.test(content);
   const smartVisualStyleId = isEnglish ? 'starfall-education' : /语文|汉字|拼音|古诗/.test(content) ? 'babybus-hanzi-courseware' : 'kidslogic';
   const smartVisualStyleName = isEnglish ? '英语启蒙卡片风' : /语文|汉字|拼音|古诗/.test(content) ? '幼儿识字卡通风' : '清晰逻辑风';
@@ -403,7 +676,7 @@ export function buildAugustGenerationPlan(
   const preferredVoiceLanguage = voiceLanguageOptions.includes(preferences.voiceLanguage as DemoVoiceLanguage)
     ? preferences.voiceLanguage as DemoVoiceLanguage
     : DEFAULT_VOICE_LANGUAGE;
-  const smartVoice = getDefaultVoiceForLanguage(preferredVoiceLanguage);
+  const smartVoice = getDefaultVoiceForLanguage(preferredVoiceLanguage) || demoVoiceOptions[0];
   const generationMode = generationModeOptions.find(mode => mode.id === preferences.generationModeId)
     || getGenerationModeByModels(preferences.htmlModelId, preferences.imageModelId);
   const htmlModelId = generationMode.htmlModelId;
@@ -418,8 +691,8 @@ export function buildAugustGenerationPlan(
     visualStyleName: resolvedVisualStyleName,
     visualStyleMode: hasManualVisualPreference ? 'manual' : 'smart',
     voiceId: manualVoice ? preferences.voiceId! : smartVoice.id,
-    voiceName: manualVoice ? preferences.voiceName || '已选音色' : smartVoice.name,
-    voiceLanguage: manualVoice ? preferences.voiceLanguage || preferredVoiceLanguage : preferredVoiceLanguage,
+    voiceName: manualVoice ? preferences.voiceName || '已选音色' : getDemoVoiceDisplayName(smartVoice),
+    voiceLanguage: manualVoice ? preferences.voiceLanguage || preferredVoiceLanguage : smartVoice.language,
     voiceMode: manualVoice ? 'manual' : 'smart',
     htmlModelId,
     imageModelId,

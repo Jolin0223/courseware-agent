@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fruit Garden - 读一读</title>
+  <style>
+    @import url('https://iteachcdn.xdf.cn/mmcw/font/fontVar.css');
+
+    :root {
+      --leaf: #278b55;
+      --coral: #ff7a7a;
+      --ink: #31543e;
+      --green: #62c765;
+      --shadow: rgba(74, 111, 68, 0.24);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #102817;
+      font-family: "Heinemann Roman", "方正准圆简体", "Arial Rounded MT Bold", sans-serif;
+      user-select: none;
+    }
+
+    body { position: relative; }
+
+    button {
+      font-family: inherit;
+      border: 0;
+      cursor: pointer;
+    }
+
+    .stage {
+      width: 1920px;
+      height: 1080px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      transform-origin: center center;
+      overflow: hidden;
+      background:
+        url('https://iteachcdn.xdf.cn/aisystem/c9a5c51ca9424b7ab3f018f36dff789d.png') center/cover no-repeat,
+        linear-gradient(180deg, #dff7ff, #c8f2a7);
+    }
+
+    .soft-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.82), transparent 18%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 251, 225, 0.45));
+      pointer-events: none;
+    }
+
+    .top-nav {
+      position: absolute;
+      top: 28px;
+      left: 36px;
+      right: 36px;
+      height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 50;
+    }
+
+    .brand-pill,
+    .step-pill {
+      height: 72px;
+      padding: 0 34px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 5px solid rgba(255, 255, 255, 0.95);
+      border-radius: 36px;
+      box-shadow: 0 12px 0 rgba(67, 139, 65, 0.18), 0 18px 34px var(--shadow);
+      color: var(--leaf);
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .step-pill {
+      min-width: 180px;
+      justify-content: center;
+      color: #fff;
+      background: linear-gradient(180deg, #ff9b7b, #ff6f76);
+      box-shadow: inset 0 -5px 0 rgba(164, 58, 58, 0.18), 0 8px 18px rgba(255, 122, 122, 0.3);
+    }
+
+    .big-button,
+    .ghost-button {
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      font-weight: 900;
+    }
+
+    .big-button {
+      min-width: 260px;
+      height: 92px;
+      border-radius: 46px;
+      padding: 0 46px;
+      font-size: 42px;
+      background: linear-gradient(180deg, #fff7a8, #ffc947);
+      color: #7a4b0b;
+      border: 5px solid #fff;
+      box-shadow: 0 10px 0 #d98d22, 0 16px 24px rgba(91, 78, 29, 0.28);
+    }
+
+    .ghost-button {
+      height: 72px;
+      border-radius: 36px;
+      padding: 0 30px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 5px solid rgba(255, 255, 255, 0.96);
+      color: var(--leaf);
+      font-size: 30px;
+      box-shadow: 0 8px 0 rgba(39, 139, 85, 0.16), 0 14px 22px rgba(74, 111, 68, 0.16);
+    }
+
+    .big-button:active,
+    .ghost-button:active {
+      transform: translateY(6px);
+    }
+
+    .read-layout {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      top: 138px;
+      bottom: 70px;
+      display: grid;
+      place-items: center;
+      z-index: 5;
+      overflow: hidden;
+    }
+
+    .read-card {
+      width: 1120px;
+      height: 850px;
+      border-radius: 54px;
+      border: 7px solid rgba(255, 255, 255, 0.98);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 24px 56px var(--shadow);
+      padding: 42px 58px;
+      display: grid;
+      grid-template-rows: 88px 330px auto auto 130px;
+      place-items: center;
+      text-align: center;
+      overflow: visible;
+      position: relative;
+      z-index: 2;
+    }
+
+    .read-result {
+      width: 100%;
+      min-height: 88px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      align-items: center;
+      gap: 22px;
+      color: var(--ink);
+    }
+
+    .score-stars {
+      height: 76px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .score-stars span {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.84);
+      border: 3px solid rgba(255, 255, 255, 0.96);
+      box-shadow: inset 0 -5px 0 rgba(80, 114, 74, 0.08), 0 8px 14px rgba(74, 111, 68, 0.12);
+      color: #d6dece;
+      font-size: 34px;
+      filter: grayscale(1);
+      opacity: 0.75;
+    }
+
+    .score-stars span.on {
+      color: #ffc928;
+      background: linear-gradient(180deg, #fff8b8, #ffd35d);
+      border-color: #fff;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8);
+      box-shadow: inset 0 -6px 0 rgba(213, 143, 12, 0.18), 0 10px 18px rgba(255, 198, 59, 0.3);
+      filter: none;
+      opacity: 1;
+      animation: pop 0.25s ease-out;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.2); }
+      to { transform: scale(1); }
+    }
+
+    .feedback {
+      min-height: 74px;
+      color: var(--ink);
+      font-size: 27px;
+      line-height: 1.35;
+      font-weight: 900;
+      text-align: center;
+      display: grid;
+      place-items: center;
+      padding: 0 18px;
+      background: rgba(255, 255, 255, 0.62);
+      border: 4px solid rgba(255, 255, 255, 0.86);
+      border-radius: 26px;
+    }
+
+    .read-card img {
+      max-width: 380px;
+      max-height: 320px;
+      object-fit: contain;
+      filter: drop-shadow(0 24px 26px rgba(50, 98, 49, 0.24));
+    }
+
+    .read-word {
+      color: var(--coral);
+      font-weight: 900;
+      font-size: 104px;
+      line-height: 1;
+    }
+
+    .read-cn {
+      color: var(--leaf);
+      font-size: 44px;
+      font-weight: 900;
+    }
+
+    .read-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .button-wave {
+      position: absolute;
+      left: 50%;
+      bottom: 96px;
+      transform: translateX(-50%);
+      height: 48px;
+      padding: 0 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 4px solid rgba(255, 255, 255, 0.96);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      box-shadow: 0 8px 18px rgba(74, 111, 68, 0.18);
+    }
+
+    .button-wave.listening {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .bar {
+      width: 12px;
+      height: 24px;
+      border-radius: 14px;
+      background: var(--green);
+      opacity: 0.72;
+    }
+
+    .listening .bar {
+      animation: wave 0.7s ease-in-out infinite;
+    }
+
+    .listening .bar:nth-child(2) { animation-delay: 0.08s; }
+    .listening .bar:nth-child(3) { animation-delay: 0.16s; }
+    .listening .bar:nth-child(4) { animation-delay: 0.24s; }
+    .listening .bar:nth-child(5) { animation-delay: 0.32s; }
+    .listening .bar:nth-child(6) { animation-delay: 0.4s; }
+
+    @keyframes wave {
+      0%, 100% { height: 18px; }
+      50% { height: 42px; }
+    }
+
+    .read-preview {
+      position: absolute;
+      top: 50%;
+      width: 250px;
+      height: 360px;
+      transform: translateY(-50%) scale(0.92);
+      border-radius: 42px;
+      border: 6px solid rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.66);
+      box-shadow: 0 18px 36px rgba(74, 111, 68, 0.18);
+      display: grid;
+      grid-template-rows: 220px auto;
+      justify-items: center;
+      align-items: center;
+      opacity: 0.82;
+      cursor: pointer;
+      z-index: 1;
+    }
+
+    .read-preview.prev { left: 52px; }
+    .read-preview.next { right: 52px; }
+
+    .read-preview img {
+      max-width: 180px;
+      max-height: 190px;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 16px rgba(50, 98, 49, 0.16));
+    }
+
+    .read-preview span {
+      color: var(--leaf);
+      font-size: 30px;
+      font-weight: 900;
+      max-width: 210px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" id="stage">
+    <div class="soft-overlay"></div>
+
+    <nav class="top-nav">
+      <div class="brand-pill">🎙️ Read Aloud</div>
+      <div class="step-pill">2 读一读</div>
+    </nav>
+
+    <section class="read-layout">
+      <div class="read-preview prev" id="readPrevPreview">
+        <img id="readPrevImg" alt="">
+        <span id="readPrevWord">peach</span>
+      </div>
+
+      <div class="read-card">
+        <div class="read-result">
+          <div class="score-stars" id="scoreStars">
+            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+          </div>
+          <div class="feedback" id="readFeedback">听一听，再读一读。</div>
+        </div>
+
+        <img id="readFruitImg" alt="">
+        <div class="read-word" id="readWord">apple</div>
+        <div class="read-cn" id="readCn">苹果</div>
+
+        <div class="read-actions">
+          <button class="ghost-button" id="listenBtn">🔊 听一听</button>
+          <button class="big-button" id="recordBtn">🎙️ 我来读</button>
+          <div class="button-wave" id="buttonWave">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="read-preview next" id="readNextPreview">
+        <img id="readNextImg" alt="">
+        <span id="readNextWord">banana</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://iteachcdn.xdf.cn/mmcw/plus/gsap.min.js"></script>
+  <script src="https://iteachcdn.xdf.cn/mmcw/plus/aijs/confetti.browser.min.js"></script>
+  <script>
+    const DESIGN_WIDTH = 1920;
+    const DESIGN_HEIGHT = 1080;
+
+    const FRUIT_DATA = {
+      apple: {
+        img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/03-J1Bep629QLGVV0bbJz0iow/images/apple.png',
+        word: 'apple',
+        cn: '苹果'
+      },
+      banana: {
+        img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/03-J1Bep629QLGVV0bbJz0iow/images/banana.png',
+        word: 'banana',
+        cn: '香蕉'
+      },
+      orange: {
+        img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/03-J1Bep629QLGVV0bbJz0iow/images/orange.png',
+        word: 'orange',
+        cn: '橙子'
+      },
+      pear: {
+        img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/03-J1Bep629QLGVV0bbJz0iow/images/pear.png',
+        word: 'pear',
+        cn: '梨'
+      },
+      grape: {
+        img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/03-J1Bep629QLGVV0bbJz0iow/images/grape.png',
+        word: 'grape',
+        cn: '葡萄'
+      },
+      watermelon: {
+        img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/03-J1Bep629QLGVV0bbJz0iow/images/watermelon.png',
+        word: 'watermelon',
+        cn: '西瓜'
+      },
+      strawberry: {
+        img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/03-J1Bep629QLGVV0bbJz0iow/images/strawberry.png',
+        word: 'strawberry',
+        cn: '草莓'
+      },
+      peach: {
+        img: 'https://oss-xlss.xdf.cn/ig-kpm/multiple/2026-06/03-J1Bep629QLGVV0bbJz0iow/images/peach.png',
+        word: 'peach',
+        cn: '桃子'
+      }
+    };
+
+    const fruitOrder = ['apple', 'banana', 'orange', 'pear', 'grape', 'watermelon', 'strawberry', 'peach'];
+
+    function resizeStage() {
+      const stage = document.getElementById('stage');
+      const scale = Math.min(window.innerWidth / DESIGN_WIDTH, window.innerHeight / DESIGN_HEIGHT);
+      stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+
+    window.addEventListener('resize', resizeStage);
+    window.addEventListener('load', resizeStage);
+
+    const AudioManager = {
+      ctx: null,
+      init() {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      },
+      tone(freq, duration = 0.14, type = 'sine', vol = 0.16) {
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      },
+      click() { this.tone(880, 0.08, 'sine', 0.12); },
+      pop() {
+        this.tone(420, 0.1, 'triangle', 0.16);
+        setTimeout(() => this.tone(720, 0.12, 'sine', 0.12), 60);
+      },
+      sparkle() {
+        this.tone(740, 0.11, 'sine', 0.13);
+        setTimeout(() => this.tone(988, 0.13, 'sine', 0.13), 70);
+        setTimeout(() => this.tone(1319, 0.18, 'triangle', 0.11), 145);
+        setTimeout(() => this.tone(1760, 0.16, 'sine', 0.08), 230);
+      },
+      speak(text) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.82;
+        window.speechSynthesis.speak(utterance);
+      }
+    };
+
+    const App = {
+      readIndex: 0,
+      readHoldActive: false,
+      init() {
+        resizeStage();
+        this.setReadFruit(0);
+        this.bind();
+      },
+      bind() {
+        document.getElementById('listenBtn').onclick = () => {
+          AudioManager.click();
+          AudioManager.speak(FRUIT_DATA[fruitOrder[this.readIndex]].word);
+        };
+        document.getElementById('readPrevPreview').onclick = () => {
+          this.setReadFruit((this.readIndex - 1 + fruitOrder.length) % fruitOrder.length);
+        };
+        document.getElementById('readNextPreview').onclick = () => {
+          this.setReadFruit((this.readIndex + 1) % fruitOrder.length);
+        };
+        this.bindReadSwipe();
+        this.bindRecordButton();
+      },
+      bindReadSwipe() {
+        const card = document.querySelector('.read-card');
+        let startX = 0;
+        let startY = 0;
+        card.addEventListener('pointerdown', event => {
+          startX = event.clientX;
+          startY = event.clientY;
+        });
+        card.addEventListener('pointerup', event => {
+          const dx = event.clientX - startX;
+          const dy = event.clientY - startY;
+          if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+            const nextIndex = dx < 0
+              ? (this.readIndex + 1) % fruitOrder.length
+              : (this.readIndex - 1 + fruitOrder.length) % fruitOrder.length;
+            this.setReadFruit(nextIndex);
+          }
+        });
+      },
+      bindRecordButton() {
+        const button = document.getElementById('recordBtn');
+        button.addEventListener('pointerdown', event => {
+          event.preventDefault();
+          this.startReadHold();
+        });
+        button.addEventListener('pointerup', event => {
+          event.preventDefault();
+          this.finishReadHold();
+        });
+        button.addEventListener('pointerleave', () => this.finishReadHold());
+        button.addEventListener('pointercancel', () => this.finishReadHold());
+      },
+      setReadFruit(index) {
+        this.readIndex = index;
+        const data = FRUIT_DATA[fruitOrder[index]];
+        const prevData = FRUIT_DATA[fruitOrder[(index - 1 + fruitOrder.length) % fruitOrder.length]];
+        const nextData = FRUIT_DATA[fruitOrder[(index + 1) % fruitOrder.length]];
+
+        document.getElementById('readFruitImg').src = data.img;
+        document.getElementById('readWord').textContent = data.word;
+        document.getElementById('readCn').textContent = data.cn;
+        document.getElementById('readPrevImg').src = prevData.img;
+        document.getElementById('readPrevWord').textContent = prevData.word;
+        document.getElementById('readNextImg').src = nextData.img;
+        document.getElementById('readNextWord').textContent = nextData.word;
+
+        this.setReadStars(0);
+        document.getElementById('buttonWave').classList.remove('listening');
+        document.getElementById('readFeedback').textContent = `先点听一听，再读：${data.word}`;
+        gsap.fromTo('#readFruitImg', { x: 18, opacity: 0.2 }, { x: 0, opacity: 1, duration: 0.28, ease: 'power2.out' });
+      },
+      setReadStars(score) {
+        document.querySelectorAll('#scoreStars span').forEach((star, index) => {
+          star.classList.toggle('on', index < score);
+        });
+      },
+      startReadHold() {
+        if (this.readHoldActive) return;
+        const target = FRUIT_DATA[fruitOrder[this.readIndex]].word;
+        this.readHoldActive = true;
+        AudioManager.click();
+        this.setReadStars(0);
+        document.getElementById('buttonWave').classList.add('listening');
+        document.getElementById('readFeedback').textContent = `按住读：${target}`;
+      },
+      finishReadHold() {
+        if (!this.readHoldActive) return;
+        this.readHoldActive = false;
+        const target = FRUIT_DATA[fruitOrder[this.readIndex]].word;
+        document.getElementById('buttonWave').classList.remove('listening');
+        this.mockSpeechScore(target);
+      },
+      mockSpeechScore(target) {
+        this.setReadStars(0);
+        document.getElementById('readFeedback').textContent = '正在评测，星星马上来。';
+        setTimeout(() => {
+          const score = 4 + (this.readIndex % 2);
+          this.setReadStars(score);
+          if (score === 5) {
+            AudioManager.sparkle();
+            document.getElementById('readFeedback').textContent = `满星啦！${target} 读得又清楚又可爱！`;
+            gsap.fromTo('#scoreStars span.on', { scale: 0.45, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.38, stagger: 0.05, ease: 'back.out(2.4)' });
+            confetti({ particleCount: 70, spread: 70, origin: { y: 0.7 } });
+          } else {
+            AudioManager.pop();
+            document.getElementById('readFeedback').textContent = `很棒！${target} 已经亮起 4 颗星。`;
+            gsap.fromTo('#scoreStars span.on', { scale: 0.55 }, { scale: 1, duration: 0.32, stagger: 0.04, ease: 'back.out(2)' });
+          }
+        }, 700);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => App.init());
+  </script>
+</body>
+</html>

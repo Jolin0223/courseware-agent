@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowRight, Copy, PlayCircle, Route, Sparkles, X } from 'lucide-react';
-import type { CoursewareRecommendationMessage } from '../../types';
+import { ArrowRight, CheckCircle2, Copy, PlayCircle, Sparkles, Target, X } from 'lucide-react';
+import type { CoursewareRecommendation, CoursewareRecommendationMessage } from '../../types';
 import './augustDemo.css';
 
 interface CoursewareRecommendationCardProps {
@@ -11,35 +11,53 @@ interface CoursewareRecommendationCardProps {
 }
 
 export default function CoursewareRecommendationCard({ data, readOnly, onChoose }: CoursewareRecommendationCardProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewTitle, setPreviewTitle] = useState('');
+  const [previewRecommendation, setPreviewRecommendation] = useState<CoursewareRecommendation | null>(null);
+  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [copiedMaterialId, setCopiedMaterialId] = useState(false);
   const locked = readOnly || Boolean(data.action);
+
+  useEffect(() => {
+    setPreviewLoaded(false);
+    setCopiedMaterialId(false);
+  }, [previewRecommendation?.id]);
+
+  const copyMaterialId = async (materialId: string) => {
+    await navigator.clipboard.writeText(materialId);
+    setCopiedMaterialId(true);
+    window.setTimeout(() => setCopiedMaterialId(false), 1500);
+  };
 
   return (
     <>
       <section className={`aug-recommendation-card ${locked ? 'is-readonly' : ''}`}>
         <header>
           <div>
-            <div className="aug-rec-heading"><span><Sparkles size={15} /></span><h3>相似课件推荐</h3></div>
-            <p>已从你可见的课件中筛选，优先展示与当前需求最接近的结果</p>
+            <div className="aug-rec-heading"><span><Sparkles size={15} /></span><h3>为你推荐</h3></div>
+            <p>按本次需求的有效标签统一筛选</p>
           </div>
-          <span className="aug-rec-count">{data.recommendations.length} 个结果</span>
+          <span className="aug-rec-count">{data.recommendations.length} 个可用课件</span>
         </header>
 
         <div className="aug-recommendation-grid">
-          {data.recommendations.slice(0, 3).map(recommendation => (
+          {data.recommendations.slice(0, 6).map(recommendation => (
             <article key={recommendation.id} className={data.selectedRecommendationId === recommendation.id ? 'is-selected' : ''}>
               <div className="aug-rec-cover">
                 {recommendation.thumbnail ? <img src={recommendation.thumbnail} alt={`${recommendation.title}封面`} /> : <div className="aug-rec-cover-fallback">{recommendation.subject}</div>}
-                <span>{recommendation.badge}</span>
               </div>
               <div className="aug-rec-body">
                 <small className="aug-rec-meta">{recommendation.subject} · {recommendation.grade}{recommendation.author ? ` · ${recommendation.author}` : ''}</small>
                 <h4>{recommendation.title}</h4>
-                <p>{recommendation.reason}</p>
-                <div className="aug-rec-flow" aria-label={`课堂流程：${recommendation.flow.join('，')}`}><Route size={13} /><span>{recommendation.flow.join(' → ')}</span></div>
+                <div className="aug-rec-match-points" aria-label="本次需求匹配点">
+                  {(recommendation.matchPoints || []).slice(0, 3).map(point => (
+                    <span key={`${point.dimension}-${point.label}`}>
+                      <Target size={11} />
+                      <b>{point.dimension}</b>
+                      <em>{point.label}</em>
+                    </span>
+                  ))}
+                </div>
                 <div className="aug-rec-actions">
-                  <button className="aug-rec-preview" disabled={!recommendation.previewUrl} onClick={() => { setPreviewTitle(recommendation.title); setPreviewUrl(recommendation.previewUrl || null); }}><PlayCircle size={15} />预览课件</button>
+                  <button className="aug-rec-preview" disabled={!recommendation.previewUrl} onClick={() => setPreviewRecommendation(recommendation)}><PlayCircle size={15} />预览课件</button>
                   <button className="aug-rec-clone" disabled={locked} onClick={() => onChoose(recommendation.id)}><Copy size={14} />一键同款</button>
                 </div>
               </div>
@@ -58,14 +76,101 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose 
         </footer>
       </section>
 
-      {previewUrl && createPortal(
-        <div className="aug-modal-mask aug-preview-mask" onMouseDown={event => { if (event.target === event.currentTarget) setPreviewUrl(null); }}>
-          <section className="aug-courseware-preview" role="dialog" aria-modal="true">
-            <header><div><b>{previewTitle}</b><span>完整课件预览</span></div><button className="aug-icon-button" onClick={() => setPreviewUrl(null)} aria-label="关闭"><X size={19} /></button></header>
-            <div className="aug-courseware-preview-stage">
-              <iframe src={previewUrl} title={`${previewTitle}预览`} />
+      {previewRecommendation && createPortal(
+        <div className="aug-resource-preview-mask" onMouseDown={event => { if (event.target === event.currentTarget) setPreviewRecommendation(null); }}>
+          <aside className="aug-resource-preview-drawer" role="dialog" aria-modal="true" aria-label={`${previewRecommendation.title}课件预览`}>
+            <header>
+              <div>
+                <small>互动课件资源</small>
+                <h3>{previewRecommendation.title}</h3>
+              </div>
+              <button type="button" aria-label="关闭课件预览" onClick={() => setPreviewRecommendation(null)}><X size={18} /></button>
+            </header>
+
+            <div className="aug-resource-preview-body">
+              <div className="aug-resource-preview-stage">
+                {previewRecommendation.previewUrl ? (
+                  <>
+                    <iframe
+                      title={`${previewRecommendation.title}试玩`}
+                      sandbox="allow-scripts allow-same-origin"
+                      src={previewRecommendation.previewUrl}
+                      onLoad={() => setPreviewLoaded(true)}
+                    />
+                    {!previewLoaded && <div className="aug-resource-preview-loading">正在加载课件</div>}
+                  </>
+                ) : previewRecommendation.thumbnail ? (
+                  <img src={previewRecommendation.thumbnail} alt={`${previewRecommendation.title}封面`} />
+                ) : (
+                  <div className="aug-resource-preview-empty">该课件暂未配置试玩</div>
+                )}
+              </div>
+
+              <div className="aug-resource-preview-details">
+                <section>
+                  <small>素材ID</small>
+                  <div className="aug-resource-id-row">
+                    <code>{previewRecommendation.materialId || previewRecommendation.id}</code>
+                    <button type="button" aria-label="复制素材ID" onClick={() => copyMaterialId(previewRecommendation.materialId || previewRecommendation.id)}>
+                      {copiedMaterialId ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </section>
+
+                <section>
+                  <small>资源归属</small>
+                  <strong>{previewRecommendation.resourceOwner || '当前账号可见资源'}</strong>
+                </section>
+
+                {(previewRecommendation.matchPoints || []).length > 0 && (
+                  <section>
+                    <small>本次匹配点</small>
+                    <div className="aug-resource-match-list">
+                      {(previewRecommendation.matchPoints || []).map(point => (
+                        <span key={`${point.dimension}-${point.label}`}><b>{point.dimension}</b>{point.label}</span>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                <section>
+                  <small>内容标签</small>
+                  <div className="aug-resource-tag-list">
+                    {(previewRecommendation.contentTags || []).map(tag => <span key={tag}>{tag}</span>)}
+                  </div>
+                </section>
+
+                <section>
+                  <small>知识点</small>
+                  <div className="aug-resource-tag-list is-knowledge">
+                    {(previewRecommendation.knowledgePoints || []).map(point => <span key={point}>{point}</span>)}
+                  </div>
+                </section>
+
+                {previewRecommendation.author && (
+                  <section className="aug-resource-author">
+                    <small>上传者</small>
+                    <span>{previewRecommendation.author}</span>
+                  </section>
+                )}
+              </div>
             </div>
-          </section>
+
+            <footer>
+              <button type="button" className="is-secondary" onClick={() => setPreviewRecommendation(null)}>关闭</button>
+              <button
+                type="button"
+                className="is-primary"
+                disabled={locked}
+                onClick={() => {
+                  onChoose(previewRecommendation.id);
+                  setPreviewRecommendation(null);
+                }}
+              >
+                <Copy size={14} />一键同款
+              </button>
+            </footer>
+          </aside>
         </div>,
         document.body,
       )}

@@ -339,6 +339,7 @@ export interface Conversation {
   messages: ConversationMessage[];
   isPinned: boolean;
   isGenerating: boolean;
+  waitingForUserAction: boolean;
   coursewareId?: number;
   cloneDraft?: {
     prompt: string;

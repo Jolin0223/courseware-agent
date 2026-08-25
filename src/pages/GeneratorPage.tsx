@@ -2119,6 +2119,7 @@ export default function GeneratorPage() {
     isGenerating,
     startGeneration,
     completeGeneration,
+    setWaitingForUserAction,
   } = useConversationStore();
   
   const {
@@ -2389,6 +2390,7 @@ export default function GeneratorPage() {
     generationPreferences: GenerationPreferences = {},
     selectedRecommendationId?: string,
   ) => {
+    setWaitingForUserAction(convId, false);
     setPhase('analyzing');
     setFrameworkDone(false);
 
@@ -2414,7 +2416,7 @@ export default function GeneratorPage() {
         pendingFrameworkRef.current = null;
       }, demoMs(10000));
     }, demoMs(1500));
-  }, [addAssistantMessage]);
+  }, [addAssistantMessage, setWaitingForUserAction]);
 
   const startRecommendationFlow = useCallback((
     convId: string,
@@ -2422,6 +2424,7 @@ export default function GeneratorPage() {
     teachingSources: TeachingContentSource[] = [],
     generationPreferences: GenerationPreferences = {},
   ) => {
+    setWaitingForUserAction(convId, false);
     setPhase('analyzing');
     setFrameworkDone(false);
 
@@ -2445,7 +2448,7 @@ export default function GeneratorPage() {
       }, 'courseware-recommendation');
       setPhase('recommendation');
     }, demoMs(1800));
-  }, [addAssistantMessage, startRequirementFlow]);
+  }, [addAssistantMessage, setWaitingForUserAction, startRequirementFlow]);
 
   const maybeAskVoiceCapability = useCallback((
     convId: string,
@@ -2703,8 +2706,9 @@ export default function GeneratorPage() {
           : conversation
       )),
     }));
+    setWaitingForUserAction(activeConversationId, false);
     setPhase('input');
-  }, [activeConversationId, activeConversation]);
+  }, [activeConversationId, activeConversation, setWaitingForUserAction]);
 
   const handleRecommendationChoose = useCallback((messageId: string, recommendationId?: string) => {
     if (!activeConversationId) return;
@@ -2736,6 +2740,7 @@ export default function GeneratorPage() {
           : conversation
       )),
     }));
+    setWaitingForUserAction(activeConversationId, false);
 
     addUserMessage(
       activeConversationId,
@@ -2750,7 +2755,7 @@ export default function GeneratorPage() {
       data.generationPreferences || {},
       recommendation?.id,
     );
-  }, [activeConversationId, activeConversation, addUserMessage, startRequirementFlow]);
+  }, [activeConversationId, activeConversation, addUserMessage, setWaitingForUserAction, startRequirementFlow]);
 
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
@@ -2766,6 +2771,7 @@ export default function GeneratorPage() {
       ? `我已确认生成方案：${referenceText}，画面使用「${plan.visualStyleName}」，音色使用「${plan.voiceName}」，生成模式使用「${generationMode?.name || '智能生成'}」。`
       : '我已确认需求，立即生成。';
 
+    setWaitingForUserAction(activeConversationId, false);
     addUserMessage(activeConversationId, skipMessage || confirmationText);
     setPhase('generating');
     
@@ -2808,6 +2814,7 @@ export default function GeneratorPage() {
               c.id === activeConversationId
                 ? {
                     ...c,
+                    waitingForUserAction: progressWithIntro.stages.some(stage => stage.status === 'failed'),
                     messages: c.messages.map(m =>
                       m.type === 'generation-progress' ? { ...m, content: progressWithIntro } : m
                     ),
@@ -2861,7 +2868,7 @@ export default function GeneratorPage() {
         failAtStageRef.current
       );
     }, demoMs(500));
-  }, [activeConversationId, activeConversation, addUserMessage, startGeneration, addAssistantMessage, completeGeneration, addCourseware, setSidebarCollapsed, openPreview]);
+  }, [activeConversationId, activeConversation, addUserMessage, setWaitingForUserAction, startGeneration, addAssistantMessage, completeGeneration, addCourseware, setSidebarCollapsed, openPreview]);
 
   const handleStop = useCallback(() => {
     if (abortControllerRef.current) {
@@ -2876,7 +2883,9 @@ export default function GeneratorPage() {
     if (activeConversationId) {
       useConversationStore.setState(state => ({
         conversations: state.conversations.map(c =>
-          c.id === activeConversationId ? { ...c, isGenerating: false } : c
+          c.id === activeConversationId
+            ? { ...c, isGenerating: false, waitingForUserAction: false }
+            : c
         ),
         isGenerating: false,
       }));
@@ -2892,6 +2901,7 @@ export default function GeneratorPage() {
         c.id === activeConversationId
           ? {
               ...c,
+              waitingForUserAction: false,
               messages: c.messages.map(m => {
                 if (m.type !== 'generation-progress') return m;
                 const progress = m.content as GenerationProgress;
@@ -2944,6 +2954,7 @@ export default function GeneratorPage() {
         c.id === activeConversationId
           ? {
               ...c,
+              waitingForUserAction: false,
               messages: c.messages.map(m => {
                 if (m.type !== 'generation-progress') return m;
                 const progress = m.content as GenerationProgress;
@@ -3044,6 +3055,7 @@ export default function GeneratorPage() {
           : conversation
       )),
     }));
+    setWaitingForUserAction(activeConversationId, false);
 
     addUserMessage(activeConversationId, {
       text: `我已确认 ${resolutions.length} 个材料用途`,
@@ -3062,7 +3074,7 @@ export default function GeneratorPage() {
       confirmation.teachingSources || [],
       confirmation.generationPreferences || {},
     );
-  }, [activeConversationId, activeConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
+  }, [activeConversationId, activeConversation, addUserMessage, addAssistantMessage, setWaitingForUserAction, maybeAskVoiceCapability]);
 
   const handleVoiceCapabilityConfirm = useCallback((messageId: string, selection: VoiceCapabilitySelection) => {
     if (!activeConversationId) return;
@@ -3094,6 +3106,7 @@ export default function GeneratorPage() {
           : conversation
       )),
     }));
+    setWaitingForUserAction(activeConversationId, false);
 
     addUserMessage(activeConversationId, selectedText);
     startRecommendationFlow(
@@ -3102,7 +3115,7 @@ export default function GeneratorPage() {
       confirmation.teachingSources || [],
       confirmation.generationPreferences || {},
     );
-  }, [activeConversationId, activeConversation, addUserMessage, startRecommendationFlow]);
+  }, [activeConversationId, activeConversation, addUserMessage, setWaitingForUserAction, startRecommendationFlow]);
 
   const handleLearningDataRecoveryRequest = useCallback((request: LearningDataRecoveryRequest) => {
     if (!activeConversationId || request.mode !== 'upgrade-legacy') return;

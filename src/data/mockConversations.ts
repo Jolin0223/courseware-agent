@@ -87,6 +87,7 @@ const createDemoHistoryConversation = ({
     ],
     isPinned: false,
     isGenerating: false,
+    waitingForUserAction: false,
     coursewareId,
   };
 };
@@ -243,6 +244,7 @@ export const mockConversations: Conversation[] = [
     ],
     isPinned: true,
     isGenerating: false,
+    waitingForUserAction: false,
     coursewareId: 1,
   },
   ...recentDemoConversations,
@@ -268,6 +270,7 @@ export const mockConversations: Conversation[] = [
     ],
     isPinned: false,
     isGenerating: false,
+    waitingForUserAction: false,
     coursewareId: 2,
   },
   {
@@ -292,6 +295,7 @@ export const mockConversations: Conversation[] = [
     ],
     isPinned: false,
     isGenerating: false,
+    waitingForUserAction: false,
     coursewareId: 3,
   },
   {
@@ -316,6 +320,7 @@ export const mockConversations: Conversation[] = [
     ],
     isPinned: false,
     isGenerating: false,
+    waitingForUserAction: false,
     coursewareId: 7,
   },
 ];
@@ -334,6 +339,7 @@ export function createEmptyConversation(): Conversation {
     messages: [],
     isPinned: false,
     isGenerating: false,
+    waitingForUserAction: false,
   };
 }
 

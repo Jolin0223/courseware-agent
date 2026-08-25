@@ -1,11 +1,18 @@
 import { create } from 'zustand';
-import type { Conversation, ConversationMessage, GenerationProgress, GenerationStage, CoursewareResult, RequirementFramework, UserMaterialMessage } from '../types';
+import type { Conversation, ConversationMessage, GenerationProgress, GenerationStage, CoursewareResult, RequirementFramework, UserMaterialMessage, MessageType } from '../types';
 import { mockConversations, createEmptyConversation, generateRequirementFromPrompt } from '../data/mockConversations';
 import { demoMs } from '../constants/demoTiming';
 import fruitGardenHTML from '../assets/courseware/fruit_garden_adventure.html?raw';
 import { createLearningDataRecoverySummary, getRecoveryItemsForCourseware } from '../utils/learningDataRecovery';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
+
+const USER_ACTION_REQUIRED_MESSAGE_TYPES = new Set<MessageType>([
+  'courseware-recommendation',
+  'requirement-framework',
+  'material-intent-confirmation',
+  'voice-capability-confirmation',
+]);
 
 interface ConversationState {
   conversations: Conversation[];
@@ -22,6 +29,7 @@ interface ConversationState {
   deleteConversation: (id: string) => void;
   renameConversation: (id: string, title: string) => void;
   togglePinConversation: (id: string) => void;
+  setWaitingForUserAction: (conversationId: string, waiting: boolean) => void;
   addUserMessage: (conversationId: string, content: string | UserMaterialMessage) => void;
   addAssistantMessage: (conversationId: string, content: ConversationMessage['content'], type: ConversationMessage['type']) => void;
   startGeneration: (conversationId: string) => void;
@@ -134,6 +142,12 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     ),
   })),
 
+  setWaitingForUserAction: (conversationId, waiting) => set((state) => ({
+    conversations: state.conversations.map((c) =>
+      c.id === conversationId ? { ...c, waitingForUserAction: waiting } : c
+    ),
+  })),
+
   addUserMessage: (conversationId, content) => set((state) => ({
     conversations: state.conversations.map((c) =>
       c.id === conversationId
@@ -159,6 +173,9 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       c.id === conversationId
         ? {
             ...c,
+            waitingForUserAction: type !== undefined && USER_ACTION_REQUIRED_MESSAGE_TYPES.has(type)
+              ? true
+              : c.waitingForUserAction,
             messages: [
               ...c.messages,
               {
@@ -178,7 +195,9 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     set({ isGenerating: true, currentStageIndex: 0, stageProgress: 0 });
     set((state) => ({
       conversations: state.conversations.map((c) =>
-        c.id === conversationId ? { ...c, isGenerating: true } : c
+        c.id === conversationId
+          ? { ...c, isGenerating: true, waitingForUserAction: false }
+          : c
       ),
     }));
   },
@@ -189,7 +208,9 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     if (activeConversationId) {
       set((state) => ({
         conversations: state.conversations.map((c) =>
-          c.id === activeConversationId ? { ...c, isGenerating: false } : c
+          c.id === activeConversationId
+            ? { ...c, isGenerating: false, waitingForUserAction: false }
+            : c
         ),
       }));
     }
@@ -208,6 +229,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
           ? {
               ...c,
               isGenerating: false,
+              waitingForUserAction: false,
               coursewareId,
               title: result.title,
             }

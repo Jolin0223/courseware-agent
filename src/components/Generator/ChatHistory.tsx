@@ -205,12 +205,35 @@ const ChatHistory: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-            {conv.isGenerating && (
+            {conv.waitingForUserAction ? (
+              <span
+                role="status"
+                aria-label="待用户确认"
+                style={{
+                  width: 14,
+                  height: 14,
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#EF4444',
+                    boxShadow: '0 0 0 2px rgba(239, 68, 68, 0.12)',
+                  }}
+                />
+              </span>
+            ) : conv.isGenerating ? (
               <Loader2
                 size={14}
                 style={{ color: '#0EA5E9', animation: 'spin 1s linear infinite' }}
               />
-            )}
+            ) : null}
 
             <button
               onClick={(e) => {

@@ -50,10 +50,15 @@ export interface TeachingQuestionItem {
   type: string;
   level: string;
   knowledge: string;
+  source?: string;
   content: string;
   options?: string[];
   answer?: string;
   analysis?: string;
+  knowledgeGraph?: string;
+  analysisVideoUrl?: string;
+  analysisVideoTitle?: string;
+  analysisVideoDuration?: string;
 }
 
 export interface TeachingWordItem {

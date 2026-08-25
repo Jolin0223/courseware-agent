@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BookOpenText, Database, Pause, Play, Presentation, Trash2, X } from 'lucide-react';
+import { BookOpenText, Check, ChevronDown, ChevronUp, Database, Pause, Play, Plus, Presentation, Trash2, Video, X } from 'lucide-react';
 import type {
   TeachingCloudPageItem,
   TeachingContentSource,
@@ -15,7 +15,7 @@ interface TeachingContentPreviewModalProps {
   onClose: () => void;
   onChange: (attachment: UploadedAttachment) => void;
   onRemove: (attachmentId: string) => void;
-  onEdit: (attachment: UploadedAttachment) => void;
+  onAdd: (attachment: UploadedAttachment) => void;
 }
 
 const getQuestionItems = (source: TeachingContentSource): TeachingQuestionItem[] => (
@@ -41,9 +41,9 @@ const getPageItems = (source: TeachingContentSource): TeachingCloudPageItem[] =>
   }))
 );
 
-const updateSourceAfterRemoval = (source: TeachingContentSource, itemId: string | number): TeachingContentSource => {
+const updateSourceAfterRemoval = (source: TeachingContentSource, itemIds: Set<string | number>): TeachingContentSource => {
   if (source.type === 'question-bank') {
-    const questionItems = getQuestionItems(source).filter(item => item.id !== itemId);
+    const questionItems = getQuestionItems(source).filter(item => !itemIds.has(item.id));
     const subjects = Array.from(new Set(questionItems.map(item => item.subject))).join('、');
     const knowledge = questionItems.map(item => item.knowledge).filter((item, index, all) => all.indexOf(item) === index).slice(0, 2).join('、');
     return {
@@ -57,7 +57,7 @@ const updateSourceAfterRemoval = (source: TeachingContentSource, itemId: string 
   }
 
   if (source.type === 'word-book') {
-    const wordItems = getWordItems(source).filter(item => item.id !== itemId);
+    const wordItems = getWordItems(source).filter(item => !itemIds.has(item.id));
     return {
       ...source,
       summary: source.summary.replace(/已选\s*\d+\s*个单词/, `已选 ${wordItems.length} 个单词`),
@@ -67,7 +67,7 @@ const updateSourceAfterRemoval = (source: TeachingContentSource, itemId: string 
     };
   }
 
-  const pageItems = getPageItems(source).filter(item => item.pageNumber !== itemId);
+  const pageItems = getPageItems(source).filter(item => !itemIds.has(item.pageNumber));
   const pageNumbers = pageItems.map(item => item.pageNumber).sort((a, b) => a - b);
   return {
     ...source,
@@ -83,10 +83,19 @@ export default function TeachingContentPreviewModal({
   onClose,
   onChange,
   onRemove,
-  onEdit,
+  onAdd,
 }: TeachingContentPreviewModalProps) {
   const [playingWordId, setPlayingWordId] = useState<string | null>(null);
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string | number>>(new Set());
+  const [expandedQuestionIds, setExpandedQuestionIds] = useState<Set<string>>(new Set());
+  const [activeAnalysisVideo, setActiveAnalysisVideo] = useState<TeachingQuestionItem | null>(null);
   const source = attachment?.teachingSource;
+  const closeModal = useCallback(() => {
+    setSelectedItemIds(new Set());
+    setExpandedQuestionIds(new Set());
+    setActiveAnalysisVideo(null);
+    onClose();
+  }, [onClose]);
 
   const items = useMemo(() => {
     if (!source) return [];
@@ -95,19 +104,63 @@ export default function TeachingContentPreviewModal({
     return getPageItems(source);
   }, [source]);
 
+  useEffect(() => {
+    if (!attachment) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (activeAnalysisVideo) setActiveAnalysisVideo(null);
+      else closeModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeAnalysisVideo, attachment, closeModal]);
+
   if (!attachment || !source) return null;
 
   const SourceIcon = source.type === 'question-bank' ? Database : source.type === 'word-book' ? BookOpenText : Presentation;
-  const title = source.type === 'question-bank' ? '预览所选题目' : source.type === 'word-book' ? '预览所选单词' : '预览所选课件页面';
+  const title = source.type === 'question-bank' ? '已选题目' : source.type === 'word-book' ? '已选单词' : '已选课件页面';
+  const addLabel = source.type === 'question-bank' ? '继续添加题目' : source.type === 'word-book' ? '继续添加单词' : '继续添加页面';
+  const countUnit = source.type === 'question-bank' ? '题' : source.type === 'word-book' ? '个单词' : '页';
 
-  const removeItem = (itemId: string | number) => {
-    const nextSource = updateSourceAfterRemoval(source, itemId);
+  const removeItems = (itemIds: Set<string | number>) => {
+    const nextSource = updateSourceAfterRemoval(source, itemIds);
     if (!nextSource.itemCount) {
       onRemove(attachment.id);
-      onClose();
+      closeModal();
       return;
     }
     onChange({ ...attachment, teachingSource: nextSource, name: nextSource.name });
+  };
+
+  const toggleItemSelection = (itemId: string | number) => {
+    setSelectedItemIds(previous => {
+      const next = new Set(previous);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  };
+
+  const itemIds: Array<string | number> = source.type === 'question-bank'
+    ? (items as TeachingQuestionItem[]).map(item => item.id)
+    : source.type === 'word-book'
+      ? (items as TeachingWordItem[]).map(item => item.id)
+      : (items as TeachingCloudPageItem[]).map(item => item.pageNumber);
+  const allItemsSelected = itemIds.length > 0 && itemIds.every(itemId => selectedItemIds.has(itemId));
+  const pageItems = source.type === 'cloud-pages' ? items as TeachingCloudPageItem[] : [];
+  const selectionHint = source.type === 'question-bank'
+    ? '勾选一题或多题后删除'
+    : source.type === 'word-book'
+      ? '勾选一个或多个单词后删除'
+      : '勾选一页或多页后删除';
+
+  const toggleQuestionAnalysis = (questionId: string) => {
+    setExpandedQuestionIds(previous => {
+      const next = new Set(previous);
+      if (next.has(questionId)) next.delete(questionId);
+      else next.add(questionId);
+      return next;
+    });
   };
 
   const toggleWordAudio = (wordId: string) => {
@@ -121,53 +174,115 @@ export default function TeachingContentPreviewModal({
   };
 
   return createPortal(
-    <div className="aug-modal-mask" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <section className="aug-content-preview-modal" role="dialog" aria-modal="true">
+    <div className="aug-modal-mask" onMouseDown={event => { if (event.target === event.currentTarget) closeModal(); }}>
+      <section className={`aug-content-preview-modal aug-content-preview-modal-${source.type}`} role="dialog" aria-modal="true" aria-labelledby="teaching-content-preview-title">
         <header className="aug-modal-header">
           <div className="aug-content-preview-heading">
             <span><SourceIcon size={19} /></span>
-            <div><h2>{title}</h2><p>{source.name} · {source.itemCount}{source.type === 'question-bank' ? '题' : source.type === 'word-book' ? '个单词' : '页'}</p></div>
+            <div><h2 id="teaching-content-preview-title">{title}</h2></div>
           </div>
-          <button type="button" className="aug-icon-button" onClick={onClose} aria-label="关闭"><X size={19} /></button>
+          <button type="button" className="aug-icon-button" onClick={closeModal} aria-label="关闭"><X size={19} /></button>
         </header>
 
         <div className={`aug-content-preview-body aug-content-preview-${source.type}`}>
-          {source.type === 'question-bank' && (items as TeachingQuestionItem[]).map((question, index) => (
-            <article key={question.id} className="aug-preview-question-card">
-              <div className="aug-preview-item-index">{index + 1}</div>
-              <div className="aug-preview-question-main">
-                <div className="aug-preview-meta"><span>{question.subject}</span><span>{question.type}</span><span>{question.level}</span><span>{question.knowledge}</span></div>
-                <h3>{question.content}</h3>
-                {question.options && <div className="aug-preview-options">{question.options.map((option, optionIndex) => <span key={option}>{String.fromCharCode(65 + optionIndex)}. {option}</span>)}</div>}
-                {(question.answer || question.analysis) && <div className="aug-preview-answer"><b>答案：{question.answer || '暂无'}</b>{question.analysis && <p>解析：{question.analysis}</p>}</div>}
-              </div>
-              <button type="button" className="aug-preview-remove-item" onClick={() => removeItem(question.id)} aria-label={`移除第${index + 1}题`}><Trash2 size={15} /></button>
-            </article>
-          ))}
+          <div className="aug-preview-selection-toolbar">
+            <span>{selectionHint}</span>
+            <div>
+              <button type="button" className="aug-preview-select-all" onClick={() => setSelectedItemIds(allItemsSelected ? new Set() : new Set(itemIds))}>{allItemsSelected ? '取消全选' : '全选'}</button>
+              <button type="button" className="aug-preview-batch-delete" disabled={selectedItemIds.size === 0} onClick={() => {
+                removeItems(selectedItemIds);
+                setSelectedItemIds(new Set());
+              }}><Trash2 size={14} />删除所选{selectedItemIds.size > 0 ? `（${selectedItemIds.size}）` : ''}</button>
+            </div>
+          </div>
 
-          {source.type === 'word-book' && <div className="aug-preview-word-grid">{(items as TeachingWordItem[]).map(word => (
-            <article key={word.id} className="aug-preview-word-card">
+          {source.type === 'question-bank' && (items as TeachingQuestionItem[]).map((question, index) => {
+            const selected = selectedItemIds.has(question.id);
+            const expanded = expandedQuestionIds.has(question.id);
+            return (
+              <article key={question.id} className={`aug-preview-question-card ${selected ? 'is-selected' : ''}`}>
+                <button type="button" className="aug-preview-item-select" aria-label={`${selected ? '取消选择' : '选择'}第${index + 1}题`} aria-pressed={selected} onClick={() => toggleItemSelection(question.id)}>
+                  <span className="aug-preview-item-check">{selected && <Check size={13} />}</span>
+                </button>
+                <div className="aug-preview-question-main">
+                  <div className="aug-preview-question-meta-row">
+                    <div className="aug-preview-question-meta"><span className="is-level">{question.level}</span><span className="is-type">{question.type}</span><small>来源：{question.source || '暂无'}</small></div>
+                    <span className="aug-preview-knowledge-tag">{question.knowledge || '暂无知识点'}</span>
+                  </div>
+                  <div className="aug-preview-question-content"><span>{index + 1}</span><h3>{question.content}</h3></div>
+                  {question.options && <div className="aug-preview-options">{question.options.map((option, optionIndex) => <span key={option}>{String.fromCharCode(65 + optionIndex)}. {option}</span>)}</div>}
+                  <button type="button" className="aug-preview-analysis-toggle" aria-expanded={expanded} onClick={() => toggleQuestionAnalysis(question.id)}>
+                    {expanded ? '收起解析' : '展开解析'}{expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                  </button>
+                  {expanded && <section className="aug-preview-analysis-details" aria-label={`第${index + 1}题解析`}>
+                    <div className="aug-preview-analysis-answer"><span>答案</span><strong>{question.answer || '暂无'}</strong></div>
+                    <div className="aug-preview-analysis-explanation"><span>解析</span><p>{question.analysis || '暂无'}</p></div>
+                    <div className="aug-preview-analysis-support">
+                      <div><span>知识图谱</span><p>{question.knowledgeGraph || '暂无'}</p></div>
+                      <div><span>题目ID</span><code>{question.id || '暂无'}</code></div>
+                    </div>
+                    <div className="aug-preview-analysis-video">
+                      <span>解析视频</span>
+                      {question.analysisVideoUrl ? <button type="button" onClick={() => setActiveAnalysisVideo(question)} aria-label={`播放${question.analysisVideoTitle || '题目解析视频'}`}>
+                        <span className="aug-preview-analysis-video-thumb"><Play size={20} fill="currentColor" /><small>{question.analysisVideoDuration || '视频'}</small></span>
+                        <span className="aug-preview-analysis-video-copy"><b>{question.analysisVideoTitle || '题目解析视频'}</b><small>点击播放视频讲解</small></span>
+                      </button> : <span className="aug-preview-analysis-empty">暂无</span>}
+                    </div>
+                  </section>}
+                </div>
+              </article>
+            );
+          })}
+
+          {source.type === 'word-book' && <div className="aug-preview-word-grid">{(items as TeachingWordItem[]).map(word => {
+            const selected = selectedItemIds.has(word.id);
+            return (
+            <article key={word.id} className={`aug-preview-word-card ${selected ? 'is-selected' : ''}`}>
+              <button type="button" className="aug-preview-item-select" aria-label={`${selected ? '取消选择' : '选择'}${word.word}`} aria-pressed={selected} onClick={() => toggleItemSelection(word.id)}>
+                <span className="aug-preview-item-check">{selected && <Check size={13} />}</span>
+              </button>
               <div><h3>{word.word}</h3><span>{word.phonetic || '暂无音标'}</span><p>{word.meaning || '暂无释义'}</p></div>
               <div className="aug-preview-word-actions">
                 {word.audioAvailable && <button type="button" onClick={() => toggleWordAudio(word.id)} aria-label={`${playingWordId === word.id ? '停止' : '试听'}${word.word}`}>{playingWordId === word.id ? <Pause size={14} /> : <Play size={14} fill="currentColor" />}</button>}
-                <button type="button" onClick={() => removeItem(word.id)} aria-label={`移除${word.word}`}><Trash2 size={15} /></button>
               </div>
             </article>
-          ))}</div>}
+            );
+          })}</div>}
 
-          {source.type === 'cloud-pages' && <div className="aug-preview-page-grid">{(items as TeachingCloudPageItem[]).map(page => (
-            <article key={page.pageNumber} className="aug-preview-page-card">
-              <div className="aug-preview-page-thumb"><i>Weather</i><b>{page.title}</b><small>{page.subtitle}</small></div>
-              <div className="aug-preview-page-footer"><span>原课件第 {page.pageNumber} 页</span><button type="button" onClick={() => removeItem(page.pageNumber)} aria-label={`移除第${page.pageNumber}页`}><Trash2 size={15} /></button></div>
-            </article>
-          ))}</div>}
+          {source.type === 'cloud-pages' && <>
+            <div className="aug-preview-page-grid">{pageItems.map(page => {
+              const selected = selectedItemIds.has(page.pageNumber);
+              return (
+                <article key={page.pageNumber} className={`aug-preview-page-card ${selected ? 'is-selected' : ''}`}>
+                  <button type="button" className="aug-preview-page-select" aria-pressed={selected} onClick={() => toggleItemSelection(page.pageNumber)}>
+                    <span className="aug-preview-page-check">{selected && <Check size={13} />}</span>
+                    <span className="aug-preview-page-thumb"><i>Weather</i><b>{page.title}</b><small>{page.subtitle}</small></span>
+                    <span className="aug-preview-page-footer">原课件第 {page.pageNumber} 页</span>
+                  </button>
+                </article>
+              );
+            })}</div>
+          </>}
         </div>
 
         <footer className="aug-modal-footer aug-content-preview-footer">
-          <span>发送后将按当前选择读取内容</span>
-          <div><button type="button" className="aug-button-secondary" onClick={() => onEdit(attachment)}>修改选择</button><button type="button" className="aug-button-primary" onClick={onClose}>完成</button></div>
+          <span>发送后将按当前保留的 {source.itemCount}{countUnit}读取内容</span>
+          <div><button type="button" className="aug-button-secondary aug-content-add-button" onClick={() => {
+            setSelectedItemIds(new Set());
+            setExpandedQuestionIds(new Set());
+            onAdd(attachment);
+          }}><Plus size={15} />{addLabel}</button><button type="button" className="aug-button-primary" onClick={closeModal}>完成</button></div>
         </footer>
       </section>
+      {activeAnalysisVideo?.analysisVideoUrl && <div className="aug-analysis-video-mask" onMouseDown={event => { if (event.target === event.currentTarget) setActiveAnalysisVideo(null); }}>
+        <section className="aug-analysis-video-modal" role="dialog" aria-modal="true" aria-labelledby="aug-analysis-video-title">
+          <header>
+            <div><span><Video size={18} /></span><div><h3 id="aug-analysis-video-title">{activeAnalysisVideo.analysisVideoTitle || '题目解析视频'}</h3><p>解析视频 · {activeAnalysisVideo.analysisVideoDuration || '时长暂无'}</p></div></div>
+            <button type="button" className="aug-icon-button" onClick={() => setActiveAnalysisVideo(null)} aria-label="关闭解析视频"><X size={18} /></button>
+          </header>
+          <video src={activeAnalysisVideo.analysisVideoUrl} controls autoPlay playsInline aria-label={activeAnalysisVideo.analysisVideoTitle || '题目解析视频'} />
+        </section>
+      </div>}
     </div>,
     document.body,
   );

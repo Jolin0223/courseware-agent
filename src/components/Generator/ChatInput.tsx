@@ -19,6 +19,7 @@ import { useUIStore } from '../../store/uiStore';
 import type { GenerationPreferences, UploadedAttachment } from '../../types';
 import HtmlTypeBadge from '../common/HtmlTypeBadge';
 import TeachingContentPicker from './TeachingContentPicker';
+import TeachingContentPreviewModal from './TeachingContentPreviewModal';
 import GenerationPreferencePicker from './GenerationPreferencePicker';
 
 interface ChatInputProps {
@@ -428,6 +429,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [teachingAttachments, setTeachingAttachments] = useState<UploadedAttachment[]>([]);
+  const [previewTeachingAttachmentId, setPreviewTeachingAttachmentId] = useState<string | null>(null);
   const [editingTeachingAttachment, setEditingTeachingAttachment] = useState<UploadedAttachment | null>(null);
   const [generationPreferences, setGenerationPreferences] = useState<GenerationPreferences>({
     visualStyleMode: 'smart',
@@ -444,6 +446,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [placeholderAnimating, setPlaceholderAnimating] = useState(true);
   const [homepagePromptGroupIndex, setHomepagePromptGroupIndex] = useState(0);
+  const isMacPlatform = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+  const sendShortcutLabel = `↵ 发送 / ${isMacPlatform ? '⌘↵' : 'Ctrl+↵'} 换行`;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -468,6 +472,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     && !appliedInspirationDraft
   );
   const teachingUsageGuidance = getTeachingUsageGuidance(teachingAttachments);
+  const previewTeachingAttachment = teachingAttachments.find(item => item.id === previewTeachingAttachmentId) || null;
 
   const materialUsagePlaceholder = (() => {
     if (teachingUsageGuidance) return teachingUsageGuidance.placeholder;
@@ -572,6 +577,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const removeTeachingAttachment = useCallback((attachmentId: string) => {
     setTeachingAttachments(previous => previous.filter(item => item.id !== attachmentId));
+    setPreviewTeachingAttachmentId(previous => previous === attachmentId ? null : previous);
+    setEditingTeachingAttachment(previous => previous?.id === attachmentId ? null : previous);
   }, []);
 
   const switchHomepagePromptGroup = useCallback(() => {
@@ -579,10 +586,30 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key !== 'Enter' || e.nativeEvent.isComposing || e.keyCode === 229) return;
+    if (e.shiftKey) return;
+
+    if (e.metaKey || e.ctrlKey) {
       e.preventDefault();
-      handleSendWithFiles();
+      const textarea = e.currentTarget;
+      const selectionStart = textarea.selectionStart ?? textarea.value.length;
+      const selectionEnd = textarea.selectionEnd ?? selectionStart;
+      const nextValue = `${textarea.value.slice(0, selectionStart)}\n${textarea.value.slice(selectionEnd)}`;
+      const nextText = appliedInspirationDraft
+        ? buildAppliedInspirationDraft(text, nextValue)
+        : nextValue;
+
+      setText(nextText);
+      onTextChange?.(nextText);
+      window.requestAnimationFrame(() => {
+        textareaRef.current?.setSelectionRange(selectionStart + 1, selectionStart + 1);
+        resizeTextarea();
+      });
+      return;
     }
+
+    e.preventDefault();
+    handleSendWithFiles();
   };
 
   const handleImageUpload = () => {
@@ -990,8 +1017,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
                     className={`aug-teaching-attachment aug-teaching-attachment-${source.type}`}
                     role="button"
                     tabIndex={0}
-                    onClick={() => setEditingTeachingAttachment(attachment)}
-                    onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') setEditingTeachingAttachment(attachment); }}
+                    onClick={() => setPreviewTeachingAttachmentId(attachment.id)}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setPreviewTeachingAttachmentId(attachment.id);
+                      }
+                    }}
                   >
                     <span className="aug-teaching-attachment-icon"><SourceIcon size={18} strokeWidth={1.9} /></span>
                     <span className="aug-teaching-attachment-body">
@@ -1029,6 +1061,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   setText(next);
                   onTextChange?.(next);
                 }}
+                onKeyDown={handleKeyDown}
                 placeholder={HOMEPAGE_INPUT_PLACEHOLDER}
                 disabled={disabled}
                 rows={centered ? 2 : 3}
@@ -1153,6 +1186,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 onUpdate={updateTeachingAttachment}
                 onEditEnd={() => setEditingTeachingAttachment(null)}
               />
+              <TeachingContentPreviewModal
+                attachment={previewTeachingAttachment}
+                onClose={() => setPreviewTeachingAttachmentId(null)}
+                onChange={updateTeachingAttachment}
+                onRemove={removeTeachingAttachment}
+                onAdd={attachment => {
+                  setPreviewTeachingAttachmentId(null);
+                  setEditingTeachingAttachment(attachment);
+                }}
+              />
 
               <span className="aug-toolbar-divider" />
               <GenerationPreferencePicker
@@ -1209,19 +1252,21 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 </button>
               </div>
             ) : (
-              <button
-                style={{
-                  ...styles.sendBtn,
-                  background: canSend ? 'var(--agent-hero-gradient)' : '#CBD5E1',
-                  cursor: canSend ? 'pointer' : 'not-allowed',
-                }}
-                disabled={!canSend}
-                onClick={() => handleSendWithFiles()}
-                title="发送"
-                aria-label="发送"
-              >
-                <SendHorizontal size={18} color="#FFFFFF" />
-              </button>
+              <div className="agent-send-action">
+                <span className="agent-send-shortcut-tooltip" aria-hidden="true">{sendShortcutLabel}</span>
+                <button
+                  style={{
+                    ...styles.sendBtn,
+                    background: canSend ? 'var(--agent-hero-gradient)' : '#CBD5E1',
+                    cursor: canSend ? 'pointer' : 'not-allowed',
+                  }}
+                  disabled={!canSend}
+                  onClick={() => handleSendWithFiles()}
+                  aria-label={`发送，${sendShortcutLabel}`}
+                >
+                  <SendHorizontal size={18} color="#FFFFFF" />
+                </button>
+              </div>
             )}
           </div>
         </div>

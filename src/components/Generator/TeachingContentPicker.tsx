@@ -48,7 +48,7 @@ const CONTENT_LIMITS = {
 } as const;
 
 const baseQuestions: DemoQuestion[] = [
-  { id: 'math-1', subject: '数学', type: '填空题', level: '一般', content: '农场里养了25只白兔和15只灰兔。饲养员要把灰兔关进笼子里，每个笼子最多关5只白兔或者3只灰兔。需要准备____个笼子才能把白兔全部关好。', knowledge: '除法应用', answer: '5', analysis: '白兔共有25只，每个笼子最多5只，25÷5=5。' },
+  { id: 'math-1', subject: '数学', type: '填空题', level: '一般', content: '农场里养了25只白兔和15只灰兔。饲养员要把灰兔关进笼子里，每个笼子最多关5只白兔或者3只灰兔。需要准备____个笼子才能把白兔全部关好。', knowledge: '除法应用', answer: '5', analysis: '白兔共有25只，每个笼子最多关5只，用白兔总数除以每笼数量：25÷5=5，所以需要5个笼子。', knowledgeGraph: '表内除法 > 用除法解决实际问题', analysisVideoUrl: '/demo-analysis-video.mp4', analysisVideoTitle: '白兔分笼问题讲解', analysisVideoDuration: '00:08' },
   { id: 'math-2', subject: '数学', type: '填空题', level: '一般', content: '图书馆新买了40本故事书和20本科普书，管理员要把科普书平均摆到4个书架上。每个书架摆____本科普书。', knowledge: '平均分', answer: '5', analysis: '20÷4=5，每个书架摆5本科普书。' },
   { id: 'math-3', subject: '数学', type: '填空题', level: '一般', content: '原来有4个兴趣小组在做手工，每组6人，后来又来了12名同学。如果小组数量不变，那么现在平均每组有____人。', knowledge: '两步计算', answer: '9', analysis: '原有24人，加上12人共36人，36÷4=9。' },
   { id: 'math-4', subject: '数学', type: '应用题', level: '一般', content: '原来有6个小组在图书馆看书，每组5人，后来又加入了18人。如果分的组数不变，那么现在平均每组有____人。', knowledge: '两步计算', answer: '8', analysis: '原有30人，加上18人共48人，48÷6=8。' },
@@ -72,7 +72,10 @@ const extraQuestions: DemoQuestion[] = [
   ...extraQuestionContent.英语.map((content, index) => ({ id: `english-extra-${index + 1}`, subject: '英语' as const, type: index % 2 === 0 ? '单选题' : '填空题', level: index % 3 === 0 ? '容易' : '一般', content, knowledge: '英语基础', answer: '参考答案', analysis: '根据单词含义或句型结构作答。' })),
 ];
 
-const demoQuestions = [...baseQuestions, ...extraQuestions];
+const demoQuestions = [...baseQuestions, ...extraQuestions].map(question => ({
+  ...question,
+  source: '小学同步题库',
+}));
 
 const wordUnits: Record<string, Array<[string, string, string]>> = {
   'Unit 1': [['play football', '踢足球', '/pleɪ ˈfʊtbɔːl/'], ['fly a kite', '放风筝', '/flaɪ ə kaɪt/'], ['ride a bike', '骑自行车', '/raɪd ə baɪk/'], ['make a model plane', '做飞机模型', '/meɪk ə ˈmɒdl pleɪn/'], ['swim', '游泳', '/swɪm/'], ['make a snowman', '堆雪人', '/meɪk ə ˈsnəʊmæn/'], ["can't", '不能', '/kɑːnt/']],
@@ -325,7 +328,7 @@ export default function TeachingContentPicker({
       </div>}
       <div className="iteach-footer-actions">
         <button className="iteach-button-secondary" onClick={closePicker}>取消</button>
-        <button className="iteach-button-primary" disabled={!selectedCount} onClick={confirmAction}>{editAttachment ? '保存修改' : mode === 'cloud-pages' ? '确定导入' : '确定'}</button>
+        <button className="iteach-button-primary" disabled={!selectedCount} onClick={confirmAction}>{editAttachment ? '确定添加' : mode === 'cloud-pages' ? '确定导入' : '确定'}</button>
       </div>
     </footer>
   ) : null;

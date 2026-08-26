@@ -1030,8 +1030,8 @@
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.iteach-footer-source {
-  color: #a0a7af;
+.iteach-picker-footer-question-bank {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .iteach-word-footer-selection {
@@ -1316,8 +1316,7 @@
   .iteach-question-filters > div:nth-child(2),
   .iteach-question-filters > div:nth-child(4),
   .iteach-question-meta em,
-  .iteach-question-row-footer small,
-  .iteach-footer-source {
+  .iteach-question-row-footer small {
     display: none;
   }
 

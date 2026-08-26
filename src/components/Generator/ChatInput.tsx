@@ -21,6 +21,8 @@ import HtmlTypeBadge from '../common/HtmlTypeBadge';
 import TeachingContentPicker from './TeachingContentPicker';
 import TeachingContentPreviewModal from './TeachingContentPreviewModal';
 import GenerationPreferencePicker from './GenerationPreferencePicker';
+import GenerationModeDropdown from './GenerationModeDropdown';
+import { generationModeOptions } from '../../data/augustDemoData';
 
 interface ChatInputProps {
   onSend: (text: string, attachments?: UploadedAttachment[], preferences?: GenerationPreferences) => void;
@@ -1003,14 +1005,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
               {teachingAttachments.map(attachment => {
                 const source = attachment.teachingSource!;
                 const SourceIcon = source.type === 'question-bank' ? Database : source.type === 'word-book' ? BookOpenText : Presentation;
+                const displayTitle = source.type === 'question-bank'
+                  ? '学科题目'
+                  : source.type === 'word-book'
+                    ? '双语词书'
+                    : '云盘课件';
                 const countLabel = source.type === 'question-bank'
                   ? `已选 ${source.itemCount} 题`
                   : source.type === 'word-book'
-                    ? `已选 ${source.itemCount} 个单词`
+                    ? `已选 ${source.itemCount} 词`
                     : `已选 ${source.itemCount} 页`;
-                const sourceMeta = source.type === 'cloud-pages'
-                  ? `${source.sourceLabel} · ${source.summary}`
-                  : `${source.sourceLabel} · ${source.summary.replace(/\s*·\s*已选\s*\d+\s*(?:题|个单词)\s*$/, '')}`;
                 return (
                   <div
                     key={attachment.id}
@@ -1027,12 +1031,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   >
                     <span className="aug-teaching-attachment-icon"><SourceIcon size={18} strokeWidth={1.9} /></span>
                     <span className="aug-teaching-attachment-body">
-                      <b>{source.name}</b>
-                      <small>{sourceMeta}</small>
+                      <b>{displayTitle}</b>
                       <em>{countLabel}</em>
                     </span>
                     <span className="aug-teaching-attachment-actions">
-                      <button type="button" onClick={event => { event.stopPropagation(); removeTeachingAttachment(attachment.id); }} aria-label={`移除${source.name}`}><X size={15} /></button>
+                      <button type="button" onClick={event => { event.stopPropagation(); removeTeachingAttachment(attachment.id); }} aria-label={`移除${displayTitle}`}><X size={15} /></button>
                     </span>
                   </div>
                 );
@@ -1203,6 +1206,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 onChange={setGenerationPreferences}
                 prompt={text}
                 disabled={disabled}
+                showMode={false}
               />
 
               {isEmbedded && (
@@ -1217,7 +1221,26 @@ const ChatInput: React.FC<ChatInputProps> = ({
               )}
             </div>
 
-            {isGenerating ? (
+            <div className="agent-send-controls">
+              {!isGenerating && (
+                <GenerationModeDropdown
+                  variant="input"
+                  value={generationPreferences.generationModeId}
+                  disabled={disabled}
+                  onChange={modeId => {
+                    const mode = generationModeOptions.find(option => option.id === modeId);
+                    if (!mode) return;
+                    setGenerationPreferences(previous => ({
+                      ...previous,
+                      generationModeId: mode.id as GenerationPreferences['generationModeId'],
+                      htmlModelId: mode.htmlModelId,
+                      imageModelId: mode.imageModelId,
+                      estimatedMinutes: undefined,
+                    }));
+                  }}
+                />
+              )}
+              {isGenerating ? (
               <div style={{ position: 'relative' }}
                 onMouseEnter={() => setStopTooltip(true)}
                 onMouseLeave={() => setStopTooltip(false)}
@@ -1251,7 +1274,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   <Square size={14} color="#FFFFFF" fill="#FFFFFF" />
                 </button>
               </div>
-            ) : (
+              ) : (
               <div className="agent-send-action">
                 <span className="agent-send-shortcut-tooltip" aria-hidden="true">{sendShortcutLabel}</span>
                 <button
@@ -1267,7 +1290,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   <SendHorizontal size={18} color="#FFFFFF" />
                 </button>
               </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 

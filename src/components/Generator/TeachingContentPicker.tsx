@@ -321,7 +321,7 @@ export default function TeachingContentPicker({
           setValidationMessage('');
           setSelectedPages(selectedPages.size === selectedCloudFile.pages ? new Set() : new Set(Array.from({ length: selectedCloudFile.pages }, (_, index) => index + 1)));
         }}><span className={selectedPages.size === selectedCloudFile.pages ? 'is-checked' : ''}>{selectedPages.size === selectedCloudFile.pages && <Check size={13} />}</span>全选</button>
-      ) : <span className="iteach-footer-source">iTeach 题库组件</span>}
+      ) : null}
       {mode !== 'word-book' && <div className="iteach-footer-status">
         <span className={countOverLimit ? 'is-over-limit' : ''}>已选：<b>{selectedCount}</b>{countUnit} / 最多{currentLimit}{countUnit}</span>
         {validationMessage && <span className="iteach-limit-message" role="alert">{validationMessage}</span>}

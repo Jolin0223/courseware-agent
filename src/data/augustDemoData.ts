@@ -89,7 +89,7 @@ export const generationModeOptions: DemoGenerationModeOption[] = [
   },
   {
     id: 'smart',
-    name: '智能生成',
+    name: '标准生成',
     tag: '默认',
     description: '兼顾生成速度、互动效果和画面表现，适合大多数课堂需求。',
     suitableFor: '适合大多数课堂互动、练习和讲评课件。',

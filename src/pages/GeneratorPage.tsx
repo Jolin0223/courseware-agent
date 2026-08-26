@@ -2768,7 +2768,7 @@ export default function GeneratorPage() {
     const generationMode = plan ? getGenerationModeByModels(plan.htmlModelId, plan.imageModelId) : undefined;
     const referenceText = selectedRecommendation ? `一键同款「${selectedRecommendation.title}」` : '按当前教学需求新建';
     const confirmationText = plan
-      ? `我已确认生成方案：${referenceText}，画面使用「${plan.visualStyleName}」，音色使用「${plan.voiceName}」，生成模式使用「${generationMode?.name || '智能生成'}」。`
+      ? `我已确认生成方案：${referenceText}，画面使用「${plan.visualStyleName}」，音色使用「${plan.voiceName}」，生成模式使用「${generationMode?.name || '标准生成'}」。`
       : '我已确认需求，立即生成。';
 
     setWaitingForUserAction(activeConversationId, false);
@@ -2784,7 +2784,7 @@ export default function GeneratorPage() {
             ? '已开始极速生成，预计很快完成'
             : generationMode?.id === 'deep'
               ? '已开始深度生成，生成时间会明显更长'
-              : '已开始智能生成'}，生成期间可以离开页面，完成后可在「我的创作」查看。`
+              : '已开始标准生成'}，生成期间可以离开页面，完成后可在「我的创作」查看。`
           : undefined,
         instantIntro: Boolean(plan),
         stages: [

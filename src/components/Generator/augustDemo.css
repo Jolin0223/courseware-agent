@@ -26,17 +26,15 @@
 .aug-add-menu small { margin-top: 3px; overflow: hidden; color: #7A899C; font-size: 12px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
 
 .aug-teaching-attachment-list { min-width: 0; margin-bottom: 10px; display: flex; align-items: stretch; flex-wrap: wrap; gap: 8px; }
-.aug-teaching-attachment { position: relative; min-width: min(220px, 100%); max-width: 310px; min-height: 74px; padding: 9px 60px 9px 9px; border: 1px solid #DCE6EF; border-radius: 8px; background: #FBFDFF; color: #334155; display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: start; gap: 9px; flex: 1 1 220px; box-sizing: border-box; overflow: hidden; cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s; }
+.aug-teaching-attachment { position: relative; min-width: min(176px, 100%); max-width: 220px; min-height: 62px; padding: 9px 38px 9px 9px; border: 1px solid #DCE6EF; border-radius: 8px; background: #FBFDFF; color: #334155; display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 9px; flex: 1 1 176px; box-sizing: border-box; overflow: hidden; cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s; }
 .aug-teaching-attachment:hover, .aug-teaching-attachment:focus-visible { border-color: #B9D5EA; background: #FFF; box-shadow: 0 5px 16px rgba(37, 74, 120, .07); outline: 0; }
-.aug-teaching-attachment-icon { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; }
+.aug-teaching-attachment-icon { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; }
 .aug-teaching-attachment-question-bank .aug-teaching-attachment-icon { background: #EAF5FF; color: #2F7DE1; }
 .aug-teaching-attachment-word-book .aug-teaching-attachment-icon { background: #EAF9F0; color: #239466; }
 .aug-teaching-attachment-cloud-pages .aug-teaching-attachment-icon { background: #F2EDFF; color: #7658DC; }
-.aug-teaching-attachment-body { min-width: 0; display: block; }
-.aug-teaching-attachment-body b, .aug-teaching-attachment-body small { display: block; overflow: hidden; letter-spacing: 0; text-overflow: ellipsis; white-space: nowrap; }
-.aug-teaching-attachment-body b { color: #0F172A; font-size: 12px; line-height: 1.45; font-weight: 800; }
-.aug-teaching-attachment-body small { margin-top: 2px; color: #718096; font-size: 10px; line-height: 1.45; }
-.aug-teaching-attachment-body em { height: 20px; margin-top: 6px; padding: 0 7px; border-radius: 6px; background: #EDF6FF; color: #3882D6; display: inline-flex; align-items: center; font-size: 10px; line-height: 20px; font-style: normal; font-weight: 750; white-space: nowrap; }
+.aug-teaching-attachment-body { min-width: 0; display: flex; align-items: flex-start; flex-direction: column; justify-content: center; }
+.aug-teaching-attachment-body b { max-width: 100%; overflow: hidden; color: #0F172A; display: block; font-size: 13px; line-height: 1.4; font-weight: 750; letter-spacing: 0; text-overflow: ellipsis; white-space: nowrap; }
+.aug-teaching-attachment-body em { height: 20px; margin-top: 4px; padding: 0 7px; border-radius: 6px; background: #EDF6FF; color: #3882D6; display: inline-flex; align-items: center; font-size: 11px; line-height: 20px; font-style: normal; font-weight: 700; white-space: nowrap; }
 .aug-teaching-attachment-word-book .aug-teaching-attachment-body em { background: #ECF9F1; color: #23835A; }
 .aug-teaching-attachment-cloud-pages .aug-teaching-attachment-body em { background: #F3EEFF; color: #7658DC; }
 .aug-teaching-attachment-actions { position: absolute; top: 6px; right: 5px; display: flex; gap: 1px; }
@@ -378,6 +376,7 @@
 
 .aug-toolbar-divider { width: 1px; height: 24px; margin: 0 2px; background: #E2E8F0; flex: 0 0 auto; }
 .agent-send-action { position: relative; display: inline-flex; flex: 0 0 auto; }
+.agent-send-controls { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; }
 .agent-send-shortcut-tooltip { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 40; padding: 6px 9px; border-radius: 7px; background: rgba(15,23,42,.88); color: #FFF; box-shadow: 0 8px 20px rgba(15,23,42,.18); font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap; pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(3px); transition: opacity .15s ease, transform .15s ease, visibility .15s ease; }
 .agent-send-action:hover .agent-send-shortcut-tooltip, .agent-send-action:focus-within .agent-send-shortcut-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
 .aug-chat-tool-group { min-width: 0; flex: 1; }
@@ -393,6 +392,13 @@
 .aug-preference-chevron { color: #94A3B8; flex: 0 0 auto; }
 .aug-model-trigger { max-width: 212px; }
 .aug-mode-dropdown-wrap { position: relative; min-width: 0; display: inline-flex; }
+.aug-input-mode-control { position: relative; display: inline-flex; flex: 0 0 auto; }
+.aug-input-mode-trigger { height: 36px; padding: 0 7px; border: 0; border-radius: 9px; background: transparent; color: #64748B; display: inline-flex; align-items: center; gap: 5px; font-family: inherit; cursor: pointer; transition: color .15s, background .15s; }
+.aug-input-mode-trigger:hover, .aug-input-mode-trigger[aria-expanded="true"] { background: #F1F5F9; color: #334155; }
+.aug-input-mode-trigger:focus-visible { outline: 2px solid rgba(14, 165, 233, .3); outline-offset: 1px; }
+.aug-input-mode-trigger:disabled { opacity: .45; cursor: not-allowed; }
+.aug-input-mode-trigger span { font-size: 12px; font-weight: 650; line-height: 1; white-space: nowrap; }
+.aug-input-mode-trigger svg { flex: 0 0 auto; }
 .aug-mode-popover { position: fixed; z-index: 22010; width: 320px; padding: 7px; border: 1px solid #DCE6EF; border-radius: 11px; background: #FFF; box-shadow: 0 16px 42px rgba(15, 23, 42, .14); }
 .aug-mode-popover > button { position: relative; width: 100%; min-height: 72px; padding: 9px 38px 9px 10px; border: 0; border-radius: 9px; background: transparent; color: #334155; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; text-align: left; cursor: pointer; transition: background .15s, color .15s; }
 .aug-mode-popover > button:hover { background: #F6FBFF; }
@@ -845,7 +851,7 @@
   .aug-add-menu { width: min(382px, calc(100vw - 32px)); }
   .aug-teaching-attachment-list { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .aug-teaching-attachment-list::-webkit-scrollbar { display: none; }
-  .aug-teaching-attachment { min-width: 246px; max-width: 246px; flex: 0 0 246px; }
+  .aug-teaching-attachment { min-width: 196px; max-width: 196px; flex: 0 0 196px; }
   .aug-usage-guidance { align-items: flex-start; flex-direction: column; gap: 6px; }
   .aug-usage-guidance > div { width: 100%; }
   .aug-recommendation-grid, .aug-two-column, .aug-model-panels { grid-template-columns: 1fr; }
@@ -892,10 +898,13 @@
   .aug-courseware-preview { width: min(100%, calc((100vh - 74px) * 16 / 9)); }
   .aug-toolbar-divider { display: none; }
   .aug-chat-tool-group { flex-wrap: wrap; padding-right: 8px; }
-  .aug-input-preferences { width: 100%; order: 3; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .aug-input-preferences { width: 100%; order: 3; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .aug-mode-dropdown-wrap { width: 100%; }
   .aug-preference-trigger, .aug-model-trigger { width: 100%; max-width: none; padding: 0 7px; }
   .aug-preference-trigger b { font-size: 10px; }
+  .agent-send-controls { align-self: flex-end; }
+  .aug-input-mode-trigger { padding: 0 5px; gap: 4px; }
+  .aug-input-mode-trigger span { font-size: 11px; }
   .aug-generation-settings { padding: 16px; }
   .aug-recommendation-card { padding: 12px; }
   .aug-setting-preferences { grid-template-columns: 1fr; }

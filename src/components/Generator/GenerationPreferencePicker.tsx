@@ -37,6 +37,7 @@ interface GenerationPreferencePickerProps {
   prompt?: string;
   disabled?: boolean;
   layout?: 'input' | 'settings';
+  showMode?: boolean;
 }
 
 type VoiceTab = 'featured' | 'dedicated';
@@ -61,6 +62,7 @@ export default function GenerationPreferencePicker({
   onChange,
   disabled,
   layout = 'input',
+  showMode = true,
 }: GenerationPreferencePickerProps) {
   const [styleModalOpen, setStyleModalOpen] = useState(false);
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
@@ -322,7 +324,7 @@ export default function GenerationPreferencePicker({
     </button>
   );
 
-  const modelTrigger = layout === 'input' ? (
+  const modelTrigger = layout === 'input' && showMode ? (
     <div className="aug-mode-dropdown-wrap">
       <button
         ref={modeTriggerRef}
@@ -343,7 +345,7 @@ export default function GenerationPreferencePicker({
     </div>
   ) : null;
 
-  const modePopover = layout === 'input' && modePopoverOpen ? createPortal(
+  const modePopover = layout === 'input' && showMode && modePopoverOpen ? createPortal(
     <div className="aug-mode-popover" ref={modePopoverRef} role="menu" aria-label="选择生成模式" style={modePopoverStyle}>
       {generationModeOptions.map(mode => {
         const selected = selectedGenerationMode.id === mode.id;

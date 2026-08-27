@@ -8,6 +8,8 @@ import CoursewareRecommendationCard from '../components/Generator/CoursewareReco
 import ProgressPanel from '../components/Generator/ProgressPanel';
 import PreviewPanel from '../components/Generator/PreviewPanel';
 import CoursewareCard from '../components/Generator/CoursewareCard';
+import TeachingContentPreviewModal from '../components/Generator/TeachingContentPreviewModal';
+import TeachingContentSummaryCard from '../components/Generator/TeachingContentSummaryCard';
 import InspirationSection, { buildStructuredInspirationPrompt, type GameplayInspiration } from '../components/Generator/InspirationSection';
 import HtmlTypeBadge from '../components/common/HtmlTypeBadge';
 import { useConversationStore, simulateGeneration } from '../store/conversationStore';
@@ -1244,13 +1246,14 @@ function UserMessage({
   onUndoNextResult?: () => void;
 }) {
   const [previewImage, setPreviewImage] = useState<UploadedAttachment | null>(null);
+  const [previewTeachingAttachment, setPreviewTeachingAttachment] = useState<UploadedAttachment | null>(null);
   const [longTextExpanded, setLongTextExpanded] = useState(false);
   const [playwayPromptOpen, setPlaywayPromptOpen] = useState(false);
   const message = typeof content === 'string' ? { text: content } : content;
   const images = message.attachments?.filter(file => file.type === 'image') || [];
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
   const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
-  const teachingSources = message.attachments?.filter(file => Boolean(file.teachingSource)).map(file => file.teachingSource!) || [];
+  const teachingAttachments = message.attachments?.filter(file => Boolean(file.teachingSource)) || [];
   const selectedGenerationMode = getGenerationModeByModels(
     message.generationPreferences?.htmlModelId,
     message.generationPreferences?.imageModelId,
@@ -1267,7 +1270,7 @@ function UserMessage({
       : null,
   ].filter((item): item is string => Boolean(item));
   const appliedPlaywayMessage = message.text ? parseAppliedPlaywayMessage(message.text) : null;
-  const hasAttachments = images.length > 0 || documents.length > 0 || htmlAttachments.length > 0 || teachingSources.length > 0 || selectedPreferences.length > 0;
+  const hasAttachments = images.length > 0 || documents.length > 0 || htmlAttachments.length > 0 || teachingAttachments.length > 0 || selectedPreferences.length > 0;
   const isLongText = Boolean(
     message.text
     && !appliedPlaywayMessage
@@ -1308,16 +1311,14 @@ function UserMessage({
             </div>
           )}
 
-          {teachingSources.length > 0 && (
-            <div className="agent-user-message-document-list" style={userMessageStyles.documentList}>
-              {teachingSources.map(source => (
-                <div key={source.id} className="agent-user-message-document" style={{ ...userMessageStyles.documentCard, maxWidth: 430, borderColor: '#BFE9F5', background: '#F8FCFF' }}>
-                  <span style={{ ...userMessageStyles.documentIcon, background: 'var(--agent-soft)', color: 'var(--agent-primary-text)' }}>{source.type === 'question-bank' ? '题' : source.type === 'word-book' ? '词' : '页'}</span>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={userMessageStyles.documentName}>{source.name}</div>
-                    <div style={userMessageStyles.documentMeta}>{source.sourceLabel} · {source.summary}</div>
-                  </div>
-                </div>
+          {teachingAttachments.length > 0 && (
+            <div className="aug-teaching-attachment-list aug-user-teaching-attachment-list">
+              {teachingAttachments.map(attachment => (
+                <TeachingContentSummaryCard
+                  key={attachment.id}
+                  attachment={attachment}
+                  onOpen={() => setPreviewTeachingAttachment(attachment)}
+                />
               ))}
             </div>
           )}
@@ -1442,6 +1443,11 @@ function UserMessage({
           </div>
         </div>
       )}
+      <TeachingContentPreviewModal
+        attachment={previewTeachingAttachment}
+        readOnly
+        onClose={() => setPreviewTeachingAttachment(null)}
+      />
     </>
   );
 }

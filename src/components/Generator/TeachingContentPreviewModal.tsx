@@ -13,9 +13,10 @@ import './augustDemo.css';
 interface TeachingContentPreviewModalProps {
   attachment: UploadedAttachment | null;
   onClose: () => void;
-  onChange: (attachment: UploadedAttachment) => void;
-  onRemove: (attachmentId: string) => void;
-  onAdd: (attachment: UploadedAttachment) => void;
+  readOnly?: boolean;
+  onChange?: (attachment: UploadedAttachment) => void;
+  onRemove?: (attachmentId: string) => void;
+  onAdd?: (attachment: UploadedAttachment) => void;
 }
 
 const getQuestionItems = (source: TeachingContentSource): TeachingQuestionItem[] => (
@@ -81,6 +82,7 @@ const updateSourceAfterRemoval = (source: TeachingContentSource, itemIds: Set<st
 export default function TeachingContentPreviewModal({
   attachment,
   onClose,
+  readOnly = false,
   onChange,
   onRemove,
   onAdd,
@@ -123,6 +125,7 @@ export default function TeachingContentPreviewModal({
   const countUnit = source.type === 'question-bank' ? '题' : source.type === 'word-book' ? '个单词' : '页';
 
   const removeItems = (itemIds: Set<string | number>) => {
+    if (readOnly || !onChange || !onRemove) return;
     const nextSource = updateSourceAfterRemoval(source, itemIds);
     if (!nextSource.itemCount) {
       onRemove(attachment.id);
@@ -175,17 +178,18 @@ export default function TeachingContentPreviewModal({
 
   return createPortal(
     <div className="aug-modal-mask" onMouseDown={event => { if (event.target === event.currentTarget) closeModal(); }}>
-      <section className={`aug-content-preview-modal aug-content-preview-modal-${source.type}`} role="dialog" aria-modal="true" aria-labelledby="teaching-content-preview-title">
+      <section className={`aug-content-preview-modal aug-content-preview-modal-${source.type} ${readOnly ? 'is-read-only' : ''}`} role="dialog" aria-modal="true" aria-labelledby="teaching-content-preview-title">
         <header className="aug-modal-header">
           <div className="aug-content-preview-heading">
             <span><SourceIcon size={19} /></span>
             <div><h2 id="teaching-content-preview-title">{title}</h2></div>
+            {readOnly && <em className="aug-content-preview-state">已发送</em>}
           </div>
           <button type="button" className="aug-icon-button" onClick={closeModal} aria-label="关闭"><X size={19} /></button>
         </header>
 
         <div className={`aug-content-preview-body aug-content-preview-${source.type}`}>
-          <div className="aug-preview-selection-toolbar">
+          {!readOnly && <div className="aug-preview-selection-toolbar">
             <span>{selectionHint}</span>
             <div>
               <button type="button" className="aug-preview-select-all" onClick={() => setSelectedItemIds(allItemsSelected ? new Set() : new Set(itemIds))}>{allItemsSelected ? '取消全选' : '全选'}</button>
@@ -194,16 +198,16 @@ export default function TeachingContentPreviewModal({
                 setSelectedItemIds(new Set());
               }}><Trash2 size={14} />删除所选{selectedItemIds.size > 0 ? `（${selectedItemIds.size}）` : ''}</button>
             </div>
-          </div>
+          </div>}
 
           {source.type === 'question-bank' && (items as TeachingQuestionItem[]).map((question, index) => {
             const selected = selectedItemIds.has(question.id);
             const expanded = expandedQuestionIds.has(question.id);
             return (
               <article key={question.id} className={`aug-preview-question-card ${selected ? 'is-selected' : ''}`}>
-                <button type="button" className="aug-preview-item-select" aria-label={`${selected ? '取消选择' : '选择'}第${index + 1}题`} aria-pressed={selected} onClick={() => toggleItemSelection(question.id)}>
+                {!readOnly && <button type="button" className="aug-preview-item-select" aria-label={`${selected ? '取消选择' : '选择'}第${index + 1}题`} aria-pressed={selected} onClick={() => toggleItemSelection(question.id)}>
                   <span className="aug-preview-item-check">{selected && <Check size={13} />}</span>
-                </button>
+                </button>}
                 <div className="aug-preview-question-main">
                   <div className="aug-preview-question-meta-row">
                     <div className="aug-preview-question-meta"><span className="is-level">{question.level}</span><span className="is-type">{question.type}</span><small>来源：{question.source || '暂无'}</small></div>
@@ -238,9 +242,9 @@ export default function TeachingContentPreviewModal({
             const selected = selectedItemIds.has(word.id);
             return (
             <article key={word.id} className={`aug-preview-word-card ${selected ? 'is-selected' : ''}`}>
-              <button type="button" className="aug-preview-item-select" aria-label={`${selected ? '取消选择' : '选择'}${word.word}`} aria-pressed={selected} onClick={() => toggleItemSelection(word.id)}>
+              {!readOnly && <button type="button" className="aug-preview-item-select" aria-label={`${selected ? '取消选择' : '选择'}${word.word}`} aria-pressed={selected} onClick={() => toggleItemSelection(word.id)}>
                 <span className="aug-preview-item-check">{selected && <Check size={13} />}</span>
-              </button>
+              </button>}
               <div><h3>{word.word}</h3><span>{word.phonetic || '暂无音标'}</span><p>{word.meaning || '暂无释义'}</p></div>
               <div className="aug-preview-word-actions">
                 {word.audioAvailable && <button type="button" onClick={() => toggleWordAudio(word.id)} aria-label={`${playingWordId === word.id ? '停止' : '试听'}${word.word}`}>{playingWordId === word.id ? <Pause size={14} /> : <Play size={14} fill="currentColor" />}</button>}
@@ -252,13 +256,16 @@ export default function TeachingContentPreviewModal({
           {source.type === 'cloud-pages' && <>
             <div className="aug-preview-page-grid">{pageItems.map(page => {
               const selected = selectedItemIds.has(page.pageNumber);
+              const pageContent = <>
+                <span className="aug-preview-page-thumb"><i>Weather</i><b>{page.title}</b><small>{page.subtitle}</small></span>
+                <span className="aug-preview-page-footer">原课件第 {page.pageNumber} 页</span>
+              </>;
               return (
                 <article key={page.pageNumber} className={`aug-preview-page-card ${selected ? 'is-selected' : ''}`}>
-                  <button type="button" className="aug-preview-page-select" aria-pressed={selected} onClick={() => toggleItemSelection(page.pageNumber)}>
+                  {readOnly ? <div className="aug-preview-page-select">{pageContent}</div> : <button type="button" className="aug-preview-page-select" aria-pressed={selected} onClick={() => toggleItemSelection(page.pageNumber)}>
                     <span className="aug-preview-page-check">{selected && <Check size={13} />}</span>
-                    <span className="aug-preview-page-thumb"><i>Weather</i><b>{page.title}</b><small>{page.subtitle}</small></span>
-                    <span className="aug-preview-page-footer">原课件第 {page.pageNumber} 页</span>
-                  </button>
+                    {pageContent}
+                  </button>}
                 </article>
               );
             })}</div>
@@ -266,12 +273,12 @@ export default function TeachingContentPreviewModal({
         </div>
 
         <footer className="aug-modal-footer aug-content-preview-footer">
-          <span>发送后将按当前保留的 {source.itemCount}{countUnit}读取内容</span>
-          <div><button type="button" className="aug-button-secondary aug-content-add-button" onClick={() => {
+          <span>{readOnly ? `本次已提交 ${source.itemCount}${countUnit}，仅支持查看` : `发送后将按当前保留的 ${source.itemCount}${countUnit}读取内容`}</span>
+          <div>{!readOnly && onAdd && <button type="button" className="aug-button-secondary aug-content-add-button" onClick={() => {
             setSelectedItemIds(new Set());
             setExpandedQuestionIds(new Set());
             onAdd(attachment);
-          }}><Plus size={15} />{addLabel}</button><button type="button" className="aug-button-primary" onClick={closeModal}>完成</button></div>
+          }}><Plus size={15} />{addLabel}</button>}<button type="button" className="aug-button-primary" onClick={closeModal}>{readOnly ? '关闭' : '完成'}</button></div>
         </footer>
       </section>
       {activeAnalysisVideo?.analysisVideoUrl && <div className="aug-analysis-video-mask" onMouseDown={event => { if (event.target === event.currentTarget) setActiveAnalysisVideo(null); }}>

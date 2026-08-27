@@ -40,6 +40,8 @@
 .aug-teaching-attachment-actions { position: absolute; top: 6px; right: 5px; display: flex; gap: 1px; }
 .aug-teaching-attachment-actions button { width: 25px; height: 25px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #94A3B8; display: grid; place-items: center; cursor: pointer; }
 .aug-teaching-attachment-actions button:hover { background: #EEF4F8; color: #475569; }
+.aug-user-teaching-attachment-list { width: 100%; margin-bottom: 0; justify-content: flex-end; }
+.aug-user-teaching-attachment-list .aug-teaching-attachment { flex: 0 1 220px; }
 
 .aug-usage-guidance { min-width: 0; margin: -2px 0 8px; display: flex; align-items: center; gap: 9px; overflow: hidden; }
 .aug-usage-guidance > span { color: #718096; display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto; font-size: 11px; font-weight: 700; white-space: nowrap; }
@@ -155,6 +157,7 @@
 .aug-content-preview-modal-word-book .aug-content-preview-heading > span { background: #ECF9F1; color: #23835A; }
 .aug-content-preview-modal-cloud-pages .aug-content-preview-heading > span { background: #F3EEFF; color: #7658DC; }
 .aug-content-preview-heading > div { min-width: 0; }
+.aug-content-preview-state { height: 22px; padding: 0 8px; border-radius: 6px; background: #EEF4F8; color: #64748B; display: inline-flex; align-items: center; font-size: 11px; font-style: normal; font-weight: 700; white-space: nowrap; }
 .aug-content-preview-body { min-height: 0; padding: 16px 18px; background: #F6F8FB; overflow: auto; }
 .aug-preview-question-card { position: relative; margin-bottom: 10px; padding: 15px 16px 15px 50px; border: 1px solid #E2E8F0; border-radius: 8px; background: #FFF; transition: border-color .15s, box-shadow .15s; }
 .aug-preview-question-card.is-selected, .aug-preview-word-card.is-selected { border-color: #7DB3FF; box-shadow: 0 0 0 2px rgba(20, 115, 230, .08); }
@@ -223,6 +226,9 @@
 .aug-preview-page-card { min-width: 0; border: 1px solid #E2E8F0; border-radius: 8px; background: #FFF; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
 .aug-preview-page-card.is-selected { border-color: #7DB3FF; box-shadow: 0 0 0 2px rgba(20, 115, 230, .08); }
 .aug-preview-page-select { position: relative; width: 100%; padding: 7px; border: 0; background: transparent; color: inherit; display: grid; text-align: left; cursor: pointer; }
+.aug-content-preview-modal.is-read-only .aug-preview-question-card { padding-left: 16px; }
+.aug-content-preview-modal.is-read-only .aug-preview-word-card { padding-left: 12px; }
+.aug-content-preview-modal.is-read-only .aug-preview-page-select { cursor: default; }
 .aug-preview-page-check { position: absolute; right: 12px; top: 12px; z-index: 2; width: 20px; height: 20px; border: 1px solid #CBD5E1; border-radius: 5px; background: rgba(255,255,255,.96); color: #FFF; display: grid; place-items: center; box-shadow: 0 1px 4px rgba(15,23,42,.08); }
 .aug-preview-page-card.is-selected .aug-preview-page-check { border-color: #1473E6; background: #1473E6; }
 .aug-preview-page-thumb { aspect-ratio: 16 / 9; padding: 18px 12px 12px; border: 1px solid #E2E8F0; border-radius: 5px; background: linear-gradient(180deg, #FFF 0 68%, #FFF2C7 68%); display: grid; align-content: center; gap: 5px; overflow: hidden; text-align: center; }

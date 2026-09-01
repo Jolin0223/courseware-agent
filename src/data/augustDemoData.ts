@@ -573,14 +573,17 @@ function getEligibleRecommendations(content: string) {
   const hasEnoughStructureEvidence = Object.values(queryStructureTags).filter(tags => tags.length > 0).length >= 2;
   if (queryKnowledgePoints.length === 0 && !hasEnoughStructureEvidence) return [];
 
-  return [...mathRecommendations, ...chineseRecommendations, ...englishRecommendations]
+  const availableRecommendations = [...mathRecommendations, ...chineseRecommendations, ...englishRecommendations]
     .filter(recommendation => {
       if (recommendation.isAccessible === false) return false;
       if (recommendation.isDeleted === true) return false;
       if (recommendation.supportsClone === false) return false;
       if (subject && recommendation.subject !== subject) return false;
+      return Boolean(recommendationProfiles[recommendation.id]);
+    });
+
+  const matchedRecommendations = availableRecommendations.filter(recommendation => {
       const profile = recommendationProfiles[recommendation.id];
-      if (!profile) return false;
 
       const candidateGrade = getGradeNumber(recommendation.grade || '');
       const knowledgePointMatched = hasSharedTag(queryKnowledgePoints, profile.knowledgePoints);
@@ -594,7 +597,15 @@ function getEligibleRecommendations(content: string) {
         .filter(dimension => hasSharedTag(queryStructureTags[dimension], profile[dimension]))
         .length;
       return matchedDimensions >= 2;
-    })
+    });
+
+  const matchedIds = new Set(matchedRecommendations.map(recommendation => recommendation.id));
+  const recommendations = [
+    ...matchedRecommendations,
+    ...availableRecommendations.filter(recommendation => !matchedIds.has(recommendation.id)),
+  ].slice(0, 6);
+
+  return recommendations
     .map(recommendation => {
       const profile = recommendationProfiles[recommendation.id];
       const matchPoints: NonNullable<CoursewareRecommendation['matchPoints']> = [];
@@ -607,7 +618,15 @@ function getEligibleRecommendations(content: string) {
       }
       const candidateGrade = getGradeNumber(recommendation.grade || '');
       if (queryGrade !== null && candidateGrade !== null) {
-        matchPoints.push({ dimension: '年级', label: queryGrade === candidateGrade ? recommendation.grade : `相邻年级：${recommendation.grade}` });
+        const gradeGap = Math.abs(queryGrade - candidateGrade);
+        matchPoints.push({
+          dimension: '年级',
+          label: gradeGap === 0
+            ? recommendation.grade
+            : gradeGap === 1
+              ? `相邻年级：${recommendation.grade}`
+              : `参考年级：${recommendation.grade}`,
+        });
       }
 
       const structureDimensions: Array<{
@@ -639,8 +658,7 @@ function getEligibleRecommendations(content: string) {
         knowledgePoints: getTagLabels(profile.knowledgePoints),
         contentTags,
       };
-    })
-    .slice(0, 6);
+    });
 }
 
 export function calculateEstimate(htmlModelId: string, imageModelId: string) {

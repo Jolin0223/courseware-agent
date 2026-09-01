@@ -29,7 +29,7 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
             <div className="aug-rec-heading"><span><Sparkles size={15} /></span><h3>为你推荐</h3></div>
             <p>按本次需求的有效标签统一筛选</p>
           </div>
-          <span className="aug-rec-count">{data.recommendations.length} 个可用课件</span>
+          <span className="aug-rec-count">推荐 {Math.min(data.recommendations.length, 6)} 个</span>
         </header>
 
         <div className="aug-recommendation-grid">

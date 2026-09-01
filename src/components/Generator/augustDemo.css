@@ -469,6 +469,18 @@
 .aug-recommendation-card > footer button { margin-left: auto; padding: 0; border: 0; background: transparent; color: #1473E6; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 750; cursor: pointer; }
 .aug-recommendation-card.is-readonly .aug-rec-actions button { cursor: default; }
 
+.aug-clone-confirm-context { margin: -2px 0 20px; padding: 14px; border: 1px solid #D7E7F2; border-radius: 12px; background: linear-gradient(135deg, #F7FCFF 0%, #F3FFFB 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.86); }
+.aug-clone-confirm-source { min-width: 0; min-height: 92px; padding: 10px; border: 1px solid rgba(200, 218, 232, .88); border-radius: 10px; background: rgba(255,255,255,.92); display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 12px; align-items: center; }
+.aug-clone-confirm-cover { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--agent-soft); overflow: hidden; }
+.aug-clone-confirm-cover img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.aug-clone-confirm-cover > span { width: 100%; height: 100%; display: grid; place-items: center; color: var(--agent-primary-text); font-size: 13px; font-weight: 800; }
+.aug-clone-confirm-cover em { position: absolute; left: 6px; top: 6px; height: 21px; padding: 0 7px; border: 1px solid rgba(255,255,255,.7); border-radius: 6px; background: rgba(15,23,42,.7); color: #FFF; display: inline-flex; align-items: center; font-size: 9px; font-style: normal; font-weight: 800; backdrop-filter: blur(5px); }
+.aug-clone-confirm-source-copy { min-width: 0; }
+.aug-clone-confirm-source-copy small, .aug-clone-confirm-source-copy b, .aug-clone-confirm-source-copy span { display: block; }
+.aug-clone-confirm-source-copy small { color: #8492A6; font-size: 10px; }
+.aug-clone-confirm-source-copy b { margin-top: 5px; overflow: hidden; color: #0F172A; font-size: 14px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+.aug-clone-confirm-source-copy span { margin-top: 7px; color: #64748B; font-size: 10px; line-height: 1.55; }
+
 .aug-user-preferences { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .aug-user-preferences span { padding: 5px 8px; border: 1px solid #BFE9F5; border-radius: 6px; background: #F0FBFF; color: #146B8C; font-size: 11px; font-weight: 700; }
 
@@ -913,6 +925,8 @@
   .aug-input-mode-trigger span { font-size: 11px; }
   .aug-generation-settings { padding: 16px; }
   .aug-recommendation-card { padding: 12px; }
+  .aug-clone-confirm-context { padding: 11px; }
+  .aug-clone-confirm-source { grid-template-columns: 118px minmax(0, 1fr); }
   .aug-setting-preferences { grid-template-columns: 1fr; }
   .aug-recommendation-card > header { flex-direction: column; }
   .aug-recommendation-card > header p { margin-left: 36px; }
@@ -954,6 +968,8 @@
   .aug-preference-trigger svg { width: 14px; height: 14px; }
   .aug-model-trigger-icon { width: 26px; height: 26px; margin: 0 -2px 0 -3px; }
   .aug-rec-actions { grid-template-columns: minmax(0, 1fr) auto; }
+  .aug-clone-confirm-source { grid-template-columns: 96px minmax(0, 1fr); padding: 8px; }
+  .aug-clone-confirm-source-copy span { display: none; }
   .aug-resource-style-copy small { height: 31px; font-size: 10px; }
   .aug-resource-style-smart { padding: 0 10px; }
   .aug-visual-style-header p { max-width: 250px; }

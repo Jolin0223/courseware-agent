@@ -133,6 +133,7 @@ export interface GenerationPreferences {
 
 export interface CoursewareRecommendationMessage {
   promptForFramework: string;
+  originalUserRequirement?: string;
   teachingSources: TeachingContentSource[];
   generationPreferences?: GenerationPreferences;
   recommendations: CoursewareRecommendation[];
@@ -175,6 +176,15 @@ export interface RequirementFramework {
     previewImageUrl?: string;
   };
   augustPlan?: AugustGenerationPlan;
+  cloneReference?: {
+    id: string;
+    title: string;
+    subject: string;
+    grade: string;
+    author?: string;
+    thumbnail?: string;
+    matchSummary?: string;
+  };
 }
 
 export interface GenerationStage {

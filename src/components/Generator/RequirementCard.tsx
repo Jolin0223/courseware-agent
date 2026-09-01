@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { RequirementFramework } from '../../types';
 import toast from '../../utils/toast';
 import { demoMs } from '../../constants/demoTiming';
+import './augustDemo.css';
 
 interface RequirementCardProps {
   framework: RequirementFramework;
@@ -14,7 +15,7 @@ interface RequirementCardProps {
 }
 
 const getSections = (framework: RequirementFramework) => framework.augustPlan ? [
-  { key: 'userRequirement' as const, icon: '🎯', title: '教学需求' },
+  { key: 'userRequirement' as const, icon: '🎯', title: framework.cloneReference ? '当前需求' : '教学需求' },
 ] : [
   ...(framework.generationSettings
     ? [{ key: 'generationSettings' as const, icon: '⚙️', title: '生成设置' }]
@@ -259,6 +260,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const charIndexRef = useRef(0);
   const previousReadOnlyRef = useRef(readOnly);
+  const cloneReference = framework.cloneReference;
 
   useEffect(() => {
     if (readOnly && !previousReadOnlyRef.current) {
@@ -332,11 +334,9 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
 
   const handleTextChange = (key: string, value: string) => {
     if (readOnly) return;
-    setEditValues(prev => {
-      const nextValues = { ...prev, [key]: value };
-      onFrameworkChange?.({ ...framework, ...nextValues });
-      return nextValues;
-    });
+    const nextValues = { ...editValues, [key]: value };
+    setEditValues(nextValues);
+    onFrameworkChange?.({ ...framework, ...nextValues });
   };
 
   const autoResize = (el: HTMLTextAreaElement) => {
@@ -368,9 +368,15 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
               borderBottom: '1px solid #E2E8F0',
           }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>互动课件设计方案确认</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>
+                {cloneReference ? '一键同款需求确认' : '互动课件设计方案确认'}
+              </div>
               <div style={{ fontSize: 13, color: '#64748B' }}>
-                {readOnly ? '需求已确认并进入生成流程，当前方案不可再编辑。' : 'AI 已把你的想法整理成一节互动课件方案，可以直接修改后生成。'}
+                {readOnly
+                  ? '需求已确认并进入生成流程，当前方案不可再编辑。'
+                  : cloneReference
+                    ? '默认沿用你刚才发送的需求；如有变化，可修改后再生成。'
+                    : 'AI 已把你的想法整理成一节互动课件方案，可以直接修改后生成。'}
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -409,6 +415,23 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
               )}
             </div>
           </div>
+          {cloneReference && (
+            <div className="aug-clone-confirm-context">
+              <div className="aug-clone-confirm-source">
+                <div className="aug-clone-confirm-cover">
+                  {cloneReference.thumbnail
+                    ? <img src={cloneReference.thumbnail} alt={`${cloneReference.title}封面`} />
+                    : <span>{cloneReference.subject}</span>}
+                  <em>同款课件</em>
+                </div>
+                <div className="aug-clone-confirm-source-copy">
+                  <small>{cloneReference.subject} · {cloneReference.grade}{cloneReference.author ? ` · ${cloneReference.author}` : ''}</small>
+                  <b>{cloneReference.title}</b>
+                  <span>匹配当前需求：{cloneReference.matchSummary || '与当前需求相似'}</span>
+                </div>
+              </div>
+            </div>
+          )}
           {getSections(framework).map((section, idx, sections) => {
             if (isStreaming && idx > currentSection && !streamedTexts[section.key]) return null;
             const displayText = streamedTexts[section.key] || '';

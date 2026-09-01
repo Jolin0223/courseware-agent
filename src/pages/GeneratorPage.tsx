@@ -2429,6 +2429,7 @@ export default function GeneratorPage() {
     promptForFramework: string,
     teachingSources: TeachingContentSource[] = [],
     generationPreferences: GenerationPreferences = {},
+    originalUserRequirement = promptForFramework,
   ) => {
     setWaitingForUserAction(convId, false);
     setPhase('analyzing');
@@ -2448,6 +2449,7 @@ export default function GeneratorPage() {
       }
       addAssistantMessage(convId, {
         promptForFramework,
+        originalUserRequirement,
         teachingSources,
         generationPreferences,
         recommendations: plan.recommendations,
@@ -2466,7 +2468,7 @@ export default function GeneratorPage() {
   ) => {
     const intent = detectVoiceCapabilityIntent(`${originalPrompt}\n${promptForFramework}`);
     if (!intent) {
-      startRecommendationFlow(convId, promptForFramework, teachingSources, generationPreferences);
+      startRecommendationFlow(convId, promptForFramework, teachingSources, generationPreferences, originalPrompt);
       return;
     }
 
@@ -2577,8 +2579,10 @@ export default function GeneratorPage() {
       failAtStageRef.current = undefined;
     }
     
+    const originalUserRequirement = text.trim() || '请帮我看看这些上传材料';
+
     addUserMessage(convId, {
-      text: text || '请帮我看看这些上传材料',
+      text: originalUserRequirement,
       attachments,
       generationPreferences,
     });
@@ -2601,7 +2605,7 @@ export default function GeneratorPage() {
       }));
       maybeAskVoiceCapability(
         convId,
-        text,
+        originalUserRequirement,
         `${text}\n\n同款参考附件：${cloneAttachments.map(file => `HTML「${file.name}」`).join('、')}。该附件仅作为隐藏上下文，不展示、不打开、不下载。`,
         'user-prompt',
         teachingSources,
@@ -2614,7 +2618,7 @@ export default function GeneratorPage() {
       const { resolvedIntents, pendingAttachments } = analyzeMaterialIntents(text, materialAttachments);
       if (pendingAttachments.length > 0) {
         addAssistantMessage(convId, {
-          prompt: text,
+          prompt: originalUserRequirement,
           pendingAttachments,
           resolvedIntents,
           summary: resolvedIntents.length > 0
@@ -2634,7 +2638,7 @@ export default function GeneratorPage() {
       );
       maybeAskVoiceCapability(
         convId,
-        text,
+        originalUserRequirement,
         buildIntentPrompt(text, materialAttachments, resolvedIntents),
         'material-intent',
         teachingSources,
@@ -2643,7 +2647,7 @@ export default function GeneratorPage() {
       return;
     }
 
-    maybeAskVoiceCapability(convId, text, text, 'user-prompt', teachingSources, generationPreferences);
+    maybeAskVoiceCapability(convId, originalUserRequirement, originalUserRequirement, 'user-prompt', teachingSources, generationPreferences);
   }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
 
   const handleRecommendationPreview = useCallback((messageId: string, recommendationId: string) => {
@@ -2751,17 +2755,51 @@ export default function GeneratorPage() {
     addUserMessage(
       activeConversationId,
       recommendation
-        ? `一键同款「${recommendation.title}」，并保留我已选择的教学内容`
+        ? `对「${recommendation.title}」一键同款`
         : '没有合适的推荐，继续按当前需求新建',
     );
-    startRequirementFlow(
-      activeConversationId,
-      data.promptForFramework,
-      data.teachingSources,
-      data.generationPreferences || {},
-      recommendation?.id,
-    );
-  }, [activeConversationId, activeConversation, addUserMessage, setWaitingForUserAction, startRequirementFlow]);
+
+    if (!recommendation) {
+      startRequirementFlow(
+        activeConversationId,
+        data.promptForFramework,
+        data.teachingSources,
+        data.generationPreferences || {},
+      );
+      return;
+    }
+
+    const baseFramework = generateRequirementFromPrompt(data.promptForFramework);
+    const matchSummary = Array.from(new Set(
+      (recommendation.matchPoints || [])
+        .filter(point => point.dimension !== '学科' && point.dimension !== '年级')
+        .map(point => point.label),
+    )).slice(0, 3).join(' · ');
+    const framework: RequirementFramework = {
+      ...baseFramework,
+      userRequirement: data.originalUserRequirement || data.promptForFramework,
+      augustPlan: buildAugustGenerationPlan(
+        data.promptForFramework,
+        baseFramework,
+        data.teachingSources,
+        data.generationPreferences || {},
+        recommendation.id,
+      ),
+      cloneReference: {
+        id: recommendation.id,
+        title: recommendation.title,
+        subject: recommendation.subject,
+        grade: recommendation.grade,
+        author: recommendation.author,
+        thumbnail: recommendation.thumbnail,
+        matchSummary: matchSummary || '与当前需求相似',
+      },
+    };
+
+    addAssistantMessage(activeConversationId, framework, 'requirement-framework');
+    setFrameworkDone(true);
+    setPhase('framework');
+  }, [activeConversationId, activeConversation, addAssistantMessage, addUserMessage, setWaitingForUserAction, startRequirementFlow]);
 
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
@@ -3120,6 +3158,7 @@ export default function GeneratorPage() {
       `${confirmation.promptForFramework}${buildVoiceCapabilityAppendix(selection)}`,
       confirmation.teachingSources || [],
       confirmation.generationPreferences || {},
+      confirmation.prompt,
     );
   }, [activeConversationId, activeConversation, addUserMessage, setWaitingForUserAction, startRecommendationFlow]);
 
@@ -3589,7 +3628,7 @@ export default function GeneratorPage() {
                 onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
               >
-                确认需求，开始生成
+                确认需求，开始生成吧
               </button>
             )}
           </div>

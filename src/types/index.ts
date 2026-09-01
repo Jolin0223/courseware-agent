@@ -196,6 +196,8 @@ export interface RequirementFramework {
     thumbnail?: string;
     matchSummary?: string;
     carriedMaterials?: CarriedMaterial[];
+    /** 一键同款确认卡的不可变初始需求，用于空内容校验后的恢复。 */
+    originalUserRequirement?: string;
   };
 }
 

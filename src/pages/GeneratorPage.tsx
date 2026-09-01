@@ -2850,6 +2850,7 @@ export default function GeneratorPage() {
         thumbnail: recommendation.thumbnail,
         matchSummary: matchSummary || '与当前需求相似',
         carriedMaterials: data.carriedMaterials,
+        originalUserRequirement: data.originalUserRequirement || data.promptForFramework,
       },
     };
 
@@ -2861,9 +2862,50 @@ export default function GeneratorPage() {
   const handleConfirmFramework = useCallback((skipMessage?: string) => {
     if (!activeConversationId) return;
 
-    const latestFramework = [...(activeConversation?.messages || [])]
+    // 从 store 读取最新值，避免老师清空输入框后立即点击确认时仍取到上一次渲染的内容。
+    const currentConversation = useConversationStore.getState().conversations
+      .find(conversation => conversation.id === activeConversationId);
+    const conversationMessages = currentConversation?.messages || activeConversation?.messages || [];
+    const latestFrameworkMessage = [...conversationMessages]
       .reverse()
-      .find(message => message.type === 'requirement-framework')?.content as RequirementFramework | undefined;
+      .find(message => message.type === 'requirement-framework');
+    const latestFramework = latestFrameworkMessage?.content as RequirementFramework | undefined;
+
+    if (!skipMessage && latestFramework?.cloneReference && !latestFramework.userRequirement.trim()) {
+      // 兼容热更新前已经打开的确认卡：其快照尚未带有 originalUserRequirement。
+      const latestRecommendation = [...conversationMessages]
+        .reverse()
+        .find(message => message.type === 'courseware-recommendation')?.content as CoursewareRecommendationMessage | undefined;
+      const originalUserRequirement = latestFramework.cloneReference.originalUserRequirement?.trim()
+        || latestRecommendation?.originalUserRequirement?.trim();
+
+      if (originalUserRequirement && latestFrameworkMessage) {
+        useConversationStore.setState(state => ({
+          conversations: state.conversations.map(conversation => (
+            conversation.id === activeConversationId
+              ? {
+                  ...conversation,
+                  messages: conversation.messages.map(message => (
+                    message.id === latestFrameworkMessage.id
+                      ? {
+                          ...message,
+                          content: {
+                            ...(message.content as RequirementFramework),
+                            userRequirement: originalUserRequirement,
+                          },
+                        }
+                      : message
+                  )),
+                }
+              : conversation
+          )),
+        }));
+      }
+
+      toast('当前需求为空，无法保存成功');
+      return;
+    }
+
     const plan = latestFramework?.augustPlan;
     const selectedRecommendation = plan?.recommendations.find(item => item.id === plan.selectedRecommendationId);
     const generationMode = plan ? getGenerationModeByModels(plan.htmlModelId, plan.imageModelId) : undefined;
@@ -3687,7 +3729,7 @@ export default function GeneratorPage() {
                 onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
               >
-                确认需求，开始生成吧
+                确认需求，开始生成
               </button>
             )}
           </div>

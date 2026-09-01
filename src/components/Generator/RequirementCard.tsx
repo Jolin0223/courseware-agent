@@ -264,12 +264,17 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
   const [streamComplete, setStreamComplete] = useState(false);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
   const [collapsed, setCollapsed] = useState(readOnly);
+  const [isCarriedMaterialsExpanded, setIsCarriedMaterialsExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const charIndexRef = useRef(0);
   const previousReadOnlyRef = useRef(readOnly);
   const cloneReference = framework.cloneReference;
   const carriedMaterials = cloneReference?.carriedMaterials || [];
+  const visibleCarriedMaterials = isCarriedMaterialsExpanded
+    ? carriedMaterials
+    : carriedMaterials.slice(0, 3);
+  const hiddenCarriedMaterialsCount = Math.max(carriedMaterials.length - 3, 0);
 
   useEffect(() => {
     if (readOnly && !previousReadOnlyRef.current) {
@@ -280,6 +285,12 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
     }
     previousReadOnlyRef.current = readOnly;
   }, [readOnly]);
+
+  useEffect(() => {
+    if (carriedMaterials.length <= 3) {
+      setIsCarriedMaterialsExpanded(false);
+    }
+  }, [carriedMaterials.length]);
 
   useEffect(() => {
     const sections = getSections(framework);
@@ -352,6 +363,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
     if (readOnly || !cloneReference) return;
     const material = carriedMaterials.find(item => item.id === materialId);
     const nextMaterials = carriedMaterials.filter(item => item.id !== materialId);
+    if (nextMaterials.length <= 3) setIsCarriedMaterialsExpanded(false);
     onFrameworkChange?.({
       ...framework,
       augustPlan: framework.augustPlan
@@ -523,9 +535,20 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                 <div className="aug-clone-carried-materials">
                   <div className="aug-clone-carried-materials-header">
                     <span>已带入材料（{carriedMaterials.length}）</span>
+                    {hiddenCarriedMaterialsCount > 0 && (
+                      <button
+                        type="button"
+                        className="aug-clone-carried-material-more"
+                        onClick={() => setIsCarriedMaterialsExpanded(expanded => !expanded)}
+                        aria-expanded={isCarriedMaterialsExpanded}
+                      >
+                        {isCarriedMaterialsExpanded ? '收起' : `+${hiddenCarriedMaterialsCount}`}
+                        {isCarriedMaterialsExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                      </button>
+                    )}
                   </div>
                   <div className="aug-clone-carried-materials-list">
-                    {carriedMaterials.slice(0, 2).map(material => {
+                    {visibleCarriedMaterials.map(material => {
                       const Icon = getCarriedMaterialIcon(material.type);
                       return (
                         <div className="aug-clone-carried-material" key={material.id}>
@@ -551,7 +574,6 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                         </div>
                       );
                     })}
-                    {carriedMaterials.length > 2 && <span className="aug-clone-carried-material-more">+{carriedMaterials.length - 2}</span>}
                   </div>
                 </div>
               )}

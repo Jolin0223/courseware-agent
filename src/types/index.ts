@@ -109,6 +109,8 @@ export interface CoursewareRecommendation {
   subject: string;
   grade: string;
   author?: string;
+  resourceScope?: 'group' | 'school' | 'personal';
+  schoolName?: string;
   matchPoints?: Array<{
     dimension: '知识点' | '学科' | '年级' | '题型' | '交互机制' | '玩法机制' | '互动能力' | '视觉风格';
     label: string;

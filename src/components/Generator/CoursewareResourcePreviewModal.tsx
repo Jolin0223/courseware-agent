@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CheckCircle2, Copy, ExternalLink, X } from 'lucide-react';
+import { CheckCircle2, Copy, X } from 'lucide-react';
 import PageLoadingState from '../common/PageLoadingState';
+import toast from '../../utils/toast';
 import './coursewareResourcePreviewModal.css';
 
 export interface CoursewareResourcePreviewData {
@@ -23,7 +24,7 @@ interface CoursewareResourcePreviewModalProps {
   onClose: () => void;
   onClone?: () => void;
   cloneDisabled?: boolean;
-  onUseInIteach?: () => void;
+  showIteachSearch?: boolean;
 }
 
 export default function CoursewareResourcePreviewModal({
@@ -31,7 +32,7 @@ export default function CoursewareResourcePreviewModal({
   onClose,
   onClone,
   cloneDisabled = false,
-  onUseInIteach,
+  showIteachSearch = false,
 }: CoursewareResourcePreviewModalProps) {
   const [previewLoaded, setPreviewLoaded] = useState(false);
   const [copiedMaterialId, setCopiedMaterialId] = useState(false);
@@ -50,13 +51,40 @@ export default function CoursewareResourcePreviewModal({
     };
   }, [onClose]);
 
-  const copyMaterialId = async () => {
+  const copyText = async (text: string) => {
+    if (window.navigator.clipboard?.writeText && window.isSecureContext) {
+      try {
+        await window.navigator.clipboard.writeText(text);
+        return;
+      } catch {
+        // Some embedded browsers block Clipboard API; use the user-gesture fallback below.
+      }
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '0';
+    textarea.setAttribute('readonly', '');
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    const copied = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    if (!copied) throw new Error('copy failed');
+  };
+
+  const copyMaterialId = async (showIteachToast = false) => {
     try {
-      await navigator.clipboard?.writeText(resource.materialId);
+      await copyText(resource.materialId);
       setCopiedMaterialId(true);
       window.setTimeout(() => setCopiedMaterialId(false), 1500);
+      if (showIteachToast) toast('已复制资源ID，去ITeach资源中心搜索查询');
     } catch {
       setCopiedMaterialId(false);
+      toast('资源ID复制失败，请稍后重试');
     }
   };
 
@@ -101,7 +129,7 @@ export default function CoursewareResourcePreviewModal({
               <span>素材ID</span>
               <div>
                 <code>{resource.materialId}</code>
-                <button type="button" aria-label="复制素材ID" onClick={copyMaterialId}>
+                <button type="button" aria-label="复制素材ID" onClick={() => { void copyMaterialId(); }}>
                   {copiedMaterialId ? <CheckCircle2 size={14} /> : <Copy size={14} />}
                 </button>
               </div>
@@ -137,9 +165,9 @@ export default function CoursewareResourcePreviewModal({
         </div>
 
         <footer className="courseware-resource-preview-footer">
-          {onUseInIteach && (
-            <button type="button" className="is-secondary is-iteach" onClick={onUseInIteach}>
-              <ExternalLink size={14} />去ITeach直接使用
+          {showIteachSearch && (
+            <button type="button" className="is-secondary is-iteach" onClick={() => { void copyMaterialId(true); }}>
+              <Copy size={14} />去ITeach直接使用
             </button>
           )}
           {onClone && (

@@ -649,11 +649,15 @@ function getEligibleRecommendations(content: string) {
         ...profile.playMechanisms,
         ...profile.interactiveCapabilities,
       ]).filter((tag, index, tags) => tags.indexOf(tag) === index);
+      const resourceScope: NonNullable<CoursewareRecommendation['resourceScope']> = recommendation.sourceType === 'template'
+        ? 'group'
+        : 'personal';
 
       return {
         ...recommendation,
         matchPoints,
         materialId: recommendation.id,
+        resourceScope,
         resourceOwner: recommendation.sourceType === 'template' ? '集团资源库' : '当前账号可见资源',
         knowledgePoints: getTagLabels(profile.knowledgePoints),
         contentTags,

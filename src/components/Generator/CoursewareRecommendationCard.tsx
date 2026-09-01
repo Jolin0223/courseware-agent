@@ -9,10 +9,18 @@ interface CoursewareRecommendationCardProps {
   readOnly?: boolean;
   onChoose: (recommendationId?: string) => void;
   onPreview?: (recommendationId: string) => void;
-  onUseInIteach?: (recommendationId: string) => void;
 }
 
-export default function CoursewareRecommendationCard({ data, readOnly, onChoose, onPreview, onUseInIteach }: CoursewareRecommendationCardProps) {
+const getResourceLocationLabel = (recommendation: CoursewareRecommendation) => {
+  if (recommendation.resourceScope === 'group') return '集团资源库';
+  if (recommendation.resourceScope === 'school') {
+    const schoolName = recommendation.schoolName?.trim();
+    return schoolName ? `校本资源库·${schoolName.replace(/学校$/, '分校')}` : '校本资源库';
+  }
+  return '个人资源库';
+};
+
+export default function CoursewareRecommendationCard({ data, readOnly, onChoose, onPreview }: CoursewareRecommendationCardProps) {
   const [previewRecommendation, setPreviewRecommendation] = useState<CoursewareRecommendation | null>(null);
   const locked = readOnly || Boolean(data.action);
 
@@ -38,7 +46,7 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
                 {recommendation.thumbnail ? <img src={recommendation.thumbnail} alt={`${recommendation.title}封面`} /> : <div className="aug-rec-cover-fallback">{recommendation.subject}</div>}
               </div>
               <div className="aug-rec-body">
-                <small className="aug-rec-meta">{recommendation.subject} · {recommendation.grade}{recommendation.author ? ` · ${recommendation.author}` : ''}</small>
+                <small className="aug-rec-meta">{recommendation.subject} · {recommendation.grade} · {getResourceLocationLabel(recommendation)}</small>
                 <h4>{recommendation.title}</h4>
                 <div className="aug-rec-actions">
                   <button className="aug-rec-preview" disabled={!recommendation.previewUrl} onClick={() => openPreview(recommendation)}><PlayCircle size={15} />预览课件</button>
@@ -80,10 +88,7 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
           }}
           cloneDisabled={locked}
           onClose={() => setPreviewRecommendation(null)}
-          onUseInIteach={onUseInIteach ? () => {
-            onUseInIteach(previewRecommendation.id);
-            setPreviewRecommendation(null);
-          } : undefined}
+          showIteachSearch
           onClone={() => {
             onChoose(previewRecommendation.id);
             setPreviewRecommendation(null);

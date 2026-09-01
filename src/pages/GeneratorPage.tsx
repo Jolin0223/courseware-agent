@@ -48,25 +48,6 @@ import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
 
 type GenerationPhase = 'input' | 'analyzing' | 'recommendation' | 'loading-framework' | 'framework' | 'generating' | 'completed';
 const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中~';
-const ITEACH_RESOURCE_LIBRARY_URL = (import.meta.env.VITE_ITEACH_RESOURCE_LIBRARY_URL || 'https://iteach-cloudwps.xdf.cn/source').replace(/\/$/, '');
-
-const buildIteachResourceUrl = ({
-  resourceId,
-  conversationId,
-  recommendationRequestId,
-}: {
-  resourceId: string;
-  conversationId: string;
-  recommendationRequestId: string;
-}) => {
-  const url = new URL(ITEACH_RESOURCE_LIBRARY_URL);
-  url.searchParams.set('resourceId', resourceId);
-  url.searchParams.set('highlightResourceId', resourceId);
-  url.searchParams.set('conversationId', conversationId);
-  url.searchParams.set('recommendationRequestId', recommendationRequestId);
-  url.searchParams.set('source', 'ai-courseware-agent');
-  return url.toString();
-};
 
 const buildCloneReferenceHtml = (item: GameplayInspiration) => {
   const previewUrl = item.examplePreviewUrl || item.coverUrl || '';
@@ -1936,7 +1917,6 @@ function AssistantMessage({
   onVoiceCapabilityConfirm,
   onRecommendationChoose,
   onRecommendationPreview,
-  onRecommendationUseInIteach,
   onOpenPreview,
   onLearningDataRecoveryRequest,
   onVisualStyleRegenerate,
@@ -1952,7 +1932,6 @@ function AssistantMessage({
   onVoiceCapabilityConfirm?: (messageId: string, selection: VoiceCapabilitySelection) => void;
   onRecommendationChoose?: (messageId: string, recommendationId?: string) => void;
   onRecommendationPreview?: (messageId: string, recommendationId: string) => void;
-  onRecommendationUseInIteach?: (messageId: string, recommendationId: string) => void;
   onOpenPreview?: (coursewareId: number, version?: string | null) => void;
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
@@ -1975,7 +1954,6 @@ function AssistantMessage({
             readOnly={Boolean(data.action)}
             onChoose={recommendationId => onRecommendationChoose?.(message.id, recommendationId)}
             onPreview={recommendationId => onRecommendationPreview?.(message.id, recommendationId)}
-            onUseInIteach={recommendationId => onRecommendationUseInIteach?.(message.id, recommendationId)}
           />
         </div>
       </div>
@@ -2734,48 +2712,6 @@ export default function GeneratorPage() {
     }));
   }, [activeConversationId]);
 
-  const handleRecommendationUseInIteach = useCallback((messageId: string, recommendationId: string) => {
-    if (!activeConversationId) return;
-    const message = activeConversation?.messages.find(item => item.id === messageId);
-    if (!message || message.type !== 'courseware-recommendation') return;
-    const data = message.content as CoursewareRecommendationMessage;
-    if (data.action && data.action !== 'iteach') return;
-    const recommendation = data.recommendations.find(item => item.id === recommendationId);
-    if (!recommendation) return;
-
-    window.open(buildIteachResourceUrl({
-      resourceId: recommendation.materialId || recommendation.id,
-      conversationId: activeConversationId,
-      recommendationRequestId: messageId,
-    }), '_blank', 'noopener,noreferrer');
-
-    if (data.action === 'iteach') return;
-
-    useConversationStore.setState(state => ({
-      conversations: state.conversations.map(conversation => (
-        conversation.id === activeConversationId
-          ? {
-              ...conversation,
-              messages: conversation.messages.map(item => (
-                item.id === messageId
-                  ? {
-                      ...item,
-                      content: {
-                        ...(item.content as CoursewareRecommendationMessage),
-                        action: 'iteach',
-                        selectedRecommendationId: recommendation.id,
-                      },
-                    }
-                  : item
-              )),
-            }
-          : conversation
-      )),
-    }));
-    setWaitingForUserAction(activeConversationId, false);
-    setPhase('input');
-  }, [activeConversationId, activeConversation, setWaitingForUserAction]);
-
   const handleRecommendationChoose = useCallback((messageId: string, recommendationId?: string) => {
     if (!activeConversationId) return;
     const message = activeConversation?.messages.find(item => item.id === messageId);
@@ -3520,7 +3456,6 @@ export default function GeneratorPage() {
                         onVoiceCapabilityConfirm={handleVoiceCapabilityConfirm}
                         onRecommendationChoose={handleRecommendationChoose}
                         onRecommendationPreview={handleRecommendationPreview}
-                        onRecommendationUseInIteach={handleRecommendationUseInIteach}
                         onOpenPreview={(coursewareId, version) => {
                           openPreview(coursewareId, version);
                         }}
@@ -3758,7 +3693,7 @@ export default function GeneratorPage() {
     <div style={styles.container}>
       <div ref={splitContainerRef} style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Main Content */}
-        <div style={{ ...styles.mainContent, flex: previewPanelOpen ? undefined : 1, width: previewPanelOpen ? `${chatWidth}%` : '100%' }}>
+        <div className={`generator-main-content${previewPanelOpen ? ' is-preview-split' : ''}`} style={{ ...styles.mainContent, flex: previewPanelOpen ? undefined : 1, width: previewPanelOpen ? `${chatWidth}%` : '100%' }}>
           {renderContent()}
         </div>
 

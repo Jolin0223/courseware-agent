@@ -33,6 +33,7 @@ import type {
   VoiceCapabilityIntent,
   VoiceCapabilitySelection,
   TeachingContentSource,
+  CarriedMaterial,
   CoursewareRecommendationMessage,
   GenerationPreferences,
 } from '../types';
@@ -149,6 +150,46 @@ const buildAttachmentSummary = (attachments: UploadedAttachment[]) => {
   if (documentCount) parts.push(`${documentCount} 份文档`);
   if (cloudPageCount) parts.push(`${cloudPageCount} 组云盘页面`);
   return parts.join('、');
+};
+
+const getTeachingSourcePurpose = (source: TeachingContentSource) => {
+  if (source.type === 'question-bank') return '用于互动练习';
+  if (source.type === 'word-book') return '用于单词学习';
+  return '用于课件内容参考';
+};
+
+const buildCarriedMaterials = (
+  attachments: UploadedAttachment[],
+  resolutions: MaterialIntentResolution[] = [],
+  teachingSources: TeachingContentSource[] = [],
+): CarriedMaterial[] => {
+  const materials = attachments
+    .filter((attachment) => (
+      attachment.type !== 'html'
+      && (Boolean(attachment.teachingSource) || resolutions.some(item => item.attachmentId === attachment.id))
+    ))
+    .map((attachment): CarriedMaterial => {
+      const resolution = resolutions.find(item => item.attachmentId === attachment.id);
+      return {
+        id: attachment.id,
+        type: attachment.type as CarriedMaterial['type'],
+        name: attachment.name,
+        purpose: resolution?.customText || resolution?.title || getTeachingSourcePurpose(attachment.teachingSource!),
+        thumbnailUrl: attachment.type === 'image' ? attachment.url : undefined,
+      };
+    });
+
+  teachingSources.forEach(source => {
+    if (materials.some(material => material.id === source.id)) return;
+    materials.push({
+      id: source.id,
+      type: source.type,
+      name: source.name,
+      purpose: getTeachingSourcePurpose(source),
+    });
+  });
+
+  return materials;
 };
 
 const parseAppliedPlaywayMessage = (value: string) => {
@@ -2430,6 +2471,7 @@ export default function GeneratorPage() {
     teachingSources: TeachingContentSource[] = [],
     generationPreferences: GenerationPreferences = {},
     originalUserRequirement = promptForFramework,
+    carriedMaterials: CarriedMaterial[] = [],
   ) => {
     setWaitingForUserAction(convId, false);
     setPhase('analyzing');
@@ -2451,6 +2493,7 @@ export default function GeneratorPage() {
         promptForFramework,
         originalUserRequirement,
         teachingSources,
+        carriedMaterials,
         generationPreferences,
         recommendations: plan.recommendations,
       }, 'courseware-recommendation');
@@ -2465,10 +2508,11 @@ export default function GeneratorPage() {
     source: VoiceCapabilityConfirmation['source'] = 'user-prompt',
     teachingSources: TeachingContentSource[] = [],
     generationPreferences: GenerationPreferences = {},
+    carriedMaterials: CarriedMaterial[] = [],
   ) => {
     const intent = detectVoiceCapabilityIntent(`${originalPrompt}\n${promptForFramework}`);
     if (!intent) {
-      startRecommendationFlow(convId, promptForFramework, teachingSources, generationPreferences, originalPrompt);
+      startRecommendationFlow(convId, promptForFramework, teachingSources, generationPreferences, originalPrompt, carriedMaterials);
       return;
     }
 
@@ -2478,6 +2522,7 @@ export default function GeneratorPage() {
       intent,
       source,
       teachingSources,
+      carriedMaterials,
       generationPreferences,
     }, 'voice-capability-confirmation');
     setPhase('input');
@@ -2596,6 +2641,7 @@ export default function GeneratorPage() {
     const teachingSources = attachments
       .map(file => file.teachingSource)
       .filter((source): source is TeachingContentSource => Boolean(source));
+    const carriedTeachingMaterials = buildCarriedMaterials(attachments, [], teachingSources);
 
     if (cloneAttachments.length > 0) {
       useConversationStore.setState(state => ({
@@ -2610,6 +2656,7 @@ export default function GeneratorPage() {
         'user-prompt',
         teachingSources,
         generationPreferences,
+        carriedTeachingMaterials,
       );
       return;
     }
@@ -2643,11 +2690,20 @@ export default function GeneratorPage() {
         'material-intent',
         teachingSources,
         generationPreferences,
+        buildCarriedMaterials(attachments, resolvedIntents, teachingSources),
       );
       return;
     }
 
-    maybeAskVoiceCapability(convId, originalUserRequirement, originalUserRequirement, 'user-prompt', teachingSources, generationPreferences);
+    maybeAskVoiceCapability(
+      convId,
+      originalUserRequirement,
+      originalUserRequirement,
+      'user-prompt',
+      teachingSources,
+      generationPreferences,
+      carriedTeachingMaterials,
+    );
   }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
 
   const handleRecommendationPreview = useCallback((messageId: string, recommendationId: string) => {
@@ -2793,6 +2849,7 @@ export default function GeneratorPage() {
         author: recommendation.author,
         thumbnail: recommendation.thumbnail,
         matchSummary: matchSummary || '与当前需求相似',
+        carriedMaterials: data.carriedMaterials,
       },
     };
 
@@ -3117,6 +3174,7 @@ export default function GeneratorPage() {
       'material-intent',
       confirmation.teachingSources || [],
       confirmation.generationPreferences || {},
+      buildCarriedMaterials(allAttachments, allResolutions, confirmation.teachingSources || []),
     );
   }, [activeConversationId, activeConversation, addUserMessage, addAssistantMessage, setWaitingForUserAction, maybeAskVoiceCapability]);
 
@@ -3159,6 +3217,7 @@ export default function GeneratorPage() {
       confirmation.teachingSources || [],
       confirmation.generationPreferences || {},
       confirmation.prompt,
+      confirmation.carriedMaterials || [],
     );
   }, [activeConversationId, activeConversation, addUserMessage, setWaitingForUserAction, startRecommendationFlow]);
 

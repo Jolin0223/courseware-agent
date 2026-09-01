@@ -92,6 +92,16 @@ export interface TeachingContentSource {
   unit?: string;
 }
 
+export type CarriedMaterialType = 'image' | 'document' | TeachingContentSourceType;
+
+export interface CarriedMaterial {
+  id: string;
+  type: CarriedMaterialType;
+  name: string;
+  purpose: string;
+  thumbnailUrl?: string;
+}
+
 export interface CoursewareRecommendation {
   id: string;
   sourceType: 'courseware' | 'template' | 'custom';
@@ -135,6 +145,7 @@ export interface CoursewareRecommendationMessage {
   promptForFramework: string;
   originalUserRequirement?: string;
   teachingSources: TeachingContentSource[];
+  carriedMaterials?: CarriedMaterial[];
   generationPreferences?: GenerationPreferences;
   recommendations: CoursewareRecommendation[];
   previewedRecommendationIds?: string[];
@@ -184,6 +195,7 @@ export interface RequirementFramework {
     author?: string;
     thumbnail?: string;
     matchSummary?: string;
+    carriedMaterials?: CarriedMaterial[];
   };
 }
 
@@ -305,6 +317,7 @@ export interface MaterialIntentConfirmation {
   confirmedResolutions?: MaterialIntentResolution[];
   confirmedAt?: string;
   teachingSources?: TeachingContentSource[];
+  carriedMaterials?: CarriedMaterial[];
   generationPreferences?: GenerationPreferences;
 }
 
@@ -318,6 +331,7 @@ export interface VoiceCapabilityConfirmation {
   confirmedSelection?: VoiceCapabilitySelection;
   confirmedAt?: string;
   teachingSources?: TeachingContentSource[];
+  carriedMaterials?: CarriedMaterial[];
   generationPreferences?: GenerationPreferences;
 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import type { RequirementFramework } from '../../types';
+import { BookOpenText, ChevronDown, ChevronUp, Database, FileText, Image, Presentation, X } from 'lucide-react';
+import type { CarriedMaterial, RequirementFramework } from '../../types';
 import toast from '../../utils/toast';
 import { demoMs } from '../../constants/demoTiming';
 import './augustDemo.css';
@@ -13,6 +13,14 @@ interface RequirementCardProps {
   onStreamComplete?: () => void;
   onFrameworkChange?: (framework: RequirementFramework) => void;
 }
+
+const getCarriedMaterialIcon = (type: CarriedMaterial['type']) => {
+  if (type === 'image') return Image;
+  if (type === 'question-bank') return Database;
+  if (type === 'word-book') return BookOpenText;
+  if (type === 'cloud-pages') return Presentation;
+  return FileText;
+};
 
 const getSections = (framework: RequirementFramework) => framework.augustPlan ? [
   { key: 'userRequirement' as const, icon: '🎯', title: framework.cloneReference ? '当前需求' : '教学需求' },
@@ -261,6 +269,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
   const charIndexRef = useRef(0);
   const previousReadOnlyRef = useRef(readOnly);
   const cloneReference = framework.cloneReference;
+  const carriedMaterials = cloneReference?.carriedMaterials || [];
 
   useEffect(() => {
     if (readOnly && !previousReadOnlyRef.current) {
@@ -337,6 +346,26 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
     const nextValues = { ...editValues, [key]: value };
     setEditValues(nextValues);
     onFrameworkChange?.({ ...framework, ...nextValues });
+  };
+
+  const handleRemoveCarriedMaterial = (materialId: string) => {
+    if (readOnly || !cloneReference) return;
+    const material = carriedMaterials.find(item => item.id === materialId);
+    const nextMaterials = carriedMaterials.filter(item => item.id !== materialId);
+    onFrameworkChange?.({
+      ...framework,
+      augustPlan: framework.augustPlan
+        ? {
+            ...framework.augustPlan,
+            teachingSources: framework.augustPlan.teachingSources.filter(source => source.id !== materialId),
+          }
+        : undefined,
+      cloneReference: {
+        ...cloneReference,
+        carriedMaterials: nextMaterials,
+      },
+    });
+    toast(`已移除「${material?.name || '该材料'}」，本次生成不再使用。`);
   };
 
   const autoResize = (el: HTMLTextAreaElement) => {
@@ -439,7 +468,8 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
             const isSectionDone = !isStreaming || streamComplete || idx < currentSection || (idx === currentSection && displayText === (framework[section.key] || ''));
 
             return (
-              <div key={section.key} style={{ marginBottom: idx < sections.length - 1 ? 20 : 0 }}>
+              <React.Fragment key={section.key}>
+              <div style={{ marginBottom: cloneReference && section.key === 'userRequirement' && carriedMaterials.length > 0 ? 14 : idx < sections.length - 1 ? 20 : 0 }}>
                 <div style={sectionTitleStyle}>
                   <span>{section.icon}</span>
                   <span>{section.title}</span>
@@ -489,6 +519,43 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                   </div>
                 )}
               </div>
+              {cloneReference && section.key === 'userRequirement' && carriedMaterials.length > 0 && (
+                <div className="aug-clone-carried-materials">
+                  <div className="aug-clone-carried-materials-header">
+                    <span>已带入材料（{carriedMaterials.length}）</span>
+                  </div>
+                  <div className="aug-clone-carried-materials-list">
+                    {carriedMaterials.slice(0, 2).map(material => {
+                      const Icon = getCarriedMaterialIcon(material.type);
+                      return (
+                        <div className="aug-clone-carried-material" key={material.id}>
+                          <span className="aug-clone-carried-material-icon">
+                            {material.thumbnailUrl
+                              ? <img src={material.thumbnailUrl} alt="" />
+                              : <Icon size={15} strokeWidth={2} />}
+                          </span>
+                          <span className="aug-clone-carried-material-copy">
+                            <b>{material.name}</b>
+                            <em>{material.purpose}</em>
+                          </span>
+                          {!readOnly && (
+                            <button
+                              type="button"
+                              className="aug-clone-carried-material-remove"
+                              onClick={() => handleRemoveCarriedMaterial(material.id)}
+                              aria-label={`删除材料：${material.name}`}
+                            >
+                              <X size={13} strokeWidth={2.25} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {carriedMaterials.length > 2 && <span className="aug-clone-carried-material-more">+{carriedMaterials.length - 2}</span>}
+                  </div>
+                </div>
+              )}
+              </React.Fragment>
             );
           })}
         </>

@@ -137,10 +137,9 @@ export default function CoursewareResourcePreviewModal({
         </div>
 
         <footer className="courseware-resource-preview-footer">
-          <button type="button" className="is-secondary" onClick={onClose}>关闭</button>
           {onUseInIteach && (
             <button type="button" className="is-secondary is-iteach" onClick={onUseInIteach}>
-              <ExternalLink size={14} />去 iTeach 使用
+              <ExternalLink size={14} />去ITeach直接使用
             </button>
           )}
           {onClone && (

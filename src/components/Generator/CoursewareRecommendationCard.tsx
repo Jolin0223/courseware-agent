@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, CheckCircle2, Copy, Eye, PlayCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Copy, PlayCircle, Sparkles } from 'lucide-react';
 import type { CoursewareRecommendation, CoursewareRecommendationMessage } from '../../types';
 import CoursewareResourcePreviewModal from './CoursewareResourcePreviewModal';
 import './augustDemo.css';
@@ -27,7 +27,6 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
         <header>
           <div>
             <div className="aug-rec-heading"><span><Sparkles size={15} /></span><h3>为你推荐</h3></div>
-            <p>按本次需求的有效标签统一筛选</p>
           </div>
           <span className="aug-rec-count">推荐 {Math.min(data.recommendations.length, 6)} 个</span>
         </header>
@@ -37,9 +36,6 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
             <article key={recommendation.id} className={data.selectedRecommendationId === recommendation.id ? 'is-selected' : ''}>
               <div className="aug-rec-cover">
                 {recommendation.thumbnail ? <img src={recommendation.thumbnail} alt={`${recommendation.title}封面`} /> : <div className="aug-rec-cover-fallback">{recommendation.subject}</div>}
-                {data.previewedRecommendationIds?.includes(recommendation.id) && (
-                  <span className="aug-rec-previewed"><Eye size={12} />已预览</span>
-                )}
               </div>
               <div className="aug-rec-body">
                 <small className="aug-rec-meta">{recommendation.subject} · {recommendation.grade}{recommendation.author ? ` · ${recommendation.author}` : ''}</small>

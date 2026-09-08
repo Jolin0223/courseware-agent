@@ -570,6 +570,8 @@ function getEligibleRecommendations(content: string) {
     playMechanisms: extractTags(content, structureRules.playMechanisms),
     interactiveCapabilities: extractTags(content, structureRules.interactiveCapabilities),
   };
+  const requestedStructureDimensions = (Object.keys(queryStructureTags) as (keyof typeof queryStructureTags)[])
+    .filter(dimension => queryStructureTags[dimension].length > 0);
   const hasEnoughStructureEvidence = Object.values(queryStructureTags).filter(tags => tags.length > 0).length >= 2;
   if (queryKnowledgePoints.length === 0 && !hasEnoughStructureEvidence) return [];
 
@@ -603,7 +605,7 @@ function getEligibleRecommendations(content: string) {
   const recommendations = [
     ...matchedRecommendations,
     ...availableRecommendations.filter(recommendation => !matchedIds.has(recommendation.id)),
-  ].slice(0, 6);
+  ];
 
   return recommendations
     .map(recommendation => {
@@ -643,6 +645,32 @@ function getEligibleRecommendations(content: string) {
         if (matches.length > 0) matchPoints.push({ dimension, label: getTagLabels(matches).join('、') });
       });
 
+      const matchedStructureDimensions = requestedStructureDimensions
+        .filter(dimension => hasSharedTag(queryStructureTags[dimension], profile[dimension]));
+      const hasExplicitStructureRequirement = requestedStructureDimensions.length > 0;
+      const allRequestedStructureTagsMatched = requestedStructureDimensions
+        .every(dimension => queryStructureTags[dimension]
+          .every(tag => profile[dimension].includes(tag)));
+      const knowledgePointMatched = knowledgePointMatches.length > 0;
+      const structureMatched = matchedStructureDimensions.length > 0;
+      const recommendationTier: CoursewareRecommendation['recommendationTier'] = knowledgePointMatched
+        && (!hasExplicitStructureRequirement || allRequestedStructureTagsMatched)
+        ? 'direct_use'
+        : knowledgePointMatched
+          ? 'knowledge_match'
+          : structureMatched
+            ? 'gameplay_reuse'
+            : undefined;
+      const tierReason = recommendationTier === 'direct_use'
+        ? hasExplicitStructureRequirement
+          ? '知识内容和玩法都符合当前需求，可直接使用'
+          : '知识内容符合需求，且你未限定玩法，可直接使用'
+        : recommendationTier === 'knowledge_match'
+          ? '知识内容相近，但玩法不同，建议预览后使用'
+          : recommendationTier === 'gameplay_reuse'
+            ? '玩法结构相近，可一键同款后替换知识内容'
+            : undefined;
+
       const contentTags = getTagLabels([
         ...profile.questionTypes,
         ...profile.interactions,
@@ -661,8 +689,12 @@ function getEligibleRecommendations(content: string) {
         resourceOwner: recommendation.sourceType === 'template' ? '集团资源库' : '当前账号可见资源',
         knowledgePoints: getTagLabels(profile.knowledgePoints),
         contentTags,
+        recommendationTier,
+        tierReason,
       };
-    });
+    })
+    .filter(recommendation => recommendation.recommendationTier)
+    .slice(0, 6);
 }
 
 export function calculateEstimate(htmlModelId: string, imageModelId: string) {

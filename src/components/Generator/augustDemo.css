@@ -452,9 +452,14 @@
 .aug-rec-cover img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .2s ease; }
 .aug-recommendation-grid article:hover .aug-rec-cover img { transform: scale(1.018); }
 .aug-rec-cover-fallback { width: 100%; height: 100%; display: grid; place-items: center; background: var(--agent-soft); color: var(--agent-primary-text); font-size: 13px; font-weight: 750; }
+.aug-rec-tier { position: absolute; left: 8px; top: 8px; min-height: 24px; padding: 0 9px; border: 1px solid rgba(255,255,255,.82); border-radius: 999px; display: inline-flex; align-items: center; color: #FFF; box-shadow: 0 4px 12px rgba(15,23,42,.16); font-size: 10px; font-weight: 850; line-height: 1; backdrop-filter: blur(8px); }
+.aug-rec-tier-direct_use { background: rgba(22, 132, 94, .92); }
+.aug-rec-tier-knowledge_match { background: rgba(20, 115, 230, .92); }
+.aug-rec-tier-gameplay_reuse { background: rgba(202, 104, 19, .94); }
 .aug-rec-body { min-height: 0; flex: 1; padding: 11px; display: flex; flex-direction: column; }
 .aug-rec-meta { overflow: hidden; color: #8492A6; font-size: 10px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
 .aug-recommendation-grid .aug-rec-body h4 { margin-top: 5px; overflow: hidden; color: #0F172A; font-size: 14px; line-height: 1.4; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.aug-rec-tier-reason { min-height: 31px; margin-top: 5px !important; overflow: hidden; color: #64748B; display: -webkit-box; font-size: 10px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .aug-rec-actions { margin-top: auto; padding-top: 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
 .aug-rec-actions button { height: 34px; padding: 0 11px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; font-weight: 750; cursor: pointer; white-space: nowrap; transition: transform .15s, box-shadow .15s, background .15s; }
 .aug-rec-actions button:hover:not(:disabled) { transform: translateY(-1px); }

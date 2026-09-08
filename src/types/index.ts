@@ -102,6 +102,8 @@ export interface CarriedMaterial {
   thumbnailUrl?: string;
 }
 
+export type CoursewareRecommendationTier = 'direct_use' | 'knowledge_match' | 'gameplay_reuse';
+
 export interface CoursewareRecommendation {
   id: string;
   sourceType: 'courseware' | 'template' | 'custom';
@@ -117,6 +119,8 @@ export interface CoursewareRecommendation {
   }>;
   contentTags?: string[];
   knowledgePoints?: string[];
+  recommendationTier?: CoursewareRecommendationTier;
+  tierReason?: string;
   materialId?: string;
   resourceOwner?: string;
   isAccessible?: boolean;

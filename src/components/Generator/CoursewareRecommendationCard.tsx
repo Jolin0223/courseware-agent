@@ -26,7 +26,7 @@ const getResourceLocationLabel = (recommendation: CoursewareRecommendation) => {
 
 const tierLabels: Record<CoursewareRecommendationTier, string> = {
   direct_use: '可直接使用',
-  knowledge_match: '知识内容相似',
+  knowledge_match: '知识点相似',
   gameplay_reuse: '玩法可复用',
 };
 
@@ -64,10 +64,10 @@ const getRecommendationTier = (
 const getTierReason = (tier: CoursewareRecommendationTier, hasExplicitGameplayRequirement: boolean) => {
   if (tier === 'direct_use') {
     return hasExplicitGameplayRequirement
-      ? '知识内容和玩法都符合当前需求，可直接使用'
-      : '知识内容符合需求，且你未限定玩法，可直接使用';
+      ? '知识点和玩法都符合当前需求，可直接使用'
+      : '知识点符合需求，且你未限定玩法，可直接使用';
   }
-  if (tier === 'knowledge_match') return '知识内容相近，玩法未完全命中，建议先预览';
+  if (tier === 'knowledge_match') return '知识点相近，玩法未完全命中，建议先预览';
   return '玩法结构相近，可一键同款后替换知识内容';
 };
 

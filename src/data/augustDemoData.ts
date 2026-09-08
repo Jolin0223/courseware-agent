@@ -586,7 +586,6 @@ function getEligibleRecommendations(content: string) {
       if (recommendation.isAccessible === false) return false;
       if (recommendation.isDeleted === true) return false;
       if (recommendation.supportsClone === false) return false;
-      if (subject && recommendation.subject !== subject) return false;
       return Boolean(recommendationProfiles[recommendation.id]);
     });
 
@@ -594,17 +593,18 @@ function getEligibleRecommendations(content: string) {
       const profile = recommendationProfiles[recommendation.id];
 
       const candidateGrade = getGradeNumber(recommendation.grade || '');
-      const knowledgePointMatched = hasSharedTag(queryKnowledgePoints, profile.knowledgePoints);
+      const sameSubject = !subject || recommendation.subject === subject;
+      const knowledgePointMatched = sameSubject && hasSharedTag(queryKnowledgePoints, profile.knowledgePoints);
+      const matchedStructureDimensions = (Object.keys(queryStructureTags) as (keyof typeof queryStructureTags)[])
+        .filter(dimension => hasSharedTag(queryStructureTags[dimension], profile[dimension]))
+        .length;
       if (queryGrade !== null) {
         if (candidateGrade === null || Math.abs(queryGrade - candidateGrade) >= 2) return false;
         if (Math.abs(queryGrade - candidateGrade) === 1 && !knowledgePointMatched) return false;
       }
 
-      if (queryKnowledgePoints.length > 0) return knowledgePointMatched;
-      const matchedDimensions = (Object.keys(queryStructureTags) as (keyof typeof queryStructureTags)[])
-        .filter(dimension => hasSharedTag(queryStructureTags[dimension], profile[dimension]))
-        .length;
-      return matchedDimensions >= 2;
+      if (queryKnowledgePoints.length > 0) return knowledgePointMatched || matchedStructureDimensions > 0;
+      return matchedStructureDimensions >= 2;
     });
 
   const matchedIds = new Set(matchedRecommendations.map(recommendation => recommendation.id));
@@ -613,11 +613,14 @@ function getEligibleRecommendations(content: string) {
     ...availableRecommendations.filter(recommendation => !matchedIds.has(recommendation.id)),
   ];
 
-  return recommendations
+  const classifiedRecommendations = recommendations
     .map(recommendation => {
       const profile = recommendationProfiles[recommendation.id];
       const matchPoints: NonNullable<CoursewareRecommendation['matchPoints']> = [];
-      const knowledgePointMatches = getSharedTags(queryKnowledgePoints, profile.knowledgePoints);
+      const sameSubject = !subject || recommendation.subject === subject;
+      const knowledgePointMatches = sameSubject
+        ? getSharedTags(queryKnowledgePoints, profile.knowledgePoints)
+        : [];
       if (knowledgePointMatches.length > 0) {
         matchPoints.push({ dimension: '知识点', label: getTagLabels(knowledgePointMatches).join('、') });
       }
@@ -669,10 +672,10 @@ function getEligibleRecommendations(content: string) {
             : undefined;
       const tierReason = recommendationTier === 'direct_use'
         ? hasExplicitStructureRequirement
-          ? '知识内容和玩法都符合当前需求，可直接使用'
-          : '知识内容符合需求，且你未限定玩法，可直接使用'
+          ? '知识点和玩法都符合当前需求，可直接使用'
+          : '知识点符合需求，且你未限定玩法，可直接使用'
         : recommendationTier === 'knowledge_match'
-          ? '知识内容相近，玩法未完全命中，建议先预览'
+          ? '知识点相近，玩法未完全命中，建议先预览'
           : recommendationTier === 'gameplay_reuse'
             ? '玩法结构相近，可一键同款后替换知识内容'
             : undefined;
@@ -699,9 +702,24 @@ function getEligibleRecommendations(content: string) {
         tierReason,
       };
     })
-    .filter(recommendation => recommendation.recommendationTier)
-    .sort((left, right) => recommendationTierPriority[left.recommendationTier!] - recommendationTierPriority[right.recommendationTier!])
-    .slice(0, 6);
+    .filter(recommendation => recommendation.recommendationTier);
+
+  const tierOrder: NonNullable<CoursewareRecommendation['recommendationTier']>[] = [
+    'direct_use',
+    'knowledge_match',
+    'gameplay_reuse',
+  ];
+  const balancedRecommendations = tierOrder.flatMap(tier => classifiedRecommendations
+    .filter(recommendation => recommendation.recommendationTier === tier)
+    .slice(0, 2));
+  const selectedIds = new Set(balancedRecommendations.map(recommendation => recommendation.id));
+  const remainingRecommendations = classifiedRecommendations
+    .filter(recommendation => !selectedIds.has(recommendation.id))
+    .sort((left, right) => recommendationTierPriority[left.recommendationTier!] - recommendationTierPriority[right.recommendationTier!]);
+
+  return [...balancedRecommendations, ...remainingRecommendations]
+    .slice(0, 6)
+    .sort((left, right) => recommendationTierPriority[left.recommendationTier!] - recommendationTierPriority[right.recommendationTier!]);
 }
 
 export function calculateEstimate(htmlModelId: string, imageModelId: string) {

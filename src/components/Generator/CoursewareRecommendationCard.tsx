@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, CheckCircle2, Copy, PlayCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpenText, CheckCircle2, Copy, PlayCircle, RefreshCw, Sparkles } from 'lucide-react';
 import type {
   CoursewareRecommendation,
   CoursewareRecommendationMessage,
@@ -30,6 +30,18 @@ const tierLabels: Record<CoursewareRecommendationTier, string> = {
   gameplay_reuse: '玩法可复用',
 };
 
+const tierPriority: Record<CoursewareRecommendationTier, number> = {
+  direct_use: 1,
+  knowledge_match: 2,
+  gameplay_reuse: 3,
+};
+
+const tierIcons = {
+  direct_use: CheckCircle2,
+  knowledge_match: BookOpenText,
+  gameplay_reuse: RefreshCw,
+};
+
 const gameplayRequirementPattern = /玩法|游戏|点击|拖拽|拖动|连线|配对|排序|闯关|消除|竞速|探索|转盘|拼图|抢答|录音|跟读|滑动|选择题|填空题|匹配题|排序题|判断题|问答题|自动判题|答错反馈|奖励|计分|倒计时/i;
 
 const getRecommendationTier = (
@@ -55,7 +67,7 @@ const getTierReason = (tier: CoursewareRecommendationTier, hasExplicitGameplayRe
       ? '知识内容和玩法都符合当前需求，可直接使用'
       : '知识内容符合需求，且你未限定玩法，可直接使用';
   }
-  if (tier === 'knowledge_match') return '知识内容相近，但玩法不同，建议预览后使用';
+  if (tier === 'knowledge_match') return '知识内容相近，玩法未完全命中，建议先预览';
   return '玩法结构相近，可一键同款后替换知识内容';
 };
 
@@ -63,6 +75,14 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
   const [previewRecommendation, setPreviewRecommendation] = useState<CoursewareRecommendation | null>(null);
   const locked = readOnly || Boolean(data.action);
   const userRequirement = data.originalUserRequirement || data.promptForFramework;
+  const displayedRecommendations = data.recommendations
+    .map((recommendation, sourceIndex) => ({
+      recommendation,
+      sourceIndex,
+      tier: getRecommendationTier(recommendation, userRequirement),
+    }))
+    .sort((left, right) => tierPriority[left.tier] - tierPriority[right.tier] || left.sourceIndex - right.sourceIndex)
+    .slice(0, 6);
 
   const openPreview = (recommendation: CoursewareRecommendation) => {
     setPreviewRecommendation(recommendation);
@@ -80,16 +100,16 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
         </header>
 
         <div className="aug-recommendation-grid">
-          {data.recommendations.slice(0, 6).map(recommendation => {
-            const tier = getRecommendationTier(recommendation, userRequirement);
+          {displayedRecommendations.map(({ recommendation, tier }) => {
             const tierReason = recommendation.tierReason
               || getTierReason(tier, gameplayRequirementPattern.test(userRequirement));
+            const TierIcon = tierIcons[tier];
 
             return (
               <article key={recommendation.id} className={data.selectedRecommendationId === recommendation.id ? 'is-selected' : ''}>
                 <div className="aug-rec-cover">
                   {recommendation.thumbnail ? <img src={recommendation.thumbnail} alt={`${recommendation.title}封面`} /> : <div className="aug-rec-cover-fallback">{recommendation.subject}</div>}
-                  <span className={`aug-rec-tier aug-rec-tier-${tier}`}>{tierLabels[tier]}</span>
+                  <span className={`aug-rec-tier aug-rec-tier-${tier}`}><TierIcon size={12} strokeWidth={2.4} />{tierLabels[tier]}</span>
                 </div>
                 <div className="aug-rec-body">
                   <small className="aug-rec-meta">{recommendation.subject} · {recommendation.grade} · {getResourceLocationLabel(recommendation)}</small>

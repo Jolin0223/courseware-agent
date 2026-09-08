@@ -545,6 +545,12 @@ function getTagLabels(tags: string[]) {
   return tags.map(tag => recommendationTagLabels[tag] || tag);
 }
 
+const recommendationTierPriority: Record<NonNullable<CoursewareRecommendation['recommendationTier']>, number> = {
+  direct_use: 1,
+  knowledge_match: 2,
+  gameplay_reuse: 3,
+};
+
 function getQuerySubject(content: string) {
   if (/数学|口算|计算|分数|几何|加法|减法|乘法|除法|时钟|钟表/.test(content)) return '数学';
   if (/语文|汉字|拼音|古诗|课文|近义词|反义词|偏旁|部首/.test(content)) return '语文';
@@ -666,7 +672,7 @@ function getEligibleRecommendations(content: string) {
           ? '知识内容和玩法都符合当前需求，可直接使用'
           : '知识内容符合需求，且你未限定玩法，可直接使用'
         : recommendationTier === 'knowledge_match'
-          ? '知识内容相近，但玩法不同，建议预览后使用'
+          ? '知识内容相近，玩法未完全命中，建议先预览'
           : recommendationTier === 'gameplay_reuse'
             ? '玩法结构相近，可一键同款后替换知识内容'
             : undefined;
@@ -694,6 +700,7 @@ function getEligibleRecommendations(content: string) {
       };
     })
     .filter(recommendation => recommendation.recommendationTier)
+    .sort((left, right) => recommendationTierPriority[left.recommendationTier!] - recommendationTierPriority[right.recommendationTier!])
     .slice(0, 6);
 }
 

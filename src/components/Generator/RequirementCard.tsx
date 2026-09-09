@@ -468,7 +468,6 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                 <div className="aug-clone-confirm-source-copy">
                   <small>{cloneReference.subject} · {cloneReference.grade}{cloneReference.author ? ` · ${cloneReference.author}` : ''}</small>
                   <b>{cloneReference.title}</b>
-                  <span>匹配当前需求：{cloneReference.matchSummary || '与当前需求相似'}</span>
                 </div>
               </div>
             </div>

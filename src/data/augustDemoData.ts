@@ -671,14 +671,12 @@ function getEligibleRecommendations(content: string) {
             ? 'gameplay_reuse'
             : undefined;
       const tierReason = recommendationTier === 'direct_use'
-        ? hasExplicitStructureRequirement
-          ? '知识点和玩法都符合当前需求，可直接使用'
-          : '知识点符合需求，且你未限定玩法，可直接使用'
+        ? '知识点和玩法都符合当前需求，可直接使用'
         : recommendationTier === 'knowledge_match'
-          ? '知识点相近，玩法未完全命中，建议先预览'
+          ? '知识点相近，玩法未完全命中，可先预览'
           : recommendationTier === 'gameplay_reuse'
-            ? '玩法结构相近，可一键同款后替换知识内容'
-            : undefined;
+            ? '交互玩法相近，可同款后替换知识点'
+            : '综合考虑课件内容与互动设计，为你推荐此课件';
 
       const contentTags = getTagLabels([
         ...profile.questionTypes,

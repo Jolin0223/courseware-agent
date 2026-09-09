@@ -24,17 +24,25 @@ const getResourceLocationLabel = (recommendation: CoursewareRecommendation) => {
   return '个人资源库';
 };
 
-const tierLabels: Record<CoursewareRecommendationTier, string> = {
-  direct_use: '可直接使用',
-  knowledge_match: '知识点相似',
-  gameplay_reuse: '玩法可复用',
-};
-
 const tierPriority: Record<CoursewareRecommendationTier, number> = {
   direct_use: 1,
   knowledge_match: 2,
   gameplay_reuse: 3,
 };
+
+const tierLabels: Record<CoursewareRecommendationTier, string> = {
+  direct_use: '知识点和玩法均相似',
+  knowledge_match: '知识点相似',
+  gameplay_reuse: '交互玩法相似',
+};
+
+const tierReasons: Record<CoursewareRecommendationTier, string> = {
+  direct_use: '知识点和玩法都符合当前需求，可直接使用',
+  knowledge_match: '知识点相近，玩法未完全命中，可先预览',
+  gameplay_reuse: '交互玩法相近，可同款后替换知识点',
+};
+
+const fallbackTierReason = '综合考虑课件内容与互动设计，为你推荐此课件';
 
 const tierIcons = {
   direct_use: CheckCircle2,
@@ -47,8 +55,10 @@ const gameplayRequirementPattern = /玩法|游戏|点击|拖拽|拖动|连线|�
 const getRecommendationTier = (
   recommendation: CoursewareRecommendation,
   userRequirement: string,
-): CoursewareRecommendationTier => {
-  if (recommendation.recommendationTier) return recommendation.recommendationTier;
+): CoursewareRecommendationTier | undefined => {
+  if (recommendation.recommendationTier && recommendation.recommendationTier in tierPriority) {
+    return recommendation.recommendationTier;
+  }
 
   const dimensions = new Set(recommendation.matchPoints?.map(point => point.dimension) || []);
   const hasKnowledgeMatch = dimensions.has('知识点');
@@ -58,17 +68,8 @@ const getRecommendationTier = (
 
   if (hasKnowledgeMatch && (!hasExplicitGameplayRequirement || hasStructureMatch)) return 'direct_use';
   if (hasKnowledgeMatch) return 'knowledge_match';
-  return 'gameplay_reuse';
-};
-
-const getTierReason = (tier: CoursewareRecommendationTier, hasExplicitGameplayRequirement: boolean) => {
-  if (tier === 'direct_use') {
-    return hasExplicitGameplayRequirement
-      ? '知识点和玩法都符合当前需求，可直接使用'
-      : '知识点符合需求，且你未限定玩法，可直接使用';
-  }
-  if (tier === 'knowledge_match') return '知识点相近，玩法未完全命中，建议先预览';
-  return '玩法结构相近，可一键同款后替换知识内容';
+  if (hasStructureMatch) return 'gameplay_reuse';
+  return undefined;
 };
 
 export default function CoursewareRecommendationCard({ data, readOnly, onChoose, onPreview }: CoursewareRecommendationCardProps) {
@@ -81,7 +82,11 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
       sourceIndex,
       tier: getRecommendationTier(recommendation, userRequirement),
     }))
-    .sort((left, right) => tierPriority[left.tier] - tierPriority[right.tier] || left.sourceIndex - right.sourceIndex)
+    .sort((left, right) => {
+      const leftPriority = left.tier ? tierPriority[left.tier] : Number.MAX_SAFE_INTEGER;
+      const rightPriority = right.tier ? tierPriority[right.tier] : Number.MAX_SAFE_INTEGER;
+      return leftPriority - rightPriority || left.sourceIndex - right.sourceIndex;
+    })
     .slice(0, 6);
 
   const openPreview = (recommendation: CoursewareRecommendation) => {
@@ -101,20 +106,24 @@ export default function CoursewareRecommendationCard({ data, readOnly, onChoose,
 
         <div className="aug-recommendation-grid">
           {displayedRecommendations.map(({ recommendation, tier }) => {
-            const tierReason = recommendation.tierReason
-              || getTierReason(tier, gameplayRequirementPattern.test(userRequirement));
-            const TierIcon = tierIcons[tier];
+            const TierIcon = tier ? tierIcons[tier] : null;
+            const tierReason = tier ? tierReasons[tier] : fallbackTierReason;
 
             return (
               <article key={recommendation.id} className={data.selectedRecommendationId === recommendation.id ? 'is-selected' : ''}>
                 <div className="aug-rec-cover">
                   {recommendation.thumbnail ? <img src={recommendation.thumbnail} alt={`${recommendation.title}封面`} /> : <div className="aug-rec-cover-fallback">{recommendation.subject}</div>}
-                  <span className={`aug-rec-tier aug-rec-tier-${tier}`}><TierIcon size={12} strokeWidth={2.4} />{tierLabels[tier]}</span>
+                  {tier && TierIcon && (
+                    <span className={`aug-rec-tier aug-rec-tier-${tier}`}><TierIcon size={12} strokeWidth={2.4} />{tierLabels[tier]}</span>
+                  )}
                 </div>
                 <div className="aug-rec-body">
                   <small className="aug-rec-meta">{recommendation.subject} · {recommendation.grade} · {getResourceLocationLabel(recommendation)}</small>
                   <h4>{recommendation.title}</h4>
-                  <p className="aug-rec-tier-reason">{tierReason}</p>
+                  <div className="aug-rec-evidence">
+                    <span>推荐理由</span>
+                    <p>{tierReason}</p>
+                  </div>
                   <div className="aug-rec-actions">
                     <button className="aug-rec-preview" disabled={!recommendation.previewUrl} onClick={() => openPreview(recommendation)}><PlayCircle size={15} />预览课件</button>
                     <button className="aug-rec-clone" disabled={locked} onClick={() => onChoose(recommendation.id)}><Copy size={14} />一键同款</button>

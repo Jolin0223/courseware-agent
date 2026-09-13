@@ -13,10 +13,29 @@ const originalTap=playTap,originalEffect=playEffect;
 playTap=function(...args){if(studioConfig.soundEffects)originalTap(...args);};
 playEffect=function(...args){if(studioConfig.soundEffects)originalEffect(...args);};
 const studioStyle=document.createElement('style');document.head.append(studioStyle);
+
+let studioAssetOverrides={};
+const studioMediaBase=JSON.parse(JSON.stringify(media));
+function resolveStudioAsset(url){return studioAssetOverrides[String(url).replace(location.origin+'/wukong/','').replace(/^\/wukong\//,'')]||url;}
+const studioOriginalSound=sound;
+sound=function(url,role){studioOriginalSound(resolveStudioAsset(url),role);};
+function applyStudioAssets(input){
+ studioAssetOverrides={};
+ for(const [key,value] of Object.entries(input||{})){
+  if(key.startsWith('assets/')&&typeof value==='string'&&(/^(data:(image|audio|video)\/|\/wukong\/assets\/)/.test(value)))studioAssetOverrides[key]=value;
+ }
+ const walk=(original,target)=>{for(const key of Object.keys(original)){const value=original[key];if(typeof value==='string')target[key]=resolveStudioAsset(value);else if(value&&typeof value==='object'){if(!target[key])target[key]={};walk(value,target[key]);}}};
+ walk(studioMediaBase,media);
+ const updateImages=()=>document.querySelectorAll('img,video,audio').forEach(node=>{const current=node.getAttribute('src');if(!current)return;const original=current===node.dataset.studioResolvedSrc?node.dataset.studioOriginalSrc:current;if(!original)return;const resolved=resolveStudioAsset(original);node.dataset.studioOriginalSrc=original;node.dataset.studioResolvedSrc=resolved;if(current!==resolved)node.setAttribute('src',resolved);});
+ if(window.studioAssetObserver)window.studioAssetObserver.disconnect();
+ updateImages();window.studioAssetObserver=new MutationObserver(updateImages);window.studioAssetObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['src']});
+}
+
 function applyStudioConfig(input){
  studioConfig={badgeOffset:Math.max(-100,Math.min(80,Number(input.badgeOffset)||0)),badgeScale:Math.max(.7,Math.min(1.2,Number(input.badgeScale)||1)),subtitles:input.subtitles!==false,soundEffects:input.soundEffects!==false,videoVersion:input.videoVersion==='v31'?'v31':'v32'};
  studioStyle.textContent=studioConfig.subtitles?'':'#cinema .subtitle-line,.mission-subtitle,.move-invite-subtitle,#introSubtitle,#introCaption,#missionSubtitle,#missionCaption,#arrivalCaption,#moveInviteCaption,#moveInviteSubtitle,#outroCaption,.spoken-subtitle{visibility:hidden!important}';
- media.outro=studioConfig.videoVersion==='v31'?'assets/video/v31/E02.mp4':'assets/video/v32/E02.mp4';
+ applyStudioAssets(input.assetOverrides);
+ media.outro=resolveStudioAsset(studioConfig.videoVersion==='v31'?'assets/video/v31/E02.mp4':'assets/video/v32/E02.mp4');
  if(!studioConfig.soundEffects){stopEffect();tapAudio.pause();}
  if(state.phase==='outro')updateOutro();
 }

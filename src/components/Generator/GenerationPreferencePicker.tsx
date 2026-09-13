@@ -38,6 +38,7 @@ interface GenerationPreferencePickerProps {
   disabled?: boolean;
   layout?: 'input' | 'settings';
   showMode?: boolean;
+  controls?: 'all' | 'voice';
 }
 
 type VoiceTab = 'featured' | 'dedicated';
@@ -63,6 +64,7 @@ export default function GenerationPreferencePicker({
   disabled,
   layout = 'input',
   showMode = true,
+  controls = 'all',
 }: GenerationPreferencePickerProps) {
   const [styleModalOpen, setStyleModalOpen] = useState(false);
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
@@ -463,7 +465,7 @@ export default function GenerationPreferencePicker({
   return (
     <>
       <div className={layout === 'settings' ? 'aug-setting-preferences' : 'aug-input-preferences'}>
-        {styleTrigger}
+        {controls === 'all' && styleTrigger}
         {voiceTrigger}
         {modelTrigger}
       </div>

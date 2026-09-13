@@ -1,0 +1,87 @@
+{
+  "baseline": "ea8b05b",
+  "passed": true,
+  "existingFiles": [
+    {
+      "file": "src/App.tsx",
+      "baselineErrors": 0,
+      "baselineWarnings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
+      "file": "src/components/Generator/ChatInput.tsx",
+      "baselineErrors": 4,
+      "baselineWarnings": 0,
+      "errors": 4,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
+      "file": "src/components/Generator/CoursewareCard.tsx",
+      "baselineErrors": 2,
+      "baselineWarnings": 0,
+      "errors": 2,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
+      "file": "src/components/Generator/GenerationPreferencePicker.tsx",
+      "baselineErrors": 0,
+      "baselineWarnings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
+      "file": "src/components/Generator/PreviewPanel.tsx",
+      "baselineErrors": 4,
+      "baselineWarnings": 1,
+      "errors": 4,
+      "warnings": 1,
+      "introduced": []
+    },
+    {
+      "file": "src/components/Generator/RequirementCard.tsx",
+      "baselineErrors": 3,
+      "baselineWarnings": 0,
+      "errors": 3,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
+      "file": "src/data/mockConversations.ts",
+      "baselineErrors": 0,
+      "baselineWarnings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
+      "file": "src/pages/GeneratorPage.tsx",
+      "baselineErrors": 6,
+      "baselineWarnings": 1,
+      "errors": 6,
+      "warnings": 1,
+      "introduced": []
+    },
+    {
+      "file": "src/pages/WukongFlowPage.tsx",
+      "baselineErrors": 0,
+      "baselineWarnings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
+      "file": "src/types/index.ts",
+      "baselineErrors": 0,
+      "baselineWarnings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "introduced": []
+    }
+  ],
+  "newFilesDiagnostics": []
+}

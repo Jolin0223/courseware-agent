@@ -1,0 +1,206 @@
+[
+  {
+    "id": "narration-P01",
+    "kind": "audio",
+    "name": "开场讲述 1",
+    "url": "/wukong/assets/audio/v16/P01.mp3",
+    "prompt": "孙悟空到火焰山脚下，发愁过不去。",
+    "text": "孙悟空到火焰山脚下，发愁过不去。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "opening"
+    ]
+  },
+  {
+    "id": "narration-P02",
+    "kind": "audio",
+    "name": "开场讲述 2",
+    "url": "/wukong/assets/audio/v16/P02.mp3",
+    "prompt": "他想借铁扇公主的芭蕉扇，却遭刁难。",
+    "text": "他想借铁扇公主的芭蕉扇，却遭刁难。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "opening"
+    ]
+  },
+  {
+    "id": "narration-P03",
+    "kind": "audio",
+    "name": "开场讲述 3",
+    "url": "/wukong/assets/audio/v16/P03.mp3",
+    "prompt": "只有闯过汉字关，才能找到真的芭蕉扇。",
+    "text": "只有闯过汉字关，才能找到真的芭蕉扇。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "opening"
+    ]
+  },
+  {
+    "id": "narration-P04",
+    "kind": "audio",
+    "name": "任务：移石识字",
+    "url": "/wukong/assets/audio/v16/P04.mp3",
+    "prompt": "搬开石头，找一找藏着的汉字。",
+    "text": "搬开石头，找一找藏着的汉字。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "mission"
+    ]
+  },
+  {
+    "id": "narration-P05",
+    "kind": "audio",
+    "name": "任务：点石学写",
+    "url": "/wukong/assets/audio/v16/P05.mp3",
+    "prompt": "点开字卡，读一读，再描一描。",
+    "text": "点开字卡，读一读，再描一描。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "mission"
+    ]
+  },
+  {
+    "id": "narration-P06",
+    "kind": "audio",
+    "name": "任务：答题闯关",
+    "url": "/wukong/assets/audio/v16/P06.mp3",
+    "prompt": "解开汉字机关，收集借扇线索。",
+    "text": "解开汉字机关，收集借扇线索。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "mission"
+    ]
+  },
+  {
+    "id": "narration-P07",
+    "kind": "audio",
+    "name": "雨字头讲解",
+    "url": "/wukong/assets/audio/v16/P07.mp3",
+    "prompt": "雪、雷、霞、雾，都有雨字头。雨字头的字，多和降水、天气现象有关。",
+    "text": "雪、雷、霞、雾，都有雨字头。雨字头的字，多和降水、天气现象有关。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "learn"
+    ]
+  },
+  {
+    "id": "narration-P08",
+    "kind": "audio",
+    "name": "雨字卡",
+    "url": "/wukong/assets/audio/v16/P08.mp3",
+    "prompt": "雨，下雨。",
+    "text": "雨，下雨。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "learn"
+    ]
+  },
+  {
+    "id": "narration-P09",
+    "kind": "audio",
+    "name": "雪字卡",
+    "url": "/wukong/assets/audio/v16/P09.mp3",
+    "prompt": "雪，下雪。",
+    "text": "雪，下雪。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "learn"
+    ]
+  },
+  {
+    "id": "narration-P10",
+    "kind": "audio",
+    "name": "雷字卡",
+    "url": "/wukong/assets/audio/v16/P10.mp3",
+    "prompt": "雷，雷电。",
+    "text": "雷，雷电。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "learn"
+    ]
+  },
+  {
+    "id": "narration-P11",
+    "kind": "audio",
+    "name": "霞字卡",
+    "url": "/wukong/assets/audio/v16/P11.mp3",
+    "prompt": "霞，晚霞。",
+    "text": "霞，晚霞。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "learn"
+    ]
+  },
+  {
+    "id": "narration-P12",
+    "kind": "audio",
+    "name": "雾字卡",
+    "url": "/wukong/assets/audio/v16/P12.mp3",
+    "prompt": "雾，大雾。",
+    "text": "雾，大雾。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "learn"
+    ]
+  },
+  {
+    "id": "narration-P13",
+    "kind": "audio",
+    "name": "描写页指导",
+    "url": "/wukong/assets/audio/v16/P13.mp3",
+    "prompt": "看清字在田字格的位置，跟着浅色的字，慢慢描。写完以后，请老师看一看。",
+    "text": "看清字在田字格的位置，跟着浅色的字，慢慢描。写完以后，请老师看一看。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "trace"
+    ]
+  },
+  {
+    "id": "narration-P14",
+    "kind": "audio",
+    "name": "第一题读题",
+    "url": "/wukong/assets/audio/v16/P14.mp3",
+    "prompt": "哪个词语里，藏着雨字头的字？仔细看一看。",
+    "text": "哪个词语里，藏着雨字头的字？仔细看一看。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "quiz1"
+    ]
+  },
+  {
+    "id": "narration-P15",
+    "kind": "audio",
+    "name": "第一题答错通用提示",
+    "url": "/wukong/assets/audio/v16/P15.mp3",
+    "prompt": "再看看字的样子。和天气有关的词语，不一定有雨字头。",
+    "text": "再看看字的样子。和天气有关的词语，不一定有雨字头。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "quiz1"
+    ]
+  },
+  {
+    "id": "narration-P16",
+    "kind": "audio",
+    "name": "第一题答对",
+    "url": "/wukong/assets/audio/v16/P16.mp3",
+    "prompt": "找到了！雷的上面，有雨字头。",
+    "text": "找到了！雷的上面，有雨字头。",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "quiz1"
+    ]
+  },
+  {
+    "id": "narration-P17",
+    "kind": "audio",
+    "name": "第二题读题",
+    "url": "/wukong/assets/audio/v16/P17.mp3",
+    "prompt": "雨字头的字，大多和什么有关呢？",
+    "text": "雨字头的字，大多和什么有关呢？",
+    "speakerId": "narrator",
+    "segmentIds": [
+      "quiz2"
+    ]
+  }
+]

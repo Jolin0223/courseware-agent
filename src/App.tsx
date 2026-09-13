@@ -163,7 +163,7 @@ function AppContent() {
     toast('已带回输入框，可继续修改后生成');
   }, [closePreview, location.pathname, navigate, setPendingAssistantPrompt]);
 
-  const assistantNode = (location.pathname === '/video-demo' || location.pathname === '/wukong-demo' || activeConversationId === 'conv_wukong_video_h5') ? null : (
+  const assistantNode = location.pathname === '/video-demo' ? null : (
     <InspirationAssistant
       onApplyPrompt={handleApplyAssistantPrompt}
       isHomePage={location.pathname === '/'}

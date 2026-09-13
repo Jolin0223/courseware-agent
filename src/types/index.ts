@@ -1,5 +1,6 @@
 // 课件类型
 export interface Courseware {
+  videoProjectId?: string;
   id: number;
   title: string;
   subject: string;
@@ -37,6 +38,7 @@ export type MessageType =
   | 'requirement-framework'
   | 'generation-settings'
   | 'generation-progress'
+  | 'video-courseware-workflow'
   | 'teaching-video-plan'
   | 'teaching-video-progress'
   | 'courseware-result'
@@ -135,6 +137,7 @@ export interface CoursewareRecommendation {
 }
 
 export interface GenerationPreferences {
+  contentFormat?: 'h5' | 'video';
   visualStyleMode?: 'smart' | 'manual';
   visualStyleId?: string;
   visualStyleEnhancementIds?: string[];
@@ -290,6 +293,7 @@ export interface TeachingVideoProgress {
 }
 
 export interface CoursewareResult {
+  videoProjectId?: string;
   coursewareId?: number;
   title: string;
   version: string;
@@ -419,7 +423,7 @@ export interface UserMaterialMessage {
 export interface ConversationMessage {
   id: string;
   role: MessageRole;
-  content: string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | TeachingVideoPlan | TeachingVideoProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
+  content: { videoProjectId: string; stage?: 'plan' | 'assets' | 'production' } | string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | TeachingVideoPlan | TeachingVideoProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
   type?: MessageType;
   timestamp: Date;
 }

@@ -6,8 +6,8 @@ for f in manifest['files']:
  if f['file']!='index.html':assert hashlib.sha256(p.read_bytes()).hexdigest()==f['sha256'],f['file']
 checks.append({'check':'copied-assets-match-source-sha256','passed':True,'files':len(manifest['files'])-1})
 refs=set()
-for p in [*root.glob('*.js'),*root.glob('*.css'),root/'index.html',Path('src/data/wukong/course.ts'),Path('src/components/WukongStudio/WukongStudio.tsx')]:
- for v in re.findall(r'''["']((?:assets|reference-previews)/[^"'`\s]+)["']''',p.read_text()):
+for p in [*root.glob('*.js'),*root.glob('*.css'),root/'index.html',Path('src/data/wukong/course.ts'),Path('src/data/videoCourseware/fixtures.ts'),Path('src/data/videoCourseware/narration.json')]:
+ for v in re.findall(r'''["']((?:assets|reference-previews|references)/[^"'`\s]+)["']''',p.read_text()):
   if '$' not in v and (root/v).suffix:refs.add(v)
 missing=[r for r in refs if not(root/r).is_file()];assert not missing,missing
 for rel in sorted(refs):

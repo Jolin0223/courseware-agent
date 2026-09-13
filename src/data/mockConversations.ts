@@ -290,7 +290,6 @@ const recentDemoConversations: Conversation[] = [
 ];
 
 export const mockConversations: Conversation[] = [
-  { id: 'conv_wukong_video_h5', title: '悟空识字 · 视频互动课件', createdAt: '2026-09-13 23:30', messages: [], isPinned: false, isGenerating: false, waitingForUserAction: false, coursewareId: 913032 },
   {
     id: 'conv_video_demo',
     title: '探访磐安·中医药教学视频',

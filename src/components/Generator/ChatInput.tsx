@@ -2,6 +2,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Link,
+  Film,
+  MousePointer2,
   SendHorizontal,
   Sparkles,
   Square,
@@ -20,6 +22,9 @@ import TeachingContentPreviewModal from './TeachingContentPreviewModal';
 import TeachingContentSummaryCard from './TeachingContentSummaryCard';
 import GenerationPreferencePicker from './GenerationPreferencePicker';
 import GenerationModeDropdown from './GenerationModeDropdown';
+import { useVideoComposer } from '../../store/videoCoursewareStore';
+import { VIDEO_EXAMPLE_PROMPT, exampleAttachments, wukongFixture } from '../../data/videoCourseware/fixtures';
+import '../VideoCourseware/videoCourseware.css';
 import { generationModeOptions } from '../../data/augustDemoData';
 
 interface ChatInputProps {
@@ -420,6 +425,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   lockedAttachments = [],
   forceHighlight = false,
 }) => {
+  const { format, setFormat, exampleRequested } = useVideoComposer();
   const appMode = useUIStore((s) => s.appMode);
   const linkedCoursewareCount = useUIStore((s) => s.linkedCoursewareCount);
   const setLinkedCoursewareCount = useUIStore((s) => s.setLinkedCoursewareCount);
@@ -463,7 +469,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const draftPromptPreview = appliedInspirationDraft
     ? appliedInspirationDraft.prompt
     : '';
-  const homepagePromptChips = HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length];
+  const homepagePromptChips = format === 'video' ? [VIDEO_EXAMPLE_PROMPT, '在餐厅点餐，练习 I’d like…', '用情境视频引入10以内加法，再做互动练习'] : HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length];
   const shouldShowHomepageExamples = false;
   const shouldShowHomepagePromptChips = Boolean(
     centered
@@ -546,7 +552,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       ...teachingAttachments,
     ];
     if ((!trimmed && readyAttachments.length === 0) || disabled) return;
-    onSend(trimmed, readyAttachments, generationPreferences);
+    onSend(trimmed, readyAttachments, { ...generationPreferences, contentFormat: format });
     setText('');
     onTextChange?.('');
     setAttachedFiles([]);
@@ -560,16 +566,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
       htmlModelId: 'gemini-3.1-pro',
       imageModelId: 'jimeng-5.0',
     });
-  }, [text, attachedFiles, teachingAttachments, lockedAttachments, generationPreferences, disabled, onSend, onTextChange]);
+  }, [text, attachedFiles, teachingAttachments, lockedAttachments, generationPreferences, format, disabled, onSend, onTextChange]);
 
   const applyHomepagePromptChip = useCallback((value: string) => {
-    setText(value);
-    onTextChange?.(value);
+    const example = value === VIDEO_EXAMPLE_PROMPT;
+    const nextText = example ? wukongFixture.request : value;
+    setText(nextText);
+    onTextChange?.(nextText);
+    if (example) {
+      setAttachedFiles(exampleAttachments.map(a => ({id:a.id,type:'image',name:a.name,url:a.url})));
+      setGenerationPreferences(previous => ({ ...previous, voiceLanguage: '中文' }));
+    }
     window.requestAnimationFrame(() => {
       resizeTextarea();
       textareaRef.current?.focus();
     });
   }, [onTextChange, resizeTextarea]);
+
+  useEffect(() => {
+    if (centered && exampleRequested > 0) {
+      const frame = requestAnimationFrame(() => {
+        applyHomepagePromptChip(VIDEO_EXAMPLE_PROMPT);
+        useVideoComposer.getState().consumeExample();
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [centered, exampleRequested, applyHomepagePromptChip]);
 
   const updateTeachingAttachment = useCallback((nextAttachment: UploadedAttachment) => {
     setTeachingAttachments(previous => previous.map(item => item.id === nextAttachment.id ? nextAttachment : item));
@@ -956,6 +978,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               : '0 2px 8px rgba(0,0,0,0.06)',
           }}
         >
+          {centered && <><div className="vc-input-formats" role="group" aria-label="课件形式"><button type="button" className={format === 'h5' ? 'active' : ''} aria-pressed={format === 'h5'} onClick={() => setFormat('h5')}><MousePointer2 size={15}/>互动课件</button><button type="button" className={format === 'video' ? 'active' : ''} aria-pressed={format === 'video'} onClick={() => setFormat('video')}><Film size={15}/>视频互动课件</button><span>{format === 'video' ? '情境视频与互动练习自然衔接' : '图片、声音与互动练习'}</span></div></>}
           {isDraggingFiles && (
             <div style={styles.dragHint}>松开即可上传图片、PDF、Word 或 MD 材料</div>
           )}

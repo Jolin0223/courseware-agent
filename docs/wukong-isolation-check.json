@@ -1,5 +1,6 @@
 {
   "originalBranch": "codex/recommendation-card-tier-explanations-urgent",
+  "sourceSnapshot": "ccfec46",
   "checks": [
     {
       "file": "src/App.tsx",

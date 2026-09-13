@@ -1,3 +1,5 @@
+import { useVideoCoursewareStore, videoProjectForCourseware } from '../../store/videoCoursewareStore';
+import VideoResourceEditor from '../VideoCourseware/VideoResourceEditor';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, MousePointer2, Highlighter, CheckCircle2, AlertCircle, Loader2, Copy } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
@@ -102,11 +104,13 @@ const isRealCaseCourseware = (title?: string) => {
   return REAL_CASE_TITLES.some(caseTitle => title?.includes(caseTitle));
 };
 
-const buildSessionVersions = (courseware?: { title?: string; htmlContent?: string } | null): SessionHtmlVersion[] => {
+const buildSessionVersions = (courseware?: { id?: number; title?: string; htmlContent?: string; videoProjectId?: string; isPublished?: boolean } | null): SessionHtmlVersion[] => {
   if (!courseware) return [];
   if (courseware.title?.includes('水果单词互动乐园')) {
     return demoSessionVersions.map(version => ({ ...version }));
   }
+  const videoProject = courseware.id ? videoProjectForCourseware(courseware.id) : undefined;
+  if (videoProject) return videoProject.resultMessages.map(r => ({ version: `v${r.version}`, sessionNumber: r.version, title: videoProject.title, htmlContent: r.html, createdAt: r.time, ...videoProject.publishedVersions?.[`v${r.version}`] }));
   const baseHtml = courseware.htmlContent || '';
   const baseTitle = courseware.title || '互动课件';
   if (isRealCaseCourseware(baseTitle) || baseTitle.endsWith('-同款版')) {
@@ -158,7 +162,8 @@ const buildSessionVersions = (courseware?: { title?: string; htmlContent?: strin
   ];
 };
 
-const buildPublishedTargets = (courseware?: { title?: string; subject?: string } | null): PublishedGameTarget[] => {
+const buildPublishedTargets = (courseware?: { id?:number; title?: string; subject?: string } | null): PublishedGameTarget[] => {
+  if (courseware?.id && videoProjectForCourseware(courseware.id)) return videoProjectForCourseware(courseware.id)?.publishedTargets || [];
   if (courseware?.title?.includes('水果单词互动乐园')) {
     return demoPublishedTargets.map(target => ({ ...target }));
   }
@@ -256,6 +261,8 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
   const [publishMode, setPublishMode] = useState<PublishMode | null>(null);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('default');
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [videoResourcesOpen, setVideoResourcesOpen] = useState(false);
+  const videoProject = coursewareId ? videoProjectForCourseware(coursewareId) : undefined;
   const [annotationModeOpen, setAnnotationModeOpen] = useState(false);
   const [annotations, setAnnotations] = useState<PreviewAnnotation[]>([]);
   const [draftAnnotation, setDraftAnnotation] = useState<{ x: number; y: number; text: string } | null>(null);
@@ -380,26 +387,28 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     setPublishMode('update');
   };
 
+  const saveVideoPublication = (nextVersions: SessionHtmlVersion[], nextTargets: PublishedGameTarget[]) => {
+    if (!videoProject) return;
+    useVideoCoursewareStore.getState().update(videoProject.id, {
+      publishedTargets: nextTargets,
+      publishedVersions: Object.fromEntries(nextVersions.map(v => [v.version, {
+        publishTargetId: v.publishTargetId, isCurrentPublished: v.isCurrentPublished,
+        isHistoricalPublished: v.isHistoricalPublished, isRemoved: v.isRemoved,
+      }])),
+    });
+  };
+
   const applyReplacementSuccess = (task: ResourceUpdateTask) => {
-    setVersions(prev => prev.map(v => {
-      if (v.version === task.version) {
-        return {
-          ...v,
-          publishTargetId: task.targetId,
-          isCurrentPublished: true,
-          isHistoricalPublished: false,
-        };
-      }
-      if (v.publishTargetId === task.targetId && v.isCurrentPublished) {
-        return { ...v, isCurrentPublished: false, isHistoricalPublished: true };
-      }
+    const nextVersions = versions.map(v => {
+      if (v.version === task.version) return { ...v, publishTargetId: task.targetId, isCurrentPublished: true, isHistoricalPublished: false };
+      if (v.publishTargetId === task.targetId && v.isCurrentPublished) return { ...v, isCurrentPublished: false, isHistoricalPublished: true };
       return v;
-    }));
-    setPublishedTargets(prev => prev.map(target =>
-      target.id === task.targetId
-        ? { ...target, currentVersion: task.version, name: task.title }
-        : target
-    ));
+    });
+    const nextTargets = publishedTargets.map(target => target.id === task.targetId
+      ? { ...target, currentVersion: task.version, name: task.title } : target);
+    setVersions(nextVersions);
+    setPublishedTargets(nextTargets);
+    saveVideoPublication(nextVersions, nextTargets);
   };
 
   const startResourceUpdateSimulation = (task: Omit<ResourceUpdateTask, 'status' | 'remainingSeconds'>, durationSeconds?: number) => {
@@ -464,25 +473,16 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     if (publishMode === 'publish' || publishMode === 'new-game') {
       const nextId = `game-${publishedTargets.length + 1}`;
       const targetName = currentTitle;
-      setPublishedTargets(prev => [...prev, {
-        id: nextId,
-        name: targetName,
-        currentVersion: selectedVersion,
-        urlLabel: `固定链接 ${publishedTargets.length + 1}`,
-        resourceScope: 'school' as const,
-        schoolName: '广州学校',
-        subject: courseware?.subject || '英语',
-      }]);
-      setVersions(prev => prev.map(v =>
-        v.version === selectedVersion
-          ? {
-              ...v,
-              publishTargetId: nextId,
-              isCurrentPublished: true,
-              isHistoricalPublished: false,
-            }
-          : v
-      ));
+      const nextTargets: PublishedGameTarget[] = [...publishedTargets, {
+        id: nextId, name: targetName, currentVersion: selectedVersion,
+        urlLabel: `固定链接 ${publishedTargets.length + 1}`, resourceScope: 'school',
+        schoolName: '广州学校', subject: courseware?.subject || '英语',
+      }];
+      const nextVersions = versions.map(v => v.version === selectedVersion
+        ? { ...v, publishTargetId: nextId, isCurrentPublished: true, isHistoricalPublished: false } : v);
+      setPublishedTargets(nextTargets);
+      setVersions(nextVersions);
+      saveVideoPublication(nextVersions, nextTargets);
     }
     setPublishMode(null);
     setSelectedUpdateTargetId(null);
@@ -624,6 +624,7 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
 
   const handleFullscreenEdit = () => {
     setFullscreenOpen(false);
+    if (videoProject) { setVideoResourcesOpen(true); return; }
     handleEdit();
   };
 
@@ -762,6 +763,8 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
           onUpdateTargetChange={setSelectedUpdateTargetId}
         />
       )}
+
+      {videoResourcesOpen && videoProject && <VideoResourceEditor projectId={videoProject.id} onClose={() => setVideoResourcesOpen(false)}/>}
 
       {annotationModeOpen && (
         <div style={panelStyle.annotationMask}>

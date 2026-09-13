@@ -26,7 +26,7 @@ for d in ['assets/images/v3','assets/fonts']:
  found.update(str(p.relative_to(src)) for p in (src/d).iterdir() if p.suffix in ['.png','.jpg','.woff','.ttf'])
 found.update(str(p.relative_to(src)) for p in (src/'assets/images').glob('page-*.png'))
 # A previous E02 candidate is retained only for version comparison.
-for rel in ['assets/video/v31/E02.mp4','assets/video/v31/E02-poster.jpg','assets/video/v32/E02-poster.jpg','assets/images/v21/finish-background.png']:
+for rel in ['assets/audio/v9/W03_cave.mp3','assets/audio/v9/W04_glow.mp3','assets/audio/v16/P01.mp3','assets/audio/v16/P02.mp3','assets/audio/v16/P03.mp3','assets/video/v31/E02.mp4','assets/video/v31/E02-poster.jpg','assets/video/v32/E02-poster.jpg','assets/images/v21/finish-background.png']:
  if (src/rel).exists():found.add(rel)
 manifest=[]
 for rel in sorted(found):

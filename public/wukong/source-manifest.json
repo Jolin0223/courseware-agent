@@ -38,6 +38,21 @@
       "sha256": "8d7e8d54b4d263dcac77d0483777b07683796304d53c305a236d6d13b0334559"
     },
     {
+      "file": "assets/audio/v16/P01.mp3",
+      "bytes": 107181,
+      "sha256": "9ec5190a5e64630508fab880058b6e7831313bca1f244ded8c1a11386a28cb74"
+    },
+    {
+      "file": "assets/audio/v16/P02.mp3",
+      "bytes": 111213,
+      "sha256": "ff4916a40a1a0c9bd4d60e5f8423cc37cdeffb18090e85f5945ff4d54bab005c"
+    },
+    {
+      "file": "assets/audio/v16/P03.mp3",
+      "bytes": 106605,
+      "sha256": "d02e6a184f8478dc7b005664e23c9046fe40ebd8a4145bb45cd9bc1ca0b3b0fd"
+    },
+    {
       "file": "assets/audio/v16/P04.mp3",
       "bytes": 89901,
       "sha256": "9daaf0a7d716fc888ee9cbdbdc9c965dfef73eb61ad9239451706adc01124e8a"
@@ -656,6 +671,16 @@
       "file": "visual-v3.css",
       "bytes": 14344,
       "sha256": "8afc1da7fe9ad614f6c02b3506732449cbe5f47b058c9eee4c762a21694c38b3"
+    },
+    {
+      "file": "assets/audio/v9/W03_cave.mp3",
+      "bytes": 111213,
+      "sha256": "d42e1dcc5120ee0fd94dd0d8ba75691ee9691801b18a92a82ecc6cb042aed083"
+    },
+    {
+      "file": "assets/audio/v9/W04_glow.mp3",
+      "bytes": 122157,
+      "sha256": "9923c8c1181601094cda2a73eb86488ce7ccbbbcae7a361b5eaafbf9a69af179"
     }
   ]
 }

@@ -2,12 +2,12 @@
   {
     "check": "copied-assets-match-source-sha256",
     "passed": true,
-    "files": 130
+    "files": 135
   },
   {
     "check": "literal-assets-exist-and-serve-correct-content",
     "passed": true,
-    "files": 72
+    "files": 70
   },
   {
     "check": "six-active-video-tracks-probed",

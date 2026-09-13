@@ -46,9 +46,9 @@ import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
 import { CLONE_COURSEWARE_PROMPT } from '../constants/cloneCourseware';
 import toast from '../utils/toast';
-import WukongStudio from '../components/WukongStudio/WukongStudio';
-import { WUKONG_ID } from '../data/wukong/course';
-import { useWukongStore } from '../store/wukongStore';
+import VideoWorkflowCard from '../components/VideoCourseware/VideoWorkflowCard';
+import { startVideoProject, useVideoJobs } from '../components/VideoCourseware/workflow';
+import { useVideoCoursewareStore, videoProjectForConversation } from '../store/videoCoursewareStore';
 import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
 import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
 
@@ -1944,6 +1944,7 @@ function AssistantMessage({
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
   onTeachingVideoConfirm?: (messageId: string) => void;
 }) {
+  const savedCoursewares = useCoursewareStore(s => s.coursewares);
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
   const activeConversation = conversations.find(c => c.id === activeConversationId);
@@ -1966,6 +1967,10 @@ function AssistantMessage({
         </div>
       </div>
     );
+  }
+
+  if (message.type === 'video-courseware-workflow') {
+    return <div style={styles.messageAssistant}><AIAvatar/><div style={styles.assistantContent}><VideoWorkflowCard projectId={(message.content as { videoProjectId: string }).videoProjectId} stage={(message.content as { stage?: 'plan' | 'assets' | 'production' }).stage}/></div></div>;
   }
 
   if (message.type === 'requirement-framework') {
@@ -2043,7 +2048,7 @@ function AssistantMessage({
     const result = message.content as CoursewareResult;
     const demoCourseware = mockCoursewares[0];
     const matchedMockCourseware = mockCoursewares.find(c => c.title === result.title);
-    const courseware = (
+    const courseware = savedCoursewares.find(c => c.id === result.coursewareId) || (
       result.htmlContent && !matchedMockCourseware
         ? {
             id: result.coursewareId || Date.now(),
@@ -2167,11 +2172,7 @@ function AssistantMessage({
 }
 
 export default function GeneratorPage() {
-  const active = useConversationStore(s => s.activeConversationId);
-  return active === WUKONG_ID ? <WukongStudio /> : <StandardGeneratorPage />;
-}
-
-function StandardGeneratorPage() {
+  useVideoJobs();
   const {
     conversations,
     activeConversationId,
@@ -2198,6 +2199,7 @@ function StandardGeneratorPage() {
   } = useUIStore();
   const { addCourseware } = useCoursewareStore();
   
+  const videoProject = useVideoCoursewareStore(s => Object.values(s.projects).find(p => p.conversationId === activeConversationId));
   const [phase, setPhase] = useState<GenerationPhase>('input');
   const [chatWidth, setChatWidth] = useState(DEFAULT_CHAT_WIDTH_WITH_PREVIEW);
   const [isDragging, setIsDragging] = useState(false);
@@ -2666,9 +2668,19 @@ function StandardGeneratorPage() {
     attachments: UploadedAttachment[] = [],
     generationPreferences: GenerationPreferences = {},
   ) => {
-    if (/悟空|雨字头/.test(text)) {
-      useWukongStore.getState().update({ request: text, step: 0 });
-      useConversationStore.getState().setActiveConversation(WUKONG_ID);
+    const videoProject = videoProjectForConversation(activeConversationId);
+    if (videoProject) {
+      addUserMessage(videoProject.conversationId, text);
+      useVideoCoursewareStore.getState().update(videoProject.id, { phase: 'plan', job: undefined, framework: { ...videoProject.framework, userRequirement: videoProject.framework.userRequirement + '\n补充要求：' + text }, pendingEdit: text });
+      closePreview();
+      setWaitingForUserAction(videoProject.conversationId, true);
+      requestAnimationFrame(() => document.querySelector(`[data-video-plan="${videoProject.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      return;
+    }
+    if (generationPreferences.contentFormat === 'video') {
+      const videoConversation = createNewConversation(text || '视频互动课件');
+      startVideoProject(videoConversation, text || '根据上传材料制作视频互动课件', attachments, generationPreferences);
+      setPhase('input');
       closePreview();
       return;
     }
@@ -2767,7 +2779,7 @@ function StandardGeneratorPage() {
       generationPreferences,
       carriedTeachingMaterials,
     );
-  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability, closePreview]);
+  }, [setWaitingForUserAction, activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability, closePreview]);
 
   const handleRecommendationPreview = useCallback((messageId: string, recommendationId: string) => {
     if (!activeConversationId) return;
@@ -3457,7 +3469,6 @@ function StandardGeneratorPage() {
               </div>
             </div>
           </div>
-          <button className="wk-home-entry" onClick={() => { useConversationStore.getState().setActiveConversation(WUKONG_ID); closePreview(); }}><span className="wk-home-play">▶</span><span><strong>让教学视频参与互动</strong><small>跟着悟空学汉字 · 从方案、素材到完整课件</small></span><span>体验共创样例 →</span></button>
           <div style={{ width: '100%', marginTop: 24 }}>
             <InspirationSection
               selectedInspirationId={selectedInspiration?.id}
@@ -3698,7 +3709,7 @@ function StandardGeneratorPage() {
                 );
               })}
               
-              {(phase === 'analyzing' || phase === 'loading-framework') && (
+              {!videoProject && (phase === 'analyzing' || phase === 'loading-framework') && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -3711,7 +3722,7 @@ function StandardGeneratorPage() {
           </div>
         </div>
         
-        {(phase === 'loading-framework' || phase === 'framework') && (
+        {!videoProject && (phase === 'loading-framework' || phase === 'framework') && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 24px 0' }}>
             {phase === 'loading-framework' || !frameworkDone ? (
               <button
@@ -3762,8 +3773,8 @@ function StandardGeneratorPage() {
             <ChatInput 
               onSend={handleSend} 
               disabled={false} 
-              isGenerating={phase !== 'input' && phase !== 'completed'}
-              onStop={handleStop}
+              isGenerating={videoProject ? ['planning','assets-loading','video-loading','assembling'].includes(videoProject.phase) : phase !== 'input' && phase !== 'completed'}
+              onStop={videoProject ? () => useVideoCoursewareStore.getState().pause(videoProject.id) : handleStop}
               injectedText={draftPrompt}
               injectedTextVersion={draftVersion}
               onTextChange={handleDraftPromptChange}

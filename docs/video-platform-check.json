@@ -1,0 +1,86 @@
+{
+  "environment": "Node + Vite SSR (not browser acceptance)",
+  "checks": [
+    {
+      "name": "exactly-nine-uploaded-teaching-pages",
+      "passed": true
+    },
+    {
+      "name": "planning-has-no-generated-media",
+      "passed": true
+    },
+    {
+      "name": "editable-plan-only-before-confirmation",
+      "passed": true
+    },
+    {
+      "name": "asset-loading-does-not-claim-completion",
+      "passed": true
+    },
+    {
+      "name": "images-and-per-speaker-audio-progress-together",
+      "passed": true
+    },
+    {
+      "name": "pause-preserves-completed-work",
+      "passed": true
+    },
+    {
+      "name": "assets-require-user-confirmation-before-video",
+      "passed": true
+    },
+    {
+      "name": "video-shots-complete-in-stages",
+      "passed": true
+    },
+    {
+      "name": "assembly-follows-video-production",
+      "passed": true
+    },
+    {
+      "name": "completion-uses-original-result-and-library",
+      "passed": true
+    },
+    {
+      "name": "editing-creates-version-without-changing-published-version",
+      "passed": true
+    },
+    {
+      "name": "persisted-project-restores-conversation-and-results",
+      "passed": true
+    },
+    {
+      "name": "other-topic-builds-topic-plan-without-wukong-assets",
+      "passed": true
+    },
+    {
+      "name": "no-character-demand-does-not-insert-a-mascot",
+      "passed": true
+    },
+    {
+      "name": "resource-replacement-keeps-stable-asset-identity",
+      "passed": true
+    },
+    {
+      "name": "missing-media-fails-without-publishing-fake-success",
+      "passed": true
+    },
+    {
+      "name": "retry-retains-completed-assets-and-finishes",
+      "passed": true
+    },
+    {
+      "name": "all-fixture-assets-serve-as-media",
+      "passed": true,
+      "files": 55
+    },
+    {
+      "name": "slow-work-has-bounded-demo-durations",
+      "passed": true
+    },
+    {
+      "name": "obsolete-workbench-is-unreachable",
+      "passed": true
+    }
+  ]
+}

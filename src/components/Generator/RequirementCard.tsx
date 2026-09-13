@@ -7,6 +7,8 @@ import './augustDemo.css';
 
 interface RequirementCardProps {
   framework: RequirementFramework;
+  children?: React.ReactNode;
+  featureContent?: React.ReactNode;
   isStreaming?: boolean;
   readOnly?: boolean;
   streamDuration?: number;
@@ -258,7 +260,7 @@ const MarkdownPromptPreview = ({ text }: { text: string }) => {
   return <div style={markdownStyles.preview}>{blocks}</div>;
 };
 
-const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreaming = false, readOnly = false, streamDuration, onStreamComplete, onFrameworkChange }) => {
+const RequirementCard: React.FC<RequirementCardProps> = ({ framework, children, featureContent, isStreaming = false, readOnly = false, streamDuration, onStreamComplete, onFrameworkChange }) => {
   const [streamedTexts, setStreamedTexts] = useState<Record<string, string>>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [streamComplete, setStreamComplete] = useState(false);
@@ -485,7 +487,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
                   <span>{section.icon}</span>
                   <span>{section.title}</span>
                 </div>
-                {isSectionDone && section.key === 'featureDesign' && framework.featureDesignFormat === 'markdown' ? (
+                {isSectionDone && section.key === 'featureDesign' && featureContent ? featureContent : isSectionDone && section.key === 'featureDesign' && framework.featureDesignFormat === 'markdown' ? (
                   <div style={markdownStyles.panel}>
                     <div style={markdownStyles.panelHint}>已套用模板说明，生成时会结合你的需求自动改写成新课件。</div>
                     <MarkdownPromptPreview text={editText} />
@@ -579,6 +581,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, isStreamin
               </React.Fragment>
             );
           })}
+          {children}
         </>
         {collapsed && (
           <div style={{

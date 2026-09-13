@@ -7,6 +7,7 @@ import { useConversationStore, getFrameworkForCourseware } from '../../store/con
 import { CLONE_COURSEWARE_PROMPT } from '../../constants/cloneCourseware';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
+import VideoResourceEditor from '../VideoCourseware/VideoResourceEditor';
 import LearningDataRecoveryModal from './LearningDataRecoveryModal';
 import VisualStylePickerModal from './VisualStylePickerModal';
 import GenerationModeDropdown from './GenerationModeDropdown';
@@ -567,7 +568,8 @@ export default function CoursewareCard({
         </button>
       </div>
 
-      {showEditModal && <ResourceEditModal
+      {showEditModal && courseware.videoProjectId && <VideoResourceEditor projectId={courseware.videoProjectId} onClose={() => setShowEditModal(false)}/>}
+      {showEditModal && !courseware.videoProjectId && <ResourceEditModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         onConfirmReplace={() => {

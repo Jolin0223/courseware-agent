@@ -1,0 +1,25 @@
+{
+  "originalBranch": "codex/recommendation-card-tier-explanations-urgent",
+  "checks": [
+    {
+      "file": "src/App.tsx",
+      "unchanged": true
+    },
+    {
+      "file": "src/data/mockConversations.ts",
+      "unchanged": true
+    },
+    {
+      "file": "src/pages/GeneratorPage.tsx",
+      "unchanged": true
+    },
+    {
+      "file": "src/store/conversationStore.ts",
+      "unchanged": true
+    },
+    {
+      "file": "src/types/index.ts",
+      "unchanged": true
+    }
+  ]
+}

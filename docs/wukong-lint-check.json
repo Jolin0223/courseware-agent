@@ -1,0 +1,87 @@
+{
+  "baselineCommit": "ccfec46",
+  "file": "src/pages/GeneratorPage.tsx",
+  "noNewDiagnostics": true,
+  "baseline": {
+    "errors": 6,
+    "warnings": 1,
+    "messages": [
+      {
+        "line": 1488,
+        "rule": "react-hooks/set-state-in-effect",
+        "firstLine": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "line": 2046,
+        "rule": "react-hooks/purity",
+        "firstLine": "Error: Cannot call impure function during render"
+      },
+      {
+        "line": 2067,
+        "rule": "react-hooks/purity",
+        "firstLine": "Error: Cannot call impure function during render"
+      },
+      {
+        "line": 2367,
+        "rule": "react-hooks/set-state-in-effect",
+        "firstLine": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "line": 2401,
+        "rule": "react-hooks/set-state-in-effect",
+        "firstLine": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "line": 2622,
+        "rule": "react-hooks/set-state-in-effect",
+        "firstLine": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "line": 2654,
+        "rule": "react-hooks/exhaustive-deps",
+        "firstLine": "React Hook useEffect has missing dependencies: 'activeConversation' and 'phase'. Either include them or remove the dependency array."
+      }
+    ]
+  },
+  "current": {
+    "errors": 6,
+    "warnings": 1,
+    "messages": [
+      {
+        "line": 1491,
+        "rule": "react-hooks/set-state-in-effect",
+        "firstLine": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "line": 2049,
+        "rule": "react-hooks/purity",
+        "firstLine": "Error: Cannot call impure function during render"
+      },
+      {
+        "line": 2070,
+        "rule": "react-hooks/purity",
+        "firstLine": "Error: Cannot call impure function during render"
+      },
+      {
+        "line": 2375,
+        "rule": "react-hooks/set-state-in-effect",
+        "firstLine": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "line": 2409,
+        "rule": "react-hooks/set-state-in-effect",
+        "firstLine": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "line": 2630,
+        "rule": "react-hooks/set-state-in-effect",
+        "firstLine": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "line": 2662,
+        "rule": "react-hooks/exhaustive-deps",
+        "firstLine": "React Hook useEffect has missing dependencies: 'activeConversation' and 'phase'. Either include them or remove the dependency array."
+      }
+    ]
+  }
+}

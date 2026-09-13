@@ -46,6 +46,9 @@ import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
 import { CLONE_COURSEWARE_PROMPT } from '../constants/cloneCourseware';
 import toast from '../utils/toast';
+import WukongStudio from '../components/WukongStudio/WukongStudio';
+import { WUKONG_ID } from '../data/wukong/course';
+import { useWukongStore } from '../store/wukongStore';
 import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
 import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
 
@@ -2164,6 +2167,11 @@ function AssistantMessage({
 }
 
 export default function GeneratorPage() {
+  const active = useConversationStore(s => s.activeConversationId);
+  return active === WUKONG_ID ? <WukongStudio /> : <StandardGeneratorPage />;
+}
+
+function StandardGeneratorPage() {
   const {
     conversations,
     activeConversationId,
@@ -2658,6 +2666,12 @@ export default function GeneratorPage() {
     attachments: UploadedAttachment[] = [],
     generationPreferences: GenerationPreferences = {},
   ) => {
+    if (/悟空|雨字头/.test(text)) {
+      useWukongStore.getState().update({ request: text, step: 0 });
+      useConversationStore.getState().setActiveConversation(WUKONG_ID);
+      closePreview();
+      return;
+    }
     let convId = activeConversationId;
     
     if (!convId) {
@@ -2753,7 +2767,7 @@ export default function GeneratorPage() {
       generationPreferences,
       carriedTeachingMaterials,
     );
-  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability]);
+  }, [activeConversationId, createNewConversation, addUserMessage, addAssistantMessage, maybeAskVoiceCapability, closePreview]);
 
   const handleRecommendationPreview = useCallback((messageId: string, recommendationId: string) => {
     if (!activeConversationId) return;
@@ -3443,6 +3457,7 @@ export default function GeneratorPage() {
               </div>
             </div>
           </div>
+          <button className="wk-home-entry" onClick={() => { useConversationStore.getState().setActiveConversation(WUKONG_ID); closePreview(); }}><span className="wk-home-play">▶</span><span><strong>让教学视频参与互动</strong><small>跟着悟空学汉字 · 从方案、素材到完整课件</small></span><span>体验共创样例 →</span></button>
           <div style={{ width: '100%', marginTop: 24 }}>
             <InspirationSection
               selectedInspirationId={selectedInspiration?.id}

@@ -1,0 +1,28 @@
+[
+  {
+    "check": "copied-assets-match-source-sha256",
+    "passed": true,
+    "files": 130
+  },
+  {
+    "check": "literal-assets-exist-and-serve-correct-content",
+    "passed": true,
+    "files": 72
+  },
+  {
+    "check": "six-active-video-tracks-probed",
+    "passed": true,
+    "durationSeconds": {
+      "opening": 15.083333,
+      "mission": 6.0,
+      "arrival": 17.784,
+      "move": 6.0,
+      "cave": 6.583333,
+      "outro": 6.0
+    }
+  },
+  {
+    "check": "copied-player-javascript-syntax",
+    "passed": true
+  }
+]

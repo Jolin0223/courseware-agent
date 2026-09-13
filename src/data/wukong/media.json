@@ -1,0 +1,122 @@
+{
+  "opening": {
+    "file": "assets/video/v27/opening.mp4",
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "duration": "15.083333"
+      },
+      {
+        "codec_type": "audio",
+        "duration": "15.083000"
+      }
+    ],
+    "format": {
+      "duration": "15.083333"
+    }
+  },
+  "mission": {
+    "file": "assets/video/v31/M02.mp4",
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "duration": "6.000000"
+      },
+      {
+        "codec_type": "audio",
+        "duration": "6.000000"
+      }
+    ],
+    "format": {
+      "duration": "6.000000"
+    }
+  },
+  "arrival": {
+    "file": "assets/video/v19/flight-arrival.mp4",
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "duration": "17.766667"
+      },
+      {
+        "codec_type": "audio",
+        "duration": "17.784000"
+      }
+    ],
+    "format": {
+      "duration": "17.784000"
+    }
+  },
+  "move": {
+    "file": "assets/video/v31/C05.mp4",
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "duration": "6.000000"
+      },
+      {
+        "codec_type": "audio",
+        "duration": "6.000000"
+      }
+    ],
+    "format": {
+      "duration": "6.000000"
+    }
+  },
+  "cave": {
+    "file": "assets/video/v3/V02_cave_idle_v3.mp4",
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_type": "video",
+        "width": 1344,
+        "height": 768,
+        "duration": "6.583333"
+      },
+      {
+        "codec_type": "audio",
+        "duration": "6.575000"
+      }
+    ],
+    "format": {
+      "duration": "6.583333"
+    }
+  },
+  "outro": {
+    "file": "assets/video/v32/E02.mp4",
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "duration": "6.000000"
+      },
+      {
+        "codec_type": "audio",
+        "duration": "6.000000"
+      }
+    ],
+    "format": {
+      "duration": "6.000000"
+    }
+  }
+}

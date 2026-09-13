@@ -1,0 +1,2 @@
+# Preserve verbatim source prompt documents, including their original final blank lines.
+public/wukong/prompts/*.txt whitespace=-blank-at-eof

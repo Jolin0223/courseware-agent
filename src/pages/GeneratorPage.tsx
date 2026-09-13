@@ -8,6 +8,7 @@ import CoursewareRecommendationCard from '../components/Generator/CoursewareReco
 import ProgressPanel from '../components/Generator/ProgressPanel';
 import PreviewPanel from '../components/Generator/PreviewPanel';
 import CoursewareCard from '../components/Generator/CoursewareCard';
+import TeachingVideoPlanCard, { TeachingVideoProgressCard } from '../components/Generator/TeachingVideoPlanCard';
 import TeachingContentPreviewModal from '../components/Generator/TeachingContentPreviewModal';
 import TeachingContentSummaryCard from '../components/Generator/TeachingContentSummaryCard';
 import InspirationSection, { buildStructuredInspirationPrompt, type GameplayInspiration } from '../components/Generator/InspirationSection';
@@ -36,6 +37,8 @@ import type {
   CarriedMaterial,
   CoursewareRecommendationMessage,
   GenerationPreferences,
+  TeachingVideoPlan,
+  TeachingVideoProgress,
 } from '../types';
 import { generateRequirementFromPrompt } from '../data/mockConversations';
 import { mockCoursewares } from '../data/mockCoursewares';
@@ -1920,6 +1923,7 @@ function AssistantMessage({
   onOpenPreview,
   onLearningDataRecoveryRequest,
   onVisualStyleRegenerate,
+  onTeachingVideoConfirm,
 }: { 
   message: ConversationMessage; 
   phase?: string;
@@ -1935,6 +1939,7 @@ function AssistantMessage({
   onOpenPreview?: (coursewareId: number, version?: string | null) => void;
   onLearningDataRecoveryRequest?: (request: LearningDataRecoveryRequest) => void;
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
+  onTeachingVideoConfirm?: (messageId: string) => void;
 }) {
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
@@ -2001,6 +2006,31 @@ function AssistantMessage({
         <AIAvatar />
         <div style={styles.assistantContent}>
           <ProgressPanel progress={message.content as GenerationProgress} onRetry={onRetry} onContinue={onContinue} />
+        </div>
+      </div>
+    );
+  }
+
+  if (message.type === 'teaching-video-plan') {
+    return (
+      <div style={styles.messageAssistant}>
+        <AIAvatar />
+        <div style={styles.assistantContent}>
+          <TeachingVideoPlanCard
+            plan={message.content as TeachingVideoPlan}
+            onConfirm={() => onTeachingVideoConfirm?.(message.id)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (message.type === 'teaching-video-progress') {
+    return (
+      <div style={styles.messageAssistant}>
+        <AIAvatar />
+        <div style={styles.assistantContent}>
+          <TeachingVideoProgressCard progress={message.content as TeachingVideoProgress} />
         </div>
       </div>
     );
@@ -2233,6 +2263,47 @@ export default function GeneratorPage() {
   const chatContentVars = { '--chat-content-max': `${chatContentMaxWidth}px` } as React.CSSProperties;
   const chatAreaPadding = previewPanelOpen ? '28px 48px 24px 64px' : '28px 56px 24px';
   const inputAreaPadding = previewPanelOpen ? '16px 48px 24px 64px' : '16px 56px 24px';
+
+  const handleTeachingVideoConfirm = useCallback((messageId: string) => {
+    if (!activeConversationId) return;
+    const currentConversation = useConversationStore.getState().conversations.find(item => item.id === activeConversationId);
+    const currentPlanMessage = currentConversation?.messages.find(item => item.id === messageId);
+    if (!currentPlanMessage || currentPlanMessage.type !== 'teaching-video-plan') return;
+    const currentPlan = currentPlanMessage.content as TeachingVideoPlan;
+    if (currentPlan.status === 'confirmed') return;
+
+    useConversationStore.setState(state => ({
+      conversations: state.conversations.map(conversation => (
+        conversation.id === activeConversationId
+          ? {
+              ...conversation,
+              waitingForUserAction: false,
+              messages: conversation.messages.map(message => (
+                message.id === messageId
+                  ? { ...message, content: { ...currentPlan, status: 'confirmed' as const } }
+                  : message
+              )),
+            }
+          : conversation
+      )),
+    }));
+
+    addUserMessage(activeConversationId, '确认视频脚本，继续生成整份课件');
+    const videoProgress: TeachingVideoProgress = {
+      title: '整份课件继续生成',
+      summary: '教学视频作为课件生成流程中的一个环节执行，不会跳转到独立工具。',
+      stages: [
+        { id: 'reference', title: '角色与场景基准', detail: '已锁定 4 名角色，并按原 3 页生成客厅、中医馆、山间药田 3 张首帧。', status: 'completed' },
+        { id: 'shots', title: '教学视频镜头', detail: '6 个镜头严格按原 3 页顺序拆分；不包含加减法、凑十或其他扩写情节。', status: 'completed' },
+        { id: 'voice', title: '角色配音与字幕', detail: '讲解、男童、女童和温爷爷使用独立声线；字幕只显示台词，总时长控制在 1 分钟内。', status: 'completed' },
+        { id: 'composite', title: '合成与教学质检', detail: '检查故事逐条可追溯、人物一致性、音画同步与字幕可读性。', status: 'ready' },
+        { id: 'courseware', title: '课件页面与互动练习', detail: '视频完成后插入讲解环节，再继续生成两道互动练习。', status: 'pending' },
+      ],
+    };
+    addAssistantMessage(activeConversationId, videoProgress, 'teaching-video-progress');
+    setWaitingForUserAction(activeConversationId, false);
+    toast('已确认视频脚本，教学视频将随整份课件继续生成');
+  }, [activeConversationId, addAssistantMessage, addUserMessage, setWaitingForUserAction]);
 
   const getCoursewarePublishState = (message: ConversationMessage, coursewareIndex: number) => {
     const result = message.content as CoursewareResult;
@@ -3460,6 +3531,7 @@ export default function GeneratorPage() {
                           openPreview(coursewareId, version);
                         }}
                         onLearningDataRecoveryRequest={handleLearningDataRecoveryRequest}
+                        onTeachingVideoConfirm={handleTeachingVideoConfirm}
                         onVisualStyleRegenerate={(request) => {
                           if (!activeConversationId) return;
                           const newCoursewareId = Date.now();

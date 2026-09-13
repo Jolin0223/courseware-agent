@@ -1,0 +1,110 @@
+{
+  "version": "0.2",
+  "validated_at": "2026-09-07",
+  "platform": "https://aigc.xdf.cn/video/index",
+  "status": "generated_and_downloaded",
+  "visual_reference": {
+    "id": "character_style_ref_v1",
+    "src": "/video-demo/S01-reference-v1.png",
+    "width": 1672,
+    "height": 941,
+    "upload_attempted": true,
+    "applied_to_generation": false,
+    "note": "平台文件选择器未接受本地 PNG/JPG/WEBP，六条实跑均使用文本约束；正式链路必须增加上传结果校验。"
+  },
+  "routing": {
+    "generated_video": ["S01", "S02", "S05", "S06"],
+    "deterministic_animation": ["S03", "S04"],
+    "experimental_h3_comparison": ["S03", "S04"],
+    "composited_layers": ["voiceover", "captions", "equations", "countdown"]
+  },
+  "shots": [
+    {
+      "id": "S01",
+      "requested_duration_sec": 5,
+      "actual_duration_sec": 5.167,
+      "model": "MiniMax-H3",
+      "resolution": "768P",
+      "unit_price_cny_per_sec": 0.5,
+      "actual_cost_cny": 2.5,
+      "reference_asset": "/video-demo/S01-reference-v1.png",
+      "output_asset": "/video-demo/S01-h3-768p-v1.mp4",
+      "poster_asset": "/video-demo/S01-h3-768p-v1-poster.jpg",
+      "status": "downloaded",
+      "qa": "needs_review: 情境和 3D 风格可用；参考图未实际生效，存在跨镜头一致性风险。"
+    },
+    {
+      "id": "S02",
+      "requested_duration_sec": 10,
+      "actual_duration_sec": 10.125,
+      "model": "MiniMax-H3",
+      "resolution": "768P",
+      "unit_price_cny_per_sec": 0.5,
+      "actual_cost_cny": 5,
+      "output_asset": "/video-demo/S02-h3-768p-v1.mp4",
+      "poster_asset": "/video-demo/S02-h3-768p-v1-poster.jpg",
+      "status": "downloaded",
+      "qa": "pass: 人物、场景和两只竹篓表达稳定，可作为正式成片候选。"
+    },
+    {
+      "id": "S03",
+      "requested_duration_sec": 12,
+      "actual_duration_sec": 12.25,
+      "model": "MiniMax-H3",
+      "resolution": "768P",
+      "unit_price_cny_per_sec": 0.5,
+      "actual_cost_cny": 6,
+      "output_asset": "/video-demo/S03-h3-768p-experiment-v1.mp4",
+      "poster_asset": "/video-demo/S03-h3-768p-experiment-v1-poster.jpg",
+      "production_route": "deterministic-web-animation",
+      "status": "downloaded_experiment_only",
+      "qa": "rejected: 木棒数量与重组过程不精确，正式成片必须使用程序动画。"
+    },
+    {
+      "id": "S04",
+      "requested_duration_sec": 12,
+      "actual_duration_sec": 12.25,
+      "model": "MiniMax-H3",
+      "resolution": "768P",
+      "unit_price_cny_per_sec": 0.5,
+      "actual_cost_cny": 6,
+      "output_asset": "/video-demo/S04-h3-768p-experiment-v1.mp4",
+      "poster_asset": "/video-demo/S04-h3-768p-experiment-v1-poster.jpg",
+      "production_route": "deterministic-web-animation",
+      "status": "downloaded_experiment_only",
+      "qa": "rejected: 数量变化不稳定且出现提示词禁止的人手，仅保留为对照。"
+    },
+    {
+      "id": "S05",
+      "requested_duration_sec": 8,
+      "actual_duration_sec": 8,
+      "model": "MiniMax-H3",
+      "resolution": "768P",
+      "unit_price_cny_per_sec": 0.5,
+      "actual_cost_cny": 4,
+      "output_asset": "/video-demo/S05-h3-768p-v1.mp4",
+      "poster_asset": "/video-demo/S05-h3-768p-v1-poster.jpg",
+      "status": "downloaded",
+      "qa": "rejected: 转为写实人物且眼镜、服装丢失，需要带角色参考图重生。"
+    },
+    {
+      "id": "S06",
+      "requested_duration_sec": 10,
+      "actual_duration_sec": 10.125,
+      "model": "MiniMax-H3",
+      "resolution": "768P",
+      "unit_price_cny_per_sec": 0.5,
+      "actual_cost_cny": 5,
+      "output_asset": "/video-demo/S06-h3-768p-v1.mp4",
+      "poster_asset": "/video-demo/S06-h3-768p-v1-poster.jpg",
+      "status": "downloaded",
+      "qa": "needs_review: 回到 3D 风格，但角色年龄、眼镜和服装仍有漂移。"
+    }
+  ],
+  "costs": {
+    "s01_actual_cny": 2.5,
+    "recommended_generated_shots_total_cny": 17,
+    "all_six_h3_768p_actual_cny": 28.5,
+    "all_six_h3_2k_cny": 46.4
+  }
+}

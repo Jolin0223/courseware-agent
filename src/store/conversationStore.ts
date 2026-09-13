@@ -10,6 +10,7 @@ const generateId = () => Math.random().toString(36).substring(2, 11);
 const USER_ACTION_REQUIRED_MESSAGE_TYPES = new Set<MessageType>([
   'courseware-recommendation',
   'requirement-framework',
+  'teaching-video-plan',
   'material-intent-confirmation',
   'voice-capability-confirmation',
 ]);

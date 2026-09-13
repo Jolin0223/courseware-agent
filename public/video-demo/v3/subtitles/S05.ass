@@ -1,0 +1,16 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1344
+PlayResY: 768
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Narrator,PingFang SC,36,&H00FFFFFF,&H00FFFFFF,&H00000000,&H883B291E,0,0,0,0,100,100,0,0,3,10,0,2,72,72,42,1
+Style: Dialogue,PingFang SC,38,&H00FFFFFF,&H00FFFFFF,&H00000000,&H923B291E,0,0,0,0,100,100,0,0,3,10,0,2,72,72,42,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:04.08,Narrator,,0,0,0,,{\c&H00E1D5CB&\b1}旁白{\r Narrator}\N第二天一早，天天跟着温爷爷上山采药。
+Dialogue: 0,0:00:04.28,0:00:09.48,Dialogue,,0,0,0,,{\c&H00F08F2B&\b1}温爷爷 · 男声{\r Dialogue}\N今天我们要采摘金银花、菊花和薄荷，你负责采摘金银花吧！

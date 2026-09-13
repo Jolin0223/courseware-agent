@@ -1,0 +1,30 @@
+{
+  "version": "v3",
+  "source_scope": "完全取自原课件 3 页故事，不补写功效结论或新剧情",
+  "visual_model": "MiniMax-H3 768P",
+  "visual_cost_cny": 26,
+  "full_video": "/video-demo/v3/full-story-role-voiced-captioned-v3.mp4",
+  "full_video_duration_sec": 56.52,
+  "full_video_resolution": "1344x768",
+  "audio_tracks": {
+    "narrator": { "voice": "晓晓", "voice_id": "B0905C436AF594F1", "role": "旁白女声" },
+    "tiantian": { "voice": "聪明男孩", "voice_id": "YTZF9POBLI2VSFEF", "role": "天天男童声" },
+    "tutu": { "voice": "可爱男孩", "voice_id": "IWM9RV92JEUYRXQS", "role": "图图男童声" },
+    "keke": { "voice": "可爱女孩", "voice_id": "3MRLU93KD1GEVEQR", "role": "可可女童声" },
+    "grandpa": { "voice": "云野", "voice_id": "3035CD2153A2DA0D", "role": "温爷爷成熟男声" }
+  },
+  "caption_rules": {
+    "narration": "只显示旁白正文，不显示旁白标签",
+    "dialogue": "只显示人物台词，不显示角色或声线标签",
+    "forbidden_labels": ["原课件信息", "旁白", "男童", "女童", "男声"]
+  },
+  "speaker_control": "旁白段使用无口型运动的静态推镜；多人对话按当前说话人切近景，其他人物嘴部不进入画面；知识说明末段允许切花朵特写并使用画外音。",
+  "shots": [
+    { "id": "S01", "duration_sec": 10.667, "video": "/video-demo/v3/S01-role-voiced-captioned-v3.mp4", "speakers": ["narrator"] },
+    { "id": "S02", "duration_sec": 11.417, "video": "/video-demo/v3/S02-role-voiced-captioned-v3.mp4", "speakers": ["tiantian", "tutu", "keke"] },
+    { "id": "S03", "duration_sec": 5.542, "video": "/video-demo/v3/S03-role-voiced-captioned-v3.mp4", "speakers": ["narrator"] },
+    { "id": "S04", "duration_sec": 9.625, "video": "/video-demo/v3/S04-role-voiced-captioned-v3.mp4", "speakers": ["tiantian", "grandpa"] },
+    { "id": "S05", "duration_sec": 9.5, "video": "/video-demo/v3/S05-role-voiced-captioned-v3.mp4", "speakers": ["narrator", "grandpa"] },
+    { "id": "S06", "duration_sec": 11.042, "video": "/video-demo/v3/S06-role-voiced-captioned-v3.mp4", "speakers": ["tiantian", "grandpa"] }
+  ]
+}

@@ -5,6 +5,7 @@ import MainLayout from './components/Layout/MainLayout';
 import GeneratorPage from './pages/GeneratorPage';
 import LibraryPage from './pages/LibraryPage';
 import EditorPage from './pages/EditorPage';
+import TeachingVideoFlowPage from './pages/TeachingVideoFlowPage';
 import EditorDrawer from './components/Layout/EditorDrawer';
 import InspirationAssistant from './components/Generator/InspirationAssistant';
 import CoursewareEntryLoading, { type CoursewareEntryLoadingMode } from './components/common/CoursewareEntryLoading';
@@ -161,7 +162,7 @@ function AppContent() {
     toast('已带回输入框，可继续修改后生成');
   }, [closePreview, location.pathname, navigate, setPendingAssistantPrompt]);
 
-  const assistantNode = (
+  const assistantNode = location.pathname === '/video-demo' ? null : (
     <InspirationAssistant
       onApplyPrompt={handleApplyAssistantPrompt}
       isHomePage={location.pathname === '/'}
@@ -293,6 +294,7 @@ function App() {
           <Route index element={<GeneratorPage />} />
           <Route path="library" element={<LibraryPage />} />
           <Route path="history" element={<GeneratorPage />} />
+          <Route path="video-demo" element={<TeachingVideoFlowPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

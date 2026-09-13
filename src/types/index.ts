@@ -37,6 +37,8 @@ export type MessageType =
   | 'requirement-framework'
   | 'generation-settings'
   | 'generation-progress'
+  | 'teaching-video-plan'
+  | 'teaching-video-progress'
   | 'courseware-result'
   | 'material-intent-confirmation'
   | 'voice-capability-confirmation'
@@ -228,6 +230,65 @@ export interface GenerationProgress {
   instantIntro?: boolean;
 }
 
+export type TeachingVideoShotRoute = 'generated-video' | 'deterministic-animation';
+
+export type TeachingVideoSpeaker = 'narrator' | 'tiantian' | 'tutu' | 'keke' | 'grandpa';
+
+export interface TeachingVideoCue {
+  startSec: number;
+  endSec: number;
+  speaker: TeachingVideoSpeaker;
+  speakerLabel: string;
+  kind: 'narration' | 'dialogue';
+  text: string;
+}
+
+export interface TeachingVideoShot {
+  id: string;
+  title: string;
+  purpose: string;
+  durationSec: number;
+  voiceover: string;
+  overlay: string;
+  visualPrompt: string;
+  route: TeachingVideoShotRoute;
+  referenceImage?: string;
+  audioAsset?: string;
+  videoAsset?: string;
+  posterAsset?: string;
+  actualDurationSec?: number;
+  generationUse?: 'production-candidate' | 'experiment-only';
+  qaStatus?: 'pass' | 'needs-review' | 'rejected';
+  qaNote?: string;
+  cues?: TeachingVideoCue[];
+}
+
+export interface TeachingVideoPlan {
+  title: string;
+  placement: string;
+  totalDurationSec: number;
+  ratio: '16:9';
+  estimatedVisualCostCny: number;
+  status: 'awaiting-confirmation' | 'confirmed';
+  shots: TeachingVideoShot[];
+  fullVideoAsset?: string;
+  fullVideoPosterAsset?: string;
+  fullVideoDurationSec?: number;
+}
+
+export interface TeachingVideoProgressStage {
+  id: string;
+  title: string;
+  detail: string;
+  status: 'pending' | 'ready' | 'in-progress' | 'completed' | 'failed';
+}
+
+export interface TeachingVideoProgress {
+  title: string;
+  summary: string;
+  stages: TeachingVideoProgressStage[];
+}
+
 export interface CoursewareResult {
   coursewareId?: number;
   title: string;
@@ -358,7 +419,7 @@ export interface UserMaterialMessage {
 export interface ConversationMessage {
   id: string;
   role: MessageRole;
-  content: string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
+  content: string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | TeachingVideoPlan | TeachingVideoProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
   type?: MessageType;
   timestamp: Date;
 }

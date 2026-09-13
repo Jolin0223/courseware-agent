@@ -1,0 +1,77 @@
+{
+  "version": "2.0",
+  "validated_at": "2026-09-08",
+  "story_source": "three user-provided courseware pages",
+  "story_fidelity": "strict",
+  "duration_target_sec": 52,
+  "full_preview_asset": "/video-demo/v2/full-story-h3-voiced-v2.mp4",
+  "visual_generation": {
+    "character_reference": "/video-demo/v2/story-source/character-sheet-v2.png",
+    "page_keyframes": [
+      "/video-demo/v2/story-source/page1-living-room-keyframe-v2.png",
+      "/video-demo/v2/story-source/page2-clinic-keyframe-v2.png",
+      "/video-demo/v2/story-source/page3-herb-field-keyframe-v2.png"
+    ],
+    "h3_status": "completed",
+    "h3_resolution": "768P",
+    "h3_unit_price_cny_per_sec_verified_live": 0.5,
+    "h3_actual_cost_cny": 26,
+    "submitted_at": "2026-09-08 11:36:05 +0800",
+    "requests": [
+      { "shot_id": "S01", "req_id": 4851693, "status": "completed" },
+      { "shot_id": "S02", "req_id": 4821398, "status": "completed" },
+      { "shot_id": "S03", "req_id": 4876090, "status": "completed" },
+      { "shot_id": "S04", "req_id": 4876139, "status": "completed" },
+      { "shot_id": "S05", "req_id": 4876141, "status": "completed" },
+      { "shot_id": "S06", "req_id": 4876142, "status": "completed" }
+    ]
+  },
+  "audio": {
+    "provider": "New Oriental AI Digital Human",
+    "voiceover_duration_sec": 49.419999,
+    "composite_loudness_target_lufs": -16,
+    "files": [
+      "/video-demo/v2/audio/S01-voice-v2.mp3",
+      "/video-demo/v2/audio/S02-voice-v2.mp3",
+      "/video-demo/v2/audio/S03-voice-v2.mp3",
+      "/video-demo/v2/audio/S04-voice-v2.mp3",
+      "/video-demo/v2/audio/S05-voice-v2.mp3",
+      "/video-demo/v2/audio/S06-voice-v2.mp3"
+    ]
+  },
+  "preview": {
+    "status": "replaced_by_final_h3_output",
+    "format": "H.264 video with AAC voice track",
+    "resolution": "1280x720",
+    "duration_sec": 52.818,
+    "shots": [
+      "/video-demo/v2/S01-voiced-preview-v2.mp4",
+      "/video-demo/v2/S02-voiced-preview-v2.mp4",
+      "/video-demo/v2/S03-voiced-preview-v2.mp4",
+      "/video-demo/v2/S04-voiced-preview-v2.mp4",
+      "/video-demo/v2/S05-voiced-preview-v2.mp4",
+      "/video-demo/v2/S06-voiced-preview-v2.mp4"
+    ]
+  },
+  "final_output": {
+    "status": "generated_voiced_and_validated",
+    "model": "MiniMax-H3",
+    "resolution": "1344x768",
+    "format": "H.264 video with AAC voice track",
+    "shots": [
+      "/video-demo/v2/S01-h3-voiced-768p-v2.mp4",
+      "/video-demo/v2/S02-h3-voiced-768p-v2.mp4",
+      "/video-demo/v2/S03-h3-voiced-768p-v2.mp4",
+      "/video-demo/v2/S04-h3-voiced-768p-v2.mp4",
+      "/video-demo/v2/S05-h3-voiced-768p-v2.mp4",
+      "/video-demo/v2/S06-h3-voiced-768p-v2.mp4"
+    ]
+  },
+  "removed_v1_content": [
+    "24 plus 17 question",
+    "place-value regrouping",
+    "55 minus 41 question",
+    "extra nine honeysuckle question",
+    "addition and subtraction summary"
+  ]
+}

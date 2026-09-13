@@ -1,0 +1,118 @@
+{
+  "version": "4.0",
+  "model": "MiniMax-H3",
+  "resolution": "768P",
+  "submitted_at": "2026-09-08T16:07:49+08:00",
+  "completed_at": "2026-09-08T16:17:24+08:00",
+  "estimated_generation_seconds": 45,
+  "estimated_generation_cost_cny": 22.5,
+  "status": "finalized",
+  "qa_status": "passed_visual_sampling_and_stream_check",
+  "full_output": "/video-demo/v4/full-story-role-voiced-captioned-v4.mp4",
+  "full_duration_sec": 57.792,
+  "composition": {
+    "top_level_shots": 6,
+    "dialogue_action_clips": 8,
+    "subtitle_rule": "only dialogue text; no narrator, character, gender, or voice labels",
+    "audio_rule": "discard H3 native audio and use the approved independent role voices",
+    "framing_rule": "normal group or two-person medium shots; no speaker-only crop"
+  },
+  "tasks": [
+    {
+      "id": "S02A_tiantian",
+      "duration": 8,
+      "reference": "/video-demo/v2/story-source/page1-living-room-keyframe-v2.png",
+      "req_id": 4853299,
+      "status": "downloaded",
+      "submitted_at": "2026-09-08T16:07:49+08:00",
+      "output_asset": "/video-demo/v4/S02A_tiantian-h3-768p-v4.mp4",
+      "poster_asset": "/video-demo/v4/S02A_tiantian-poster-v4.jpg",
+      "result_id": 10060365,
+      "inspection_pass": 1
+    },
+    {
+      "id": "S02B_tutu",
+      "duration": 4,
+      "reference": "/video-demo/v2/story-source/page1-living-room-keyframe-v2.png",
+      "req_id": 4823489,
+      "status": "downloaded",
+      "submitted_at": "2026-09-08T16:07:50+08:00",
+      "output_asset": "/video-demo/v4/S02B_tutu-h3-768p-v4.mp4",
+      "poster_asset": "/video-demo/v4/S02B_tutu-poster-v4.jpg",
+      "result_id": 10060350,
+      "inspection_pass": 1
+    },
+    {
+      "id": "S02C_keke",
+      "duration": 4,
+      "reference": "/video-demo/v2/story-source/page1-living-room-keyframe-v2.png",
+      "req_id": 4823490,
+      "status": "downloaded",
+      "submitted_at": "2026-09-08T16:07:51+08:00",
+      "output_asset": "/video-demo/v4/S02C_keke-h3-768p-v4.mp4",
+      "poster_asset": "/video-demo/v4/S02C_keke-poster-v4.jpg",
+      "result_id": 10060336,
+      "inspection_pass": 1
+    },
+    {
+      "id": "S04A_tiantian",
+      "duration": 8,
+      "reference": "/video-demo/v2/story-source/page2-clinic-keyframe-v2.png",
+      "req_id": 4853336,
+      "status": "downloaded",
+      "submitted_at": "2026-09-08T16:10:44+08:00",
+      "output_asset": "/video-demo/v4/S04A_tiantian-h3-768p-v4.mp4",
+      "poster_asset": "/video-demo/v4/S04A_tiantian-poster-v4.jpg",
+      "result_id": 10035945,
+      "inspection_pass": 1
+    },
+    {
+      "id": "S04B_grandpa",
+      "duration": 4,
+      "reference": "/video-demo/v2/story-source/page2-clinic-keyframe-v2.png",
+      "req_id": 4853345,
+      "status": "downloaded",
+      "submitted_at": "2026-09-08T16:11:27+08:00",
+      "output_asset": "/video-demo/v4/S04B_grandpa-h3-768p-v4.mp4",
+      "poster_asset": "/video-demo/v4/S04B_grandpa-poster-v4.jpg",
+      "result_id": 10035942,
+      "inspection_pass": 1
+    },
+    {
+      "id": "S05B_grandpa",
+      "duration": 6,
+      "reference": "/video-demo/v2/story-source/page3-herb-field-keyframe-v2.png",
+      "req_id": 4823530,
+      "status": "downloaded",
+      "submitted_at": "2026-09-08T16:11:50+08:00",
+      "output_asset": "/video-demo/v4/S05B_grandpa-h3-768p-v4.mp4",
+      "poster_asset": "/video-demo/v4/S05B_grandpa-poster-v4.jpg",
+      "result_id": 10060439,
+      "inspection_pass": 1
+    },
+    {
+      "id": "S06A_tiantian",
+      "duration": 5,
+      "reference": "/video-demo/v2/story-source/page3-herb-field-keyframe-v2.png",
+      "req_id": 4853369,
+      "status": "downloaded",
+      "submitted_at": "2026-09-08T16:14:15+08:00",
+      "output_asset": "/video-demo/v4/S06A_tiantian-h3-768p-v4.mp4",
+      "poster_asset": "/video-demo/v4/S06A_tiantian-poster-v4.jpg",
+      "result_id": 10036024,
+      "inspection_pass": 1
+    },
+    {
+      "id": "S06B_grandpa",
+      "duration": 6,
+      "reference": "/video-demo/v2/story-source/page3-herb-field-keyframe-v2.png",
+      "req_id": 4878370,
+      "status": "downloaded",
+      "submitted_at": "2026-09-08T16:14:16+08:00",
+      "output_asset": "/video-demo/v4/S06B_grandpa-h3-768p-v4.mp4",
+      "poster_asset": "/video-demo/v4/S06B_grandpa-poster-v4.jpg",
+      "result_id": 10016477,
+      "inspection_pass": 1
+    }
+  ]
+}

@@ -1970,7 +1970,7 @@ function AssistantMessage({
   }
 
   if (message.type === 'video-courseware-workflow') {
-    return <div style={styles.messageAssistant}><AIAvatar/><div style={styles.assistantContent}><VideoWorkflowCard projectId={(message.content as { videoProjectId: string }).videoProjectId} stage={(message.content as { stage?: 'plan' | 'assets' | 'production' }).stage}/></div></div>;
+    return <div style={styles.messageAssistant}><AIAvatar/><div style={styles.assistantContent}><VideoWorkflowCard projectId={(message.content as { videoProjectId: string }).videoProjectId} stage={(message.content as { stage?: 'plan' | 'assets' | 'production' }).stage} runId={(message.content as {runId?:string}).runId}/></div></div>;
   }
 
   if (message.type === 'requirement-framework') {
@@ -3773,7 +3773,7 @@ export default function GeneratorPage() {
             <ChatInput 
               onSend={handleSend} 
               disabled={false} 
-              isGenerating={videoProject ? ['planning','assets-loading','video-loading','assembling'].includes(videoProject.phase) : phase !== 'input' && phase !== 'completed'}
+              isGenerating={videoProject ? ['planning','assets-loading','video-planning','video-loading','assembling'].includes(videoProject.phase) : phase !== 'input' && phase !== 'completed'}
               onStop={videoProject ? () => useVideoCoursewareStore.getState().pause(videoProject.id) : handleStop}
               injectedText={draftPrompt}
               injectedTextVersion={draftVersion}

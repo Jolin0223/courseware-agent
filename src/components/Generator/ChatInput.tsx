@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   Link,
   Film,
-  MousePointer2,
+  Gamepad2,
   SendHorizontal,
   Sparkles,
   Square,
@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
+import { useConversationStore } from '../../store/conversationStore';
 import type { GenerationPreferences, UploadedAttachment } from '../../types';
 import HtmlTypeBadge from '../common/HtmlTypeBadge';
 import TeachingContentPicker from './TeachingContentPicker';
@@ -22,7 +23,7 @@ import TeachingContentPreviewModal from './TeachingContentPreviewModal';
 import TeachingContentSummaryCard from './TeachingContentSummaryCard';
 import GenerationPreferencePicker from './GenerationPreferencePicker';
 import GenerationModeDropdown from './GenerationModeDropdown';
-import { useVideoComposer } from '../../store/videoCoursewareStore';
+import { useVideoComposer, useVideoCoursewareStore } from '../../store/videoCoursewareStore';
 import { VIDEO_EXAMPLE_PROMPT, exampleAttachments, wukongFixture } from '../../data/videoCourseware/fixtures';
 import '../VideoCourseware/videoCourseware.css';
 import { generationModeOptions } from '../../data/augustDemoData';
@@ -469,6 +470,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const draftPromptPreview = appliedInspirationDraft
     ? appliedInspirationDraft.prompt
     : '';
+  const currentConversationId = useConversationStore(s => s.activeConversationId);
+  const currentVideo = useVideoCoursewareStore(s => centered ? undefined : Object.values(s.projects).find(p => p.conversationId === currentConversationId));
   const homepagePromptChips = format === 'video' ? [VIDEO_EXAMPLE_PROMPT, '在餐厅点餐，练习 I’d like…', '用情境视频引入10以内加法，再做互动练习'] : HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length];
   const shouldShowHomepageExamples = false;
   const shouldShowHomepagePromptChips = Boolean(
@@ -978,7 +981,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               : '0 2px 8px rgba(0,0,0,0.06)',
           }}
         >
-          {centered && <><div className="vc-input-formats" role="group" aria-label="课件形式"><button type="button" className={format === 'h5' ? 'active' : ''} aria-pressed={format === 'h5'} onClick={() => setFormat('h5')}><MousePointer2 size={15}/>互动课件</button><button type="button" className={format === 'video' ? 'active' : ''} aria-pressed={format === 'video'} onClick={() => setFormat('video')}><Film size={15}/>视频互动课件</button><span>{format === 'video' ? '情境视频与互动练习自然衔接' : '图片、声音与互动练习'}</span></div></>}
+          {centered && <><div className="vc-input-formats" role="group" aria-label="课件形式"><button type="button" className={format === 'h5' ? 'active' : ''} aria-pressed={format === 'h5'} onClick={() => setFormat('h5')}><Gamepad2 size={15}/>互动课件</button><button type="button" className={format === 'video' ? 'active' : ''} aria-pressed={format === 'video'} onClick={() => setFormat('video')}><Film size={15}/>视频互动课件</button><span>{format === 'video' ? '情境视频与互动练习自然衔接' : '图片、声音与互动练习'}</span></div></>}
           {isDraggingFiles && (
             <div style={styles.dragHint}>松开即可上传图片、PDF、Word 或 MD 材料</div>
           )}
@@ -1195,10 +1198,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
               <span className="aug-toolbar-divider" />
               <GenerationPreferencePicker
-                value={generationPreferences}
-                onChange={setGenerationPreferences}
+                voiceLabel={(centered ? format === 'video' : Boolean(currentVideo)) ? '旁白音色' : '课件音色'}
+                value={currentVideo?.preferences || generationPreferences}
+                onChange={value => {
+                  setGenerationPreferences(value);
+                  if(currentVideo) useVideoCoursewareStore.getState().update(currentVideo.id, {preferences:value,approvedPlanKey:undefined,framework:{...currentVideo.framework,designStyle:value.visualStyleName || currentVideo.framework.designStyle},speakers:currentVideo.speakers.map(s=>s.role==='narrator'?{...s,voiceId:value.voiceId,voiceName:value.voiceName || s.voiceName,voiceLanguage:value.voiceLanguage}:s)});
+                }}
                 prompt={text}
-                disabled={disabled}
+                disabled={disabled || Boolean(currentVideo && currentVideo.phase !== 'plan')}
                 showMode={false}
               />
 
@@ -1301,7 +1308,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   style={styles.homepagePromptChip}
                   onClick={() => applyHomepagePromptChip(item)}
                 >
-                  {item}
+                  {format === 'video' ? (item === VIDEO_EXAMPLE_PROMPT ? '悟空故事识字' : item.includes('餐厅') ? '餐厅点餐英语' : '视频学10以内加法') : item}
                 </button>
               ))}
             </div>

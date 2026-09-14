@@ -6,6 +6,7 @@ import { demoMs } from '../../constants/demoTiming';
 import './augustDemo.css';
 
 interface RequirementCardProps {
+  title?: string;
   framework: RequirementFramework;
   children?: React.ReactNode;
   featureContent?: React.ReactNode;
@@ -260,7 +261,7 @@ const MarkdownPromptPreview = ({ text }: { text: string }) => {
   return <div style={markdownStyles.preview}>{blocks}</div>;
 };
 
-const RequirementCard: React.FC<RequirementCardProps> = ({ framework, children, featureContent, isStreaming = false, readOnly = false, streamDuration, onStreamComplete, onFrameworkChange }) => {
+const RequirementCard: React.FC<RequirementCardProps> = ({ title, framework, children, featureContent, isStreaming = false, readOnly = false, streamDuration, onStreamComplete, onFrameworkChange }) => {
   const [streamedTexts, setStreamedTexts] = useState<Record<string, string>>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [streamComplete, setStreamComplete] = useState(false);
@@ -412,7 +413,7 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ framework, children, 
           }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>
-                {cloneReference ? '一键同款需求确认' : '互动课件设计方案确认'}
+                {title || (cloneReference ? '一键同款需求确认' : '互动课件设计方案确认')}
               </div>
               <div style={{ fontSize: 13, color: '#64748B' }}>
                 {readOnly

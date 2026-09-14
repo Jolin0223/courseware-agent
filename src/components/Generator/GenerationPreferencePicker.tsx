@@ -39,6 +39,7 @@ interface GenerationPreferencePickerProps {
   layout?: 'input' | 'settings';
   showMode?: boolean;
   controls?: 'all' | 'voice';
+  voiceLabel?: string;
 }
 
 type VoiceTab = 'featured' | 'dedicated';
@@ -65,6 +66,7 @@ export default function GenerationPreferencePicker({
   layout = 'input',
   showMode = true,
   controls = 'all',
+  voiceLabel = '课件音色',
 }: GenerationPreferencePickerProps) {
   const [styleModalOpen, setStyleModalOpen] = useState(false);
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
@@ -308,7 +310,7 @@ export default function GenerationPreferencePicker({
       className={layout === 'settings' ? 'aug-setting-choice' : `aug-preference-trigger ${value.voiceMode === 'manual' ? 'is-specified' : ''}`}
       disabled={disabled}
       onClick={openVoiceModal}
-      aria-label={layout === 'input' ? `课件音色：${value.voiceMode === 'manual' ? selectedVoice ? getDemoVoiceDisplayName(selectedVoice) : value.voiceName || '已指定' : `${value.voiceLanguage || DEFAULT_VOICE_LANGUAGE}默认音色`}` : undefined}
+      aria-label={layout === 'input' ? `${voiceLabel}：${value.voiceMode === 'manual' ? selectedVoice ? getDemoVoiceDisplayName(selectedVoice) : value.voiceName || '已指定' : `${value.voiceLanguage || DEFAULT_VOICE_LANGUAGE}默认音色`}` : undefined}
     >
       {layout === 'settings' && selectedVoice ? (
         <span className="aug-voice-avatar"><img src={selectedVoice.avatarUrl} alt="" /></span>
@@ -316,9 +318,9 @@ export default function GenerationPreferencePicker({
         <Volume2 size={16} />
       )}
       <span>
-        {layout === 'settings' && <small>课件音色 · {value.voiceMode === 'manual' ? '已指定' : '默认音色'}</small>}
+        {layout === 'settings' && <small>{voiceLabel} · {value.voiceMode === 'manual' ? '已指定' : '默认音色'}</small>}
         <b>{layout === 'input'
-          ? value.voiceMode === 'manual' ? selectedVoice ? getDemoVoiceDisplayName(selectedVoice) : value.voiceName || '已选音色' : '课件音色'
+          ? value.voiceMode === 'manual' ? selectedVoice ? getDemoVoiceDisplayName(selectedVoice) : value.voiceName || '已选音色' : voiceLabel
           : selectedVoice ? getDemoVoiceDisplayName(selectedVoice) : value.voiceName || value.voiceLanguage || DEFAULT_VOICE_LANGUAGE}</b>
       </span>
       {layout === 'settings' && <em>修改</em>}
@@ -420,7 +422,7 @@ export default function GenerationPreferencePicker({
     <div className="aug-modal-mask" onMouseDown={event => { if (event.target === event.currentTarget) closeVoiceModal(); }}>
       <section className="aug-voice-modal" role="dialog" aria-modal="true" aria-labelledby="voice-modal-title">
         <header className="aug-modal-header">
-          <div><h2 id="voice-modal-title">选择课件音色</h2><p>仅展示当前平台真实可用的音色</p></div>
+          <div><h2 id="voice-modal-title">选择{voiceLabel}</h2><p>仅展示当前平台真实可用的音色</p></div>
           <button type="button" className="aug-icon-button" onClick={closeVoiceModal} aria-label="关闭"><X size={19} /></button>
         </header>
         <div className="aug-voice-tabs" role="tablist" aria-label="音色分类">

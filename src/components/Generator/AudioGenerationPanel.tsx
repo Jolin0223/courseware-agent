@@ -4,10 +4,14 @@ import type { AudioItem } from '../../types';
 
 interface AudioGenerationPanelProps {
   stage: {
-    status: 'pending' | 'in-progress' | 'completed' | 'failed';
+    status: 'pending' | 'in-progress' | 'completed' | 'failed' | 'paused';
     progress: number;
     error?: string;
+    detail?: string;
   };
+  items?: AudioItem[];
+  groups?: Array<{id:string;label:string;itemIds:string[]}>;
+  onPreview?: (audio: AudioItem) => void;
   isExpanded: boolean;
   onToggle: () => void;
   onRetry?: () => void;
@@ -17,6 +21,7 @@ interface AudioGenerationPanelProps {
 const StatusIcon: React.FC<{ status: string }> = ({ status }) => {
   if (status === 'completed') return <CheckCircle2 size={16} color="var(--agent-primary)" />;
   if (status === 'in-progress') return <Loader2 size={16} color="var(--agent-primary)" style={{ animation: 'spin 1s linear infinite' }} />;
+  if (status === 'paused') return <Pause size={16} color="#64748B" />;
   if (status === 'failed') return <XCircle size={16} color="#EF4444" />;
   return null;
 };
@@ -29,13 +34,21 @@ const MOCK_AUDIOS: AudioItem[] = [
   { id: 'audio-5', label: '背景音乐', type: 'bgm', status: 'completed', duration: 30.0 },
 ];
 
-const CompactAudioCard: React.FC<{ audio: AudioItem }> = ({ audio }) => {
+const CompactAudioCard: React.FC<{ audio: AudioItem; onPreview?: (audio: AudioItem) => void }> = ({ audio, onPreview }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [error, setError] = useState(false);
   const circumference = 2 * Math.PI * 13;
 
   const togglePlay = () => {
+    if (audio.url && audioRef.current) {
+      const node = audioRef.current;
+      if (!node.paused) node.pause();
+      else { document.querySelectorAll('audio,video').forEach(el => { if (el !== node) (el as HTMLMediaElement).pause(); }); setError(false); void node.play().catch(() => setError(true)); }
+      return;
+    }
     if (isPlaying) {
       setIsPlaying(false);
       if (progressRef.current) clearInterval(progressRef.current);
@@ -75,6 +88,7 @@ const CompactAudioCard: React.FC<{ audio: AudioItem }> = ({ audio }) => {
       transition: 'all 0.2s ease',
       minWidth: 0,
     }}>
+      {audio.url && <audio ref={audioRef} src={audio.url} preload="none" onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => { setIsPlaying(false); setProgress(0); }} onTimeUpdate={() => { const a=audioRef.current; if(a?.duration) setProgress(a.currentTime/a.duration); }} onError={() => setError(true)}/>}
       {/* 圆形播放按钮 + SVG 环形进度 */}
       <div style={{ position: 'relative', width: 30, height: 30, flexShrink: 0 }}>
         <svg width="30" height="30" style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}>
@@ -89,7 +103,7 @@ const CompactAudioCard: React.FC<{ audio: AudioItem }> = ({ audio }) => {
             style={{ transition: 'stroke-dashoffset 0.1s linear' }}
           />
         </svg>
-        <button onClick={togglePlay} style={{
+        <button aria-label={`${isPlaying ? '暂停' : '播放'}${audio.label}`} onClick={togglePlay} style={{
           position: 'absolute', inset: 0, borderRadius: '50%', border: 'none',
           background: 'transparent', color: isPlaying ? 'var(--agent-primary)' : '#64748B',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -108,10 +122,11 @@ const CompactAudioCard: React.FC<{ audio: AudioItem }> = ({ audio }) => {
           {audio.label}
         </div>
         <div style={{ fontSize: 9, color: '#94A3B8', marginTop: 1 }}>
-          {isBgm ? 'BGM · ' : ''}{durationText}
+          {error ? '播放失败，请重试' : <>{isBgm ? 'BGM · ' : ''}{durationText}</>}
         </div>
       </div>
 
+      {onPreview && <button aria-label={`查看${audio.label}配音文本`} onClick={() => onPreview(audio)} style={{border:0,background:'transparent',color:'var(--agent-primary)',fontSize:11,cursor:'pointer'}}>文本</button>}
       {/* Mini 波形 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 1, height: 16, flexShrink: 0 }}>
         {[0, 1, 2, 3].map(i => (
@@ -187,7 +202,7 @@ const CompactFailedSkeleton: React.FC = () => (
   </div>
 );
 
-const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, isExpanded, onToggle, onRetry }) => {
+const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, items, groups, onPreview, isExpanded, onToggle, onRetry }) => {
   const getVisibleCount = () => {
     if (stage.status === 'completed') return MOCK_AUDIOS.length;
     if (stage.status === 'in-progress' || stage.status === 'failed') {
@@ -200,6 +215,7 @@ const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, isEx
     return 0;
   };
   const visibleCount = getVisibleCount();
+  const renderItem = (audio: AudioItem, index: number) => (items ? audio.status === 'completed' : index < visibleCount) ? <CompactAudioCard key={audio.id} audio={audio} onPreview={onPreview}/> : stage.status === 'failed' ? <CompactFailedSkeleton key={audio.id}/> : <CompactLoadingSkeleton key={audio.id} index={index}/>;
 
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
@@ -231,6 +247,7 @@ const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, isEx
             </div>
           )}
 
+          {stage.detail && <p style={{fontSize:12,color:'#64748B',margin:'0 0 10px'}}>{stage.detail}</p>}
           {stage.status === 'completed' && (
             <p style={{ fontSize: 11, color: 'var(--agent-primary)', margin: '0 0 10px' }}>
               ✅ 已完成，可在编辑阶段替换音色或上传本地音频
@@ -251,17 +268,7 @@ const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, isEx
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            {MOCK_AUDIOS.map((audio, index) => (
-              index < visibleCount ? (
-                <CompactAudioCard key={audio.id} audio={audio} />
-              ) : stage.status === 'failed' ? (
-                <CompactFailedSkeleton key={audio.id} />
-              ) : (
-                <CompactLoadingSkeleton key={audio.id} index={index} />
-              )
-            ))}
-          </div>
+          {groups ? groups.map(group => <section key={group.id} style={{marginTop:14}}><p style={{fontSize:12,fontWeight:600,margin:'0 0 8px',color:'#475569'}}>{group.label}</p><div className="vc-audio-card-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:8}}>{(items || []).filter(a => group.itemIds.includes(a.id)).map(renderItem)}</div></section>) : <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>{(items || MOCK_AUDIOS).map(renderItem)}</div>}
         </div>
       )}
 

@@ -3,6 +3,22 @@
   "passed": true,
   "existingFiles": [
     {
+      "file": "src/components/Generator/ImageGenerationPanelV2.tsx",
+      "baselineErrors": 0,
+      "baselineWarnings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
+      "file": "src/components/Generator/AudioGenerationPanel.tsx",
+      "baselineErrors": 0,
+      "baselineWarnings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "introduced": []
+    },
+    {
       "file": "src/App.tsx",
       "baselineErrors": 0,
       "baselineWarnings": 0,

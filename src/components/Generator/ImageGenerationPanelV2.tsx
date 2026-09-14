@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Image as ImageIcon, RotateCcw, CheckCircle2, Loader2, ChevronDown, ChevronUp, X, XCircle } from 'lucide-react';
+import { Image as ImageIcon, RotateCcw, CheckCircle2, Loader2, ChevronDown, ChevronUp, X, XCircle, Pause } from 'lucide-react';
 import type { EnhancedImageItem } from '../../types';
 
 interface ImageGenerationPanelV2Props {
   stage: {
-    status: 'pending' | 'in-progress' | 'completed' | 'failed';
+    status: 'pending' | 'in-progress' | 'completed' | 'failed' | 'paused';
     progress: number;
     detail?: string;
     error?: string;
   };
+  items?: EnhancedImageItem[];
+  onPreview?: (image: EnhancedImageItem) => void;
   isExpanded: boolean;
   onToggle: () => void;
   onRetry?: () => void;
@@ -18,6 +20,7 @@ interface ImageGenerationPanelV2Props {
 const StatusIcon: React.FC<{ status: string }> = ({ status }) => {
   if (status === 'completed') return <CheckCircle2 size={16} color="var(--agent-primary)" />;
   if (status === 'in-progress') return <Loader2 size={16} color="var(--agent-primary)" style={{ animation: 'spin 1s linear infinite' }} />;
+  if (status === 'paused') return <Pause size={16} color="#64748B" />;
   if (status === 'failed') return <XCircle size={16} color="#EF4444" />;
   return null;
 };
@@ -29,7 +32,7 @@ const MOCK_IMAGES: EnhancedImageItem[] = [
   { id: 'img-4', label: '道具图标', src: '/case-games/word-shooter/images/equip_magic_wand.png', prompt: '游戏道具宝箱', status: 'completed' },
 ];
 
-const ImageCard: React.FC<{ image: EnhancedImageItem }> = ({ image }) => {
+const ImageCard: React.FC<{ image: EnhancedImageItem; onPreview?: (image: EnhancedImageItem) => void }> = ({ image, onPreview }) => {
   const [showPreview, setShowPreview] = useState(false);
   const isUploaded = image.source === 'upload';
 
@@ -51,11 +54,13 @@ const ImageCard: React.FC<{ image: EnhancedImageItem }> = ({ image }) => {
             cursor: image.src ? 'pointer' : 'default',
             position: 'relative',
           }}
-          onClick={() => image.src && setShowPreview(true)}
+          role="button" tabIndex={0} aria-label={`查看${image.label}`}
+          onKeyDown={event => { if (event.key === 'Enter' && image.src) { if (onPreview) onPreview(image); else setShowPreview(true); } }}
+          onClick={() => { if (image.src) { if (onPreview) onPreview(image); else setShowPreview(true); } }}
         >
           {image.status === 'completed' && image.src ? (
             <>
-              <img src={image.src} alt={image.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={image.src} alt={image.label} style={{ width: '100%', height: '100%', objectFit: onPreview ? 'contain' : 'cover' }} />
               {isUploaded && (
                 <div style={{
                   position: 'absolute',
@@ -129,7 +134,7 @@ const ImageCard: React.FC<{ image: EnhancedImageItem }> = ({ image }) => {
   );
 };
 
-const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, isExpanded, onToggle, onRetry }) => {
+const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, items, onPreview, isExpanded, onToggle, onRetry }) => {
   const getVisibleCount = () => {
     if (stage.status === 'completed') return MOCK_IMAGES.length;
     if (stage.status === 'in-progress' || stage.status === 'failed') {
@@ -204,10 +209,10 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-            {MOCK_IMAGES.map((image, index) => (
+            {(items || MOCK_IMAGES).map((image, index) => (
               <div key={image.id}>
-                {index < visibleCount ? (
-                  <ImageCard image={image} />
+                {(items ? image.status === 'completed' : index < visibleCount) ? (
+                  <ImageCard image={image} onPreview={onPreview} />
                 ) : stage.status === 'failed' ? (
                   <div style={{
                     borderRadius: 8,
@@ -271,7 +276,7 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
                           borderTopColor: 'var(--agent-primary)',
                           animation: 'spin 1s linear infinite',
                         }} />
-                        <span style={{ fontSize: 10, color: '#94A3B8' }}>生成中</span>
+                        <span style={{ fontSize: 10, color: '#94A3B8' }}>{stage.status === 'paused' ? '已暂停' : '生成中'}</span>
                       </div>
                     </div>
                     <div style={{ padding: 10 }}>

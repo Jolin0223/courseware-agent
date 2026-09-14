@@ -26,7 +26,15 @@
       "passed": true
     },
     {
+      "name": "assets-automatically-prepare-video-plan",
+      "passed": true
+    },
+    {
       "name": "assets-require-user-confirmation-before-video",
+      "passed": true
+    },
+    {
+      "name": "shot-plan-uses-real-audio-and-optional-tail-frames",
       "passed": true
     },
     {
@@ -70,9 +78,41 @@
       "passed": true
     },
     {
+      "name": "changed-voice-blocks-stale-video-job",
+      "passed": true
+    },
+    {
+      "name": "old-video-message-does-not-show-new-planning-progress",
+      "passed": true
+    },
+    {
+      "name": "only-dependent-shot-is-replanned",
+      "passed": true
+    },
+    {
+      "name": "interactive-overlay-does-not-invalidate-video",
+      "passed": true
+    },
+    {
+      "name": "new-production-message-follows-confirmation",
+      "passed": true
+    },
+    {
+      "name": "refresh-preserves-generation-chronology",
+      "passed": true
+    },
+    {
+      "name": "segment-edit-propagates-to-prompt-duration-and-dialogue",
+      "passed": true
+    },
+    {
+      "name": "shared-cards-preserve-ordinary-h5-defaults",
+      "passed": true
+    },
+    {
       "name": "all-fixture-assets-serve-as-media",
       "passed": true,
-      "files": 55
+      "files": 57
     },
     {
       "name": "slow-work-has-bounded-demo-durations",

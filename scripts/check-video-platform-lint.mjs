@@ -2,7 +2,7 @@ import { ESLint } from 'eslint';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 const lint = new ESLint();
-const files = ['src/App.tsx','src/components/Generator/ChatInput.tsx','src/components/Generator/CoursewareCard.tsx','src/components/Generator/GenerationPreferencePicker.tsx','src/components/Generator/PreviewPanel.tsx','src/components/Generator/RequirementCard.tsx','src/data/mockConversations.ts','src/pages/GeneratorPage.tsx','src/pages/WukongFlowPage.tsx','src/types/index.ts'];
+const files = ['src/components/Generator/ImageGenerationPanelV2.tsx','src/components/Generator/AudioGenerationPanel.tsx','src/App.tsx','src/components/Generator/ChatInput.tsx','src/components/Generator/CoursewareCard.tsx','src/components/Generator/GenerationPreferencePicker.tsx','src/components/Generator/PreviewPanel.tsx','src/components/Generator/RequirementCard.tsx','src/data/mockConversations.ts','src/pages/GeneratorPage.tsx','src/pages/WukongFlowPage.tsx','src/types/index.ts'];
 const signature = message => `${message.severity}|${message.ruleId}|${message.message.split('\n')[0]}`;
 const results=[];
 for (const file of files) {

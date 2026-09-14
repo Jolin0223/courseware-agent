@@ -2,11 +2,16 @@ import type { GenerationPreferences, RequirementFramework, UploadedAttachment } 
 
 export type SegmentKind = 'video' | 'mixed' | 'h5';
 export type AssetKind = 'image' | 'audio' | 'video';
-export type JobKind = 'plan' | 'assets' | 'video' | 'assembly';
-export type WorkflowPhase = 'planning' | 'plan' | 'assets-loading' | 'assets-review' | 'video-loading' | 'assembling' | 'ready' | 'paused' | 'failed';
+export type JobKind = 'plan' | 'assets' | 'video-plan' | 'video' | 'assembly';
+export type WorkflowPhase = 'planning' | 'plan' | 'assets-loading' | 'video-planning' | 'assets-review' | 'video-loading' | 'assembling' | 'ready' | 'paused' | 'failed';
 export interface VideoSegment { id:string; chapter:string; title:string; kind:SegmentKind; purpose:string; interaction:string; next:string; seconds:number; dialogue:string; speakerId:string; visual:string; transition:string; }
 export interface Speaker { id:string; name:string; role:'narrator'|'character'; voiceName:string; voiceId?:string; voiceLanguage?:string; sample?:string; }
-export interface MediaAsset { id:string; kind:AssetKind; name:string; url?:string; poster?:string; prompt:string; segmentIds:string[]; speakerId?:string; text?:string; seconds?:number; role?:string; overlay?:{sceneId:string}; }
+export interface MediaAsset { id:string; kind:AssetKind; name:string; url?:string; poster?:string; prompt:string; segmentIds:string[]; speakerId?:string; text?:string; seconds?:number; role?:string; overlay?:{sceneId:string}; audioUse?:'video'|'interaction'; referenceFor?:string; planningOnly?:boolean; revision?:number; videoDependency?:boolean; sourcePrompt?:string; }
+export interface VideoShot {
+ id:string; segmentId:string; videoAssetId:string; firstFrameId:string; lastFrameId?:string;
+ audioIds:string[]; seconds:number; action:string; ending:string; prompt:string; sourceKey:string;
+}
+export type WorkflowSnapshot = Pick<VideoProject,'assets'|'segments'|'speakers'|'shots'|'readyAssetIds'>;
 export interface LessonFixture { id:string; title:string; subject:string; grade:string; request:string; attachments:UploadedAttachment[]; framework:RequirementFramework; segments:VideoSegment[]; speakers:Speaker[]; assets:MediaAsset[]; runtime?:string; }
 export interface PlaybackSettings { subtitles:boolean; soundEffects:boolean; overlays:Record<string,{offsetY:number;scale:number}>; assetOverrides:Record<string,string>; }
 export interface VideoPublicationTarget { id:string;name:string;currentVersion:string;urlLabel:string;resourceScope?:'group'|'school'|'personal';schoolName?:string;subject?:string; }
@@ -16,8 +21,11 @@ export interface VideoProject {
  title:string; request:string; subject:string; grade:string; attachments:UploadedAttachment[];
  framework:RequirementFramework; preferences:GenerationPreferences; videoUse:string; speakers:Speaker[]; segments:VideoSegment[]; assets:MediaAsset[];
  phase:WorkflowPhase; job?:{kind:JobKind; start:number; duration:number; elapsed:number}; readyAssetIds:string[]; error?:string;
+ shots?:VideoShot[]; approvedPlanKey?:string;
+ workflowRuns?:Partial<Record<'assets'|'production',string>>; workflowSnapshots?:Record<string,WorkflowSnapshot>;
+ workflowEvents?:Array<{runId:string;stage:'assets'|'production';time:string;order?:number;confirmation:string}>;
  publishedTargets?:VideoPublicationTarget[]; publishedVersions?:Record<string,VideoPublicationStatus>;
- composition:PlaybackSettings; revision:number; pendingEdit?:string; resultMessages:Array<{id:string;html:string;version:number;time:string}>;
+ composition:PlaybackSettings; revision:number; pendingEdit?:string; resultMessages:Array<{id:string;html:string;version:number;time:string;order?:number}>;
 }
 export const segmentLabels:Record<SegmentKind,string>={video:'视频',mixed:'视频＋互动',h5:'互动页面'};
 export const defaultPlayback:PlaybackSettings={subtitles:true,soundEffects:true,overlays:{},assetOverrides:{}};

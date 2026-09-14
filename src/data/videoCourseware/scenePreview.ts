@@ -13,5 +13,5 @@ export function scenePreviewURL(project:VideoProject,sceneId:string):string|unde
   if(Object.keys(project.composition.assetOverrides).length||Object.keys(project.composition.overlays).length)return;
   const visual=project.assets.filter(a=>a.kind!=='audio'&&a.segmentIds.includes(sceneId));
   if(visual.some(a=>{const original=wukongFixture.assets.find(v=>v.id===a.id);return !original||a.url!==original.url||a.revision!==original.revision;}))return;
-  return '/wukong/scene-previews/'+sceneId+'.jpg';
+  return '/wukong/scene-previews/'+(sceneId==='opening'?'opening-v33':sceneId)+'.jpg';
 }

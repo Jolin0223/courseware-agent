@@ -1,0 +1,74 @@
+{
+  "version": "V33",
+  "sourceVideo": "https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/5sakkGM3-output_aigc.mp4",
+  "files": [
+    {
+      "source": "assets/video/v33/opening.mp4",
+      "file": "public/wukong/assets/video/v33/opening.mp4",
+      "sha256": "88f9b84d34607c48f1188db33c4fb11b58473e0191623bf0c95d4eac2d0b90ce"
+    },
+    {
+      "source": "assets/video/v33/opening-poster.jpg",
+      "file": "public/wukong/assets/video/v33/opening-poster.jpg",
+      "sha256": "1e6fc41ec256f11c02efc4a1d3b0d727d68978d7367ef1dbf003433e45f08213"
+    },
+    {
+      "source": "开场重制_V33_动作表演版/05-生视频提示词.txt",
+      "file": "public/wukong/prompts/opening-v33.txt",
+      "sha256": "c0ac3d7cc60b63a9ea8d1ddf004c0bee566e3f360b929b3cde66f4d5e7994532"
+    }
+  ],
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "duration": "15.000000"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "duration": "15.000000"
+      }
+    ],
+    "format": {
+      "duration": "15.000000"
+    }
+  },
+  "cues": [
+    {
+      "start": 0.2,
+      "end": 4.6158,
+      "text": "孙悟空到火焰山脚下，发愁过不去。",
+      "speaker": "旁白",
+      "asset": "P01"
+    },
+    {
+      "start": 4.95,
+      "end": 9.533,
+      "text": "他想借铁扇公主的芭蕉扇，却遭刁难。",
+      "speaker": "旁白",
+      "asset": "P02"
+    },
+    {
+      "start": 9.9,
+      "end": 14.291,
+      "text": "只有闯过汉字关，才能找到真的芭蕉扇。",
+      "speaker": "旁白",
+      "asset": "P03"
+    }
+  ],
+  "processing": "Source picture only + existing 15-second narration; exclude generated audio. Center crop to 1920x1080 (minor vertical crop), trim last 0.083333 seconds; no playback speed or voice pitch change. H264/AAC faststart.",
+  "preserved": "V27 media, V32 index, lesson-v4, original prompt archive, other scene media and original source files",
+  "scenePreview": {
+    "file": "public/wukong/scene-previews/opening-v33.jpg",
+    "sha256": "911633b2d9408c6ab4f788ca0a663ac0bf9b65ce86d515743ca148e98ca836e4",
+    "timeSeconds": 6.6,
+    "url": "/wukong/lesson-v5.html?studio=1&scene=opening&openingVersion=v33",
+    "capture": "Chromium screenshot of rendered lesson stage"
+  }
+}

@@ -484,7 +484,7 @@ async function startCoverEntrance(fromGesture=false){
 
 // WUKONG_STUDIO_BRIDGE: same-origin, allowlisted composition edits only.
 const studioParams=new URLSearchParams(location.search);
-let studioConfig={badgeOffset:Number(studioParams.get('badgeOffset')||0),badgeScale:Number(studioParams.get('badgeScale')||1),subtitles:studioParams.get('subtitles')!=='0',soundEffects:studioParams.get('soundEffects')!=='0',videoVersion:studioParams.get('videoVersion')==='v31'?'v31':'v32'};
+let studioConfig={badgeOffset:Number(studioParams.get('badgeOffset')||0),badgeScale:Number(studioParams.get('badgeScale')||1),subtitles:studioParams.get('subtitles')!=='0',soundEffects:studioParams.get('soundEffects')!=='0',videoVersion:studioParams.get('videoVersion')==='v31'?'v31':'v32',openingVersion:studioParams.get('openingVersion')==='v33'?'v33':'v27'};
 const originalClueUpdate=updateClue;
 updateClue=function(t){originalClueUpdate(t);$('outroClue').style.translate='0 '+studioConfig.badgeOffset+'px';$('outroClue').style.scale=String(studioConfig.badgeScale);};
 const originalTap=playTap,originalEffect=playEffect;
@@ -510,9 +510,11 @@ function applyStudioAssets(input){
 }
 
 function applyStudioConfig(input){
- studioConfig={badgeOffset:Math.max(-100,Math.min(80,Number(input.badgeOffset)||0)),badgeScale:Math.max(.7,Math.min(1.2,Number(input.badgeScale)||1)),subtitles:input.subtitles!==false,soundEffects:input.soundEffects!==false,videoVersion:input.videoVersion==='v31'?'v31':'v32'};
+ studioConfig={badgeOffset:Math.max(-100,Math.min(80,Number(input.badgeOffset)||0)),badgeScale:Math.max(.7,Math.min(1.2,Number(input.badgeScale)||1)),subtitles:input.subtitles!==false,soundEffects:input.soundEffects!==false,videoVersion:input.videoVersion==='v31'?'v31':'v32',openingVersion:input.openingVersion==='v33'?'v33':'v27'};
  studioStyle.textContent=studioConfig.subtitles?'':'#cinema .subtitle-line,.mission-subtitle,.move-invite-subtitle,#introSubtitle,#introCaption,#missionSubtitle,#missionCaption,#arrivalCaption,#moveInviteCaption,#moveInviteSubtitle,#outroCaption,.spoken-subtitle{visibility:hidden!important}';
  applyStudioAssets(input.assetOverrides);
+ media.intro=resolveStudioAsset('assets/video/'+studioConfig.openingVersion+'/opening.mp4');
+ media.introPoster=resolveStudioAsset('assets/video/'+studioConfig.openingVersion+'/opening-poster.jpg');
  media.outro=resolveStudioAsset(studioConfig.videoVersion==='v31'?'assets/video/v31/E02.mp4':'assets/video/v32/E02.mp4');
  if(!studioConfig.soundEffects){stopEffect();tapAudio.pause();}
  if(state.phase==='outro')updateOutro();

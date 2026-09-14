@@ -12,8 +12,8 @@ export const productionFrames: MediaAsset[] = [
 export const productionInputs: Record<string, NonNullable<MediaAsset['videoInputs']>> = {
   'video-opening': {firstFrameId:'frame-opening',references:[
     {assetId:'character',purpose:'保持悟空的外观、服装和五官一致',range:'整段视频'},
-    {assetId:'opening-fan',purpose:'作为想象中的目标出现，不拿在手里',range:'约 6.8—9.7 秒'},
-  ],audioStarts:[.2,4.95,9.9],audioDescriptions:['悟空站在火焰山脚下，望着火焰发愁。','悟空想到借扇；想象中的芭蕉扇作为目标出现。','悟空振作起来，准备去闯汉字关。']},
+    {assetId:'opening-fan',purpose:'作为想象中的目标出现，不拿在手里',range:'约 5.5—9.5 秒'},
+  ],audioStarts:[.2,4.95,9.9],audioDescriptions:['悟空迈步探路，被热浪逼退，落稳后扇风、发愁。','悟空灵机一动，伸手够芭蕉扇幻象；幻象退远淡出，短暂受挫。','悟空重新鼓劲，握拳点棒、向前跨步，招手邀请孩子闯关。']},
   'video-mission': {firstFrameId:'frame-mission',references:[],audioStarts:[.2],audioDescriptions:['悟空面对学生发出邀请，介绍认字、写字和闯关任务。']},
   'video-arrival': {firstFrameId:'frame-mission',lastFrameId:'frame-move',references:[],audioStarts:[7.3,12.5],audioDescriptions:['腾云后来到洞口，悟空发现入口被石头挡住。','镜头停在洞口，悟空注意到石头上的光。']},
   'video-move': {firstFrameId:'frame-move',references:[],audioStarts:[.6],audioDescriptions:['悟空邀请学生搬开石头；说完后停留，等待学生操作。']},

@@ -1,0 +1,69 @@
+{
+  "checks": [
+    {
+      "name": "editor uses exact V33 prompt",
+      "passed": true
+    },
+    {
+      "name": "editor uses 15 seconds",
+      "passed": true
+    },
+    {
+      "name": "original narration timings retained",
+      "passed": true
+    },
+    {
+      "name": "original first frame without last frame",
+      "passed": true
+    },
+    {
+      "name": "asset points to V33 final video",
+      "passed": true
+    },
+    {
+      "name": "result snapshot uses V33",
+      "passed": true
+    },
+    {
+      "name": "final lesson carries V33 opening setting",
+      "passed": true
+    },
+    {
+      "name": "runtime plays actual 15-second V33 file",
+      "passed": true
+    },
+    {
+      "name": "original fan narration subtitle visible",
+      "passed": true
+    },
+    {
+      "name": "opening naturally advances to original mission",
+      "passed": true
+    },
+    {
+      "name": "old generated URLs keep V27 opening",
+      "passed": true
+    },
+    {
+      "name": "product scene preview plays V33",
+      "passed": true
+    },
+    {
+      "name": "no script errors",
+      "passed": true
+    },
+    {
+      "name": "uploaded v33 video retains version and replacement",
+      "passed": true
+    },
+    {
+      "name": "uploaded v27 video retains version and replacement",
+      "passed": true
+    },
+    {
+      "name": "new scene thumbnail served as JPEG",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

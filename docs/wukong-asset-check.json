@@ -5,6 +5,12 @@
     "files": 135
   },
   {
+    "check": "production-frames-match-original-inputs",
+    "passed": true,
+    "files": 5,
+    "sharedFrames": 2
+  },
+  {
     "check": "literal-assets-exist-and-serve-correct-content",
     "passed": true,
     "files": 70
@@ -23,6 +29,10 @@
   },
   {
     "check": "copied-player-javascript-syntax",
+    "passed": true
+  },
+  {
+    "check": "new-version-player-javascript-syntax",
     "passed": true
   }
 ]

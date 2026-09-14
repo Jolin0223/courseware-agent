@@ -26,7 +26,11 @@
       "passed": true
     },
     {
-      "name": "assets-automatically-prepare-video-plan",
+      "name": "materials-wait-for-confirmation-before-planning",
+      "passed": true
+    },
+    {
+      "name": "confirmed-materials-start-separate-plan-card",
       "passed": true
     },
     {
@@ -35,6 +39,22 @@
     },
     {
       "name": "shot-plan-uses-real-audio-and-optional-tail-frames",
+      "passed": true
+    },
+    {
+      "name": "references-match-production-inputs-without-unrelated-assets",
+      "passed": true
+    },
+    {
+      "name": "both-continuity-frames-are-optional",
+      "passed": true
+    },
+    {
+      "name": "audio-trims-overlap-and-overrun-are-validated",
+      "passed": true
+    },
+    {
+      "name": "replanning-preserves-teacher-prompt-timing-and-optional-frames",
       "passed": true
     },
     {
@@ -62,11 +82,31 @@
       "passed": true
     },
     {
+      "name": "replacement-audio-auto-aligns-without-overlap",
+      "passed": true
+    },
+    {
+      "name": "unchanged-real-audio-timing-is-preserved",
+      "passed": true
+    },
+    {
+      "name": "scene-previews-are-rendered-pages-not-prop-assets",
+      "passed": true
+    },
+    {
       "name": "no-character-demand-does-not-insert-a-mascot",
       "passed": true
     },
     {
       "name": "resource-replacement-keeps-stable-asset-identity",
+      "passed": true
+    },
+    {
+      "name": "changed-audio-cues-are-exported-with-real-file-and-timing",
+      "passed": true
+    },
+    {
+      "name": "scene-reorder-reaches-runtime-and-keeps-old-result-snapshot",
       "passed": true
     },
     {

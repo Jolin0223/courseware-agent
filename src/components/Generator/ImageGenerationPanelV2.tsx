@@ -15,6 +15,7 @@ interface ImageGenerationPanelV2Props {
   onToggle: () => void;
   onRetry?: () => void;
   onContinue?: () => void;
+  headerAction?: React.ReactNode;
 }
 
 const StatusIcon: React.FC<{ status: string }> = ({ status }) => {
@@ -134,7 +135,7 @@ const ImageCard: React.FC<{ image: EnhancedImageItem; onPreview?: (image: Enhanc
   );
 };
 
-const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, items, onPreview, isExpanded, onToggle, onRetry }) => {
+const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, items, onPreview, isExpanded, onToggle, onRetry, headerAction }) => {
   const getVisibleCount = () => {
     if (stage.status === 'completed') return MOCK_IMAGES.length;
     if (stage.status === 'in-progress' || stage.status === 'failed') {
@@ -167,6 +168,7 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {stage.status !== 'pending' && <span style={{ fontSize: 13, color: 'var(--agent-primary)', fontWeight: 600 }}>{stage.progress}%</span>}
+          {headerAction && <span onClick={e => e.stopPropagation()}>{headerAction}</span>}
           {isExpanded ? <ChevronUp size={16} color="#64748B" /> : <ChevronDown size={16} color="#64748B" />}
         </div>
       </div>

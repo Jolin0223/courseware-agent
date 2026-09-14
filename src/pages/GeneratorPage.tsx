@@ -46,6 +46,7 @@ import { demoSessionVersions } from '../data/demoCoursewareVersions';
 import { demoMs } from '../constants/demoTiming';
 import { CLONE_COURSEWARE_PROMPT } from '../constants/cloneCourseware';
 import toast from '../utils/toast';
+import VideoResultScenes from '../components/VideoCourseware/VideoResultScenes';
 import VideoWorkflowCard from '../components/VideoCourseware/VideoWorkflowCard';
 import { startVideoProject, useVideoJobs } from '../components/VideoCourseware/workflow';
 import { useVideoCoursewareStore, videoProjectForConversation } from '../store/videoCoursewareStore';
@@ -1970,7 +1971,7 @@ function AssistantMessage({
   }
 
   if (message.type === 'video-courseware-workflow') {
-    return <div style={styles.messageAssistant}><AIAvatar/><div style={styles.assistantContent}><VideoWorkflowCard projectId={(message.content as { videoProjectId: string }).videoProjectId} stage={(message.content as { stage?: 'plan' | 'assets' | 'production' }).stage} runId={(message.content as {runId?:string}).runId}/></div></div>;
+    return <div style={styles.messageAssistant}><AIAvatar/><div style={styles.assistantContent}><VideoWorkflowCard projectId={(message.content as { videoProjectId: string }).videoProjectId} stage={(message.content as { stage?: 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly' }).stage} runId={(message.content as {runId?:string}).runId}/></div></div>;
   }
 
   if (message.type === 'requirement-framework') {
@@ -2118,6 +2119,7 @@ function AssistantMessage({
           <CoursewareCard
             courseware={{ ...courseware, id: stableCoursewareId }}
             version={`第${versionNum}版`}
+            sceneContent={result.videoProjectId ? <VideoResultScenes projectId={result.videoProjectId} version={versionNum}/> : undefined}
             isLatest={isLatestVersion}
             onOpenPreview={onOpenPreview}
             onLearningDataRecoveryRequest={onLearningDataRecoveryRequest}

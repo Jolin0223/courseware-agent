@@ -16,6 +16,7 @@ interface AudioGenerationPanelProps {
   onToggle: () => void;
   onRetry?: () => void;
   onContinue?: () => void;
+  headerAction?: React.ReactNode;
 }
 
 const StatusIcon: React.FC<{ status: string }> = ({ status }) => {
@@ -202,7 +203,7 @@ const CompactFailedSkeleton: React.FC = () => (
   </div>
 );
 
-const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, items, groups, onPreview, isExpanded, onToggle, onRetry }) => {
+const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, items, groups, onPreview, isExpanded, onToggle, onRetry, headerAction }) => {
   const getVisibleCount = () => {
     if (stage.status === 'completed') return MOCK_AUDIOS.length;
     if (stage.status === 'in-progress' || stage.status === 'failed') {
@@ -230,6 +231,7 @@ const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, item
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {stage.status !== 'pending' && <span style={{ fontSize: 13, color: 'var(--agent-primary)', fontWeight: 600 }}>{stage.progress}%</span>}
+          {headerAction && <span onClick={e => e.stopPropagation()}>{headerAction}</span>}
           {isExpanded ? <ChevronUp size={16} color="#64748B" /> : <ChevronDown size={16} color="#64748B" />}
         </div>
       </div>

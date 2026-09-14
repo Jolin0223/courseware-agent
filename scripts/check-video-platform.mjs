@@ -17,8 +17,8 @@ try {
   const { useVideoCoursewareStore: store, durations } = await server.ssrLoadModule('/src/store/videoCoursewareStore.ts');
   const { useConversationStore: conversations } = await server.ssrLoadModule('/src/store/conversationStore.ts');
   const { useCoursewareStore: library } = await server.ssrLoadModule('/src/store/coursewareStore.ts');
-  const { startVideoProject, advanceVideoJobs, finishVideoProject, restoreVideoConversations, confirmVideoPlan, beginVideoPlanReview, ensureWorkflowMessage } = await server.ssrLoadModule('/src/components/VideoCourseware/workflow.ts');
-  const { videoPlanIssues, synchronizeSegment, changedVideoIds, shotIssues } = await server.ssrLoadModule('/src/data/videoCourseware/planning.ts');
+  const { startVideoProject, advanceVideoJobs, finishVideoProject, restoreVideoConversations, confirmVideoPlan, beginVideoPlanReview, returnToMaterials, ensureWorkflowMessage } = await server.ssrLoadModule('/src/components/VideoCourseware/workflow.ts');
+  const { videoPlanIssues, synchronizeSegment, changedVideoIds, shotIssues, buildVideoShots, shotSourceKey, reorderSegments, arrangeAudioCues } = await server.ssrLoadModule('/src/data/videoCourseware/planning.ts');
   const { default: Card } = await server.ssrLoadModule('/src/components/VideoCourseware/VideoWorkflowCard.tsx');
   const preferences = { contentFormat: 'video', voiceLanguage: '中文' };
   const convId = conversations.getState().createNewConversation('视频互动课件');
@@ -42,14 +42,14 @@ try {
   advance(1);
   check('editable-plan-only-before-confirmation', () => {
     assert.equal(project().phase, 'plan'); const html = render('plan');
-    assert.match(html, /确认需求，开始生成/); assert.match(html, /旁白和角色配音/); assert.match(html, /编辑/);
+    assert.match(html, /确认需求，开始生成/); assert.match(html, /画面与配音/); assert.match(html, /编辑/);
     assert.doesNotMatch(html, /<img|<video|<audio|本课效果方向|已有真实产物|本课检查与采用/);
     assert.equal(render('assets'), '');
   });
   ensureWorkflowMessage(project(), 'assets');
   store.getState().start(id, 'assets');
   check('asset-loading-does-not-claim-completion', () => {
-    const html = render('assets'); assert.match(html, /正在生成图片和配音/); assert.doesNotMatch(html, /图片和配音已生成|<img|<video/);
+    const html = render('assets'); assert.match(html, /正在准备图片与配音/); assert.doesNotMatch(html, /图片和配音已生成|<img|<video/);
   });
   advance(.35);
   check('images-and-per-speaker-audio-progress-together', () => {
@@ -59,19 +59,49 @@ try {
   const beforePause = [...project().readyAssetIds]; store.getState().pause(id); advanceVideoJobs(Date.now() + 120000);
   check('pause-preserves-completed-work', () => { assert.equal(project().phase, 'paused'); assert.deepEqual(project().readyAssetIds, beforePause); });
   store.getState().resume(id); advance(1);
-  check('assets-automatically-prepare-video-plan', () => { assert.equal(project().phase, 'video-planning'); assert.equal(store.getState().start(id, 'video'), false); assert.match(render('assets'), /正在整理视频方案/); assert.ok(project().assets.filter(a => a.planningOnly).every(a => !project().readyAssetIds.includes(a.id))); });
+  check('materials-wait-for-confirmation-before-planning', () => { assert.equal(project().phase, 'materials-review'); assert.equal(project().job, undefined); assert.equal(store.getState().start(id, 'video'), false); assert.match(render('assets'), /确认素材，生成视频方案/); assert.doesNotMatch(render('assets'), /视频生成方案确认/); });
+  assert.equal(beginVideoPlanReview(id), true);
+  check('confirmed-materials-start-separate-plan-card',()=>{assert.equal(project().phase,'video-planning');assert.match(render('video-plan'),/正在整理视频方案/);});
   advance(1);
   check('assets-require-user-confirmation-before-video', () => {
     assert.equal(project().phase, 'assets-review'); assert.equal(project().job, undefined);
     assert.ok(project().assets.filter(a => a.kind !== 'video').every(a => project().readyAssetIds.includes(a.id)));
     assert.ok(project().assets.filter(a => a.kind === 'video').every(a => !project().readyAssetIds.includes(a.id)));
-    assert.match(render('assets'), /返回修改方案/); assert.match(render('assets'), /确认方案，生成视频/);
+    assert.match(render('video-plan'), /返回修改素材/); assert.match(render('video-plan'), /确认方案，生成视频/);
   });
-  check('shot-plan-uses-real-audio-and-optional-tail-frames', () => { assert.equal(project().shots.length, 6); assert.equal(videoPlanIssues(project()).length, 0); const mission=project().shots.find(s=>s.segmentId==='mission'); assert.deepEqual(mission.audioIds,['mission-voice']); assert.equal(mission.seconds,6); assert.equal(mission.lastFrameId,undefined); assert.ok(project().assets.filter(a=>a.kind==='audio').every(a=>a.seconds>0)); assert.ok(shotIssues(project(),{...mission,seconds:1}).some(x=>x.includes('短于配音'))); });
+  check('shot-plan-uses-real-audio-and-optional-tail-frames', () => { assert.equal(project().shots.length, 6); assert.equal(videoPlanIssues(project()).length, 0); const mission=project().shots.find(s=>s.segmentId==='mission'); assert.deepEqual(mission.audioIds,['mission-voice']); assert.equal(mission.seconds,6); assert.equal(mission.lastFrameId,undefined); assert.ok(project().assets.filter(a=>a.kind==='audio').every(a=>a.seconds>0)); assert.ok(shotIssues(project(),{...mission,seconds:1}).some(x=>x.includes('不足以播完配音'))); });
+
+  check('references-match-production-inputs-without-unrelated-assets',()=>{
+    const shots=project().shots;
+    const opening=shots.find(s=>s.segmentId==='opening'),arrival=shots.find(s=>s.segmentId==='arrival');
+    assert.deepEqual(opening.references.map(r=>r.assetId),['character','opening-fan']);
+    assert.deepEqual(opening.audioCues.map(c=>c.start),[.2,4.95,9.9]);
+    assert.equal(arrival.firstFrameId,'frame-mission');assert.equal(arrival.lastFrameId,'frame-move');
+    assert.ok(shots.filter(s=>s!==opening).every(s=>!s.references.length));
+    assert.ok(!shots.some(s=>s.references.some(r=>['stone','badge','cover'].includes(r.assetId))));
+  });
+  check('both-continuity-frames-are-optional',()=>{
+    const shot={...project().shots[0],firstFrameId:undefined,lastFrameId:undefined};
+    shot.sourceKey=shotSourceKey(project(),project().assets.find(a=>a.id===shot.videoAssetId),shot);
+    assert.deepEqual(shotIssues(project(),shot),[]);
+  });
+  check('audio-trims-overlap-and-overrun-are-validated',()=>{
+    const shot=project().shots.find(s=>s.segmentId==='opening');
+    assert.ok(shotIssues(project(),{...shot,audioCues:shot.audioCues.map((c,i)=>i===1?{...c,start:0}:c)}).some(x=>x.includes('重叠')));
+    assert.ok(shotIssues(project(),{...shot,audioCues:shot.audioCues.map((c,i)=>i===0?{...c,trimEnd:100}:c)}).some(x=>x.includes('范围')));
+  });
+  check('replanning-preserves-teacher-prompt-timing-and-optional-frames',()=>{
+    const shot=project().shots.find(s=>s.segmentId==='opening');
+    const edited={...shot,prompt:'教师自定义运镜要求',firstFrameId:undefined,audioCues:shot.audioCues.map((c,i)=>i===0?{...c,trimStart:.4}:c)};
+    const changed={...project(),shots:project().shots.map(s=>s.id===shot.id?edited:s),assets:project().assets.map(a=>a.id==='character'?{...a,revision:99}:a)};
+    const rebuilt=buildVideoShots(changed).find(s=>s.id===shot.id);
+    assert.equal(rebuilt.prompt,edited.prompt);assert.equal(rebuilt.firstFrameId,undefined);assert.deepEqual(rebuilt.audioCues,edited.audioCues);
+  });
+
   assert.equal(confirmVideoPlan(id), true); advance(.4);
   check('video-shots-complete-in-stages', () => { const ready = project().assets.filter(a => a.kind === 'video' && project().readyAssetIds.includes(a.id)); assert.ok(ready.length > 0 && ready.length < 6); });
   advance(1);
-  check('assembly-follows-video-production', () => { assert.equal(project().phase, 'assembling'); assert.equal(project().revision, 0); });
+  check('assembly-follows-video-production', () => { assert.equal(project().phase, 'assembling'); assert.equal(project().revision, 0); assert.match(render('assembly'),/剪辑|合成/);assert.doesNotMatch(render('production'),/正在合成|正在剪辑/); const messages=conversations.getState().conversations.find(c=>c.id===convId).messages;assert.equal(messages.at(-1).content.stage,'assembly'); });
   advance(1);
   check('completion-uses-original-result-and-library', () => {
     assert.equal(project().phase, 'ready'); assert.equal(project().revision, 1);
@@ -79,7 +109,7 @@ try {
     assert.equal(conv.messages.at(-1).type, 'courseware-result');
     const cw = library.getState().coursewares.find(c => c.id === project().coursewareId);
     assert.equal(cw.subject, '语文'); assert.equal(cw.isPublished, false); assert.equal(cw.videoProjectId, id);
-    assert.match(cw.htmlContent, /wukong\/index.html/);
+    assert.match(cw.htmlContent, /wukong\/lesson-v4.html/);
   });
   const oldHTML = project().resultMessages[0].html;
   store.getState().update(id, { publishedTargets: [{ id: 'resource-1', name: project().title, currentVersion: 'v1', urlLabel: '固定链接 1' }], publishedVersions: { v1: { publishTargetId: 'resource-1', isCurrentPublished: true } } });
@@ -95,13 +125,34 @@ try {
   check('persisted-project-restores-conversation-and-results', () => {
     const conv = conversations.getState().conversations.find(c => c.id === convId);
     assert.equal(conv.messages.filter(m => m.type === 'courseware-result').length, 2);
-    assert.equal(conv.messages.filter(m => m.type === 'video-courseware-workflow').length, 3);
+    assert.equal(conv.messages.filter(m => m.type === 'video-courseware-workflow').length, 5);
   });
   const generic = createFixture('为三年级制作餐厅点餐英语视频互动课件', [], preferences);
   check('other-topic-builds-topic-plan-without-wukong-assets', () => {
     assert.equal(generic.subject, '英语'); assert.equal(generic.grade, '三年级');
     assert.equal(generic.id, 'generic'); assert.doesNotMatch(JSON.stringify(generic), /悟空|芭蕉扇|雨字头|wukong/);
     assert.ok(generic.speakers.some(s => s.name === '服务员')); assert.ok(generic.assets.every(a => !a.url));
+  });
+  check('replacement-audio-auto-aligns-without-overlap',()=>{
+    const shot=project().shots.find(s=>s.segmentId==='opening');
+    const cues=shot.audioCues.map((c,i)=>i===0?{...c,trimEnd:8}:c);
+    const arranged=arrangeAudioCues(shot,cues);
+    assert.ok(arranged.audioCues[1].start>=arranged.audioCues[0].start+8);
+    assert.ok(arranged.audioCues[2].start>=arranged.audioCues[1].start+arranged.audioCues[1].trimEnd);
+    assert.ok(arranged.seconds>=arranged.audioCues.at(-1).start+arranged.audioCues.at(-1).trimEnd);
+    assert.equal(shot.audioCues[0].trimEnd,project().assets.find(a=>a.id===shot.audioCues[0].assetId).seconds);
+  });
+  check('unchanged-real-audio-timing-is-preserved',()=>{
+    for(const shot of project().shots)assert.deepEqual(arrangeAudioCues(shot,shot.audioCues).audioCues,shot.audioCues);
+  });
+  const {scenePreviewURL}=await server.ssrLoadModule('/src/data/videoCourseware/scenePreview.ts');
+  check('scene-previews-are-rendered-pages-not-prop-assets',()=>{
+    const p={...project(),composition:{subtitles:true,soundEffects:true,assetOverrides:{},overlays:{}}};
+    assert.equal(scenePreviewURL(p,'quiz1'),'/wukong/scene-previews/quiz1.jpg');
+    assert.notEqual(scenePreviewURL(p,'quiz1'),scenePreviewURL(p,'quiz2'));
+    assert.ok(existsSync('public'+scenePreviewURL(p,'quiz1')));
+    assert.equal(scenePreviewURL({...p,composition:{...p.composition,assetOverrides:{rock:'changed'}}},'quiz1'),undefined);
+    assert.equal(scenePreviewURL({...p,fixtureId:'other'},'quiz1'),undefined);
   });
   const { runtimeSettings } = await server.ssrLoadModule('/src/components/VideoCourseware/runtime.ts');
   check('no-character-demand-does-not-insert-a-mascot', () => {
@@ -115,6 +166,14 @@ try {
     assert.equal(adapted.assetOverrides['assets/images/v3/C00_wukong_master.png'],'data:image/png;base64,YQ==');
     assert.equal(adapted.badgeOffset,-35);
   });
+  check('changed-audio-cues-are-exported-with-real-file-and-timing',()=>{const p=project(),shot=p.shots.find(s=>s.segmentId==='opening');const changed={...p,shots:p.shots.map(s=>s.id===shot.id?{...s,audioCues:s.audioCues.map((c,i)=>i===0?{...c,start:1,trimStart:.4}:c)}:s)};const adapted=runtimeSettings(changed,changed.composition);assert.equal(adapted.audioPlans.length,1);assert.equal(adapted.audioPlans[0].cues[0].start,1);assert.equal(adapted.audioPlans[0].cues[0].trimStart,.4);assert.equal(adapted.audioPlans[0].cues[0].url,p.assets.find(a=>a.id===shot.audioCues[0].assetId).url);});
+  check('scene-reorder-reaches-runtime-and-keeps-old-result-snapshot',()=>{
+    const patch=reorderSegments(project(),'mission','opening');
+    const reordered={...project(),...patch};
+    assert.equal(reordered.segments[1].id,'mission');
+    assert.deepEqual(runtimeSettings(reordered,reordered.composition).sceneOrder,reordered.segments.map(s=>s.id));
+    assert.equal(project().resultMessages[0].snapshot.segments[1].id,'opening');
+  });
   const badVideo = project().assets.find(a => a.kind === 'video');
   store.getState().update(id, { assets: project().assets.map(a => a.id === badVideo.id ? { ...a, url: undefined } : a), readyAssetIds: project().readyAssetIds.filter(x => x !== badVideo.id) });
   store.getState().start(id, 'video'); advance(1);
@@ -127,10 +186,10 @@ try {
   const voice=project().assets.find(a=>a.id==='outro-voice');
   store.getState().update(id,{assets:project().assets.map(a=>a.id===voice.id?{...a,seconds:8,text:'新的结束对白',revision:1}:a)});
   check('changed-voice-blocks-stale-video-job',()=>{assert.deepEqual(changedVideoIds(project()),['video-outro']);assert.equal(store.getState().start(id,'video'),false);});
-  beginVideoPlanReview(id);
+  returnToMaterials(id); assert.equal(beginVideoPlanReview(id),true);
   check('old-video-message-does-not-show-new-planning-progress',()=>{assert.doesNotMatch(render('production'),/正在生成视频|正在整理视频方案|暂停生成/);});
   advance(1);
-  check('only-dependent-shot-is-replanned',()=>{assert.deepEqual(project().shots.find(s=>s.id===oldShot.id),oldShot);const outro=project().shots.find(s=>s.segmentId==='outro');assert.equal(outro.seconds,8.6);assert.match(outro.prompt,/新的结束对白/);assert.equal(project().resultMessages[0].html,preservedResult);});
+  check('only-dependent-shot-is-replanned',()=>{assert.deepEqual(project().shots.find(s=>s.id===oldShot.id),oldShot);const outro=project().shots.find(s=>s.segmentId==='outro');assert.equal(outro.seconds,6);assert.equal(outro.audioCues[0].trimEnd,voice.seconds);assert.equal(outro.prompt,project().resultMessages[0].snapshot.shots.find(s=>s.segmentId==='outro').prompt);assert.equal(project().resultMessages[0].html,preservedResult);});
   check('interactive-overlay-does-not-invalidate-video',()=>{assert.deepEqual(changedVideoIds({...project(),assets:project().assets.map(a=>a.overlay?{...a,revision:99}:a)}),[]);});
   const oldRun=project().workflowRuns.production;
   assert.equal(confirmVideoPlan(id),true);

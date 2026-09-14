@@ -52,7 +52,9 @@ export default function CoursewareCard({
   publishBadgeLabel,
   generationPreferences,
   learningDataReportCapability,
+  sceneContent,
 }: {
+  sceneContent?: React.ReactNode;
   courseware: Courseware;
   version?: string;
   isLatest?: boolean;
@@ -411,6 +413,7 @@ export default function CoursewareCard({
           </div>
         </div>
 
+        {sceneContent && <div onClick={e=>e.stopPropagation()}>{sceneContent}</div>}
         <div style={{ padding: '14px 20px', background: '#FAFBFC', borderRadius: `0 0 ${UI_RADIUS}px ${UI_RADIUS}px`, position: 'relative', zIndex: 2 }} onClick={(e) => e.stopPropagation()}>
           <div style={{
             display: 'flex',

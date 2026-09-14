@@ -1,0 +1,83 @@
+{
+  "source": "public/wukong/lesson-v4.html",
+  "sourceSha256": "f703dc031795f01a938eb94434bf41bf8b3dd3697604a1c0650af5846988aa70",
+  "method": "Browser screenshots of the completed lesson after page load. No generated asset or prop image is used as a scene thumbnail.",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "captures": [
+    {
+      "sceneId": "arrival",
+      "file": "public/wukong/scene-previews/arrival.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=arrival&inspect=1&videoVersion=v32",
+      "sha256": "901d5af03b83cbfa3d194a566ff1375b89ca2c7bcb9f135bb9f10b47bc513298"
+    },
+    {
+      "sceneId": "cover",
+      "file": "public/wukong/scene-previews/cover.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=cover&inspect=1&videoVersion=v32",
+      "sha256": "e3e57d067873b810560aa7d6b13e03c74020843f93b788c6e5d80b8d40c75f44"
+    },
+    {
+      "sceneId": "discover",
+      "file": "public/wukong/scene-previews/discover.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=discover&inspect=1&videoVersion=v32",
+      "sha256": "0050e946ecce421e1ab36e9c71332ebf9e8965ac9294b0a39864c5e0283324fb"
+    },
+    {
+      "sceneId": "finish",
+      "file": "public/wukong/scene-previews/finish.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=finish&inspect=1&videoVersion=v32",
+      "sha256": "93c4f7f9df6ee6ac97f168abd9f81c444a1705579286c0b0f22c93292649573c"
+    },
+    {
+      "sceneId": "learn",
+      "file": "public/wukong/scene-previews/learn.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=learn&inspect=1&videoVersion=v32",
+      "sha256": "c04b5b2297487e08b18ca18c26eed97797c640bb7ee5c68010c61dea25204943"
+    },
+    {
+      "sceneId": "mission",
+      "file": "public/wukong/scene-previews/mission.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=mission&inspect=1&videoVersion=v32",
+      "sha256": "7906ed82327c7e2cc94dc43d5870730b139b4663c595850629ad5aa72ac1e2ca"
+    },
+    {
+      "sceneId": "move",
+      "file": "public/wukong/scene-previews/move.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=move&inspect=1&videoVersion=v32",
+      "sha256": "651b5b7ec06c633f9eb8add83defb0cea3ee372f64ec027145a78a542f0e081b"
+    },
+    {
+      "sceneId": "opening",
+      "file": "public/wukong/scene-previews/opening.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=opening&inspect=1&videoVersion=v32",
+      "sha256": "912415a64b6579d0e1e1a322cf79e7728f7525020c15a85eea4f5ed246a290b1"
+    },
+    {
+      "sceneId": "outro",
+      "file": "public/wukong/scene-previews/outro.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=outro&inspect=1&videoVersion=v32",
+      "sha256": "9ae200bf3531c20ea1155b3ca05cb53aaa06cbe5257748ff44226e2a16b1ff32"
+    },
+    {
+      "sceneId": "quiz1",
+      "file": "public/wukong/scene-previews/quiz1.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=quiz1&inspect=1&videoVersion=v32",
+      "sha256": "0a53d78e0c79269235def316d6cd4dc34962d2bce95ea9b4e23bfc701885c51b"
+    },
+    {
+      "sceneId": "quiz2",
+      "file": "public/wukong/scene-previews/quiz2.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=quiz2&inspect=1&videoVersion=v32",
+      "sha256": "c109399831e6ba4274d6bc4fd629dd589a49b6f4c4dd21398cba305de7d366e8"
+    },
+    {
+      "sceneId": "trace",
+      "file": "public/wukong/scene-previews/trace.jpg",
+      "url": "/wukong/lesson-v4.html?studio=1&scene=trace&inspect=1&videoVersion=v32",
+      "sha256": "dbdd1352351ab60be9f58c027747d8bb7c04d2be27370e33ae2734c6708480dd"
+    }
+  ]
+}

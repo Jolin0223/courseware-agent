@@ -10,6 +10,7 @@ interface RequirementCardProps {
   framework: RequirementFramework;
   children?: React.ReactNode;
   featureContent?: React.ReactNode;
+  bodyContent?: React.ReactNode;
   isStreaming?: boolean;
   readOnly?: boolean;
   streamDuration?: number;
@@ -261,7 +262,7 @@ const MarkdownPromptPreview = ({ text }: { text: string }) => {
   return <div style={markdownStyles.preview}>{blocks}</div>;
 };
 
-const RequirementCard: React.FC<RequirementCardProps> = ({ title, framework, children, featureContent, isStreaming = false, readOnly = false, streamDuration, onStreamComplete, onFrameworkChange }) => {
+const RequirementCard: React.FC<RequirementCardProps> = ({ title, framework, children, featureContent, bodyContent, isStreaming = false, readOnly = false, streamDuration, onStreamComplete, onFrameworkChange }) => {
   const [streamedTexts, setStreamedTexts] = useState<Record<string, string>>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [streamComplete, setStreamComplete] = useState(false);
@@ -475,7 +476,8 @@ const RequirementCard: React.FC<RequirementCardProps> = ({ title, framework, chi
               </div>
             </div>
           )}
-          {getSections(framework).map((section, idx, sections) => {
+          {bodyContent}
+          {(bodyContent ? [] : getSections(framework)).map((section, idx, sections) => {
             if (isStreaming && idx > currentSection && !streamedTexts[section.key]) return null;
             const displayText = streamedTexts[section.key] || '';
             const editText = editValues[section.key] || '';

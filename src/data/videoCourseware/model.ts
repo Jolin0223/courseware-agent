@@ -3,12 +3,16 @@ import type { GenerationPreferences, RequirementFramework, UploadedAttachment } 
 export type SegmentKind = 'video' | 'mixed' | 'h5';
 export type AssetKind = 'image' | 'audio' | 'video';
 export type JobKind = 'plan' | 'assets' | 'video-plan' | 'video' | 'assembly';
-export type WorkflowPhase = 'planning' | 'plan' | 'assets-loading' | 'video-planning' | 'assets-review' | 'video-loading' | 'assembling' | 'ready' | 'paused' | 'failed';
+export type WorkflowPhase = 'planning' | 'plan' | 'assets-loading' | 'materials-review' | 'video-planning' | 'assets-review' | 'video-loading' | 'assembling' | 'ready' | 'paused' | 'failed';
+export type WorkflowStage = 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly';
+export interface ImageReference { assetId:string; purpose:string; range:string; }
+export interface AudioCue { id:string; assetId:string; start:number; trimStart:number; trimEnd:number; mode:'playback'|'reference'; description:string; }
 export interface VideoSegment { id:string; chapter:string; title:string; kind:SegmentKind; purpose:string; interaction:string; next:string; seconds:number; dialogue:string; speakerId:string; visual:string; transition:string; }
 export interface Speaker { id:string; name:string; role:'narrator'|'character'; voiceName:string; voiceId?:string; voiceLanguage?:string; sample?:string; }
-export interface MediaAsset { id:string; kind:AssetKind; name:string; url?:string; poster?:string; prompt:string; segmentIds:string[]; speakerId?:string; text?:string; seconds?:number; role?:string; overlay?:{sceneId:string}; audioUse?:'video'|'interaction'; referenceFor?:string; planningOnly?:boolean; revision?:number; videoDependency?:boolean; sourcePrompt?:string; }
+export interface MediaAsset { imageGeneration?:{mode:'image-to-image'|'text-to-image';referenceUrl?:string;referenceName?:string}; id:string; kind:AssetKind; name:string; url?:string; poster?:string; prompt:string; segmentIds:string[]; speakerId?:string; text?:string; seconds?:number; role?:string; overlay?:{sceneId:string}; audioUse?:'video'|'interaction'; referenceFor?:string; planningOnly?:boolean; revision?:number; videoDependency?:boolean; sourcePrompt?:string; videoInputs?:{firstFrameId?:string;lastFrameId?:string;references:ImageReference[];audioStarts?:number[];audioDescriptions?:string[]}; }
 export interface VideoShot {
- id:string; segmentId:string; videoAssetId:string; firstFrameId:string; lastFrameId?:string;
+ id:string; segmentId:string; videoAssetId:string; firstFrameId?:string; lastFrameId?:string;
+ references?:ImageReference[]; audioCues?:AudioCue[];
  audioIds:string[]; seconds:number; action:string; ending:string; prompt:string; sourceKey:string;
 }
 export type WorkflowSnapshot = Pick<VideoProject,'assets'|'segments'|'speakers'|'shots'|'readyAssetIds'>;
@@ -21,11 +25,11 @@ export interface VideoProject {
  title:string; request:string; subject:string; grade:string; attachments:UploadedAttachment[];
  framework:RequirementFramework; preferences:GenerationPreferences; videoUse:string; speakers:Speaker[]; segments:VideoSegment[]; assets:MediaAsset[];
  phase:WorkflowPhase; job?:{kind:JobKind; start:number; duration:number; elapsed:number}; readyAssetIds:string[]; error?:string;
- shots?:VideoShot[]; approvedPlanKey?:string;
- workflowRuns?:Partial<Record<'assets'|'production',string>>; workflowSnapshots?:Record<string,WorkflowSnapshot>;
- workflowEvents?:Array<{runId:string;stage:'assets'|'production';time:string;order?:number;confirmation:string}>;
+ shots?:VideoShot[]; approvedPlanKey?:string; approvedMaterialsKey?:string; workflowVersion?:number;
+ workflowRuns?:Partial<Record<WorkflowStage,string>>; workflowSnapshots?:Record<string,WorkflowSnapshot>;
+ workflowEvents?:Array<{runId:string;stage:WorkflowStage;time:string;order?:number;confirmation:string}>;
  publishedTargets?:VideoPublicationTarget[]; publishedVersions?:Record<string,VideoPublicationStatus>;
- composition:PlaybackSettings; revision:number; pendingEdit?:string; resultMessages:Array<{id:string;html:string;version:number;time:string;order?:number}>;
+ composition:PlaybackSettings; revision:number; pendingEdit?:string; resultMessages:Array<{id:string;html:string;version:number;time:string;order?:number;snapshot?:WorkflowSnapshot;composition?:PlaybackSettings}>;
 }
 export const segmentLabels:Record<SegmentKind,string>={video:'视频',mixed:'视频＋互动',h5:'互动页面'};
 export const defaultPlayback:PlaybackSettings={subtitles:true,soundEffects:true,overlays:{},assetOverrides:{}};

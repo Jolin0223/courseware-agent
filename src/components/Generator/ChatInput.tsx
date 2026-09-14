@@ -555,7 +555,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       ...teachingAttachments,
     ];
     if ((!trimmed && readyAttachments.length === 0) || disabled) return;
-    onSend(trimmed, readyAttachments, { ...generationPreferences, contentFormat: format });
+    onSend(trimmed, readyAttachments, format === 'video' ? { generationModeId: generationPreferences.generationModeId, visualStyleMode: 'smart', voiceMode: 'smart', contentFormat: 'video' } : { ...generationPreferences, contentFormat: format });
     setText('');
     onTextChange?.('');
     setAttachedFiles([]);
@@ -1196,7 +1196,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 }}
               />
 
-              <span className="aug-toolbar-divider" />
+              {!(centered ? format === 'video' : Boolean(currentVideo)) && <><span className="aug-toolbar-divider" />
               <GenerationPreferencePicker
                 voiceLabel={(centered ? format === 'video' : Boolean(currentVideo)) ? '旁白音色' : '课件音色'}
                 value={currentVideo?.preferences || generationPreferences}
@@ -1208,6 +1208,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 disabled={disabled || Boolean(currentVideo && currentVideo.phase !== 'plan')}
                 showMode={false}
               />
+              </>}
 
               {isEmbedded && (
                 <button

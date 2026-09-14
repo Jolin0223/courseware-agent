@@ -1,0 +1,40 @@
+{
+  "sourceRoot": "../../03-AI互动课件制作/0302 【制作中】精品课件/悟空借芭蕉扇-视频互动识字",
+  "files": [
+    {
+      "file": "opening-first.png",
+      "source": "开场整段15秒_V22/01-首帧.png",
+      "sha256": "4291f3011647c16acc484460f9c56f539cde1f6213874e8c9603968699ef2c57"
+    },
+    {
+      "file": "opening-fan.png",
+      "source": "开场整段15秒_V22/03-扇子造型参考.png",
+      "sha256": "1f0cda3b2ad4f568744b6e8d36a55508ce7d799e5de35873775b50fcc9bc3602"
+    },
+    {
+      "file": "mission-first.png",
+      "source": "悟空说话镜头重生成_V30/M02_任务邀请/01-上传首帧.png",
+      "sha256": "97ed11fed4b399360f7bc4e44477d8cf4fc35fc3485adf5db2187a9f55b857e7"
+    },
+    {
+      "file": "move-first.png",
+      "source": "悟空说话镜头重生成_V30/C05_搬石邀请/01-上传首帧.png",
+      "sha256": "6cde3e87674cd868322aaeb8c2144d2dbf7d1b5ba3f9ad13ef3db87cd409254b"
+    },
+    {
+      "file": "outro-first.png",
+      "source": "结尾视频首尾帧 2/E01-首帧.png",
+      "sha256": "7d997973a598c2e1e9ab4f782de60049dc8f67e03ba0dcc37f7d9339c039285b"
+    }
+  ],
+  "sharedFrames": [
+    {
+      "file": "mission-first.png",
+      "source": "视频融合升级_V17/T01_点击出发_腾云到洞口/首帧.png"
+    },
+    {
+      "file": "move-first.png",
+      "source": "视频融合升级_V17/T01_点击出发_腾云到洞口/尾帧.png"
+    }
+  ]
+}

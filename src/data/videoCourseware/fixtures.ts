@@ -3,6 +3,7 @@ import audioDurations from './audioDurations.json';
 import { asset, scenes, chapters, imageResources, prompts, initialRequest } from '../wukong/course';
 import type { LessonFixture, MediaAsset, VideoSegment } from './model';
 import type { GenerationPreferences, UploadedAttachment } from '../../types';
+import { productionFrames, productionInputs } from './wukongInputs';
 
 export const VIDEO_EXAMPLE_PROMPT='跟着孙悟空认识雨字头，边看故事边闯关';
 export const exampleAttachments:UploadedAttachment[]=Array.from({length:9},(_,i)=>({id:`video-example-page-${i+1}`,type:'image',name:`识字教学材料-${String(i+1).padStart(2,'0')}.png`,url:asset(`assets/images/page-${String(i+5).padStart(2,'0')}.png`)}));
@@ -23,6 +24,13 @@ const audioAssets:MediaAsset[]=[
 ];
 const segments:VideoSegment[]=scenes.map(x=>({id:x.id,chapter:chapters[x.chapter].title,title:x.title,kind:x.kind,purpose:x.purpose,interaction:x.action,next:x.next.replace('第一关结束 · 后续关卡待制作','结束或重新学习'),seconds:x.seconds||0,dialogue:x.dialogue||'',speakerId:x.speaker?.includes('悟空')?'hero':'narrator',visual:x.kind==='video'?'连续故事画面，保持人物和场景一致。':x.kind==='mixed'?'为人物、教学文字与学生操作留出独立区域，人物说完后保持安静。':'复用场景与角色图片，突出教学内容和操作区域。',transition:x.kind==='video'?'视频结束后进入下一环节':x.kind==='mixed'?'视频结束后停留画面，等待学生操作':'完成当前操作后继续'}));
 export const wukongFixture:LessonFixture={id:'wukong',title:'悟空借芭蕉扇 · 雨字头的秘密',subject:'语文',grade:'一年级',request:initialRequest.replace('先把第一关做好。',''),attachments:exampleAttachments,framework:{userRequirement:'面向小学一、二年级。认识雨、雪、雷、霞、雾，理解雨字头与天气现象的联系；描写雨和雪，再用两道练习巩固。',featureDesign:'故事引入 → 搬石发现汉字 → 认读与描写 → 两道互动练习 → 获得线索并回顾。',designStyle:'明亮、亲切的国风卡通。人物在故事与邀请时表演，学生认读、描写和答题时保持画面稳定。关键汉字、拼音和题目清晰可读。'},segments,speakers:[{id:'narrator',name:'教学旁白',role:'narrator',voiceName:'清晰女声',sample:audioAssets.find(a=>a.id==='narration-P07')?.url},{id:'hero',name:'孙悟空',role:'character',voiceName:'活泼少年',sample:audioAssets.find(a=>a.id==='outro-voice')?.url}],assets:[...imageAssets,...['mission','move','outro'].map(id=>({id:`frame-${id}`,kind:'image' as const,name:`${scenes.find(s=>s.id===id)!.title} · 参考画面`,url:asset(`references/${id}.png`),prompt:prompts[scenes.find(s=>s.id===id)!.prompt!],segmentIds:[id],role:'视频参考图',referenceFor:`video-${id}`})),{id:'cover',kind:'image',name:'课件封面',url:asset('assets/images/v10/cover.png'),prompt:'国风卡通识字故事封面，教学主题与开始按钮清晰。',segmentIds:['cover'],role:'封面'},...['opening','arrival'].map(id=>({id:`frame-${id}`,kind:'image' as const,name:`${scenes.find(s=>s.id===id)!.title} · 起始画面`,url:asset(`planning/${id}-first.jpg`),prompt:prompts[scenes.find(s=>s.id===id)!.prompt!],segmentIds:[id],role:'视频参考图',referenceFor:`video-${id}`,planningOnly:true})),...videoAssets,{id:'video-cave',kind:'video',name:'洞口环境',url:asset('assets/video/v3/V02_cave_idle_v3.mp4'),poster:asset('assets/images/v3/G01_cave_daylight.png'),prompt:'安静稳定的洞口环境，保留互动区域，进入认读时定格。',segmentIds:['move'],seconds:6.58,role:'环境视频'},...audioAssets.map(a=>({...a,seconds:(audioDurations as Record<string,number>)[a.url!],audioUse:(a.id.startsWith('narration-')&&!['narration-P01','narration-P02','narration-P03'].includes(a.id)?'interaction':'video') as 'interaction'|'video'}))],runtime:asset('index.html')};
+// Replace legacy poster extractions with the actual submitted image files. Shared
+// frames are one asset referenced by two videos; interactive props stay separate.
+wukongFixture.assets = [
+ ...wukongFixture.assets.filter(a=>!a.id.startsWith('frame-')),
+ ...productionFrames,
+].map(a=>a.kind==='video'?{...a,videoInputs:productionInputs[a.id]}:a);
+
 export function createFixture(request:string,attachments:UploadedAttachment[],preferences:GenerationPreferences):LessonFixture {
  if(/悟空|雨字头/.test(request)||attachments.some(x=>x.id.startsWith('video-example-page-')))return structuredClone({...wukongFixture,request,attachments,framework:{...wukongFixture.framework,designStyle:preferences.visualStyleName ? preferences.visualStyleName + '。' + wukongFixture.framework.designStyle : wukongFixture.framework.designStyle}});
  const english=/英语|英文|点餐|restaurant/i.test(request);

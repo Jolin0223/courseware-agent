@@ -1,0 +1,85 @@
+{
+  "checks": [
+    {
+      "name": "five outline chapters; no scene list",
+      "passed": true
+    },
+    {
+      "name": "add outline chapter",
+      "passed": true
+    },
+    {
+      "name": "delete outline chapter",
+      "passed": true
+    },
+    {
+      "name": "cancel retains outline",
+      "passed": true
+    },
+    {
+      "name": "hidden scene planning",
+      "passed": true
+    },
+    {
+      "name": "images appear before audio",
+      "passed": true
+    },
+    {
+      "name": "progressive image results",
+      "passed": true
+    },
+    {
+      "name": "no scene plan during images",
+      "passed": true
+    },
+    {
+      "name": "pause persisted",
+      "passed": true
+    },
+    {
+      "name": "no scene plan during audio",
+      "passed": true
+    },
+    {
+      "name": "all 12 scene plans appear",
+      "passed": true
+    },
+    {
+      "name": "all three types",
+      "passed": true
+    },
+    {
+      "name": "no material confirmation",
+      "passed": true
+    },
+    {
+      "name": "no generation header edit",
+      "passed": true
+    },
+    {
+      "name": "scene cancel retains content",
+      "passed": true
+    },
+    {
+      "name": "video editor retained",
+      "passed": true
+    },
+    {
+      "name": "production only after scene confirmation",
+      "passed": true
+    },
+    {
+      "name": "complete result 12 scenes",
+      "passed": true
+    },
+    {
+      "name": "new runtime preserved",
+      "passed": true
+    },
+    {
+      "name": "no script errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

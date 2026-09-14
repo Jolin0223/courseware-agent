@@ -1,3 +1,4 @@
+import { sceneChanged } from './outline';
 import type { VideoProject } from './model';
 import { wukongFixture } from './fixtures';
 
@@ -6,6 +7,7 @@ import { wukongFixture } from './fixtures';
 export function scenePreviewURL(project:VideoProject,sceneId:string):string|undefined {
   if(project.fixtureId!=='wukong')return;
   const scene=project.segments.find(s=>s.id===sceneId),baseline=wukongFixture.segments.find(s=>s.id===sceneId);
+  if(scene&&project.workflowVersion===5&&sceneChanged(project,scene))return;
   if(!scene||!baseline||scene.kind!==baseline.kind||scene.purpose!==baseline.purpose||scene.visual!==baseline.visual)return;
   if(project.framework.designStyle!==wukongFixture.framework.designStyle||!project.composition.subtitles)return;
   if(Object.keys(project.composition.assetOverrides).length||Object.keys(project.composition.overlays).length)return;

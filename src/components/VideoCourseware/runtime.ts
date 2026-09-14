@@ -1,3 +1,4 @@
+import { sceneChanged } from '../../data/videoCourseware/outline';
 import type { PlaybackSettings, VideoProject } from '../../data/videoCourseware/model';
 import { getRuntime, wukongFixture } from '../../data/videoCourseware/fixtures';
 
@@ -10,8 +11,9 @@ export function runtimeSettings(project:VideoProject, settings:PlaybackSettings)
     badgeOffset: settings.overlays.badge?.offsetY || 0,
     badgeScale: settings.overlays.badge?.scale || 1,
     videoVersion: 'v32',
-    sceneOrder: project.workflowVersion===4 ? project.segments.map(s=>s.id) : undefined,
-    audioPlans: project.workflowVersion===4 ? project.shots?.flatMap(shot=>{
+    scenePlans:project.workflowVersion===5?project.segments.map(s=>({id:s.id,title:s.title,kind:s.kind,content:s.content,changed:sceneChanged(project,s)})):undefined,
+    sceneOrder: (project.workflowVersion||0)>=4 ? project.segments.map(s=>s.id) : undefined,
+    audioPlans: (project.workflowVersion||0)>=4 ? project.shots?.flatMap(shot=>{
       const video=wukongFixture.assets.find(a=>a.id===shot.videoAssetId);
       const original=video?.role==='环境视频'?[]:wukongFixture.assets.filter(a=>a.kind==='audio'&&a.audioUse!=='interaction'&&a.segmentIds.includes(shot.segmentId));
       const cues=shot.audioCues||[];
@@ -30,8 +32,8 @@ export function runtimeURL(project:VideoProject, settings:PlaybackSettings, scen
   const legacy=runtimeSettings(project,settings) as {badgeOffset?:number;badgeScale?:number};
   const params=new URLSearchParams({studio:'1',scene,subtitles:settings.subtitles?'1':'0',soundEffects:settings.soundEffects?'1':'0',badgeOffset:String(legacy.badgeOffset||0),badgeScale:String(legacy.badgeScale||1),videoVersion:'v32'});
   if(inspect)params.set('inspect','1');
-  if(project.workflowVersion===4)params.set('sceneOrder',project.segments.map(s=>s.id).join(','));
-  return `${location.origin}${project.workflowVersion===4?entry.replace('index.html','lesson-v4.html'):entry}?${params}`;
+  if((project.workflowVersion||0)>=4)params.set('sceneOrder',project.segments.map(s=>s.id).join(','));
+  return `${location.origin}${(project.workflowVersion||0)>=4?entry.replace('index.html',project.workflowVersion===5?'lesson-v5.html':'lesson-v4.html'):entry}?${params}`;
 }
 export function sendRuntimeSettings(target:Window|null|undefined,project:VideoProject,settings:PlaybackSettings) {
   if(project.fixtureId==='wukong')target?.postMessage({type:'wukong-studio-config',composition:runtimeSettings(project,settings)},location.origin);

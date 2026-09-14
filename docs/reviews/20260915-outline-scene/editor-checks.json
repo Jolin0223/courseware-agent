@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "name": "scoped audio editor",
+      "passed": true
+    },
+    {
+      "name": "audio text not duplicated",
+      "passed": true
+    },
+    {
+      "name": "voice picker available",
+      "passed": true
+    },
+    {
+      "name": "candidate clearly identified",
+      "passed": true
+    },
+    {
+      "name": "cancel retains source text",
+      "passed": true
+    },
+    {
+      "name": "image modes retained",
+      "passed": true
+    },
+    {
+      "name": "too short audio blocked",
+      "passed": true
+    },
+    {
+      "name": "no errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

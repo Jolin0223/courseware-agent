@@ -1,3 +1,4 @@
+import { scenePlanIssues } from './outline';
 import type { MediaAsset, VideoProject, VideoSegment, VideoShot, AudioCue } from './model';
 
 function key(value: unknown): string {
@@ -18,7 +19,7 @@ export function shotSourceKey(project: VideoProject, video: MediaAsset, selected
     voices:project.speakers.filter(s=>related.some(a=>a.speakerId===s.id)),style:project.framework.designStyle});
 }
 export function videoPlanKey(project:VideoProject):string {
-  return key({shots:project.shots,sources:project.assets.filter(a=>a.kind==='video').map(a=>[a.id,shotSourceKey(project,a)])});
+  return key({scenes:project.workflowVersion===5?project.segments:undefined,chapters:project.workflowVersion===5?project.chapters:undefined,shots:project.shots,sources:project.assets.filter(a=>a.kind==='video').map(a=>[a.id,shotSourceKey(project,a)])});
 }
 export function shotPrompt(project:VideoProject,shot:VideoShot):string {
   const segment=project.segments.find(s=>s.id===shot.segmentId);
@@ -84,9 +85,10 @@ export function shotIssues(project:VideoProject,shot:VideoShot):string[] {
   return [...new Set(issues)];
 }
 export function videoPlanIssues(project:VideoProject):string[] {
+  if(project.workflowVersion===5&&!project.assets.some(a=>a.kind==='video'))return scenePlanIssues(project);
   if(!project.shots?.length)return ['请先生成视频方案。'];
   const issues=project.assets.filter(a=>a.kind==='video'&&!project.shots?.some(s=>s.videoAssetId===a.id)).map(a=>'缺少视频方案：'+a.name);
-  return [...issues,...project.shots.flatMap(s=>shotIssues(project,s))];
+  return [...(project.workflowVersion===5?scenePlanIssues(project):[]),...issues,...project.shots.flatMap(s=>shotIssues(project,s))];
 }
 export function changedVideoIds(project:VideoProject):string[] {
   return project.assets.filter(a=>a.kind==='video'&&project.shots?.find(s=>s.videoAssetId===a.id)?.sourceKey!==shotSourceKey(project,a)).map(a=>a.id);

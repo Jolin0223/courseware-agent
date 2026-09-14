@@ -1,0 +1,53 @@
+{
+  "checks": [
+    {
+      "name": "chapter deletion removes scenes",
+      "passed": true
+    },
+    {
+      "name": "deleted scene references removed",
+      "passed": true
+    },
+    {
+      "name": "new chapter has its own content",
+      "passed": true
+    },
+    {
+      "name": "scene count changes to 11",
+      "passed": true
+    },
+    {
+      "name": "all images ready at scene confirmation",
+      "passed": true
+    },
+    {
+      "name": "all audio ready at scene confirmation",
+      "passed": true
+    },
+    {
+      "name": "no horizontal overflow 1134",
+      "passed": true
+    },
+    {
+      "name": "H5 content saved",
+      "passed": true
+    },
+    {
+      "name": "result respects edited scene count",
+      "passed": true
+    },
+    {
+      "name": "new content preview uses saved text",
+      "passed": true
+    },
+    {
+      "name": "old v32 entry untouched",
+      "passed": true
+    },
+    {
+      "name": "no script errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

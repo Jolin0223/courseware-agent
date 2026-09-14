@@ -1,0 +1,72 @@
+{
+  "checks": [
+    {
+      "name": "outline to images to audio retains scene approval gate",
+      "passed": true
+    },
+    {
+      "name": "12 scenes have disjoint counts 2 video, 7 H5, 3 mixed",
+      "passed": true
+    },
+    {
+      "name": "single production job follows full scene approval",
+      "passed": true
+    },
+    {
+      "name": "pure H5 can be ready before any video",
+      "passed": true
+    },
+    {
+      "name": "pause prevents ready scenes from advancing",
+      "passed": true
+    },
+    {
+      "name": "mixed scene waits for every referenced video",
+      "passed": true
+    },
+    {
+      "name": "mixed scene with satisfied dependencies completes independently",
+      "passed": true
+    },
+    {
+      "name": "video ready alone does not skip mixed composition",
+      "passed": true
+    },
+    {
+      "name": "assembly begins only after all 12 scenes are ready",
+      "passed": true
+    },
+    {
+      "name": "delivery snapshot contains 12 scenes and V33 opening",
+      "passed": true
+    },
+    {
+      "name": "missing environment video blocks only the dependent mixed scene",
+      "passed": true
+    },
+    {
+      "name": "repaired dependency still waits for composition",
+      "passed": true
+    },
+    {
+      "name": "repair retains completed scenes and completes final scene",
+      "passed": true
+    },
+    {
+      "name": "H5 only lesson does not require video",
+      "passed": true
+    },
+    {
+      "name": "missing video fails production without losing completed scenes",
+      "passed": true
+    },
+    {
+      "name": "retry resets pending composition clock and retains completed scenes",
+      "passed": true
+    },
+    {
+      "name": "resumed production recovers all scenes before assembly",
+      "passed": true
+    }
+  ]
+}

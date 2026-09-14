@@ -1945,6 +1945,8 @@ function AssistantMessage({
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
   onTeachingVideoConfirm?: (messageId: string) => void;
 }) {
+  const workflowMessage=message.type==='video-courseware-workflow'?message.content as {videoProjectId:string;stage?:string;runId?:string}:undefined;
+  const workflowProject=useVideoCoursewareStore(s=>workflowMessage?s.projects[workflowMessage.videoProjectId]:undefined);
   const savedCoursewares = useCoursewareStore(s => s.coursewares);
   const conversations = useConversationStore(s => s.conversations);
   const activeConversationId = useConversationStore(s => s.activeConversationId);
@@ -1971,7 +1973,9 @@ function AssistantMessage({
   }
 
   if (message.type === 'video-courseware-workflow') {
-    return <div style={styles.messageAssistant}><AIAvatar/><div style={styles.assistantContent}><VideoWorkflowCard projectId={(message.content as { videoProjectId: string }).videoProjectId} stage={(message.content as { stage?: 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly' }).stage} runId={(message.content as {runId?:string}).runId}/></div></div>;
+    // Hide the finished generation row without unmounting an open scene-preview portal.
+    if(workflowProject?.workflowVersion===5&&(workflowMessage?.stage==='assembly'||(workflowMessage?.stage==='production'&&(Boolean(workflowMessage.runId&&workflowMessage.runId!==workflowProject.workflowRuns?.production)))))return null;
+    return <div style={workflowProject?.workflowVersion===5&&workflowMessage?.stage==='production'&&workflowProject.phase==='ready'?{display:'none'}:styles.messageAssistant}><AIAvatar/><div style={styles.assistantContent}><VideoWorkflowCard projectId={(message.content as { videoProjectId: string }).videoProjectId} stage={(message.content as { stage?: 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly' }).stage} runId={(message.content as {runId?:string}).runId}/></div></div>;
   }
 
   if (message.type === 'requirement-framework') {

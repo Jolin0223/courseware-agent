@@ -1,0 +1,69 @@
+{
+  "checks": [
+    {
+      "name": "outline uses original requirement card and tabs",
+      "passed": true
+    },
+    {
+      "name": "demo service note removed",
+      "passed": true
+    },
+    {
+      "name": "material confirmation gate and edit buttons absent",
+      "passed": true
+    },
+    {
+      "name": "12 scene plans stay in teaching order",
+      "passed": true
+    },
+    {
+      "name": "partial generation is one ordered delivery card",
+      "passed": true
+    },
+    {
+      "name": "three independent type counters shown",
+      "passed": true
+    },
+    {
+      "name": "unfinished mixed preview is disabled",
+      "passed": true
+    },
+    {
+      "name": "pause and completed scenes survive reload",
+      "passed": true
+    },
+    {
+      "name": "completed opening previews actual V33",
+      "passed": true
+    },
+    {
+      "name": "partial preview does not enter unfinished neighbour",
+      "passed": true
+    },
+    {
+      "name": "an open scene preview survives whole lesson completion",
+      "passed": true
+    },
+    {
+      "name": "final result contains every completed scene in order",
+      "passed": true
+    },
+    {
+      "name": "only one final scene delivery list remains",
+      "passed": true
+    },
+    {
+      "name": "obsolete standalone video and H5 cards absent",
+      "passed": true
+    },
+    {
+      "name": "narrow split preview has no horizontal page overflow",
+      "passed": true
+    },
+    {
+      "name": "no browser script errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

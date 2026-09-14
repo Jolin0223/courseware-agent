@@ -1,3 +1,4 @@
+import { advanceSceneProduction, sceneVideos } from '../../data/videoCourseware/production';
 import { compileOutline, makeOutline, outlineIssues, initialSceneContent } from '../../data/videoCourseware/outline';
 import { runtimeSettings, runtimeURL } from './runtime';
 import { useEffect } from 'react';
@@ -20,7 +21,7 @@ export function ensureWorkflowMessage(project:VideoProject,stage:Exclude<Workflo
  store.update(project.id,{
   workflowRuns:{...current.workflowRuns,[stage]:runId},
   workflowEvents:[...current.workflowEvents||[],{runId,stage,time:new Date().toISOString(),order:(current.workflowEvents?.length||0)+current.resultMessages.length,confirmation}],
-  workflowSnapshots:{...current.workflowSnapshots,[runId]:{assets:current.assets,segments:current.segments,speakers:current.speakers,shots:current.shots,readyAssetIds:current.readyAssetIds,chapters:current.chapters,readySceneIds:current.readySceneIds}},
+  workflowSnapshots:{...current.workflowSnapshots,[runId]:{assets:current.assets,segments:current.segments,speakers:current.speakers,shots:current.shots,readyAssetIds:current.readyAssetIds,chapters:current.chapters,readySceneIds:current.readySceneIds,readyPageIds:current.readyPageIds}},
  });
  useConversationStore.getState().addAssistantMessage(project.conversationId,{videoProjectId:project.id,stage,runId},'video-courseware-workflow');
 }
@@ -47,7 +48,7 @@ export function beginVideoPlanReview(id:string):boolean{
  if(p.assets.some(a=>a.kind!=='video'&&(!a.url||!p.readyAssetIds.includes(a.id))))return false;
  const invalid=changedVideoIds(p);
  const run=p.workflowRuns?.assets;
- if(run)store.update(id,{workflowSnapshots:{...p.workflowSnapshots,[run]:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds}}});
+ if(run)store.update(id,{workflowSnapshots:{...p.workflowSnapshots,[run]:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds}}});
  store.update(id,{workflowVersion:4,approvedMaterialsKey:materialsKey(p),approvedPlanKey:undefined,readyAssetIds:p.readyAssetIds.filter(a=>!invalid.includes(a))});
  useConversationStore.getState().addUserMessage(p.conversationId,'画面与配音已确认，生成视频方案。');
  ensureWorkflowMessage(store.projects[id],'video-plan');
@@ -63,8 +64,9 @@ export function confirmVideoPlan(id:string):boolean{
   const shot=p.shots?.find(s=>s.videoAssetId===a.id);
   return shot?{...a,prompt:shot.prompt,seconds:shot.seconds}:a;
  })});
- if(p.workflowRuns?.['video-plan'])store.update(id,{workflowSnapshots:{...p.workflowSnapshots,[p.workflowRuns['video-plan']]:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds}}});
- if(!store.start(id,'video'))return false;
+ if(p.workflowRuns?.['video-plan'])store.update(id,{workflowSnapshots:{...p.workflowSnapshots,[p.workflowRuns['video-plan']]:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds}}});
+ store.update(id,{readySceneIds:[],sceneAssemblyStarts:{}});
+ if(!store.start(id,p.workflowVersion===5?'scenes':'video'))return false;
  useConversationStore.getState().addUserMessage(p.conversationId,p.workflowVersion===5?'全部场景方案已确认，开始生成视频和互动页面。':'视频方案已确认，开始生成视频。');
  ensureWorkflowMessage(store.projects[id],'production');
  useConversationStore.getState().setWaitingForUserAction(p.conversationId,false);
@@ -92,7 +94,7 @@ export function finishVideoProject(id:string,composition?:PlaybackSettings,note?
  const html=buildVideoLessonHTML(next);if(!html){store.update(id,{phase:'failed',error:'场景方案已保存。当前演示尚未接入本课的页面生成服务，无法交付完整课件。'});return;}
  const version=p.revision+1,time=new Date().toISOString(),messageId=`${id}-result-${version}`;
  const result:CoursewareResult={coursewareId:p.coursewareId,title:p.title,version:`v${version}`,htmlContent:html,thumbnail:p.assets.find(a=>a.id==='cover')?.url,generationPreferences:p.preferences,videoProjectId:p.id};
- store.update(id,{phase:'ready',job:undefined,composition:next.composition,revision:version,resultMessages:[...p.resultMessages,{id:messageId,html,version,time,snapshot:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds},composition:next.composition,order:(p.workflowEvents?.length||0)+p.resultMessages.length}],pendingEdit:undefined});
+ store.update(id,{phase:'ready',job:undefined,composition:next.composition,revision:version,resultMessages:[...p.resultMessages,{id:messageId,html,version,time,snapshot:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds},composition:next.composition,order:(p.workflowEvents?.length||0)+p.resultMessages.length}],pendingEdit:undefined});
  if(note)useConversationStore.getState().addUserMessage(p.conversationId,note);
  const cw=useCoursewareStore.getState();if(cw.coursewares.some(c=>c.id===p.coursewareId))cw.updateCourseware(p.coursewareId,coursewareFor(p,html));else cw.addCourseware(coursewareFor(p,html));
  useConversationStore.getState().addAssistantMessage(p.conversationId,result,'courseware-result');
@@ -197,23 +199,33 @@ export function confirmOutline(id:string):boolean {
 function advanceOutlineFlow(p:VideoProject,now:number){
  const store=useVideoCoursewareStore.getState(),job=p.job;
  if(!job||['paused','failed','ready','plan','assets-review'].includes(p.phase))return;
+ if(['video','h5'].includes(job.kind)){
+  store.start(p.id,'scenes');
+  return;
+ }
+ if(job.kind==='scenes'){
+  const elapsed=now-job.start+job.elapsed;
+  const patch=advanceSceneProduction(p,elapsed);
+  if(JSON.stringify([p.readyAssetIds,p.readyPageIds,p.readySceneIds,p.sceneAssemblyStarts])!==JSON.stringify([patch.readyAssetIds,patch.readyPageIds,patch.readySceneIds,patch.sceneAssemblyStarts]))store.update(p.id,patch);
+  const next=useVideoCoursewareStore.getState().projects[p.id];
+  if(next.segments.every(s=>next.readySceneIds?.includes(s.id))){store.start(p.id,'assembly');return;}
+  const missingVideo=next.segments.some(s=>s.kind!=='h5'&&(!sceneVideos(next,s).length||sceneVideos(next,s).some(a=>!a.url)));
+  if(elapsed>=job.duration&&missingVideo)store.update(p.id,{phase:'failed',error:'部分场景的视频未完成，已完成场景仍可预览。请修复缺失视频后继续。',job:{...job,elapsed:job.duration}});
+  return;
+ }
  let ratio=Math.min(1,(now-job.start+job.elapsed)/job.duration);
- const kind=job.kind==='images'?'image':job.kind==='audio'?'audio':job.kind==='video'?'video':undefined;
+ const kind=job.kind==='images'?'image':job.kind==='audio'?'audio':undefined;
  if(kind){
   const items=p.assets.filter(a=>a.kind===kind);
   const completed=items.filter((a,i)=>a.url&&ratio>=(i+1)/Math.max(items.length,1)).map(a=>a.id);
   const ready=[...new Set([...p.readyAssetIds,...completed])];
   if(ready.length!==p.readyAssetIds.length)store.update(p.id,{readyAssetIds:ready});
-  p=store.projects[p.id];
+  p=useVideoCoursewareStore.getState().projects[p.id];
   if(items.every(a=>ready.includes(a.id)))ratio=1;
   if(ratio>=1&&items.some(a=>!a.url)){
    store.update(p.id,{phase:'failed',error:`${kind==='image'?'图片':kind==='audio'?'配音':'视频'}方案已保存。当前演示未接入生成服务；可返回大纲保留或调整方案。`,job:{...job,elapsed:job.duration}});
    return;
   }
- }
- if(job.kind==='h5'){
-  const ready=p.segments.filter((_,i)=>ratio>=(i+1)/p.segments.length).map(s=>s.id);
-  if(ready.length!==(p.readySceneIds||[]).length)store.update(p.id,{readySceneIds:ready});
  }
  if(ratio<1)return;
  if(job.kind==='plan'){store.update(p.id,{phase:'plan',job:undefined});useConversationStore.getState().setWaitingForUserAction(p.conversationId,true);}
@@ -223,7 +235,5 @@ function advanceOutlineFlow(p:VideoProject,now:number){
   store.update(p.id,{shots:buildVideoShots(p),approvedMaterialsKey:materialsKey(p),phase:'assets-review',job:undefined});
   ensureWorkflowMessage(store.projects[p.id],'video-plan');
   useConversationStore.getState().setWaitingForUserAction(p.conversationId,true);
- }else if(job.kind==='video')store.start(p.id,'h5');
- else if(job.kind==='h5'){ensureWorkflowMessage(store.projects[p.id],'assembly');store.start(p.id,'assembly');}
- else if(job.kind==='assembly')finishVideoProject(p.id);
+ }else if(job.kind==='assembly')finishVideoProject(p.id);
 }

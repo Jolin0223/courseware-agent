@@ -529,7 +529,7 @@ const sceneId=()=>customScene|| (state.phase==='intro'?'opening':state.phase==='
 const validOrder=order=>Array.isArray(order)&&order.length>0&&new Set(order).size===order.length&&order.every(id=>canonicalOrder.includes(id)||scenePlans.some(s=>s.id===id));
 const originalApplyChange=applyChange;
 let orderEnded=false;
-function enterPlannedScene(id){customScene=null; const plan=scenePlans.find(s=>s.id===id);if(plan?.changed){renderCustomScene(plan);return;}orderEnded=!id;if(!id){director.cancel();originalApplyChange('finish');return;}if(!sceneToPhase[id])return;director.cancel();if(id==='quiz1'||id==='quiz2')state.quizIndex=id==='quiz2'?1:0;originalApplyChange(sceneToPhase[id]);}
+function enterPlannedScene(id){customScene=null; const plan=scenePlans.find(s=>s.id===id);if(plan?.changed){renderCustomScene(plan);return;}orderEnded=!id;if(!id){director.cancel();if(studioParams.get('previewOnly')==='1'){document.querySelectorAll('video,audio').forEach(v=>v.pause());return;}originalApplyChange('finish');return;}if(!sceneToPhase[id])return;director.cancel();if(id==='quiz1'||id==='quiz2')state.quizIndex=id==='quiz2'?1:0;originalApplyChange(sceneToPhase[id]);}
 applyChange=function(phase){
  const current=sceneId(),expected=canonicalOrder[canonicalOrder.indexOf(current)+1];
  if(validOrder(plannedOrder)&&expected&&sceneToPhase[expected]===phase){const next=plannedOrder[plannedOrder.indexOf(current)+1];enterPlannedScene(next);return;}

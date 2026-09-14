@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import {writeFileSync} from 'node:fs';
+import {createServer} from 'vite';
+const values=new Map();globalThis.localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};globalThis.location=new URL('http://127.0.0.1:4186/');globalThis.window={localStorage,location};
+const server=await createServer({server:{middlewareMode:true},appType:'custom',logLevel:'error'});const checks=[];const check=(name,fn)=>{fn();checks.push({name,passed:true});};
+try{
+ const {wukongFixture,exampleAttachments}=await server.ssrLoadModule('/src/data/videoCourseware/fixtures.ts');
+ const {useVideoCoursewareStore:store}=await server.ssrLoadModule('/src/store/videoCoursewareStore.ts');
+ const {useConversationStore:conversations}=await server.ssrLoadModule('/src/store/conversationStore.ts');
+ const {startVideoProject,advanceVideoJobs,confirmOutline,confirmVideoPlan}=await server.ssrLoadModule('/src/components/VideoCourseware/workflow.ts');
+ const {advanceSceneProduction,sceneProductionLabel}=await server.ssrLoadModule('/src/data/videoCourseware/production.ts');
+ const conv=conversations.getState().createNewConversation('场景交付检查');conversations.getState().setActiveConversation(null);startVideoProject(conv,wukongFixture.request,exampleAttachments,{contentFormat:'video'});
+ const id='video-'+conv,get=()=>store.getState().projects[id],tick=ms=>{const j=get().job;advanceVideoJobs(j.start+ms-j.elapsed);};
+ tick(2400);assert.ok(confirmOutline(id));tick(1800);tick(6500);tick(6500);
+ check('outline to images to audio retains scene approval gate',()=>assert.equal(get().phase,'assets-review'));
+ check('12 scenes have disjoint counts 2 video, 7 H5, 3 mixed',()=>assert.deepEqual(['video','h5','mixed'].map(k=>get().segments.filter(s=>s.kind===k).length),[2,7,3]));
+ const baseline=structuredClone(get());assert.ok(confirmVideoPlan(id));
+ check('single production job follows full scene approval',()=>assert.equal(get().job.kind,'scenes'));
+ tick(700);check('pure H5 can be ready before any video',()=>{assert.ok(get().readySceneIds.includes('cover'));assert.equal(get().assets.filter(a=>a.kind==='video'&&get().readyAssetIds.includes(a.id)).length,0);});
+ store.getState().pause(id);const paused=JSON.stringify(get().readySceneIds);advanceVideoJobs(Date.now()+90000);check('pause prevents ready scenes from advancing',()=>assert.equal(JSON.stringify(get().readySceneIds),paused));store.getState().resume(id);
+ tick(7000);check('mixed scene waits for every referenced video',()=>{assert.ok(get().readyAssetIds.includes('video-move'));assert.ok(!get().readyAssetIds.includes('video-cave'));assert.ok(!get().readySceneIds.includes('move'));assert.equal(sceneProductionLabel(get(),get().segments.find(s=>s.id==='move')),'等待本场视频');assert.equal(get().segments.filter(s=>s.kind==='h5'&&get().readySceneIds.includes(s.id)).length,7);});
+ tick(9000);check('mixed scene with satisfied dependencies completes independently',()=>{assert.ok(get().readySceneIds.includes('mission'));assert.ok(!get().readySceneIds.includes('move'));});
+ tick(10200);check('video ready alone does not skip mixed composition',()=>{assert.ok(get().readyAssetIds.includes('video-cave'));assert.ok(!get().readySceneIds.includes('move'));});tick(11500);
+ check('assembly begins only after all 12 scenes are ready',()=>{assert.equal(get().job.kind,'assembly');assert.equal(get().readySceneIds.length,12);});tick(3500);
+ check('delivery snapshot contains 12 scenes and V33 opening',()=>{assert.equal(get().resultMessages.length,1);assert.equal(get().resultMessages[0].snapshot.readySceneIds.length,12);assert.match(get().resultMessages[0].html,/openingVersion=v33/);});
+ const broken={...baseline,phase:'scenes-loading',readySceneIds:[],readyPageIds:[],sceneAssemblyStarts:{},assets:baseline.assets.map(a=>a.id==='video-cave'?{...a,url:undefined}:a)};
+ let progress={...broken,...advanceSceneProduction(broken,15000)};progress={...progress,...advanceSceneProduction(progress,16500)};
+ check('missing environment video blocks only the dependent mixed scene',()=>{assert.ok(!progress.readySceneIds.includes('move'));assert.equal(progress.readySceneIds.length,11);});
+ const snapshot=JSON.stringify(progress.readySceneIds);progress.assets=progress.assets.map(a=>a.id==='video-cave'?{...a,url:wukongFixture.assets.find(a=>a.id==='video-cave').url}:a);progress={...progress,...advanceSceneProduction(progress,17000)};check('repaired dependency still waits for composition',()=>assert.equal(JSON.stringify(progress.readySceneIds),snapshot));progress={...progress,...advanceSceneProduction(progress,18500)};check('repair retains completed scenes and completes final scene',()=>assert.equal(progress.readySceneIds.length,12));
+ const onlyH5={...baseline,segments:baseline.segments.filter(s=>s.kind==='h5'),assets:baseline.assets.filter(a=>a.kind!=='video'),readySceneIds:[],readyPageIds:[]};check('H5 only lesson does not require video',()=>assert.equal(advanceSceneProduction(onlyH5,7000).readySceneIds.length,7));
+ store.getState().put(structuredClone(baseline));assert.ok(confirmVideoPlan(id));
+ store.getState().update(id,{assets:get().assets.map(a=>a.id==='video-cave'?{...a,url:undefined}:a)});tick(7000);tick(14000);
+ check('missing video fails production without losing completed scenes',()=>{assert.equal(get().phase,'failed');assert.ok(get().readySceneIds.length>0);assert.ok(!get().readySceneIds.includes('move'));});
+ const retained=[...get().readySceneIds];store.getState().update(id,{assets:get().assets.map(a=>a.id==='video-cave'?{...a,url:wukongFixture.assets.find(a=>a.id==='video-cave').url}:a)});store.getState().resume(id);
+ check('retry resets pending composition clock and retains completed scenes',()=>{assert.deepEqual(get().sceneAssemblyStarts,{});assert.deepEqual(get().readySceneIds,retained);});tick(500);tick(11000);tick(12500);
+ check('resumed production recovers all scenes before assembly',()=>{assert.equal(get().job.kind,'assembly');assert.equal(get().readySceneIds.length,12);});
+ writeFileSync('docs/scene-delivery-check.json',JSON.stringify({checks},null,2)+'\n');console.log(checks);
+}finally{await server.close();}

@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Check, ChevronDown, Film, Gamepad2, Image as ImageIcon, Layers, Loader2, PencilLine, Plus, Volume2, X } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowDown, ArrowUp, ChevronDown, Film, Gamepad2, Layers, ListOrdered, Loader2, Palette, PencilLine, Plus, X } from 'lucide-react';
 import type { MediaAsset, OutlineChapter, VideoProject, VideoSegment, WorkflowStage } from '../../data/videoCourseware/model';
 import { segmentLabels } from '../../data/videoCourseware/model';
 import { outlineIssues } from '../../data/videoCourseware/outline';
@@ -10,7 +10,10 @@ import GenerationPreferencePicker from '../Generator/GenerationPreferencePicker'
 import { AssetPreview, AudioPreview, VideoModal } from './Shared';
 import { ShotEditor } from './VideoPlanReview';
 import VideoResourceEditor from './VideoResourceEditor';
-import { runtimeURL, sendRuntimeSettings } from './runtime';
+import RequirementCard from '../Generator/RequirementCard';
+import ImageGenerationPanelV2 from '../Generator/ImageGenerationPanelV2';
+import AudioGenerationPanel from '../Generator/AudioGenerationPanel';
+import SceneDeliveryCard from './SceneDeliveryCard';
 import './outlineSceneFlow.css';
 
 function Kind({kind}:{kind:VideoSegment['kind']}){return <span className={'vc-kind vc-kind-'+kind}>{kind==='h5'?<Gamepad2 size={13}/>:kind==='mixed'?<Layers size={13}/>:<Film size={13}/ >}{kind==='video'?'视频页面':kind==='mixed'?'视频＋互动页面':'互动页面'}</span>;}
@@ -31,26 +34,28 @@ function Outline({project}:{project:VideoProject}){
  const chapters=project.chapters||[];
  function reorder(i:number,delta:number){const next=[...chapters];[next[i],next[i+delta]]=[next[i+delta],next[i]];store.update(project.id,{chapters:next});}
  function save(){if(!editing)return;store.update(project.id,{chapters:chapters.some(c=>c.id===editing.id)?chapters.map(c=>c.id===editing.id?editing:c):[...chapters,editing]});setEditing(null);}
- if(project.phase==='planning')return <section className="vc-card"><h3><Loader2 className="vc-spin" size={17}/>正在整理教学大纲</h3><p>根据需求与材料，整理本课讲什么、按什么顺序讲。</p></section>;
- return <section className="vc-card of-outline" data-video-plan={project.id}><div className="of-card-heading"><div><span className="of-step">01 · 教学大纲</span><h3>先确定这节课讲什么</h3><p>可修改章节内容、增删章节和调整顺序。</p></div><span className="of-status">{readOnly?'已确认':'待确认'}</span></div>
- <div className="vc-form"><label>教学目标<textarea aria-label="教学目标" readOnly={readOnly} value={project.framework.userRequirement} onChange={e=>store.update(project.id,{framework:{...project.framework,userRequirement:e.target.value}})}/></label></div>
- <div className="vc-tabs" role="tablist" aria-label="大纲与偏好"><button role="tab" aria-selected={tab==='outline'} className={tab==='outline'?'active':''} onClick={()=>setTab('outline')}>教学大纲</button><button role="tab" aria-selected={tab==='style'} className={tab==='style'?'active':''} onClick={()=>setTab('style')}>画面与配音</button></div>
- {tab==='style'?<Preferences project={project} readOnly={readOnly}/>:<div role="tabpanel"><div className="of-list-heading"><span>{chapters.length} 个章节</span>{!readOnly&&<button className="vc-text-btn" disabled={Boolean(editing)} onClick={()=>setEditing({id:crypto.randomUUID(),title:'',content:'',segmentIds:[]})}><Plus size={14}/>添加章节</button>}</div>
- <div className="of-chapters">{chapters.map((chapter,i)=><article key={chapter.id} className="of-chapter"><span className="of-number">{String(i+1).padStart(2,'0')}</span><div className="of-chapter-copy"><h4>{chapter.title}</h4><p>{chapter.content}</p>{removing===chapter.id&&<div className="of-delete"><span>删除本章及其后续场景安排？</span><button className="vc-btn" onClick={()=>setRemoving(null)}>取消</button><button className="vc-btn" onClick={()=>{store.update(project.id,{chapters:chapters.filter(c=>c.id!==chapter.id)});setRemoving(null);}}>删除章节</button></div>}</div>{!readOnly&&<div className="of-row-actions"><button className="vc-text-btn" aria-label={'编辑章节 '+chapter.title} onClick={()=>setEditing({...chapter})}><PencilLine size={14}/>编辑</button><div><button className="vc-icon" aria-label={'上移章节 '+chapter.title} disabled={!i} onClick={()=>reorder(i,-1)}><ArrowUp size={14}/></button><button className="vc-icon" aria-label={'下移章节 '+chapter.title} disabled={i===chapters.length-1} onClick={()=>reorder(i,1)}><ArrowDown size={14}/></button><button className="vc-icon" aria-label={'删除章节 '+chapter.title} disabled={chapters.length===1} onClick={()=>setRemoving(chapter.id)}><X size={14}/></button></div></div>}</article>)}</div></div>}
- {!readOnly&&<footer className="of-confirm"><p>确认后规划场景，并依次准备图片和配音。</p><button className="vc-btn primary" disabled={Boolean(outlineIssues(project).length)||!project.framework.userRequirement.trim()||Boolean(editing)} onClick={()=>confirmOutline(project.id)}>确认教学大纲，继续生成</button></footer>}
- <p className="of-demo-note">流程演示 · 使用已制作的示例素材，未接入在线生成服务</p>
+ if(project.phase==='planning')return <section className="vc-card vc-progress"><header><h3><Loader2 className="vc-spin" size={17}/>正在整理教学大纲</h3></header><p>根据需求与材料，整理本课内容和章节顺序。</p></section>;
+ const contents=<div className="vc-plan-body">
+  <label className="vc-plan-goal">教学目标<textarea aria-label="教学目标" readOnly={readOnly} value={project.framework.userRequirement} onChange={e=>store.update(project.id,{framework:{...project.framework,userRequirement:e.target.value}})}/></label>
+  <div className="vc-tabs vc-plan-tabs" role="tablist" aria-label="大纲与偏好"><button role="tab" aria-selected={tab==='outline'} className={tab==='outline'?'active':''} onClick={()=>setTab('outline')}><ListOrdered size={16}/>教学大纲</button><button role="tab" aria-selected={tab==='style'} className={tab==='style'?'active':''} onClick={()=>setTab('style')}><Palette size={16}/>画面与配音</button></div>
+  {tab==='style'?<Preferences project={project} readOnly={readOnly}/>:<div role="tabpanel"><div className="vc-plan-summary vc-outline-summary"><span>{chapters.length} 个章节</span><span>确认后规划视频与互动场景</span>{!readOnly&&<button className="vc-text-btn" disabled={Boolean(editing)} onClick={()=>setEditing({id:crypto.randomUUID(),title:'',content:'',segmentIds:[]})}><Plus size={14}/>添加章节</button>}</div>
+  <div className="vc-segments vc-segments-compact" role="region" aria-label="教学大纲章节列表" tabIndex={0}>{chapters.map((chapter,i)=><article key={chapter.id} className="vc-segment of-chapter"><span className="vc-order">{i+1}</span><div className="vc-segment-copy"><b>{chapter.title}</b><small>{chapter.content}</small>{removing===chapter.id&&<div className="of-delete"><span>删除本章及其后续场景安排？</span><button className="vc-btn" onClick={()=>setRemoving(null)}>取消</button><button className="vc-btn" onClick={()=>{store.update(project.id,{chapters:chapters.filter(c=>c.id!==chapter.id)});setRemoving(null);}}>删除章节</button></div>}</div>{!readOnly&&<div className="vc-segment-actions"><button className="vc-btn edit" aria-label={'编辑章节 '+chapter.title} onClick={()=>setEditing({...chapter})}><PencilLine size={13}/>编辑</button><button className="vc-icon" aria-label={'上移章节 '+chapter.title} disabled={!i} onClick={()=>reorder(i,-1)}><ArrowUp size={13}/></button><button className="vc-icon" aria-label={'下移章节 '+chapter.title} disabled={i===chapters.length-1} onClick={()=>reorder(i,1)}><ArrowDown size={13}/></button><button className="vc-icon" aria-label={'删除章节 '+chapter.title} disabled={chapters.length===1} onClick={()=>setRemoving(chapter.id)}><X size={13}/></button></div>}</article>)}</div></div>}
+ </div>;
+ return <div className="vc-workflow of-outline" data-video-plan={project.id}><RequirementCard title="视频互动课件教学大纲确认" framework={project.framework} readOnly={readOnly} bodyContent={contents}/>
+ {!readOnly&&<div className="vc-confirm-action"><button className="vc-btn primary" disabled={Boolean(outlineIssues(project).length)||!project.framework.userRequirement.trim()||Boolean(editing)} onClick={()=>confirmOutline(project.id)}>确认教学大纲，继续生成</button></div>}
  {editing&&<VideoModal title={chapters.some(c=>c.id===editing.id)?'编辑章节':'添加章节'} onClose={()=>setEditing(null)}><div className="vc-form"><label>章节名称<input aria-label="章节名称" value={editing.title} onChange={e=>setEditing({...editing,title:e.target.value})}/></label><label>本章主要内容<textarea aria-label="本章主要内容" value={editing.content} placeholder="说明这一章要讲的知识、故事或任务。" onChange={e=>setEditing({...editing,content:e.target.value})}/></label></div><footer className="vc-actions"><button className="vc-btn" onClick={()=>setEditing(null)}>取消</button><button className="vc-btn primary" disabled={!editing.title.trim()||!editing.content.trim()} onClick={save}>保存章节</button></footer></VideoModal>}
- </section>;
+ </div>;
 }
 function MaterialCards({project}:{project:VideoProject}){
  const [viewing,setViewing]=useState<MediaAsset|null>(null),[imagesOpen,setImagesOpen]=useState(true),[audioOpen,setAudioOpen]=useState(true);
  const images=project.assets.filter(a=>a.kind==='image'),audio=project.assets.filter(a=>a.kind==='audio');
- const imagesDone=images.every(a=>project.readyAssetIds.includes(a.id));
- const audioStarted=imagesDone&&project.job?.kind!=='scene-planning'&&project.job?.kind!=='images';
  const ready=(a:MediaAsset)=>project.readyAssetIds.includes(a.id);
- if(project.job?.kind==='scene-planning')return <section className="vc-card"><h3><Loader2 className="vc-spin" size={17}/>正在根据大纲规划场景</h3><p>整理每章需要的画面、台词和互动，随后开始准备图片。</p><Controls project={project}/></section>;
- return <><section className="vc-card"><div className="of-material-heading"><h3><ImageIcon size={18}/>图片生成 {imagesDone&&<Check size={16}/>}</h3><span>{images.filter(ready).length} / {images.length}</span><button aria-label="展开或收起图片" className="vc-icon" onClick={()=>setImagesOpen(!imagesOpen)}><ChevronDown size={16}/></button></div>{imagesOpen&&<div className="of-image-grid">{images.map(a=><button className="of-image-item" key={a.id} disabled={!ready(a)} onClick={()=>setViewing(a)}>{ready(a)?<img src={a.url} alt={a.name}/>:<div className="of-placeholder"><Loader2 className="vc-spin" size={19}/><span>准备中</span></div>}<b>{a.name}</b><small>{a.role}</small></button>)}</div>}</section>
- {audioStarted&&<section className="vc-card"><div className="of-material-heading"><h3><Volume2 size={18}/>音频生成 {audio.every(ready)&&<Check size={16}/>}</h3><span>{audio.filter(ready).length} / {audio.length}</span><button aria-label="展开或收起音频" className="vc-icon" onClick={()=>setAudioOpen(!audioOpen)}><ChevronDown size={16}/></button></div>{audioOpen&&project.speakers.map(s=><section key={s.id} className="of-audio-group"><h4>{s.name} · {s.voiceName}</h4><div className="of-audio-grid">{audio.filter(a=>a.speakerId===s.id).map(a=><div className="of-audio-item" key={a.id}><div><b>{a.name}</b><small>{a.seconds?`${a.seconds.toFixed(1)} 秒`:''}</small></div>{ready(a)?<><AudioPreview url={a.url}/><button className="vc-text-btn" onClick={()=>setViewing(a)}>文本</button></>:<Loader2 size={16} className="vc-spin"/>}</div>)}</div></section>)}</section>}
+ const imagesDone=images.every(ready);
+ const audioStarted=imagesDone&&project.job?.kind!=='scene-planning'&&project.job?.kind!=='images';
+ const stateFor=(items:MediaAsset[])=>{const count=items.filter(ready).length;return {status:count===items.length?'completed':project.phase==='failed'?'failed':project.phase==='paused'?'paused':'in-progress',progress:Math.round(count/Math.max(1,items.length)*100),detail:'已完成 '+count+' / '+items.length+' 项',error:project.error} as const;};
+ if(project.job?.kind==='scene-planning')return <section className="vc-card vc-progress"><header><h3><Loader2 className="vc-spin" size={17}/>正在根据大纲规划场景</h3></header><p>整理每章需要的画面、台词和互动，随后开始准备图片。</p><Controls project={project}/></section>;
+ return <><div className="vc-generation-cards"><ImageGenerationPanelV2 stage={stateFor(images)} items={images.map(a=>({id:a.id,label:a.name,src:ready(a)?a.url:undefined,prompt:a.role||a.prompt,status:ready(a)?'completed':'generating'}))} isExpanded={imagesOpen} onToggle={()=>setImagesOpen(!imagesOpen)} onPreview={a=>setViewing(images.find(x=>x.id===a.id)!)} onRetry={()=>useVideoCoursewareStore.getState().resume(project.id)}/>
+ {audioStarted&&<AudioGenerationPanel stage={stateFor(audio)} items={audio.map(a=>({id:a.id,label:a.name,url:ready(a)?a.url:undefined,type:'tts',duration:a.seconds,status:ready(a)?'completed':'generating'}))} groups={project.speakers.map(s=>({id:s.id,label:s.name+' · '+s.voiceName,itemIds:audio.filter(a=>a.speakerId===s.id).map(a=>a.id)}))} isExpanded={audioOpen} onToggle={()=>setAudioOpen(!audioOpen)} onPreview={a=>setViewing(audio.find(x=>x.id===a.id)!)} onRetry={()=>useVideoCoursewareStore.getState().resume(project.id)}/>}</div>
  {['images','audio'].includes(project.job?.kind||'')&&<Controls project={project}/>}
  {viewing&&<VideoModal title={viewing.name} onClose={()=>setViewing(null)}><AssetPreview asset={viewing}/></VideoModal>}
  </>;
@@ -63,7 +68,7 @@ function SceneCard({project,scene,index,readOnly}:{project:VideoProject;scene:Vi
  function save(){
   if(!draft)return;
   const patch=synchronizeSegment(project,draft),next={...project,...patch};
-  store.update(project.id,{...patch,shots:buildVideoShots(next),approvedMaterialsKey:materialsKey(next),readySceneIds:project.readySceneIds?.filter(id=>id!==scene.id)});setDraft(null);
+  store.update(project.id,{...patch,shots:buildVideoShots(next),approvedMaterialsKey:materialsKey(next),readySceneIds:project.readySceneIds?.filter(id=>id!==scene.id),readyPageIds:project.readyPageIds?.filter(id=>id!==scene.id)});setDraft(null);
  }
  return <article className="of-scene" data-scene-id={scene.id}><div className="of-scene-summary"><div className="of-scene-image">{thumbnail?<img src={thumbnail.url} alt={thumbnail.name}/>:<Gamepad2 size={25}/>}</div><div className="of-scene-copy"><span className="of-scene-index">场景 {index+1}</span><h4>{scene.title}</h4><Kind kind={scene.kind}/></div><button className="vc-text-btn" aria-expanded={expanded} onClick={()=>setExpanded(!expanded)}>{expanded?'收起':'查看方案'}<ChevronDown size={15}/></button></div>
  <p className="of-scene-description">{scene.content}</p>
@@ -78,23 +83,10 @@ function SceneCard({project,scene,index,readOnly}:{project:VideoProject;scene:Vi
 }
 function Scenes({project,readOnly}:{project:VideoProject;readOnly:boolean}){
  const issues=videoPlanIssues(project);
- return <section className="vc-card of-scene-plan"><div className="of-card-heading"><div><span className="of-step">02 · 场景方案</span><h3>确认每一场怎么呈现</h3><p>{project.chapters?.length} 个章节 · {project.segments.length} 个场景方案</p></div><span className="of-status">{readOnly?'已确认':'待确认'}</span></div><p className="of-plan-intro">图片与配音已放入对应场景。查看画面、台词和互动内容，需要调整的部分可单独修改。</p>
+ return <section className="vc-card of-scene-plan"><div className="vc-card-header"><div><h3><Film size={17}/>完整场景方案确认</h3><p>{project.chapters?.length} 个章节 · {project.segments.length} 个场景方案</p></div><span className="vc-kind">{readOnly?'已确认':'可编辑'}</span></div><p className="of-plan-intro">图片与配音已放入对应场景。查看画面、台词和互动内容，需要调整的部分可单独修改。</p>
  {project.chapters?.map((c,i)=><section className="of-scene-chapter" key={c.id}><header><span>{String(i+1).padStart(2,'0')}</span><div><h4>{c.title}</h4><small>{project.segments.filter(s=>s.chapterId===c.id).length} 个场景</small></div></header>{project.segments.filter(s=>s.chapterId===c.id).map(s=><SceneCard key={s.id} project={project} scene={s} index={project.segments.indexOf(s)} readOnly={readOnly}/>)}</section>)}
  {!readOnly&&<footer className="of-confirm"><p>确认后生成视频与互动页面，再统一剪辑交付。</p>{issues.length>0&&<div role="alert">{[...new Set(issues)].map(x=><p className="vc-error" key={x}>{x}</p>)}</div>}<button className="vc-btn primary" disabled={Boolean(issues.length)} onClick={()=>confirmVideoPlan(project.id)}>确认全部场景，生成课件</button></footer>}
  </section>;
-}
-function Production({project}:{project:VideoProject}){
- const [viewing,setViewing]=useState<MediaAsset|null>(null),[sceneId,setSceneId]=useState<string|null>(null);
- const preview=useRef<HTMLIFrameElement>(null);
- const videos=project.assets.filter(a=>a.kind==='video'),done=videos.filter(a=>project.readyAssetIds.includes(a.id)).length;
- const pages=project.segments.filter(s=>s.kind!=='video');
- const h5Started=['h5','assembly'].includes(project.job?.kind||'')||project.phase==='ready';
- return <><section className="vc-card"><h3><Film size={18}/>{done===videos.length?'视频已准备好':'视频生成'}<span className="of-count">{done} / {videos.length}</span></h3><div className="of-image-grid">{videos.map(a=><button className="of-image-item" key={a.id} disabled={!project.readyAssetIds.includes(a.id)} onClick={()=>setViewing(a)}>{project.readyAssetIds.includes(a.id)?<img src={a.poster||project.assets.find(x=>x.id===a.videoInputs?.firstFrameId)?.url} alt={a.name}/>:<div className="of-placeholder"><Loader2 size={20} className="vc-spin"/></div>}<b>{a.name}</b><small>{a.seconds} 秒</small></button>)}</div></section>
- {h5Started&&<section className="vc-card"><h3><Gamepad2 size={18}/>互动页面生成<span className="of-count">{pages.filter(s=>project.readySceneIds?.includes(s.id)).length} / {pages.length}</span></h3><div className="of-page-results">{pages.map(s=><div key={s.id}><span>{s.title}</span>{project.readySceneIds?.includes(s.id)?<button className="vc-text-btn" onClick={()=>setSceneId(s.id)}>预览</button>:<Loader2 size={16} className="vc-spin"/>}</div>)}</div></section>}
- {['video','h5'].includes(project.job?.kind||'')&&<Controls project={project}/>}
- {viewing&&<VideoModal title={viewing.name} onClose={()=>setViewing(null)}><AssetPreview asset={viewing}/></VideoModal>}
- {sceneId&&<VideoModal title={project.segments.find(s=>s.id===sceneId)?.title||'页面预览'} onClose={()=>setSceneId(null)}><iframe ref={preview} onLoad={()=>sendRuntimeSettings(preview.current?.contentWindow,project,project.composition)} className="of-preview" title="互动页面预览" src={runtimeURL(project,project.composition,sceneId)} allow="autoplay; fullscreen"/></VideoModal>}
- </>;
 }
 export default function OutlineSceneFlow({project,stage,runId}:{project:VideoProject;stage:WorkflowStage;runId?:string}){
  const old=Boolean(project.workflowRuns?.[stage]&&runId!==project.workflowRuns[stage]);
@@ -102,5 +94,6 @@ export default function OutlineSceneFlow({project,stage,runId}:{project:VideoPro
  const current=snapshot?{...project,...snapshot,phase:'ready' as const,job:undefined}:project;
  if(stage==='plan')return <Outline project={project}/>;
  if(!old&&['planning','plan'].includes(project.phase))return null;
- return <div className="vc-workflow of-flow" data-workflow-stage={stage}>{stage==='assets'?<MaterialCards project={current}/>:stage==='video-plan'?<Scenes project={current} readOnly={old||project.phase!=='assets-review'}/>:stage==='production'?<Production project={current}/>:<section className="vc-card"><h3>{current.phase==='assembling'?<Loader2 size={18} className="vc-spin"/>:<Check size={18}/>}剪辑与整课交付</h3><p>{current.phase==='assembling'?'对齐配音、字幕与画面，连接视频和互动页面。':'视频与互动页面已组合为一份课件。'}</p>{current.phase==='assembling'&&<Controls project={current}/>}</section>}</div>;
+ if(stage==='assembly'||(stage==='production'&&old))return null;
+ return <div className="vc-workflow of-flow" data-workflow-stage={stage}>{stage==='assets'?<MaterialCards project={current}/>:stage==='video-plan'?<Scenes project={current} readOnly={old||project.phase!=='assets-review'}/>:<SceneDeliveryCard project={current}><Controls project={current}/></SceneDeliveryCard>}</div>;
 }

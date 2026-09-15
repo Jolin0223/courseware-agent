@@ -1,0 +1,16 @@
+{
+  "checks": [
+    {
+      "name": "edge hover auto scrolls and moves first chapter to last",
+      "passed": true
+    },
+    {
+      "name": "cancelled pointer gesture leaves saved order intact",
+      "passed": true
+    },
+    {
+      "name": "narrow outline has no horizontal overflow",
+      "passed": true
+    }
+  ]
+}

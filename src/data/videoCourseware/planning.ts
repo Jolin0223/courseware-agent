@@ -57,7 +57,7 @@ export function buildVideoShots(project:VideoProject):VideoShot[] {
       lastFrameId:prior?prior.lastFrameId:video.videoInputs?.lastFrameId,
       references:prior?.references||video.videoInputs?.references||[],
       audioCues,audioIds:audioCues.map(c=>c.assetId),
-      seconds:Math.max(prior?.seconds||video.seconds||segment.seconds,...audioCues.map(c=>Math.ceil((c.start+cueDuration(c)+.2)*10)/10)),
+      seconds:Math.max(prior?.seconds||video.seconds||segment.seconds,...audioCues.map(c=>c.start+cueDuration(c)+.2)),
       action:segment.visual,ending:segment.transition,prompt:prior?.prompt||'',sourceKey:''};
     if(!shot.prompt)shot.prompt=shotPrompt(project,shot);
     shot.sourceKey=shotSourceKey(project,video,shot);

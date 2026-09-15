@@ -1,0 +1,992 @@
+{
+  "version": "V33_20260915",
+  "goals": "面向小学一年级。认识“雨”是独体字，观察“雪”等字中的雨字头；认读雨、雪、雷、霞、雾及其词义；理解雨字头多和降水、天气现象有关，区分词义与字形；在田字格描写雨、雪，由老师观察确认。",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "故事导入与学习任务",
+      "content": "悟空被火焰山阻挡，想到借芭蕉扇，需完成汉字任务获得线索。展示本关“移石识字、点石学写、答题闯关”三个环节。",
+      "segmentIds": [
+        "cover",
+        "opening",
+        "mission"
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "寻找线索：搬石发现“雨”",
+      "content": "腾云来到洞口，发现三块石头挡路；悟空邀请把发光石头向左搬开，露出雨字卡。",
+      "segmentIds": [
+        "arrival",
+        "move",
+        "discover"
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "认识汉字：雨与雨字头",
+      "content": "展示雨为独体字；以雪示范雨字头；切换雪雷霞雾与天气插画，听单字和组词；归纳共同偏旁与语义。",
+      "segmentIds": [
+        "learn"
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "写一写：描写“雨、雪”",
+      "content": "观察田字格位置，跟浅色字描写雨与雪，由老师检查。",
+      "segmentIds": [
+        "trace"
+      ]
+    },
+    {
+      "id": "chapter-5",
+      "title": "试一试：两道雨字头机关",
+      "content": "第一题辨字形，第二题归纳雨字头与天气的联系；正误反馈引导继续观察。",
+      "segmentIds": [
+        "quiz1",
+        "quiz2"
+      ]
+    },
+    {
+      "id": "chapter-6",
+      "title": "线索到手：本关总结",
+      "content": "悟空说“线索到手”，正式雨字徽章被收集；回顾雪雷霞雾和“多和降水、天气现象有关”。",
+      "segmentIds": [
+        "outro",
+        "finish"
+      ]
+    }
+  ],
+  "sceneContents": {
+    "cover": "展示《悟空借芭蕉扇》的封面、悟空和“石头里的汉字”主题。播放现有开场录音，点击“开始闯关”进入故事。",
+    "opening": "用15秒连续视频讲述悟空被火焰山挡住、想借芭蕉扇、需要闯过汉字关的故事。依次播放三句原旁白并显示字幕；芭蕉扇只出现在悟空的想象中，此时尚未获得真扇。",
+    "mission": "悟空站在云上发出闯关邀请，旁边展示“移石识字、点石学写、答题闯关”三张任务卡。说完后安静停留，点击任务卡可听对应说明，点击出发继续。",
+    "arrival": "连续播放腾云、到达洞口、发现发光石头三个片段，共17.784秒。悟空说“终于找到洞口了！可入口又被石头挡住了。”随后发现石头发光，自然引出搬石任务。",
+    "move": "先播放6秒搬石邀请，悟空请大家帮忙搬开石头。随后进入可拖动的洞口画面：悟空看向左侧石头，学生拖开石头，逐渐露出里面的“雨”字；完成后进入认字。",
+    "discover": "搬开石头后，显示完整的“雨”字卡与悟空。悟空发现石头后藏着“雨”字，学生点击汉字进入学习。",
+    "learn": "展示雨 yǔ、雪 xuě、雷 léi、霞 xiá、雾 wù五个字及天气图，点击字卡听读音和说明。先认识“雨”是独体字，再以“雪”示范雨字头，观察雨字头的变化，理解它多与降水、天气有关。",
+    "trace": "在田字格中描写“雨、雪”，听取描写指导后，观察浅色范字并描写。由老师观察书写并确认完成，再进入答题闯关。",
+    "quiz1": "题目：哪个词语里，藏着“雨字头”的字？选项：雷电／降水／大风。正确答案：雷电。点击选项后获得对应反馈，选错可以重试；区分字形偏旁与词义，不能因为“降水”和水有关就认定有雨字头。",
+    "quiz2": "题目：雨字头的字，大多和什么有关？选项：降水、天气／心情、想法／金属、工具。正确答案：降水、天气。点击选项后听反馈，选错可复习雨字头说明并重试，答对后获得线索。",
+    "outro": "悟空播放6秒庆祝视频并说出获得线索的台词。台词说到线索时显示“雨”字徽章，再进入本关总结。此时获得的是找扇线索，还没有拿到真正的芭蕉扇。",
+    "finish": "展示本关完成的庆祝画面与悟空，回顾雪、雷、霞、雾及雨字头的含义，并提供复习与重新闯关入口。强调找到了芭蕉扇线索，不提前宣告已经借到真扇。"
+  },
+  "assets": [
+    {
+      "id": "cave",
+      "kind": "image",
+      "name": "洞口白天背景",
+      "url": "/wukong/assets/images/v3/G01_cave_daylight.png",
+      "prompt": "输出文件：G01_cave_daylight.png\n参考图：C00；只参考它的材质和配色，不把角色画入背景\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n制作一张明亮、令人想去探索的童话仙山洞口。视角平视、正面略带自然纵深。外侧是圆润的浅暖灰与奶油色山石，几片柔软薄荷绿藤叶，明亮青草地，边缘点缀极少小花；画面上方与远侧能感受到晴朗天空和柔和日光。山石有细腻体积、柔软倒角和少量自然纹理，不用灰黑碎石拼贴。\n洞口位于画面中心偏左，约横向35%—68%、纵向25%—78%；洞内为由青绿过渡到柔和深蓝的可读空间，能辨认一点内壁，不是大块纯黑色洞。洞穴虽有神秘感，但整个画面仍然是明亮温暖的日间场景。\n前景中央留出连续、平缓、干净的地面，供H5叠加三块石头；画面左侧18%—32%区域留出石头拖动落点；右侧80%—96%留给独立悟空角色，不放突出的树干、装饰或石块。顶部12%、底部18%减少细节，便于放教学控件。\n背景里不画悟空或其他角色，不画任何挡门石头、扇子、汉字卡、箭头、光圈、宝箱或发光奖励。不要复刻旧PPT的洞口轮廓。\n\n输出单张完整场景PNG，画面填满，不加边框。目标尺寸1920×1080，16:9。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "move",
+        "discover",
+        "learn",
+        "trace",
+        "quiz1",
+        "quiz2",
+        "outro"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "character",
+      "kind": "image",
+      "name": "悟空主形象",
+      "url": "/wukong/assets/images/v3/C00_wukong_master.png",
+      "prompt": "输出文件：C00_wukong_master.png\n参考图：无；从零创作，不上传原PPT孙悟空或V2角色作为外貌参考\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n角色外观固定：约2.5头身的小悟空，头大身小、头与身体连接自然，圆润的耳朵、短手短腿、灵活的小尾巴；浅焦糖色毛发以干净色块表现，杏米色圆润脸盘，深棕大眼睛有清楚眼白和少量自然高光，柔和眉毛，小鼻子，微微上扬的闭口微笑，脸颊只有小面积暖桃色。细暖金色紧箍，暖黄色短褂、奶油白内衫、珊瑚橙小围巾、深青绿色短裤、棕色短靴。金箍棒为红棕色棒身与柔和金色两端，造型简洁。机灵、勇敢、友善，是陪一年级孩子学习的小伙伴。\n只画一个完整角色，四分之三正面，脸朝向观众稍偏左；自然站立，一手轻扶立在身体右侧的金箍棒，另一手自然张开像在邀请伙伴。双脚同一基线，头顶、耳朵、尾巴、手和金箍棒全部完整，人物约占画布高度80%。不站在云上，不带文字、场景、道具底座，不做多视图设定板。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸1024×1536，2:3。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "mission",
+        "arrival",
+        "outro"
+      ],
+      "role": "角色形象"
+    },
+    {
+      "id": "hero-discover",
+      "kind": "image",
+      "name": "悟空发现姿态",
+      "url": "/wukong/assets/images/v3/C01_wukong_discover.png",
+      "prompt": "输出文件：C01_wukong_discover.png\n参考图：C00，必须使用已确认的同一张角色基准图\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n角色外观固定：约2.5头身的小悟空，头大身小、头与身体连接自然，圆润的耳朵、短手短腿、灵活的小尾巴；浅焦糖色毛发以干净色块表现，杏米色圆润脸盘，深棕大眼睛有清楚眼白和少量自然高光，柔和眉毛，小鼻子，微微上扬的闭口微笑，脸颊只有小面积暖桃色。细暖金色紧箍，暖黄色短褂、奶油白内衫、珊瑚橙小围巾、深青绿色短裤、棕色短靴。金箍棒为红棕色棒身与柔和金色两端，造型简洁。机灵、勇敢、友善，是陪一年级孩子学习的小伙伴。\n必须保持C00的脸、头身比、服装、发型、配色、光线方向和角色大小一致，只改变表情与规定手势。一只手轻轻摊开，另一只手扶着金箍棒，眼睛稍亮、眉毛轻扬，嘴巴是小小的惊喜微笑，看向画面左侧的发现。表情像“咦，发现了！”，不张大嘴、不瞪眼。\n仍为同一四分之三正面机位；脚底基线、头部中心和金箍棒所在侧与C00相同。完整全身，约占画布高度80%。只出一个角色，不做表情合集或多视图。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸1024×1536，2:3。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "discover",
+        "learn"
+      ],
+      "role": "角色形象"
+    },
+    {
+      "id": "hero-encourage",
+      "kind": "image",
+      "name": "悟空鼓励姿态",
+      "url": "/wukong/assets/images/v3/C02_wukong_encourage.png",
+      "prompt": "输出文件：C02_wukong_encourage.png\n参考图：C00，必须使用已确认的同一张角色基准图\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n角色外观固定：约2.5头身的小悟空，头大身小、头与身体连接自然，圆润的耳朵、短手短腿、灵活的小尾巴；浅焦糖色毛发以干净色块表现，杏米色圆润脸盘，深棕大眼睛有清楚眼白和少量自然高光，柔和眉毛，小鼻子，微微上扬的闭口微笑，脸颊只有小面积暖桃色。细暖金色紧箍，暖黄色短褂、奶油白内衫、珊瑚橙小围巾、深青绿色短裤、棕色短靴。金箍棒为红棕色棒身与柔和金色两端，造型简洁。机灵、勇敢、友善，是陪一年级孩子学习的小伙伴。\n必须保持C00的脸、头身比、服装、发型、配色、光线方向和角色大小一致，只改变表情与规定手势。身体微微前倾，一只手轻放胸前，另一只手扶金箍棒；温柔地微笑，目光看向左前方，像在陪同学一起想办法。绝不皱眉责怪，不竖手指说教，不哭脸或失望脸。\n仍为同一四分之三正面机位；脚底基线、头部中心和金箍棒所在侧与C00相同。完整全身，约占画布高度80%。只出一个角色，不做表情合集或多视图。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸1024×1536，2:3。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "mission",
+        "quiz1",
+        "quiz2"
+      ],
+      "role": "角色形象"
+    },
+    {
+      "id": "hero-celebrate",
+      "kind": "image",
+      "name": "悟空庆祝姿态",
+      "url": "/wukong/assets/images/v3/C03_wukong_celebrate.png",
+      "prompt": "输出文件：C03_wukong_celebrate.png\n参考图：C00，必须使用已确认的同一张角色基准图\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n角色外观固定：约2.5头身的小悟空，头大身小、头与身体连接自然，圆润的耳朵、短手短腿、灵活的小尾巴；浅焦糖色毛发以干净色块表现，杏米色圆润脸盘，深棕大眼睛有清楚眼白和少量自然高光，柔和眉毛，小鼻子，微微上扬的闭口微笑，脸颊只有小面积暖桃色。细暖金色紧箍，暖黄色短褂、奶油白内衫、珊瑚橙小围巾、深青绿色短裤、棕色短靴。金箍棒为红棕色棒身与柔和金色两端，造型简洁。机灵、勇敢、友善，是陪一年级孩子学习的小伙伴。\n必须保持C00的脸、头身比、服装、发型、配色、光线方向和角色大小一致，只改变表情与规定手势。一只手在肩膀附近比一个小小的胜利手势，另一只手扶金箍棒；眼睛自然弯起，露出开心自信的笑容，双脚仍在地面。不要跳出画框、不要挥舞武器，不露夸张牙齿，不加彩纸雨。\n仍为同一四分之三正面机位；脚底基线、头部中心和金箍棒所在侧与C00相同。完整全身，约占画布高度80%。只出一个角色，不做表情合集或多视图。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸1024×1536，2:3。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "quiz1",
+        "quiz2"
+      ],
+      "role": "角色形象"
+    },
+    {
+      "id": "rock",
+      "kind": "image",
+      "name": "可拖拽石头",
+      "url": "/wukong/assets/images/v3/P01_draggable_rock.png",
+      "prompt": "输出文件：P01_draggable_rock.png\n参考图：G01\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n制作单个儿童冒险游戏石头道具。外形是一块略扁、厚实、圆角的天然卵石，宽高约1.55:1，正面有一块较宽的浅暖灰平面，边缘与侧面有少量浅蓝灰体积。石头大小适合小悟空双手抱起，感觉稳重但不压迫。\n采用和明亮仙山场景相同的精致哑光3D质感，柔软倒角，只有两三处自然裂隙或浅纹理，细节克制。左上方柔和日光，右下侧略暗但不黑。石头表面不画字，不发光，不加青苔遮挡中央，不做金属或水晶，不做锋利岩片。石头正面完整，构图居中，便于H5整体拖动。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸1024×768，4:3。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "mission",
+        "move",
+        "discover"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "learning-panel",
+      "kind": "image",
+      "name": "学习面板",
+      "url": "/wukong/assets/images/v3/U01_learning_panel.png",
+      "prompt": "输出文件：U01_learning_panel.png\n参考图：C00、G01、U02\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n设计一块单独的横向儿童西游学习任务板，正面平视、左右基本对称。主体是一块奶油白的平整大面板，四角大而圆，薄薄的浅蓝与薄荷绿分层边缘有精致哑光厚度。上沿中部放一个很小的暖金云形扣，底部两角各有一小片绿叶和一朵软白云，让它像仙山里拿到的学习道具，不像办公软件窗口。\n中间横向10%—90%、纵向14%—88%的区域必须是均匀、连续、明亮的空白卡面，没有插画、纹理、裂缝、分隔线、格子、投影或按钮，供网页放教学内容。装饰仅存在于窄边框和极少边角，装饰总面积控制在约12%以内。\n外部背景透明，面板中心不透明。不要画场景、猴子、文字、汉字、拼音、图标、题目、选项、按钮或示例内容。不要卷曲纸面、古旧卷轴、棕色木牌或沉重金框。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸1600×800，2:1。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "learn",
+        "trace",
+        "quiz1",
+        "quiz2"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "badge",
+      "kind": "image",
+      "name": "正式雨字徽章底图",
+      "url": "/wukong/assets/images/v3/U05_rain_reward.png",
+      "prompt": "输出文件：U05_rain_reward.png\n参考图：C00、U02\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n一个精致可爱的西游识字奖励徽章，主体是圆润的浅天空蓝水滴形玉佩，边缘一圈很薄的暖金色框，下方托着一小团奶油白祥云。水滴表面为柔和哑光玉石材质，有适度通透感，绝不高光刺眼。\n水滴中央留一块浅奶油色圆润空白区域，占主体正面约一半，供H5叠加大汉字。周围只允许两三颗小而克制的光点，不能把闪光画成铺满整个画布的光雾。单个徽章正对镜头，外部真实透明，不画汉字、拼音、数字、奖杯、扇子或完整关卡场景。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸1024×1024，1:1。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "quiz1",
+        "quiz2",
+        "outro"
+      ],
+      "role": "场景素材",
+      "overlay": {
+        "sceneId": "outro"
+      }
+    },
+    {
+      "id": "hero-move-left",
+      "kind": "image",
+      "name": "搬石引导悟空",
+      "url": "/wukong/assets/images/v33/C02_wukong_look_left.png",
+      "prompt": "Use case: identity-preserve, precise-object-edit. Edit target: supplied transparent full-body Wukong character PNG. Create a corrected standalone transparent PNG sprite for the rock-dragging teaching scene. Primary change: Wukong stands on the RIGHT of the page and MUST LOOK TO SCREEN LEFT at the glowing rock near his eye height. Turn his head/face modestly toward SCREEN LEFT (viewer's left), and direct BOTH pupils clearly toward SCREEN LEFT, slightly down toward a rock at chest-to-eye level. Eyes coordinated, not crossed, warm attentive encouraging small smile. Keep original recognisable baby Wukong identity, face proportions, plush detailed 3D storybook rendering, orange-brown fur, gold curled headband, red scarf and belt, yellow tunic, cream cuffs, teal shorts, brown boots, tail. Preserve original full body standing pose and original hands: staff remains at SCREEN RIGHT held by the same hand, free hand by chest. Do NOT mirror whole character or switch hands. Do not add gestures, objects, stone, scenery, text or frame. Preserve framing/full-body scale and headroom as closely as possible, all boots staff tail fully visible. Actual alpha transparency outside character, no checkerboard, no white/black matte. Only head orientation and eye direction should materially change. Output portrait 2:3 same composition as original.\n\n后期：原图以本地抠图保留透明通道，角色缩放/位置由H5沿用原参数；目光指向画面左侧石头。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "move"
+      ],
+      "role": "角色形象"
+    },
+    {
+      "id": "cover",
+      "kind": "image",
+      "name": "封面整幅底图",
+      "url": "/wukong/assets/images/v10/cover.png",
+      "prompt": "以本包“封面整幅底图.png”为图生图参考，重建明亮Q版3D西游识字游戏封面，16:9。保留蓝天白云、浅米色藤蔓仙山、发光青蓝洞口和前景青草花朵的电影动画质感。左半部保留清晰的立体标题“悟空借芭蕉扇”，副标题“石头里的汉字”，上方小标题“西游识字奇遇 · 第一关”，说明“跟着悟空搬石闯关，找到‘雨字头’的秘密。”，下方金色按钮“开始闯关”。右侧保留独立悟空跃入的空位，不生成孙悟空或任何人物，不与后期角色重叠。固定中文文字直接绘入封面，其余交互由H5处理。不得新增章节、已借到扇子的结局、Logo或水印。优先直接复用本包确认后的成图；如严格复刻，不重新生成。",
+      "promptStatus": "按最终资产重建，非平台原始提交词",
+      "segmentIds": [
+        "cover"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "cover-hero",
+      "kind": "image",
+      "name": "封面悟空",
+      "url": "/wukong/assets/images/v24/cover-wukong.png",
+      "prompt": "Generate one independent transparent PNG character asset for the cover of a children's Chinese learning game. Preserve EXACT identity from reference: adorable toddler-proportioned Sun Wukong, large round brown eyes, peach cheeks, orange-brown fur, gold curled headband, red scarf and waist sash, yellow jacket with ivory crossed front, teal short trousers, brown boots, red staff with gold ends. Change POSE into a spirited 'come adventure with me' invitation: a three-quarter body leaning forward toward viewer-left, one knee raised in a bounding step and other leg extended behind, weight and momentum clearly visible; rightmost hand securely grips staff held diagonally behind the shoulder with entire staff inside frame; leftmost hand reaches toward viewer with open inviting palm and naturally curved fingers, face turned to viewer, lively warm open smile, eyebrows lifted, not aggressive. Scarf tails and curled monkey tail trail backwards to convey movement. Pose silhouette clear and asymmetrical, not a stiff upright stand, not a victory fist. Whole body fully visible with 6% safe margin, no cropped shoes or staff. Same premium softly lit three-dimensional cartoon/fabric/fur texture as reference. One single character only, no additional animals, no words, no scenery, no cloud platform or ground. Genuinely transparent alpha background, NOT painted checkerboard. Vertical PNG asset, ready to overlay on existing cover.",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "cover"
+      ],
+      "role": "角色形象"
+    },
+    {
+      "id": "mission-background",
+      "kind": "image",
+      "name": "任务页云海底图",
+      "url": "/wukong/assets/images/v17/mission-cloud-master.png",
+      "prompt": "Create a NEW full 16:9 master background frame for a first-grade Sun Wukong interactive lesson mission page. Match the exact friendly toy-like 3D Q-version Sun Wukong in the reference: golden monkey hair, gold circlet, red neck scarf, yellow jacket, dark green short trousers, brown boots, long red/gold staff, expressive round brown eyes. NEW COMPOSITION: show one full-body Wukong in the LEFT quarter, centered at x=22% of canvas, feet at 89% height, top of head around 35%, facing viewer with friendly ready-to-go grin. Left free hand open invitingly toward the broad EMPTY RIGHT side, right hand holding staff upright, no extra arms. He stands on a low soft rounded golden-white somersault cloud at lower left with feet visibly planted, ready to ride the cloud after a button click. The setting is a bright warm peach-cream cloud terrace high above distant green Chinese fairytale mountains. Subtle atmospheric depth, curved soft clouds along bottom edge and far left, a distant small warm-orange mountain near left edge; refined luminous 3D cartoon rendering. Reserve top 25% and right 60% as very quiet pale ivory/peach sky, nearly flat soft color, suitable for dark large text and three HTML task rows. No landmarks, characters, cloud swirls or ornament behind those text regions. Landscape serves the story without distracting. NO text, letters, numbers, logos, speech bubble, cards, panels, borders, buttons, UI, checkboxes, stars over text area. No fan. Camera eye-level full shot, normal lens, no fisheye. Output one coherent beautiful 16:9 background image with Wukong physically in the world, not separate stickers. Character identity must match reference, but do NOT retain old volcano background or right-side character placement.",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "mission"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "rain-card",
+      "kind": "image",
+      "name": "发现雨字卡底图",
+      "url": "/wukong/assets/images/v3/U02_character_card.png",
+      "prompt": "输出文件：U02_character_card.png\n参考图：C00、G01；只参考统一材质与配色\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n设计一张可以拿在手里的儿童西游“汉字玉牌”空白卡底。单张竖卡，四个角圆润，奶油白的平整卡面，外缘为薄薄的暖金与淡天空蓝分层边框，带很轻的玉石光泽和精致柔和的厚度，不做昂贵珠宝感。顶部是小小的云纹挂饰，底部边角有一片很小的薄荷绿叶，不要堆满星星或装饰。\n画布中间横向18%—82%、纵向19%—78%为连续空白的浅色卡面，完全没有纹理、图案、字和高光，以便H5放拼音和大汉字。中央汉字区不能被云朵遮挡。外侧透明，卡面不透明。卡牌正对镜头，不倾斜，不透视变形，不画字、不画田字格、不画示意文字。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸768×1024，3:4。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "discover"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "panel",
+      "kind": "image",
+      "name": "答题石头底图",
+      "url": "/wukong/assets/images/v20/A01.png",
+      "prompt": "制作一张用于小学一年级西游识字互动游戏的独立石头机关道具。参考上传石头的圆润比例与现有明亮Q版3D国风卡通风格，正面略俯视，一块横向略宽的暖灰米白石头，整体圆润厚实，边缘柔和，具有细腻砂石纹理与浅浅自然裂纹；中央约宽55%、高45%的表面平整、浅奶油色，干净完整留白，用于后期叠加两个或四个汉字，不能有裂纹、纹饰或阴影穿过中央文字区。石头底部有一小簇柔软浅绿色草叶、两三朵很小的奶白与淡黄花，以及自然柔和的接地阴影；所有草叶只在底部15%内，不能遮住石头中心。柔和左上方日光，清晰精致的玩具动画电影材质，与蓝天仙山、奶油金边教学面板协调。一个道具完整居中，四周保留8%透明边距。1024×1024，真正透明背景，单一石头，无场景背景、无人物、无文字、无拼音、无编号、无勾叉、无金光选中态、无水印、无白色背景、无透明棋盘格图案。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "quiz1",
+        "quiz2"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "finish",
+      "kind": "image",
+      "name": "成功页整幅底图",
+      "url": "/wukong/assets/images/v21/finish-background.png",
+      "prompt": "Use case: scientific-educational illustration. Create the FINAL polished 16:9 1920x1080 background for a Chinese first-grade Journey to the West victory screen, based closely on the attached preferred reference composition. Preserve its premium bright illustrated 3D cartoon textures, lush leafy foreground corners, distant blue-green mountains and luminous sky, large cream parchment panel with elegant jade green and gold border. MAIN GOAL: match the reference's confident oversized dimensional GOLD title lettering and hierarchy, NOT an empty scroll with small flat text. Bake exactly these Chinese texts into the image: at top center huge sculpted gold-orange raised letters '闯关成功'; directly beneath on rich green ribbon '第一块石头，搬开啦！'. At right lower-middle print '雨字头的字，多和降水、天气现象有关。' in dark teal with '降水、天气现象' warm orange. At bottom of panel an elegant thin bordered cream clue ribbon with small magnifying glass and exact text '带上线索，下次继续寻找“心”的秘密。'. Outside panel at bottom center two beautiful drawn buttons: left cream gold-edged with curved replay arrow and text '再闯一次', right teal jade with small open book icon and text '再看汉字卡'. IMPORTANT REMOVE ALL CHARACTERS / PEOPLE from this background, leave the LEFT THIRD of panel (x180-610,y320-900) clean cream and unobstructed for a separate flying Wukong sprite. REMOVE ALL 4 HANZI AND ALL PINYIN from reference: in right panel keep FOUR evenly spaced completely EMPTY square guide grids centered at normalized x .38,.49,.60,.71? Instead follow reference row covering x650..1500 on 1920 canvas, y440..620, 4 squares width175 with 30 gap; leave blank pinyin space above them y400. No glyphs, no pseudo-text, no 雪雷震霞雾 in cells; they will be rendered in HTML. Keep knowledge sentence below at y690 and clue ribbon at y780. Frame panel from approx x180..1720,y180..930; title centered approx x960,y155 extends above panel. Bottom buttons around x820 and x1120 at y1000. No top-left chapter label, no top-right tool buttons (HTML adds them), NO duplicate tiny subtitle, no rain medallion, no placeholder words, no watermarks. Strict accurate Chinese typography and clear exact text, high fidelity art. This is a production bitmap background, not a screenshot.",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "finish"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "finish-hero",
+      "kind": "image",
+      "name": "成功页悟空乘云",
+      "url": "/wukong/assets/images/v21/wukong-cloud-cutout.png",
+      "prompt": "第一步：角色身份与动作设计原文\nUse case: identity-preserve character illustration. Produce a SEPARATE full-body Sun Wukong sprite on genuine transparent alpha background, portrait 1024x1536. Input 1 is the CANONICAL CHARACTER IDENTITY, input 2 is POSE reference ONLY. Preserve input1 exactly in face proportions: very cute small childlike 3D monkey, large round warm-brown eyes, peach face, fluffy orange brown spiky fur, small ears, gold double-curled headband, YELLOW short jacket with cream sleeves and cream crossed front, RED neckerchief and RED waist sash, DARK TEAL GREEN SHORTS, BROWN boots, curled brown tail, red staff with gold caps. Do NOT use reference2's blue scarf, yellow trousers, tiger skirt, angular older face. Pose from reference2: dynamic celebratory arrival, ONE KNEE LIFTED HIGH toward torso, other foot planted on a soft cream auspicious cloud, body gently leaning forward, one arm raised with clenched cheerful fist, opposite hand gripping vertical red-and-gold staff, wide excited open-mouth smile with bright open eyes. Strong asymmetrical readable silhouette, convincing balance, arms and legs visible. Character and billowing cloud as a single cutout, cloud sweeping toward the lower-left like he has flown in from the lower-left. Premium polished children's animation movie render with soft tactile fabric, fine fur, warm soft upper-left light, subtle gold tiny sparks close to cloud only. Full staff, hands, boots, cloud all in frame, generous 7% transparent margin. NO background scene, no panel, no typography, no text, no glyphs, no badge, no fan, no duplicate limbs or staff. Actual transparent PNG not white or checkerboard.\n\n第二步：最终采用的角色图片修订原文\nBACKGROUND EXTRACTION ONLY. Preserve the supplied Wukong, staff, costume, pose, facial expression and cloud EXACTLY as they are. Remove the entire gray checkerboard background (including the gaps between limbs, staff, tail and cloud), replace it with TRUE TRANSPARENT ALPHA CHANNEL. Output transparent RGBA PNG cutout, not an RGB image of a checkerboard. Do not paint any checkerboard, gray, white or scene behind the subject. No stylistic changes; preserve fine hair edges and soft translucent cloud edges. Keep the full image framing and all body and cloud details.\n\n后期：最终输出仍带棋盘背景，已按用户授权本地抠图。请复用包内真实RGBA，不把透明要求当成工具已兑现的承诺。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "finish"
+      ],
+      "role": "角色形象"
+    },
+    {
+      "id": "weather-snow",
+      "kind": "image",
+      "name": "下雪插画",
+      "url": "/wukong/assets/images/v3/W01_snow.png",
+      "prompt": "输出文件：W01_snow.png\n参考图：G01、U02的明亮材质与配色\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n一小朵柔软白云下方，几片清楚的六角雪花缓缓飘落，下方只有一小块薄雪，形状易识别。雪花以洁白和淡蓝为主，边缘清楚；不要雨滴、雷电或大雪山。\n单个紧凑的认知插画小景，轮廓清楚、形状简练，少量精致体积和柔和明暗，不加面孔和表情，不像写实天气照片。画面中不出现任何汉字、拼音或文字标签。整体图形在缩小到120像素时仍容易辨识。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸768×768，1:1。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "learn"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "weather-thunder",
+      "kind": "image",
+      "name": "雷电插画",
+      "url": "/wukong/assets/images/v3/W02_thunder.png",
+      "prompt": "输出文件：W02_thunder.png\n参考图：G01、U02的明亮材质与配色\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n一朵圆润的浅蓝灰雨云下方，一道短小、清楚、暖黄色的闪电，没有尖锐耀眼的强光；通过“雷电”的常见画面帮助联想。不要拟人脸、文字拟声、惊吓表情、黑夜或暴风灾难。\n单个紧凑的认知插画小景，轮廓清楚、形状简练，少量精致体积和柔和明暗，不加面孔和表情，不像写实天气照片。画面中不出现任何汉字、拼音或文字标签。整体图形在缩小到120像素时仍容易辨识。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸768×768，1:1。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "learn"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "weather-clouds",
+      "kind": "image",
+      "name": "晚霞插画",
+      "url": "/wukong/assets/images/v3/W03_rosy_clouds.png",
+      "prompt": "输出文件：W03_rosy_clouds.png\n参考图：G01、U02的明亮材质与配色\n\n统一视觉：面向小学一年级、约6—7岁儿童的明亮西游识字冒险，原创Q版3D动画插画。圆润、精致、有柔和体积和接触阴影，细腻哑光材质，像高质量动画片中的角色与道具，避免廉价塑料反光。晴空蓝、奶油白、暖杏黄、薄荷绿为主，少量珊瑚橙点缀。光照充足，画面清爽，清楚的主体轮廓，不能灰蒙、脏旧、昏暗，也不能荧光刺眼。\n\n几片柔软的云层被低角度日光染成杏桃色与浅珊瑚粉，下面一小段浅蓝天空形成一个完整紧凑的小景。主体明确是天边彩色的云，不画彩虹，不画火焰，不用大片黑色夜空。\n单个紧凑的认知插画小景，轮廓清楚、形状简练，少量精致体积和柔和明暗，不加面孔和表情，不像写实天气照片。画面中不出现任何汉字、拼音或文字标签。整体图形在缩小到120像素时仍容易辨识。\n\n输出单张PNG，外部背景真实透明，主体边缘干净，留8%透明安全边距；不带背景场景或大范围投影。目标尺寸768×768，1:1。\n\n禁止：旧版PPT的剪纸拼贴风、棱角尖锐的灰黑石壁、成人写实猴脸、京剧脸谱、粗黑斜眉、龇牙、厚重红色面罩、浓密真实毛发、恐怖感、复杂盔甲、低模折面、脏纹理、廉价高光。不要文字、汉字、拼音、数字、Logo、水印、UI截图或标注；不要把透明棋盘格画进图片。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "learn"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "weather-fog",
+      "kind": "image",
+      "name": "大雾插画",
+      "url": "/wukong/assets/images/v3/W04_fog.png",
+      "prompt": "生成一张用于小学一年级识字课件的“雾天小树林”插画，帮助孩子理解：有雾时，远处的东西看不清。\n\n画面是一小片平坦草地和五六棵圆润的小树。采用平视略俯视视角，有明显的前后距离：\n前景只有少量清楚的嫩绿草叶；\n中景的小树被横向铺开的乳白色薄雾遮住下半部分；\n远景的小树几乎隐没在雾里，只能看到模糊、浅淡的蓝绿色轮廓。\n\n雾是画面的主角，占画面中部约三分之二。雾贴近地面，在树木之间连续弥漫，呈柔软、半透明、没有清晰边界的白色与浅蓝灰色层次。越远越朦胧，近处清楚、远处看不清，这种对比必须明显。不要将雾画成一朵朵边缘清晰的棉花云。\n\n美术风格：明亮、精致、圆润的Q版3D动画插画，柔和哑光材质，薄荷绿、奶油白、浅天蓝配色，光线柔和充足，适合儿童，画面简洁。\n\n整片草地、小树与雾组成一个居中的小场景，外轮廓柔和，四周留出安全边距。保留场景内部的白雾，不要将白雾当作背景删除；仅场景外部透明。输出正方形PNG，2048×2048。\n\n画面中不要山洞、洞口、石山、拱门、隧道、发光入口、人物、建筑、雪花、闪电、烟柱、文字、汉字、拼音、边框或水印。",
+      "promptStatus": "已留存提示词",
+      "segmentIds": [
+        "learn"
+      ],
+      "role": "场景素材"
+    },
+    {
+      "id": "frame-opening",
+      "kind": "image",
+      "name": "火焰山 · 起始画面",
+      "url": "/wukong/production-references/v33-package/frame-opening.png",
+      "prompt": "",
+      "promptStatus": "已留存生成输入，无独立生图提示词",
+      "segmentIds": [
+        "opening"
+      ],
+      "role": "视频参考图"
+    },
+    {
+      "id": "opening-character",
+      "kind": "image",
+      "name": "开场悟空 · 角色参考",
+      "url": "/wukong/production-references/v33-package/opening-character.png",
+      "prompt": "",
+      "promptStatus": "已留存生成输入，无独立生图提示词",
+      "segmentIds": [
+        "opening"
+      ],
+      "role": "视频参考图"
+    },
+    {
+      "id": "opening-fan",
+      "kind": "image",
+      "name": "芭蕉扇造型",
+      "url": "/wukong/production-references/v33-package/opening-fan.png",
+      "prompt": "",
+      "promptStatus": "已留存生成输入，无独立生图提示词",
+      "segmentIds": [
+        "opening"
+      ],
+      "role": "视频参考图"
+    },
+    {
+      "id": "frame-mission",
+      "kind": "image",
+      "name": "任务邀请 · 起始画面",
+      "url": "/wukong/production-references/v33-package/frame-mission.png",
+      "prompt": "",
+      "promptStatus": "已留存生成输入，无独立生图提示词",
+      "segmentIds": [
+        "mission"
+      ],
+      "role": "视频参考图"
+    },
+    {
+      "id": "frame-arrival",
+      "kind": "image",
+      "name": "腾云出发 · 起始画面",
+      "url": "/wukong/production-references/v33-package/frame-arrival.png",
+      "prompt": "",
+      "promptStatus": "已留存生成输入，无独立生图提示词",
+      "segmentIds": [
+        "arrival"
+      ],
+      "role": "视频参考图"
+    },
+    {
+      "id": "frame-arrival-end",
+      "kind": "image",
+      "name": "腾云段 · 结束画面",
+      "url": "/wukong/production-references/v33-package/frame-arrival-end.png",
+      "prompt": "",
+      "promptStatus": "已留存生成输入，无独立生图提示词",
+      "segmentIds": [
+        "arrival"
+      ],
+      "role": "视频参考图"
+    },
+    {
+      "id": "frame-move",
+      "kind": "image",
+      "name": "搬石邀请 · 起始画面",
+      "url": "/wukong/production-references/v33-package/frame-move.png",
+      "prompt": "",
+      "promptStatus": "已留存生成输入，无独立生图提示词",
+      "segmentIds": [
+        "move"
+      ],
+      "role": "视频参考图"
+    },
+    {
+      "id": "frame-outro",
+      "kind": "image",
+      "name": "线索到手 · 起始画面",
+      "url": "/wukong/production-references/v33-package/frame-outro.png",
+      "prompt": "",
+      "promptStatus": "已留存生成输入，无独立生图提示词",
+      "segmentIds": [
+        "outro"
+      ],
+      "role": "视频参考图"
+    },
+    {
+      "id": "video-opening",
+      "kind": "video",
+      "name": "O00",
+      "url": "/wukong/assets/video/v33/opening.mp4",
+      "poster": "/wukong/assets/video/v33/opening-poster.jpg",
+      "prompt": "生成一段完整15秒、16:9横屏的明亮国风Q版三维动画。使用上传首帧中的悟空和火焰山，一个连续镜头。重点是有吸引力的角色表演：动作有准备、发力和落定，表情变化清楚，节奏有快慢，像一段精心编排的儿童动画开场。\n\n故事核心：悟空想过去，却被火焰山挡住；想到借芭蕉扇，但不能轻易拿到；他重新鼓起劲，邀请孩子一起闯汉字关。三个情绪段必须看出明显反差：有冲劲却被热浪吓退 → 灵机一动又短暂失望 → 自信、跃跃欲试。以下时间为大致表演节拍，动作自然连贯优先，不做停顿换镜。\n\n【0—4.7秒：先用一个动作抓住注意力】\n首帧后立即行动，不要站着等：悟空转眼看向火焰山，上身前倾，迈出一大步想探路。山脚火苗骤然蹿高一次，热浪掠过，红领巾被吹起；悟空眼睛迅速睁大、眉毛抬高、嘴短暂张成惊讶状，肩膀一缩，双膝弯曲，向后侧方轻跳一步，落地时膝盖缓冲，身体有一次自然回弹。火焰不碰到身体。\n落稳后，他用空手在脸旁快速扇两下风，看看还在燃烧的山，眉头皱起、嘴角落下，身体从刚才的前冲变成无奈地收住。最后短暂托腮思考即可，不要反复挠头，不要用长时间托腮占满这一段。动作幅度在全身画面里也要看得清。\n\n【4.7—9.7秒：有主意，然后遇到小挫折】\n悟空突然想到办法：头和胸口一下抬起，眉头展开，眼睛亮起来，空手食指清楚地向上举起，嘴角变成开心的笑。身体随之向左前方转出一个小角度，把空手展开，视线跟向掌心上方的空间。\n约5.5秒开始，在悟空左前方、与头部保持空隙的位置显现一把翠绿色芭蕉扇幻象；约6.5秒前已完整清楚，配合旁白讲到借芭蕉扇的这一句。扇子是半透明的想象目标，有清晰叶片、浅金叶脉、短金柄和小红穗，约一个悟空头部高，始终不在手里，不遮住脸。\n他惊喜地向幻象方向探出空手，身体跟着前倾一点；约8.3秒，扇子幻象轻轻向远处退开，随后渐淡。他的手停在半空，笑容短暂收住，一边眉毛抬起、嘴唇抿起，露出“原来没这么容易”的神情。约9.5秒幻象完全淡出。他收回空手，眼神重新认真起来。不要让他摊着手微笑几秒不动，不抓住扇子，不扇风，不灭火。\n\n【9.7—15秒：从受阻变成主动邀请】\n悟空看一眼火焰山，再看向观众，下巴稍抬、眉毛坚定，露出不服输又有办法的笑。空手在胸前有力握拳一次，同时迈开脚、重心落稳，持棒手将金箍棒在身侧清楚地点地一次，做出“准备闯关”的起势。\n紧接着，他向画面左前方跨出有劲的一步，红领巾和衣摆跟随动作摆动；脸仍转向观众，空手从握拳展开，向观众做一次清楚的“跟我来”招手。最后停在身体略向前、眼睛有神、笑容自信的邀请姿势，保留约0.6秒自然余动，接入下一页任务邀请。不跑出画面，不回到开头的站姿，不再托腮。\n\n【角色与摄影】\n严格保留首帧主形象：金色卷纹头箍、橙棕毛发、红领巾、黄上衣、米色交叠前襟、深青绿色短裤、棕靴、红金金箍棒。脸型、服装、身体比例与棒的长度一致，持棒手不换手。\n固定机位，全身与金箍棒始终完整入画，给跳退和跨步留出空间。山峰、地平线、石头、光照和透视稳定，不推拉、不变焦、不切镜。固定的是摄影机和场景，不是人物：表演必须通过肩、肘、腰、膝与重心联动完成，不能只是立绘平移缩放。火焰、领巾和衣摆只配合相应动作变化。\n\n【声音与排除】\n本片由现有旁白讲故事，悟空通过动作和表情回应情境，不是在念旁白。允许惊讶张嘴、抿嘴、笑容等自然表情，不要求连续台词口型。不要生成新的人声、口播、字幕或音乐；如支持音频开关，关闭生成声音，后期使用原旁白和匹配动作的效果音。\n只出现一个悟空，不新增铁扇公主或其他角色，不换场景。不要哭泣尖叫、连续鬼脸、频繁闭眼、全程露齿大笑、固定O形嘴、身体反复抖动、花式转棒、空翻、旋转跳跃或打斗。不要长时间保持同一姿势；不要把扇子变成金箍棒，不要让他真正拿到芭蕉扇。不要文字、气泡、按钮、水印。不要为了首尾一致而把结尾动作倒回开头。",
+      "sourcePrompt": "生成一段完整15秒、16:9横屏的明亮国风Q版三维动画。使用上传首帧中的悟空和火焰山，一个连续镜头。重点是有吸引力的角色表演：动作有准备、发力和落定，表情变化清楚，节奏有快慢，像一段精心编排的儿童动画开场。\n\n故事核心：悟空想过去，却被火焰山挡住；想到借芭蕉扇，但不能轻易拿到；他重新鼓起劲，邀请孩子一起闯汉字关。三个情绪段必须看出明显反差：有冲劲却被热浪吓退 → 灵机一动又短暂失望 → 自信、跃跃欲试。以下时间为大致表演节拍，动作自然连贯优先，不做停顿换镜。\n\n【0—4.7秒：先用一个动作抓住注意力】\n首帧后立即行动，不要站着等：悟空转眼看向火焰山，上身前倾，迈出一大步想探路。山脚火苗骤然蹿高一次，热浪掠过，红领巾被吹起；悟空眼睛迅速睁大、眉毛抬高、嘴短暂张成惊讶状，肩膀一缩，双膝弯曲，向后侧方轻跳一步，落地时膝盖缓冲，身体有一次自然回弹。火焰不碰到身体。\n落稳后，他用空手在脸旁快速扇两下风，看看还在燃烧的山，眉头皱起、嘴角落下，身体从刚才的前冲变成无奈地收住。最后短暂托腮思考即可，不要反复挠头，不要用长时间托腮占满这一段。动作幅度在全身画面里也要看得清。\n\n【4.7—9.7秒：有主意，然后遇到小挫折】\n悟空突然想到办法：头和胸口一下抬起，眉头展开，眼睛亮起来，空手食指清楚地向上举起，嘴角变成开心的笑。身体随之向左前方转出一个小角度，把空手展开，视线跟向掌心上方的空间。\n约5.5秒开始，在悟空左前方、与头部保持空隙的位置显现一把翠绿色芭蕉扇幻象；约6.5秒前已完整清楚，配合旁白讲到借芭蕉扇的这一句。扇子是半透明的想象目标，有清晰叶片、浅金叶脉、短金柄和小红穗，约一个悟空头部高，始终不在手里，不遮住脸。\n他惊喜地向幻象方向探出空手，身体跟着前倾一点；约8.3秒，扇子幻象轻轻向远处退开，随后渐淡。他的手停在半空，笑容短暂收住，一边眉毛抬起、嘴唇抿起，露出“原来没这么容易”的神情。约9.5秒幻象完全淡出。他收回空手，眼神重新认真起来。不要让他摊着手微笑几秒不动，不抓住扇子，不扇风，不灭火。\n\n【9.7—15秒：从受阻变成主动邀请】\n悟空看一眼火焰山，再看向观众，下巴稍抬、眉毛坚定，露出不服输又有办法的笑。空手在胸前有力握拳一次，同时迈开脚、重心落稳，持棒手将金箍棒在身侧清楚地点地一次，做出“准备闯关”的起势。\n紧接着，他向画面左前方跨出有劲的一步，红领巾和衣摆跟随动作摆动；脸仍转向观众，空手从握拳展开，向观众做一次清楚的“跟我来”招手。最后停在身体略向前、眼睛有神、笑容自信的邀请姿势，保留约0.6秒自然余动，接入下一页任务邀请。不跑出画面，不回到开头的站姿，不再托腮。\n\n【角色与摄影】\n严格保留首帧主形象：金色卷纹头箍、橙棕毛发、红领巾、黄上衣、米色交叠前襟、深青绿色短裤、棕靴、红金金箍棒。脸型、服装、身体比例与棒的长度一致，持棒手不换手。\n固定机位，全身与金箍棒始终完整入画，给跳退和跨步留出空间。山峰、地平线、石头、光照和透视稳定，不推拉、不变焦、不切镜。固定的是摄影机和场景，不是人物：表演必须通过肩、肘、腰、膝与重心联动完成，不能只是立绘平移缩放。火焰、领巾和衣摆只配合相应动作变化。\n\n【声音与排除】\n本片由现有旁白讲故事，悟空通过动作和表情回应情境，不是在念旁白。允许惊讶张嘴、抿嘴、笑容等自然表情，不要求连续台词口型。不要生成新的人声、口播、字幕或音乐；如支持音频开关，关闭生成声音，后期使用原旁白和匹配动作的效果音。\n只出现一个悟空，不新增铁扇公主或其他角色，不换场景。不要哭泣尖叫、连续鬼脸、频繁闭眼、全程露齿大笑、固定O形嘴、身体反复抖动、花式转棒、空翻、旋转跳跃或打斗。不要长时间保持同一姿势；不要把扇子变成金箍棒，不要让他真正拿到芭蕉扇。不要文字、气泡、按钮、水印。不要为了首尾一致而把结尾动作倒回开头。",
+      "segmentIds": [
+        "opening"
+      ],
+      "seconds": 15.0,
+      "role": "场景视频",
+      "videoInputs": {
+        "firstFrameId": "frame-opening",
+        "references": [
+          {
+            "assetId": "opening-character",
+            "purpose": "保持角色形象一致",
+            "range": "整段"
+          },
+          {
+            "assetId": "opening-fan",
+            "purpose": "想象中的目标，不实际获得扇子",
+            "range": "约5.5—9.5秒"
+          }
+        ],
+        "audioStarts": [
+          0.2,
+          4.95,
+          9.9
+        ]
+      }
+    },
+    {
+      "id": "video-mission",
+      "kind": "video",
+      "name": "M02",
+      "url": "/wukong/assets/video/v31/M02.mp4",
+      "poster": "/wukong/assets/video/v31/M02-poster.jpg",
+      "prompt": "生成6秒、16:9、固定镜头的国风Q版三维儿童动画。上传图片就是首帧。严格沿用图中悟空的脸、眼睛、棕色毛发、金色紧箍、红领巾、黄色上衣、绿色短裤、棕靴和金箍棒，不换角色。\n\n这是人物正在对孩子说话的镜头，第一优先级是清晰可信的嘴部发音动作，其次才是肢体动作。不要制作待机循环，不要只点头或挥手而始终闭嘴，不要固定露齿笑脸冒充说话。嘴唇、口腔开合、下颌随短句自然变化，含自然短暂停顿，不用每秒固定次数的机械开合；不要夸张伸舌、满口尖牙、面部变形。说话结束后闭口。\n\n保持首帧的云海、暖色光线和悟空在左侧的站位，右侧60%是H5任务卡留白区。空手朝观众做一次邀请手势，持棒手稳定，脸朝向观众，头部只轻微点动。禁止向右走进留白区。\n\n0—0.2秒：看向观众，收住初始笑容准备说话。\n0.2—4.74秒：清楚地表演说完整句“小伙伴，和我一起搬石识字、写字闯关吧！”。按“小伙伴／和我一起／搬石识字／写字闯关吧”自然分组，词间嘴形连续变化，短暂停顿自然收口；不是始终张着一张笑嘴。\n4.74—6秒：句尾说完后嘴自然闭合，保留微笑和轻微呼吸，不再张口。\n\n不推拉或摇晃镜头，不改变山和洞口大小，不换景，不突然缩放人物，不新增肢体。保留明亮柔和的儿童动画质感。不要文字、字幕、拼音、标识、水印、按钮。只生成上述可见的说话表演，不生成新的配音；现有悟空音轨将在后期保留。输出单次说话视频，不要求首尾循环。",
+      "sourcePrompt": "生成6秒、16:9、固定镜头的国风Q版三维儿童动画。上传图片就是首帧。严格沿用图中悟空的脸、眼睛、棕色毛发、金色紧箍、红领巾、黄色上衣、绿色短裤、棕靴和金箍棒，不换角色。\n\n这是人物正在对孩子说话的镜头，第一优先级是清晰可信的嘴部发音动作，其次才是肢体动作。不要制作待机循环，不要只点头或挥手而始终闭嘴，不要固定露齿笑脸冒充说话。嘴唇、口腔开合、下颌随短句自然变化，含自然短暂停顿，不用每秒固定次数的机械开合；不要夸张伸舌、满口尖牙、面部变形。说话结束后闭口。\n\n保持首帧的云海、暖色光线和悟空在左侧的站位，右侧60%是H5任务卡留白区。空手朝观众做一次邀请手势，持棒手稳定，脸朝向观众，头部只轻微点动。禁止向右走进留白区。\n\n0—0.2秒：看向观众，收住初始笑容准备说话。\n0.2—4.74秒：清楚地表演说完整句“小伙伴，和我一起搬石识字、写字闯关吧！”。按“小伙伴／和我一起／搬石识字／写字闯关吧”自然分组，词间嘴形连续变化，短暂停顿自然收口；不是始终张着一张笑嘴。\n4.74—6秒：句尾说完后嘴自然闭合，保留微笑和轻微呼吸，不再张口。\n\n不推拉或摇晃镜头，不改变山和洞口大小，不换景，不突然缩放人物，不新增肢体。保留明亮柔和的儿童动画质感。不要文字、字幕、拼音、标识、水印、按钮。只生成上述可见的说话表演，不生成新的配音；现有悟空音轨将在后期保留。输出单次说话视频，不要求首尾循环。",
+      "segmentIds": [
+        "mission"
+      ],
+      "seconds": 6.0,
+      "role": "场景视频",
+      "videoInputs": {
+        "firstFrameId": "frame-mission",
+        "references": [],
+        "audioStarts": [
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "video-arrival",
+      "kind": "video",
+      "name": "T01加洞口到达",
+      "url": "/wukong/assets/video/v19/flight-arrival.mp4",
+      "poster": "/wukong/assets/video/v19/flight-poster.jpg",
+      "prompt": "连续成片由 T01 腾云、S02 到达洞口、S03 发现发光石头三段剪辑衔接。以下分别是已采用源视频的提示词。S02/S03 原始 B0/B1 首尾图未完整留存，不以 T01 尾帧充当整条成片尾帧。\n\n【T01】\n时长7秒。这是任务按钮点击后播放的一段叙事转场：从首帧左侧筋斗云上的悟空，去往尾帧的洞口。不要把“任务已经完成”演出来；三块石头仍挡住洞口，后续必须由孩子搬石。\n0—1.2秒：在首帧场景中，悟空明显屈膝，空手向前一指，身体朝出发方向倾斜，脚下筋斗云蓄力鼓起，金箍棒握稳。\n1.2—3秒：筋斗云托着悟空腾空并加速飞出，围巾和尾巴随风飘动；相机自然跟随，让观众感到一起出发。白金色云尾从侧面扫向镜头。\n3—4秒：柔软的云雾自然铺满画面，形成有动作动机的遮挡转场。在云雾遮挡内转换到洞口场景；不要让前一座山直接变形成洞口，不用黑屏或纯白闪光。\n4—6秒：云雾散开，悟空乘云从画面右侧缓缓降低，落在尾帧人物的位置，筋斗云轻柔消散，悟空向洞口迈一步，表情变得好奇。\n6—7秒：完全进入尾帧的洞口构图，三块石头的大小、位置和数量不变，人物与尾帧的手脚姿态自然一致，最后约0.4秒稳定，为现有洞口视频无缝接入。\n这段允许跟随云朵移动镜头，固定镜头规则只适用于O01—O03，不适用于此处飞行转场。不要额外出现芭蕉扇、其他人物、汉字卡、文字或UI。音频只有柔和的起飞、飞行掠过和落地音效，不加新对白。\n\n统一风格：沿用上传首尾帧的明亮国风Q版三维卡通，人物外观、服装、五官和金箍棒保持一致。只上传首帧和尾帧两张图，不需要多参考图。不要任何文字、字幕、按钮、卡片或水印；不要新增人声或音乐，只保留轻微场景音和动作音效。旁白使用已经录好的独立音频后期合成。\n\n【S02】\n从首帧连续运动到尾帧，固定机位，同一洞口场景。悟空沿画面右侧的小路向洞口方向走一小步，脚步落地，看见入口被三块石头挡住，停住身体，转头看向石头，眉毛抬起，稍稍前倾，露出好奇又意外的神情。最后准确落到尾帧的站位、朝向和姿态。三块石头全程保持原来的位置、大小、形状和叠放关系，不能移动、融化、裂开或消失。保持角色脸型、服装和金箍棒一致，洞口和远山不变化。不要从火焰山变形成山洞，不要切镜头、推拉镜头、瞬移角色或增加人物。无字幕、汉字、界面和水印，结束时自然停稳。\n\n【S03】\n固定机位，同一洞口，首帧中的悟空正在观察挡路石头。中间上方那块大石头边缘短暂闪过一圈柔和金光，悟空看到后眼睛一亮，先朝这块石头做一次小幅示意，再转头看向镜头外的孩子，露出鼓励的笑容，收回空着的手，最后准确回到尾帧的站位、手势和表情，仿佛在等待孩子帮忙。金光在结束前恢复为尾帧的亮度，不持续增强。三块石头从头到尾完全不动；悟空不触碰、不搬开石头，不显示石头后的秘密。保留首尾帧中所有固定物体的位置、比例和光照，人物不遮住石头。无镜头移动、转场、字幕、汉字、学习卡或新增角色。动作自然，最后约半秒停稳在尾帧。",
+      "sourcePrompt": "连续成片由 T01 腾云、S02 到达洞口、S03 发现发光石头三段剪辑衔接。以下分别是已采用源视频的提示词。S02/S03 原始 B0/B1 首尾图未完整留存，不以 T01 尾帧充当整条成片尾帧。\n\n【T01】\n时长7秒。这是任务按钮点击后播放的一段叙事转场：从首帧左侧筋斗云上的悟空，去往尾帧的洞口。不要把“任务已经完成”演出来；三块石头仍挡住洞口，后续必须由孩子搬石。\n0—1.2秒：在首帧场景中，悟空明显屈膝，空手向前一指，身体朝出发方向倾斜，脚下筋斗云蓄力鼓起，金箍棒握稳。\n1.2—3秒：筋斗云托着悟空腾空并加速飞出，围巾和尾巴随风飘动；相机自然跟随，让观众感到一起出发。白金色云尾从侧面扫向镜头。\n3—4秒：柔软的云雾自然铺满画面，形成有动作动机的遮挡转场。在云雾遮挡内转换到洞口场景；不要让前一座山直接变形成洞口，不用黑屏或纯白闪光。\n4—6秒：云雾散开，悟空乘云从画面右侧缓缓降低，落在尾帧人物的位置，筋斗云轻柔消散，悟空向洞口迈一步，表情变得好奇。\n6—7秒：完全进入尾帧的洞口构图，三块石头的大小、位置和数量不变，人物与尾帧的手脚姿态自然一致，最后约0.4秒稳定，为现有洞口视频无缝接入。\n这段允许跟随云朵移动镜头，固定镜头规则只适用于O01—O03，不适用于此处飞行转场。不要额外出现芭蕉扇、其他人物、汉字卡、文字或UI。音频只有柔和的起飞、飞行掠过和落地音效，不加新对白。\n\n统一风格：沿用上传首尾帧的明亮国风Q版三维卡通，人物外观、服装、五官和金箍棒保持一致。只上传首帧和尾帧两张图，不需要多参考图。不要任何文字、字幕、按钮、卡片或水印；不要新增人声或音乐，只保留轻微场景音和动作音效。旁白使用已经录好的独立音频后期合成。\n\n【S02】\n从首帧连续运动到尾帧，固定机位，同一洞口场景。悟空沿画面右侧的小路向洞口方向走一小步，脚步落地，看见入口被三块石头挡住，停住身体，转头看向石头，眉毛抬起，稍稍前倾，露出好奇又意外的神情。最后准确落到尾帧的站位、朝向和姿态。三块石头全程保持原来的位置、大小、形状和叠放关系，不能移动、融化、裂开或消失。保持角色脸型、服装和金箍棒一致，洞口和远山不变化。不要从火焰山变形成山洞，不要切镜头、推拉镜头、瞬移角色或增加人物。无字幕、汉字、界面和水印，结束时自然停稳。\n\n【S03】\n固定机位，同一洞口，首帧中的悟空正在观察挡路石头。中间上方那块大石头边缘短暂闪过一圈柔和金光，悟空看到后眼睛一亮，先朝这块石头做一次小幅示意，再转头看向镜头外的孩子，露出鼓励的笑容，收回空着的手，最后准确回到尾帧的站位、手势和表情，仿佛在等待孩子帮忙。金光在结束前恢复为尾帧的亮度，不持续增强。三块石头从头到尾完全不动；悟空不触碰、不搬开石头，不显示石头后的秘密。保留首尾帧中所有固定物体的位置、比例和光照，人物不遮住石头。无镜头移动、转场、字幕、汉字、学习卡或新增角色。动作自然，最后约半秒停稳在尾帧。",
+      "segmentIds": [
+        "arrival"
+      ],
+      "seconds": 17.784,
+      "role": "场景视频",
+      "videoInputs": {
+        "firstFrameId": "frame-arrival",
+        "references": [
+          {
+            "assetId": "frame-arrival-end",
+            "purpose": "T01 源视频尾帧，仅用于腾云段",
+            "range": "T01 段结束"
+          }
+        ],
+        "audioStarts": [
+          7.3,
+          12.5
+        ]
+      }
+    },
+    {
+      "id": "video-move",
+      "kind": "video",
+      "name": "C05",
+      "url": "/wukong/assets/video/v31/C05.mp4",
+      "poster": "/wukong/assets/video/v31/C05-poster.jpg",
+      "prompt": "生成6秒、16:9、固定镜头的国风Q版三维儿童动画。上传图片就是首帧。严格沿用图中悟空的脸、眼睛、棕色毛发、金色紧箍、红领巾、黄色上衣、绿色短裤、棕靴和金箍棒，不换角色。\n\n这是人物正在对孩子说话的镜头，第一优先级是清晰可信的嘴部发音动作，其次才是肢体动作。不要制作待机循环，不要只点头或挥手而始终闭嘴，不要固定露齿笑脸冒充说话。嘴唇、口腔开合、下颌随短句自然变化，含自然短暂停顿，不用每秒固定次数的机械开合；不要夸张伸舌、满口尖牙、面部变形。说话结束后闭口。\n\n保持洞口和三块石头的尺寸、形状、位置不变。悟空留在右侧，先站稳并把脸转向观众到正面或轻微三分之四侧面，嘴唇不被手和金箍棒遮挡；空手指一下中间石头，再轻轻示意画面左侧。石头在本视频中不能移动，搬石由后续H5交互完成。\n\n0—0.6秒：悟空站稳，转脸看向观众，准备开口。\n0.6—4.70秒：清楚地表演说完整句“小伙伴，帮我把发光的石头，向左搬开吧！”。按“小伙伴／帮我把发光的石头／向左搬开吧”自然分组，说话时下颌和嘴唇有可见、连续但不机械的开合；示意石头时仍让嘴部可见。\n4.70—6秒：说完后自然闭口、微笑，手势收住，等待孩子操作。\n\n不推拉或摇晃镜头，不改变山和洞口大小，不换景，不突然缩放人物，不新增肢体。保留明亮柔和的儿童动画质感。不要文字、字幕、拼音、标识、水印、按钮。只生成上述可见的说话表演，不生成新的配音；现有悟空音轨将在后期保留。输出单次说话视频，不要求首尾循环。",
+      "sourcePrompt": "生成6秒、16:9、固定镜头的国风Q版三维儿童动画。上传图片就是首帧。严格沿用图中悟空的脸、眼睛、棕色毛发、金色紧箍、红领巾、黄色上衣、绿色短裤、棕靴和金箍棒，不换角色。\n\n这是人物正在对孩子说话的镜头，第一优先级是清晰可信的嘴部发音动作，其次才是肢体动作。不要制作待机循环，不要只点头或挥手而始终闭嘴，不要固定露齿笑脸冒充说话。嘴唇、口腔开合、下颌随短句自然变化，含自然短暂停顿，不用每秒固定次数的机械开合；不要夸张伸舌、满口尖牙、面部变形。说话结束后闭口。\n\n保持洞口和三块石头的尺寸、形状、位置不变。悟空留在右侧，先站稳并把脸转向观众到正面或轻微三分之四侧面，嘴唇不被手和金箍棒遮挡；空手指一下中间石头，再轻轻示意画面左侧。石头在本视频中不能移动，搬石由后续H5交互完成。\n\n0—0.6秒：悟空站稳，转脸看向观众，准备开口。\n0.6—4.70秒：清楚地表演说完整句“小伙伴，帮我把发光的石头，向左搬开吧！”。按“小伙伴／帮我把发光的石头／向左搬开吧”自然分组，说话时下颌和嘴唇有可见、连续但不机械的开合；示意石头时仍让嘴部可见。\n4.70—6秒：说完后自然闭口、微笑，手势收住，等待孩子操作。\n\n不推拉或摇晃镜头，不改变山和洞口大小，不换景，不突然缩放人物，不新增肢体。保留明亮柔和的儿童动画质感。不要文字、字幕、拼音、标识、水印、按钮。只生成上述可见的说话表演，不生成新的配音；现有悟空音轨将在后期保留。输出单次说话视频，不要求首尾循环。",
+      "segmentIds": [
+        "move"
+      ],
+      "seconds": 6.0,
+      "role": "场景视频",
+      "videoInputs": {
+        "firstFrameId": "frame-move",
+        "references": [],
+        "audioStarts": [
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "video-outro",
+      "kind": "video",
+      "name": "E02",
+      "url": "/wukong/assets/video/v32/E02.mp4",
+      "poster": "/wukong/assets/video/v32/E02-last.jpg",
+      "prompt": "生成6秒、16:9、固定镜头的明亮国风Q版三维儿童动画。上传图片作为首帧，严格保持现有小孙悟空主形象：棕色毛发、金色紧箍、红领巾、黄色上衣、绿色短裤、棕色靴子、红金色金箍棒。保持原脸型、眼睛、身材比例和材质。\n\n【本镜头最重要的表演】\n悟空开心地向观众报喜，一边摊开空手，一边做清晰、自然、持续变化的中文说话口型。这是“无声说话表演”：必须有说话时的嘴唇开合、圆唇、展唇及轻微下颌运动，但不生成声音。不能用全程微笑、闭嘴点头或固定张嘴代替说话。\n\n口型表演参考台词：“太棒了，线索到手！我们继续出发！”\n台词仅用于指导视觉表演，不生成台词音频，也不生成字幕。最终配音使用现有悟空录音。\n\n【时间与表演】\n0—0.2秒：承接首帧，悟空看向观众，眼神惊喜，准备开口。空手掌心朝上。\n0.2—4.63秒：悟空正面或轻微三分之四侧面朝向观众，明显地做说话动作，按“太棒了 / 线索到手 / 我们继续出发”三个语意短句依次表演。嘴型随短句自然变化，不等速重复开合；短句之间有短暂停顿和自然合嘴，紧接着继续说话。整体情绪开心、有成就感，语气由惊喜转为鼓励。眉毛和脸颊轻微配合，允许一次小幅点头，脸部与嘴唇始终清楚可见。\n4.63—6秒：说话结束，嘴巴自然闭合，保留开心的微笑，不再继续做说话口型。眼神短暂看向空掌上方，再向画面中央稍高处移动；主要用眼睛带动，头部小幅转动。最后0.6秒稳定停留，便于衔接课件成果页。\n\n以上为目标表演时间窗口。说话时段内必须能看到多次自然的嘴型变化；不要提前长时间闭嘴，也不要到最后仍机械张嘴。\n\n【空手与后期留位】\n悟空站在画面右侧，持棒手稳定，金箍棒不遮脸、不换手。另一只手掌心向上，位于胸口以下、身体前侧偏画面中央的位置。\n从0.2秒到结束，空手手腕和掌心位置尽量稳定。掌心上方保留约半个头高、一个头宽的无遮挡空间，全程保持空白。\n本镜头只生成悟空和环境。正式“雨”字徽章及其飞入、悬停、收集动画全部由后期添加。悟空不抓握任何物体，不翻转手掌，不把手收回胸前，不收进口袋，也不追着视线移动手掌。\n\n【环境与摄影】\n保持首帧洞口、两块剩余石头、远山、植物和阳光的位置与大小。固定机位、固定景别，无推拉、摇晃或旋转，不换景，不突然缩放人物。人物动作主要集中在说话口型、表情与轻微眼神变化；全程不遮挡嘴部。\n\n【声音与严格排除】\n输出无声画面；如平台有声音开关，关闭自动配音。无说话声、旁白、人声、音乐或音效。关闭声音不能取消嘴部说话动作。\n不生成任何徽章、水滴、令牌、吊坠、奖牌、扇子、芭蕉扇、光团、光环、粒子或飞行道具。尤其不生成棕色、空白或变形的水滴替代物。\n不生成文字、汉字、字幕、拼音、按钮、标识或水印。\n避免全程闭嘴、固定露齿笑、固定“O”形嘴、机械等速开合、夸张尖叫、伸舌头、面部变形、多余手指与肢体。输出一次完整表演，不做首尾循环。",
+      "sourcePrompt": "生成6秒、16:9、固定镜头的明亮国风Q版三维儿童动画。上传图片作为首帧，严格保持现有小孙悟空主形象：棕色毛发、金色紧箍、红领巾、黄色上衣、绿色短裤、棕色靴子、红金色金箍棒。保持原脸型、眼睛、身材比例和材质。\n\n【本镜头最重要的表演】\n悟空开心地向观众报喜，一边摊开空手，一边做清晰、自然、持续变化的中文说话口型。这是“无声说话表演”：必须有说话时的嘴唇开合、圆唇、展唇及轻微下颌运动，但不生成声音。不能用全程微笑、闭嘴点头或固定张嘴代替说话。\n\n口型表演参考台词：“太棒了，线索到手！我们继续出发！”\n台词仅用于指导视觉表演，不生成台词音频，也不生成字幕。最终配音使用现有悟空录音。\n\n【时间与表演】\n0—0.2秒：承接首帧，悟空看向观众，眼神惊喜，准备开口。空手掌心朝上。\n0.2—4.63秒：悟空正面或轻微三分之四侧面朝向观众，明显地做说话动作，按“太棒了 / 线索到手 / 我们继续出发”三个语意短句依次表演。嘴型随短句自然变化，不等速重复开合；短句之间有短暂停顿和自然合嘴，紧接着继续说话。整体情绪开心、有成就感，语气由惊喜转为鼓励。眉毛和脸颊轻微配合，允许一次小幅点头，脸部与嘴唇始终清楚可见。\n4.63—6秒：说话结束，嘴巴自然闭合，保留开心的微笑，不再继续做说话口型。眼神短暂看向空掌上方，再向画面中央稍高处移动；主要用眼睛带动，头部小幅转动。最后0.6秒稳定停留，便于衔接课件成果页。\n\n以上为目标表演时间窗口。说话时段内必须能看到多次自然的嘴型变化；不要提前长时间闭嘴，也不要到最后仍机械张嘴。\n\n【空手与后期留位】\n悟空站在画面右侧，持棒手稳定，金箍棒不遮脸、不换手。另一只手掌心向上，位于胸口以下、身体前侧偏画面中央的位置。\n从0.2秒到结束，空手手腕和掌心位置尽量稳定。掌心上方保留约半个头高、一个头宽的无遮挡空间，全程保持空白。\n本镜头只生成悟空和环境。正式“雨”字徽章及其飞入、悬停、收集动画全部由后期添加。悟空不抓握任何物体，不翻转手掌，不把手收回胸前，不收进口袋，也不追着视线移动手掌。\n\n【环境与摄影】\n保持首帧洞口、两块剩余石头、远山、植物和阳光的位置与大小。固定机位、固定景别，无推拉、摇晃或旋转，不换景，不突然缩放人物。人物动作主要集中在说话口型、表情与轻微眼神变化；全程不遮挡嘴部。\n\n【声音与严格排除】\n输出无声画面；如平台有声音开关，关闭自动配音。无说话声、旁白、人声、音乐或音效。关闭声音不能取消嘴部说话动作。\n不生成任何徽章、水滴、令牌、吊坠、奖牌、扇子、芭蕉扇、光团、光环、粒子或飞行道具。尤其不生成棕色、空白或变形的水滴替代物。\n不生成文字、汉字、字幕、拼音、按钮、标识或水印。\n避免全程闭嘴、固定露齿笑、固定“O”形嘴、机械等速开合、夸张尖叫、伸舌头、面部变形、多余手指与肢体。输出一次完整表演，不做首尾循环。",
+      "segmentIds": [
+        "outro"
+      ],
+      "seconds": 6.0,
+      "role": "场景视频",
+      "videoInputs": {
+        "firstFrameId": "frame-outro",
+        "references": [],
+        "audioStarts": [
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "video-cave",
+      "kind": "video",
+      "name": "洞口待机循环",
+      "url": "/wukong/assets/video/v3/V02_cave_idle_v3.mp4",
+      "poster": "/wukong/assets/images/v3/G01_cave_daylight.png",
+      "prompt": "输出文件：V02_cave_idle_v3.mp4\n输入首帧：G01_cave_daylight.png\n\n使用提供的G01明亮仙山洞口图作为首帧，制作6秒的儿童冒险游戏待机环境视频。完整保持首帧的清爽晴空、浅暖灰圆润岩壁、薄荷绿叶片、明亮青草地和可以看清内部层次的青绿色洞穴。保持原图精致哑光3D插画质感，不改变颜色和光照基调。\n\n固定机位，全程不推镜、不拉镜、不平移、不变焦、不旋转。洞口边缘、地面、前景空间的位置从头到尾保持稳定。\n只让左右边缘极少的藤叶缓缓摆动，远处的薄云极轻微移动。地面与洞内光照保持稳定，不生成闪烁的光斑、突发光束、穿过中央的粒子或遮挡视线的浓雾。动画安静、明亮，适合孩子停留并专注操作。\n动作从平静状态开始，经过一次很轻的摆动回到相近状态，首尾尽量自然衔接，适合循环播放；不要在最后突然停止、回弹、淡出或黑场。\n\n不生成孙悟空或其他角色，不生成可搬动石头、芭蕉扇、汉字卡、宝箱、箭头、光圈、字幕、拼音、按钮、水印或音轨。前景中央、左侧拖动区域和右侧角色区域始终保持空出来。背景只提供环境，不演出石头自动搬开、字卡出现或答题成功。\n\n16:9，目标1920×1080；不要将场景改为暗洞、写实照片、纸张拼贴或低模游戏。",
+      "sourcePrompt": "输出文件：V02_cave_idle_v3.mp4\n输入首帧：G01_cave_daylight.png\n\n使用提供的G01明亮仙山洞口图作为首帧，制作6秒的儿童冒险游戏待机环境视频。完整保持首帧的清爽晴空、浅暖灰圆润岩壁、薄荷绿叶片、明亮青草地和可以看清内部层次的青绿色洞穴。保持原图精致哑光3D插画质感，不改变颜色和光照基调。\n\n固定机位，全程不推镜、不拉镜、不平移、不变焦、不旋转。洞口边缘、地面、前景空间的位置从头到尾保持稳定。\n只让左右边缘极少的藤叶缓缓摆动，远处的薄云极轻微移动。地面与洞内光照保持稳定，不生成闪烁的光斑、突发光束、穿过中央的粒子或遮挡视线的浓雾。动画安静、明亮，适合孩子停留并专注操作。\n动作从平静状态开始，经过一次很轻的摆动回到相近状态，首尾尽量自然衔接，适合循环播放；不要在最后突然停止、回弹、淡出或黑场。\n\n不生成孙悟空或其他角色，不生成可搬动石头、芭蕉扇、汉字卡、宝箱、箭头、光圈、字幕、拼音、按钮、水印或音轨。前景中央、左侧拖动区域和右侧角色区域始终保持空出来。背景只提供环境，不演出石头自动搬开、字卡出现或答题成功。\n\n16:9，目标1920×1080；不要将场景改为暗洞、写实照片、纸张拼贴或低模游戏。",
+      "segmentIds": [
+        "move",
+        "discover",
+        "learn",
+        "trace",
+        "quiz1",
+        "quiz2",
+        "outro"
+      ],
+      "seconds": 6.583333,
+      "role": "环境视频",
+      "videoInputs": {
+        "firstFrameId": "cave",
+        "references": [],
+        "audioStarts": []
+      }
+    },
+    {
+      "id": "narration-P01",
+      "kind": "audio",
+      "name": "P01 · 旁白 · 开场发愁",
+      "url": "/wukong/assets/audio/v16/P01.mp3",
+      "text": "孙悟空到火焰山脚下，发愁过不去。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n孙悟空到火焰山脚下，发愁过不去。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "opening"
+      ],
+      "seconds": 4.415771,
+      "audioUse": "video",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P02",
+      "kind": "audio",
+      "name": "P02 · 旁白 · 开场借扇",
+      "url": "/wukong/assets/audio/v16/P02.mp3",
+      "text": "他想借铁扇公主的芭蕉扇，却遭刁难。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n他想借铁扇公主的芭蕉扇，却遭刁难。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "opening"
+      ],
+      "seconds": 4.583,
+      "audioUse": "video",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P03",
+      "kind": "audio",
+      "name": "P03 · 旁白 · 开场闯关规则",
+      "url": "/wukong/assets/audio/v16/P03.mp3",
+      "text": "只有闯过汉字关，才能找到真的芭蕉扇。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n只有闯过汉字关，才能找到真的芭蕉扇。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "opening"
+      ],
+      "seconds": 4.391,
+      "audioUse": "video",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P04",
+      "kind": "audio",
+      "name": "P04 · 旁白 · 任务移石识字",
+      "url": "/wukong/assets/audio/v16/P04.mp3",
+      "text": "搬开石头，找一找藏着的汉字。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n搬开石头，找一找藏着的汉字。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "mission"
+      ],
+      "seconds": 3.695021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P05",
+      "kind": "audio",
+      "name": "P05 · 旁白 · 任务点石学写",
+      "url": "/wukong/assets/audio/v16/P05.mp3",
+      "text": "点开字卡，读一读，再描一描。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n点开字卡，读一读，再描一描。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "mission"
+      ],
+      "seconds": 4.463,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P06",
+      "kind": "audio",
+      "name": "P06 · 旁白 · 任务答题闯关",
+      "url": "/wukong/assets/audio/v16/P06.mp3",
+      "text": "解开汉字机关，收集借扇线索。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n解开汉字机关，收集借扇线索。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "mission"
+      ],
+      "seconds": 4.223,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P07",
+      "kind": "audio",
+      "name": "P07 · 旁白 · 雨字头讲解",
+      "url": "/wukong/assets/audio/v16/P07.mp3",
+      "text": "雪、雷、霞、雾，都有雨字头。雨字头的字，多和降水、天气现象有关。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n雪、雷、霞、雾，都有雨字头。雨字头的字，多和降水、天气现象有关。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "learn",
+        "quiz2"
+      ],
+      "seconds": 9.599,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P08",
+      "kind": "audio",
+      "name": "P08 · 旁白 · 雨 · 下雨",
+      "url": "/wukong/assets/audio/v16/P08.mp3",
+      "text": "雨，下雨。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n雨，下雨。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "learn",
+        "trace"
+      ],
+      "seconds": 2.615021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P09",
+      "kind": "audio",
+      "name": "P09 · 旁白 · 雪 · 下雪",
+      "url": "/wukong/assets/audio/v16/P09.mp3",
+      "text": "雪，下雪。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n雪，下雪。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "learn",
+        "trace"
+      ],
+      "seconds": 2.687021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P10",
+      "kind": "audio",
+      "name": "P10 · 旁白 · 雷 · 雷电",
+      "url": "/wukong/assets/audio/v16/P10.mp3",
+      "text": "雷，雷电。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n雷，雷电。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "learn"
+      ],
+      "seconds": 2.495021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P11",
+      "kind": "audio",
+      "name": "P11 · 旁白 · 霞 · 晚霞",
+      "url": "/wukong/assets/audio/v16/P11.mp3",
+      "text": "霞，晚霞。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n霞，晚霞。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "learn"
+      ],
+      "seconds": 2.687021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P12",
+      "kind": "audio",
+      "name": "P12 · 旁白 · 雾 · 大雾",
+      "url": "/wukong/assets/audio/v16/P12.mp3",
+      "text": "雾，大雾。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n雾，大雾。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "learn"
+      ],
+      "seconds": 2.495021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P13",
+      "kind": "audio",
+      "name": "P13 · 旁白 · 描写指导",
+      "url": "/wukong/assets/audio/v16/P13.mp3",
+      "text": "看清字在田字格的位置，跟着浅色的字，慢慢描。写完以后，请老师看一看。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n看清字在田字格的位置，跟着浅色的字，慢慢描。写完以后，请老师看一看。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "trace"
+      ],
+      "seconds": 8.686021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P14",
+      "kind": "audio",
+      "name": "P14 · 旁白 · 第一题读题",
+      "url": "/wukong/assets/audio/v16/P14.mp3",
+      "text": "哪个词语里，藏着雨字头的字？仔细看一看。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n哪个词语里，藏着雨字头的字？仔细看一看。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "quiz1"
+      ],
+      "seconds": 5.471,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P15",
+      "kind": "audio",
+      "name": "P15 · 旁白 · 第一题答错提示",
+      "url": "/wukong/assets/audio/v16/P15.mp3",
+      "text": "再看看字的样子。和天气有关的词语，不一定有雨字头。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n再看看字的样子。和天气有关的词语，不一定有雨字头。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "quiz1"
+      ],
+      "seconds": 5.999,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P16",
+      "kind": "audio",
+      "name": "P16 · 旁白 · 第一题答对反馈",
+      "url": "/wukong/assets/audio/v16/P16.mp3",
+      "text": "找到了！雷的上面，有雨字头。",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n找到了！雷的上面，有雨字头。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "quiz1"
+      ],
+      "seconds": 4.007021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "narration-P17",
+      "kind": "audio",
+      "name": "P17 · 旁白 · 第二题读题与答错重播",
+      "url": "/wukong/assets/audio/v16/P17.mp3",
+      "text": "雨字头的字，大多和什么有关呢？",
+      "prompt": "使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n\n只朗读以下正文：\n雨字头的字，大多和什么有关呢？\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "quiz2"
+      ],
+      "seconds": 3.839021,
+      "audioUse": "interaction",
+      "speakerId": "narrator"
+    },
+    {
+      "id": "mission-voice",
+      "kind": "audio",
+      "name": "W10 · 任务邀请",
+      "url": "/wukong/assets/audio/v10/W10_mission_invite.mp3",
+      "text": "小伙伴，和我一起搬石识字、写字闯关吧！",
+      "prompt": "角色：小学一年级动画课件中的Q版小孙悟空。清亮、机灵、有少年感的男性角色声，亲近自然，有一点顽皮和行动力。不是成年男性的厚重低音，不模仿老版影视孙悟空的尖嗓、猴叫和戏曲腔，也不是女性老师讲故事的旁白。\n\n用第一人称进入情境，像悟空真的在和屏幕前的孩子一起闯关。情绪随每条表演提示变化，但本组必须保持同一个人物、同一音色、同一录音距离。普通话清楚，吐字自然，适合一年级儿童；句尾完整，不为卡时长过度加速。\n\n只生清晰人声，不要音乐、音效、环境声或混响。不要朗读文件名、编号、角色名、时长或表演说明。只朗读指定台词，不自行加词改词。\n\n\n只朗读以下正文：\n小伙伴，和我一起搬石识字、写字闯关吧！\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "mission"
+      ],
+      "seconds": 4.535021,
+      "audioUse": "video",
+      "speakerId": "hero"
+    },
+    {
+      "id": "arrival-cave",
+      "kind": "audio",
+      "name": "W03 · 到达洞口",
+      "url": "/wukong/assets/audio/v9/W03_cave.mp3",
+      "text": "终于找到洞口了！可入口又被石头挡住了。",
+      "prompt": "角色：小学一年级动画课件中的Q版小孙悟空。清亮、机灵、有少年感的男性角色声，亲近自然，有一点顽皮和行动力。不是成年男性的厚重低音，不模仿老版影视孙悟空的尖嗓、猴叫和戏曲腔，也不是女性老师讲故事的旁白。\n\n用第一人称进入情境，像悟空真的在和屏幕前的孩子一起闯关。情绪随每条表演提示变化，但本组必须保持同一个人物、同一音色、同一录音距离。普通话清楚，吐字自然，适合一年级儿童；句尾完整，不为卡时长过度加速。\n\n只生清晰人声，不要音乐、音效、环境声或混响。不要朗读文件名、编号、角色名、时长或表演说明。只朗读指定台词，不自行加词改词。\n\n\n只朗读以下正文：\n终于找到洞口了！可入口又被石头挡住了。\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "arrival"
+      ],
+      "seconds": 4.571,
+      "audioUse": "video",
+      "speakerId": "hero"
+    },
+    {
+      "id": "arrival-glow",
+      "kind": "audio",
+      "name": "W04 · 发光石头",
+      "url": "/wukong/assets/audio/v9/W04_glow.mp3",
+      "text": "咦，这块石头在发光！里面藏着什么秘密呢？",
+      "prompt": "角色：小学一年级动画课件中的Q版小孙悟空。清亮、机灵、有少年感的男性角色声，亲近自然，有一点顽皮和行动力。不是成年男性的厚重低音，不模仿老版影视孙悟空的尖嗓、猴叫和戏曲腔，也不是女性老师讲故事的旁白。\n\n用第一人称进入情境，像悟空真的在和屏幕前的孩子一起闯关。情绪随每条表演提示变化，但本组必须保持同一个人物、同一音色、同一录音距离。普通话清楚，吐字自然，适合一年级儿童；句尾完整，不为卡时长过度加速。\n\n只生清晰人声，不要音乐、音效、环境声或混响。不要朗读文件名、编号、角色名、时长或表演说明。只朗读指定台词，不自行加词改词。\n\n\n只朗读以下正文：\n咦，这块石头在发光！里面藏着什么秘密呢？\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "arrival"
+      ],
+      "seconds": 5.039,
+      "audioUse": "video",
+      "speakerId": "hero"
+    },
+    {
+      "id": "move-voice",
+      "kind": "audio",
+      "name": "W05 · 搬石邀请",
+      "url": "/wukong/assets/audio/v9/W05_move.mp3",
+      "text": "小伙伴，帮我把发光的石头，向左搬开吧！",
+      "prompt": "角色：小学一年级动画课件中的Q版小孙悟空。清亮、机灵、有少年感的男性角色声，亲近自然，有一点顽皮和行动力。不是成年男性的厚重低音，不模仿老版影视孙悟空的尖嗓、猴叫和戏曲腔，也不是女性老师讲故事的旁白。\n\n用第一人称进入情境，像悟空真的在和屏幕前的孩子一起闯关。情绪随每条表演提示变化，但本组必须保持同一个人物、同一音色、同一录音距离。普通话清楚，吐字自然，适合一年级儿童；句尾完整，不为卡时长过度加速。\n\n只生清晰人声，不要音乐、音效、环境声或混响。不要朗读文件名、编号、角色名、时长或表演说明。只朗读指定台词，不自行加词改词。\n\n\n只朗读以下正文：\n小伙伴，帮我把发光的石头，向左搬开吧！\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "move"
+      ],
+      "seconds": 4.103,
+      "audioUse": "video",
+      "speakerId": "hero"
+    },
+    {
+      "id": "discover-voice",
+      "kind": "audio",
+      "name": "W06 · 发现雨字",
+      "url": "/wukong/assets/audio/v9/W06_discover.mp3",
+      "text": "你帮我找到“雨”字啦！快点开看看！",
+      "prompt": "角色：小学一年级动画课件中的Q版小孙悟空。清亮、机灵、有少年感的男性角色声，亲近自然，有一点顽皮和行动力。不是成年男性的厚重低音，不模仿老版影视孙悟空的尖嗓、猴叫和戏曲腔，也不是女性老师讲故事的旁白。\n\n用第一人称进入情境，像悟空真的在和屏幕前的孩子一起闯关。情绪随每条表演提示变化，但本组必须保持同一个人物、同一音色、同一录音距离。普通话清楚，吐字自然，适合一年级儿童；句尾完整，不为卡时长过度加速。\n\n只生清晰人声，不要音乐、音效、环境声或混响。不要朗读文件名、编号、角色名、时长或表演说明。只朗读指定台词，不自行加词改词。\n\n\n只朗读以下正文：\n你帮我找到“雨”字啦！快点开看看！\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "discover"
+      ],
+      "seconds": 3.239,
+      "audioUse": "interaction",
+      "speakerId": "hero"
+    },
+    {
+      "id": "quiz1-voice",
+      "kind": "audio",
+      "name": "W07 · 第一题邀请",
+      "url": "/wukong/assets/audio/v9/W07_quiz1.mp3",
+      "text": "帮我解开机关吧！",
+      "prompt": "角色：小学一年级动画课件中的Q版小孙悟空。清亮、机灵、有少年感的男性角色声，亲近自然，有一点顽皮和行动力。不是成年男性的厚重低音，不模仿老版影视孙悟空的尖嗓、猴叫和戏曲腔，也不是女性老师讲故事的旁白。\n\n用第一人称进入情境，像悟空真的在和屏幕前的孩子一起闯关。情绪随每条表演提示变化，但本组必须保持同一个人物、同一音色、同一录音距离。普通话清楚，吐字自然，适合一年级儿童；句尾完整，不为卡时长过度加速。\n\n只生清晰人声，不要音乐、音效、环境声或混响。不要朗读文件名、编号、角色名、时长或表演说明。只朗读指定台词，不自行加词改词。\n\n\n只朗读以下正文：\n帮我解开机关吧！\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "quiz1"
+      ],
+      "seconds": 2.051,
+      "audioUse": "interaction",
+      "speakerId": "hero"
+    },
+    {
+      "id": "quiz2-voice",
+      "kind": "audio",
+      "name": "W08 · 第二题邀请",
+      "url": "/wukong/assets/audio/v9/W08_quiz2.mp3",
+      "text": "再解开最后一道机关！",
+      "prompt": "角色：小学一年级动画课件中的Q版小孙悟空。清亮、机灵、有少年感的男性角色声，亲近自然，有一点顽皮和行动力。不是成年男性的厚重低音，不模仿老版影视孙悟空的尖嗓、猴叫和戏曲腔，也不是女性老师讲故事的旁白。\n\n用第一人称进入情境，像悟空真的在和屏幕前的孩子一起闯关。情绪随每条表演提示变化，但本组必须保持同一个人物、同一音色、同一录音距离。普通话清楚，吐字自然，适合一年级儿童；句尾完整，不为卡时长过度加速。\n\n只生清晰人声，不要音乐、音效、环境声或混响。不要朗读文件名、编号、角色名、时长或表演说明。只朗读指定台词，不自行加词改词。\n\n\n只朗读以下正文：\n再解开最后一道机关！\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "quiz2"
+      ],
+      "seconds": 2.411,
+      "audioUse": "interaction",
+      "speakerId": "hero"
+    },
+    {
+      "id": "outro-voice",
+      "kind": "audio",
+      "name": "W09 · 线索到手",
+      "url": "/wukong/assets/audio/v9/W09_finish.mp3",
+      "text": "太棒了，线索到手！我们继续出发！",
+      "prompt": "角色：小学一年级动画课件中的Q版小孙悟空。清亮、机灵、有少年感的男性角色声，亲近自然，有一点顽皮和行动力。不是成年男性的厚重低音，不模仿老版影视孙悟空的尖嗓、猴叫和戏曲腔，也不是女性老师讲故事的旁白。\n\n用第一人称进入情境，像悟空真的在和屏幕前的孩子一起闯关。情绪随每条表演提示变化，但本组必须保持同一个人物、同一音色、同一录音距离。普通话清楚，吐字自然，适合一年级儿童；句尾完整，不为卡时长过度加速。\n\n只生清晰人声，不要音乐、音效、环境声或混响。不要朗读文件名、编号、角色名、时长或表演说明。只朗读指定台词，不自行加词改词。\n\n\n只朗读以下正文：\n太棒了，线索到手！我们继续出发！\n\n导出独立MP3，完整保留句尾，禁止为了强行凑视频时长而加速。生成后按实际时长重新核对对应时间轴。",
+      "promptStatus": "最终采用台词+留存音色规则",
+      "segmentIds": [
+        "outro",
+        "finish"
+      ],
+      "seconds": 4.427021,
+      "audioUse": "video",
+      "speakerId": "hero"
+    },
+    {
+      "id": "cover-voice",
+      "kind": "audio",
+      "name": "cover · 用户指定的封面录音",
+      "url": "/wukong/assets/audio/v16/cover.mp3",
+      "text": "",
+      "prompt": "V33实际使用的是本包cover用户录音；其原始提示词、逐字台词及VoiceID未留存。严格复现时直接使用音频，不要根据文件名推断说话人。\n\n若产品需要重新生成，可使用下面的建议方案（不代表当前音频原文）：\n使用同一位自然、亲切的小学语文女教师音色，成年女性，中声区，普通话规范。声音清晰、有支撑，温暖但不甜腻；不要幼童声、尖细卡通声、广告播音腔、气声或耳语。\n所有文件使用同一音色ID、同一音调与相近语速。讲故事时有轻微情绪起伏，讲知识和读题时平稳清楚，答错提示温和，不责备；不改变角色音色。\n语速自然稍缓，不刻意拖长尾音，不唱读，不把每个字都重读。短句自然停顿；单字加组词时，单字后停约0.3秒。雨、雪读第三声；雷、霞读第二声；雾读第四声。校音要求不要读出来。\n只朗读指定正文，不读编号、文件名、标题、拼音或表演要求，不加开场白，不自行改词。\n输出干净人声，每条单独导出MP3；不加音乐、音效或混响，不做变速变调。以自然完整朗读为准，不为了凑秒数压缩句子。\n\n只朗读：悟空借芭蕉扇，汉字闯关开始啦！\n该重生成建议未替换当前音频，需试听确认后才能采用。",
+      "promptStatus": "原始台词未留存；附重生成建议，不冒充原文",
+      "segmentIds": [
+        "cover"
+      ],
+      "seconds": 3.887021,
+      "audioUse": "interaction"
+    }
+  ],
+  "previews": {
+    "cover": "/wukong/scene-previews/v33-package/cover.png",
+    "opening": "/wukong/scene-previews/v33-package/opening.png",
+    "mission": "/wukong/scene-previews/v33-package/mission.png",
+    "arrival": "/wukong/scene-previews/v33-package/arrival.png",
+    "move": "/wukong/scene-previews/v33-package/move.png",
+    "discover": "/wukong/scene-previews/v33-package/discover.png",
+    "learn": "/wukong/scene-previews/v33-package/learn.png",
+    "trace": "/wukong/scene-previews/v33-package/trace.png",
+    "quiz1": "/wukong/scene-previews/v33-package/quiz1.png",
+    "quiz2": "/wukong/scene-previews/v33-package/quiz2.png",
+    "outro": "/wukong/scene-previews/v33-package/outro.png",
+    "finish": "/wukong/scene-previews/v33-package/finish.png"
+  }
+}

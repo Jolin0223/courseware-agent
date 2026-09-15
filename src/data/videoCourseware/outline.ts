@@ -1,5 +1,6 @@
 import type { OutlineChapter, VideoProject, VideoSegment } from './model';
-import { wukongFixture } from './fixtures';
+import { legacyWukongFixture } from './fixtures';
+import pack from './wukongPackage.json';
 
 const chapterContent:Record<string,string>={
  '故事启程':'介绍悟空被火焰山挡住、需要寻找芭蕉扇的故事。说明本关要认字、描写和闯关，再跟随悟空来到洞口。',
@@ -23,10 +24,11 @@ const sceneContent:Record<string,string>={
  finish:'展示本关完成的庆祝画面，回顾雨、雪、雷、霞、雾，提供复习与重玩入口。说明获得了找扇线索，不提前宣告已经借到真扇。',
 };
 export function makeOutline(segments:VideoSegment[]):OutlineChapter[]{
+ if(segments.length && segments.every(s=>Boolean(s.sourceContent)))return pack.chapters.map(c=>({...c,sourceContent:c.content,segmentIds:c.segmentIds.filter(id=>segments.some(s=>s.id===id))}));
  return [...new Set(segments.map(s=>s.chapter))].map((title,i)=>({id:'chapter-'+(i+1),title,content:chapterContent[title]||segments.filter(s=>s.chapter===title).map(s=>s.purpose).join(' '),segmentIds:segments.filter(s=>s.chapter===title).map(s=>s.id)})).map(c=>({...c,sourceContent:c.content}));
 }
 export function initialSceneContent(segment:VideoSegment,fixtureId:string){
- return fixtureId==='wukong'?sceneContent[segment.id]||segment.purpose:[segment.visual,segment.purpose,segment.kind==='video'?'':segment.interaction].filter(Boolean).join('\n');
+ return fixtureId==='wukong'?segment.sourceContent||sceneContent[segment.id]||segment.purpose:[segment.visual,segment.purpose,segment.kind==='video'?'':segment.interaction].filter(Boolean).join('\n');
 }
 export function outlineIssues(p:VideoProject):string[]{
  const chapters=p.chapters||[];
@@ -50,6 +52,6 @@ export function scenePlanIssues(p:VideoProject):string[]{
  return p.segments.flatMap((s,i)=>!s.title.trim()||!(s.content||'').trim()?[`场景 ${i+1} 需要名称和具体内容。`]:[]);
 }
 export function sceneChanged(p:VideoProject,scene:VideoSegment){
- const baseline=wukongFixture.segments.find(s=>s.id===scene.id);
- return !baseline||scene.kind!==baseline.kind||scene.content!==initialSceneContent(baseline,p.fixtureId);
+ const baseline=legacyWukongFixture.segments.find(s=>s.id===scene.id);
+ return !baseline||scene.kind!==baseline.kind||scene.content!==(scene.sourceContent||initialSceneContent(baseline,p.fixtureId));
 }

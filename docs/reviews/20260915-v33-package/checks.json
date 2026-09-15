@@ -1,0 +1,73 @@
+{
+  "checks": [
+    {
+      "name": "new example starts with six authentic chapters",
+      "passed": true
+    },
+    {
+      "name": "pointer drag commits reordered chapters",
+      "passed": true
+    },
+    {
+      "name": "drag order survives reload",
+      "passed": true
+    },
+    {
+      "name": "keyboard sorting restores canonical order",
+      "passed": true
+    },
+    {
+      "name": "chapter editing stays inline and disables drag",
+      "passed": true
+    },
+    {
+      "name": "full plan keeps six chapters and 12 scenes",
+      "passed": true
+    },
+    {
+      "name": "confirmed outline cannot be dragged",
+      "passed": true
+    },
+    {
+      "name": "cover has both genuine layers and supplied audio",
+      "passed": true
+    },
+    {
+      "name": "unknown cover transcript is not fabricated",
+      "passed": true
+    },
+    {
+      "name": "opening uses real 15 second video prompt",
+      "passed": true
+    },
+    {
+      "name": "arrival contains all adopted source prompts",
+      "passed": true
+    },
+    {
+      "name": "recognition includes all four actual weather illustrations",
+      "passed": true
+    },
+    {
+      "name": "drag scene references new left-looking character",
+      "passed": true
+    },
+    {
+      "name": "single delivery card has 12 previews and edits",
+      "passed": true
+    },
+    {
+      "name": "new lesson runtime uses actual left-looking sprite",
+      "passed": true
+    },
+    {
+      "name": "legacy runtime keeps original sprite",
+      "passed": true
+    },
+    {
+      "name": "no browser errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

@@ -1,3 +1,4 @@
+import pack from './wukongPackage.json';
 import narration from './narration.json';
 import audioDurations from './audioDurations.json';
 import { asset, scenes, chapters, imageResources, prompts, initialRequest } from '../wukong/course';
@@ -30,6 +31,17 @@ wukongFixture.assets = [
  ...wukongFixture.assets.filter(a=>!a.id.startsWith('frame-')),
  ...productionFrames,
 ].map(a=>a.kind==='video'?{...a,videoInputs:productionInputs[a.id]}:a);
+
+// Freeze the previous fixture for persisted projects; new examples use the audited package.
+export const legacyWukongFixture=structuredClone(wukongFixture);
+wukongFixture.assets=pack.assets as MediaAsset[];
+wukongFixture.framework={...wukongFixture.framework,userRequirement:pack.goals};
+wukongFixture.segments=wukongFixture.segments.map(s=>{
+ const content=pack.sceneContents[s.id as keyof typeof pack.sceneContents];
+ const chapter=pack.chapters.find(c=>c.segmentIds.includes(s.id))!;
+ return {...s,chapter:chapter.title,sourceContent:content,content,purpose:content,visual:content,seconds:wukongFixture.assets.find(a=>a.kind==='video'&&a.id==='video-'+s.id)?.seconds||0};
+});
+wukongFixture.speakers=wukongFixture.speakers.map(s=>({...s,voiceName:s.id==='narrator'?'原教学老师声音':'原悟空角色声音'}));
 
 export function createFixture(request:string,attachments:UploadedAttachment[],preferences:GenerationPreferences):LessonFixture {
  if(/悟空|雨字头/.test(request)||attachments.some(x=>x.id.startsWith('video-example-page-')))return structuredClone({...wukongFixture,request,attachments,framework:{...wukongFixture.framework,designStyle:preferences.visualStyleName ? preferences.visualStyleName + '。' + wukongFixture.framework.designStyle : wukongFixture.framework.designStyle}});

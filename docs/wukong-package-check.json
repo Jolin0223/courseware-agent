@@ -1,0 +1,56 @@
+{
+  "checks": [
+    {
+      "name": "six real chapters keep 12 product scenes and one mixed rock scene",
+      "passed": true
+    },
+    {
+      "name": "reordered outline drives whole scene order",
+      "passed": true
+    },
+    {
+      "name": "reference package content is treated as authentic existing H5",
+      "passed": true
+    },
+    {
+      "name": "video durations and cues remain valid",
+      "passed": true
+    },
+    {
+      "name": "flight prompt retains all three adopted source prompts",
+      "passed": true
+    },
+    {
+      "name": "all six videos are complete media, no extra source clips or tracks",
+      "passed": true
+    },
+    {
+      "name": "cover has actual supplied recording but no invented transcript or speaker",
+      "passed": true
+    },
+    {
+      "name": "cover and drag scene use genuine independent character layers",
+      "passed": true
+    },
+    {
+      "name": "recognition uses four actual weather images and trace uses no fake full-page art",
+      "passed": true
+    },
+    {
+      "name": "shared teaching feedback is linked to both real scenes",
+      "passed": true
+    },
+    {
+      "name": "unchanged composed videos retain their native sound without duplicate cues",
+      "passed": true
+    },
+    {
+      "name": "new previews and runtime use package version",
+      "passed": true
+    },
+    {
+      "name": "historical project content and playback stay on previous baseline",
+      "passed": true
+    }
+  ]
+}

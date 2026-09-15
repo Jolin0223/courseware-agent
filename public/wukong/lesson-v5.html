@@ -261,7 +261,7 @@ function applyChange(phase){
 }
 function hero(mood='normal',text='一起找找汉字的秘密！'){
  const file={normal:'C00_wukong_master',discover:'C01_wukong_discover',encourage:'C02_wukong_encourage',celebrate:'C03_wukong_celebrate'}[mood];
- $('wukong').src=state.phase==='cover'?'assets/images/v24/cover-wukong.png':'assets/images/v3/'+file+'.png';$('wukongBubble').textContent=text;
+ $('wukong').src=state.phase==='cover'?'assets/images/v24/cover-wukong.png':state.phase==='cave'&&new URLSearchParams(location.search).get('resourcePack')==='v33-20260915'?'assets/images/v33/C02_wukong_look_left.png':'assets/images/v3/'+file+'.png';$('wukongBubble').textContent=text;
 }
 function render(){base();$('stage').dataset.phase=state.phase;hero(state.phase==='finish'?'celebrate':state.phase==='discover'||state.phase==='learn'?'discover':'normal',({cover:'和我一起，出发吧！',cave:'搬开石头，找找线索！',discover:'咦！是一个“雨”字！',learn:'点点汉字，一起读！',trace:'慢慢描，我陪着你。',quiz:'仔细看看字的样子。',finish:'又找到一条线索！'})[state.phase]);switch(state.phase){case 'cover':show('cover');hide('caption');markProgress(0);break;case 'intro':renderIntro();break;case 'mission':renderMission();break;case 'arrival':renderIntro('arrival');break;case 'cave':renderCave();break;case 'discover':renderDiscover();break;case 'learn':renderLearn();break;case 'trace':renderTrace();break;case 'quiz':renderQuiz();break;case 'outro':renderOutro();break;case 'finish':renderFinish();break;}}
 function paintSpokenCue(container,cue){

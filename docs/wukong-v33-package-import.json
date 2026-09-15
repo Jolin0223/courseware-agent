@@ -1,0 +1,589 @@
+{
+  "package": "V33_按场景资源包_20260915",
+  "verifiedPackageAssets": 77,
+  "productAssets": 60,
+  "copies": [
+    {
+      "source": "00_通用素材/图片/洞口白天背景.png",
+      "target": "assets/images/v3/G01_cave_daylight.png",
+      "sha256": "65c204916d65de5f547136e96e9e2909572c4f420d03021c7f9630d06c513426"
+    },
+    {
+      "source": "00_通用素材/图片/悟空主形象_底层备用.png",
+      "target": "assets/images/v3/C00_wukong_master.png",
+      "sha256": "60ba0ab4b60f9e154e5b37910b4a0d6b654f52d7f7bfc22b3514b5a4506ebdba"
+    },
+    {
+      "source": "00_通用素材/图片/悟空发现姿态.png",
+      "target": "assets/images/v3/C01_wukong_discover.png",
+      "sha256": "f74c0215736df68e3c1546a51b975bf29a20ffff0d7d1359e997a058a3822102"
+    },
+    {
+      "source": "00_通用素材/图片/悟空鼓励姿态.png",
+      "target": "assets/images/v3/C02_wukong_encourage.png",
+      "sha256": "40408dea43be4205742ade5bdf6062e9783280ebeda7a2558e3890913c47e1ca"
+    },
+    {
+      "source": "00_通用素材/图片/悟空庆祝姿态.png",
+      "target": "assets/images/v3/C03_wukong_celebrate.png",
+      "sha256": "48c5ce671c612bf3a352cf7a89f29cd864f1e87644c0a5d05090ff470dffc654"
+    },
+    {
+      "source": "00_通用素材/图片/可拖拽石头_任务编号也复用.png",
+      "target": "assets/images/v3/P01_draggable_rock.png",
+      "sha256": "a3477a8662e8ccbd1745a240c2bc48d7e1a420fcfa5c45cb22ad15c9e0f17737"
+    },
+    {
+      "source": "00_通用素材/图片/学习面板_分片延展底图.png",
+      "target": "assets/images/v3/U01_learning_panel.png",
+      "sha256": "cc79de6cff7c6468b13df14ba321c1b835833b444d652055bceb6daa4ffc1d41"
+    },
+    {
+      "source": "00_通用素材/图片/正式雨字徽章底图_字由H5叠加.png",
+      "target": "assets/images/v3/U05_rain_reward.png",
+      "sha256": "647285ddf3039d65b4009d63b6ed997c096d737401d3c01268ae6fe8c3bf4d34"
+    },
+    {
+      "source": "00_通用素材/图片/辅助按钮_奶油白金边.png",
+      "target": "assets/images/v23/button-ivory.png",
+      "sha256": "e083778dee4d514d78e409c0b301bd3378b133a198ce8ef01cb8ef5c1c67f150"
+    },
+    {
+      "source": "00_通用素材/图片/主按钮_青玉高光.png",
+      "target": "assets/images/v23/button-jade.png",
+      "sha256": "9f7abc291b580de689c1c30e074395bbdb9478405cbb7d6d36c8ff224b4b8c3d"
+    },
+    {
+      "source": "00_通用素材/图片/学习与描写标题装饰.png",
+      "target": "assets/images/v20/A03.png",
+      "sha256": "81891eef88b36cb255b2d82537a02948473e78d143dbd21c690b01af184c6a73"
+    },
+    {
+      "source": "00_通用素材/字体/汉字楷体.woff",
+      "target": "assets/fonts/kaiti.woff",
+      "sha256": "b88599d74bd86463c277adca20a265cd0dd4e522e9f453deebd695a292a0b5ac"
+    },
+    {
+      "source": "00_通用素材/字体/圆体界面文字.woff",
+      "target": "assets/fonts/cuyuan.woff",
+      "sha256": "76619107525c837f7c1ca33f71b1c3257e420697f05182d1c76946993cf290cb"
+    },
+    {
+      "source": "00_通用素材/字体/带声调拼音.ttf",
+      "target": "assets/fonts/iteachpinyin.ttf",
+      "sha256": "ee724e8181731a1221a15b3a465d2e99c9140dd68ee9c581dded15d6ee02e032"
+    },
+    {
+      "source": "00_通用素材/视频/洞口待机循环_页面静音播放.mp4",
+      "target": "assets/video/v3/V02_cave_idle_v3.mp4",
+      "sha256": "4407b19b2d90019febfd206afe59135b3a27f66c8c49300b4ad00fc3fb46ce2e"
+    },
+    {
+      "source": "06_搬石互动/图片/搬石引导悟空_看向左侧石头.png",
+      "target": "assets/images/v33/C02_wukong_look_left.png",
+      "sha256": "99b5f274b88949cef581603db35b9414db3551d98b500c0bee865ab98168d88c"
+    },
+    {
+      "source": "01_封面/图片/封面整幅底图.png",
+      "target": "assets/images/v10/cover.png",
+      "sha256": "5d82557ea4cb7cf5ff33ddbbcbebe6f53c01015cb8360ccb33147774acbe4a4e"
+    },
+    {
+      "source": "01_封面/图片/封面悟空_独立跃入层.png",
+      "target": "assets/images/v24/cover-wukong.png",
+      "sha256": "b0fc1a0cc80ac3b2d04cf0544cf60984c92e923c4ede4e197d6cdb7ebd734c5b"
+    },
+    {
+      "source": "03_闯关任务/图片/任务页云海底图.png",
+      "target": "assets/images/v17/mission-cloud-master.png",
+      "sha256": "97ed11fed4b399360f7bc4e44477d8cf4fc35fc3485adf5db2187a9f55b857e7"
+    },
+    {
+      "source": "03_闯关任务/图片/M02说完后停帧.jpg",
+      "target": "assets/video/v31/M02-last.jpg",
+      "sha256": "1b65fa34deb7b993b060e7fc5bdaa447bef5405ac1c1e861451f86d992debccf"
+    },
+    {
+      "source": "07_发现雨字/图片/发现雨字卡底图.png",
+      "target": "assets/images/v3/U02_character_card.png",
+      "sha256": "433ce9d9a528046d3aefa892fae161e06841e73088ae91cd529aa48d68aa89b4"
+    },
+    {
+      "source": "10_字形机关/图片/答题石头底图.png",
+      "target": "assets/images/v20/A01.png",
+      "sha256": "387bf9348c12d8d73b3fdaea69854b09c530a8f2dade1a1720d1f5bf14705837"
+    },
+    {
+      "source": "13_闯关成功/图片/成功页整幅底图_含固定文案.png",
+      "target": "assets/images/v21/finish-background.png",
+      "sha256": "a2f45ea3f0846d07c52bb5169e35cd3defb598a814e1115840bfa1fa31459466"
+    },
+    {
+      "source": "13_闯关成功/图片/成功页悟空乘云_独立层.png",
+      "target": "assets/images/v21/wukong-cloud-cutout.png",
+      "sha256": "165b05a7ac3f446813bdf6f52ac2d8f4fdc291355160c699bcf71d77d62279bb"
+    },
+    {
+      "source": "08_认识汉字/图片/下雪插画.png",
+      "target": "assets/images/v3/W01_snow.png",
+      "sha256": "76010e278be582fa7bc670c512caf6aa9f0f58cd816c8e10dc273123f8335f81"
+    },
+    {
+      "source": "08_认识汉字/图片/雷电插画.png",
+      "target": "assets/images/v3/W02_thunder.png",
+      "sha256": "8ebb3f715534a031841aa57fccd11b7c11a1e0a0705f40239118bb1435b7c503"
+    },
+    {
+      "source": "08_认识汉字/图片/晚霞插画.png",
+      "target": "assets/images/v3/W03_rosy_clouds.png",
+      "sha256": "4f0ea7bab1149213b4efc682e7e163c74384c875097d7c9dc1de1bd74841c23d"
+    },
+    {
+      "source": "08_认识汉字/图片/大雾插画.png",
+      "target": "assets/images/v3/W04_fog.png",
+      "sha256": "c71936e2b756eef6fb12dd98848434533d2c40d0be5556739c69b7f56f9049d2"
+    },
+    {
+      "source": "02_故事开场/视频/O00_15秒开场_已合成原旁白.mp4",
+      "target": "assets/video/v33/opening.mp4",
+      "sha256": "88f9b84d34607c48f1188db33c4fb11b58473e0191623bf0c95d4eac2d0b90ce"
+    },
+    {
+      "source": "02_故事开场/图片/O00_加载或失败备用静帧.jpg",
+      "target": "assets/video/v33/opening-poster.jpg",
+      "sha256": "1e6fc41ec256f11c02efc4a1d3b0d727d68978d7367ef1dbf003433e45f08213"
+    },
+    {
+      "source": "03_闯关任务/视频/M02_任务邀请_已合成悟空配音.mp4",
+      "target": "assets/video/v31/M02.mp4",
+      "sha256": "d3635e0c462289c38ad9b815c54cdfe75babe4bbe0b6b1c5bb91f43b5f6b4ab1"
+    },
+    {
+      "source": "03_闯关任务/图片/M02_加载或失败备用静帧.jpg",
+      "target": "assets/video/v31/M02-poster.jpg",
+      "sha256": "dd6fcf638a8e2ca30f7f2ced0f24998edfa1ee01f6d12384f8c467f0fda6fa5b"
+    },
+    {
+      "source": "04_腾云到洞口/视频/T01加洞口到达_连续成片.mp4",
+      "target": "assets/video/v19/flight-arrival.mp4",
+      "sha256": "b1188ca62a0c21e1d809e8e066211ef34357921fea6aa0a2ec4d1b50e03d84b5"
+    },
+    {
+      "source": "04_腾云到洞口/图片/T01加洞口到达_加载或失败备用静帧.jpg",
+      "target": "assets/video/v19/flight-poster.jpg",
+      "sha256": "5c411932f5534727937334b51d687596be300f72aedb5fde2dbf728182fc0a08"
+    },
+    {
+      "source": "05_搬石邀请/视频/C05_搬石邀请_已合成悟空配音.mp4",
+      "target": "assets/video/v31/C05.mp4",
+      "sha256": "e6a3c855d5dd7d1e2e822f8820abe55947e1a0f00712af37cc3750463a6e530b"
+    },
+    {
+      "source": "05_搬石邀请/图片/C05_加载或失败备用静帧.jpg",
+      "target": "assets/video/v31/C05-poster.jpg",
+      "sha256": "4709d537453c3a475f4289a9f785bc0cf43a85bf1224b665d4112c9a96134e3a"
+    },
+    {
+      "source": "12_线索到手/视频/E02_线索到手_最新说话成片.mp4",
+      "target": "assets/video/v32/E02.mp4",
+      "sha256": "f8abe94c07676b2b76818a168a6a4f56062837ebaa346b3bbd665d539772b295"
+    },
+    {
+      "source": "12_线索到手/图片/E02_加载或失败备用静帧.jpg",
+      "target": "assets/video/v32/E02-last.jpg",
+      "sha256": "d04afeecab6c15c6dd3388084cb13f36d5d90e82d84b676662243d57183fef76"
+    },
+    {
+      "source": "02_故事开场/音频/P01_旁白_开场发愁.mp3",
+      "target": "assets/audio/v16/P01.mp3",
+      "sha256": "9ec5190a5e64630508fab880058b6e7831313bca1f244ded8c1a11386a28cb74"
+    },
+    {
+      "source": "02_故事开场/音频/P02_旁白_开场借扇.mp3",
+      "target": "assets/audio/v16/P02.mp3",
+      "sha256": "ff4916a40a1a0c9bd4d60e5f8423cc37cdeffb18090e85f5945ff4d54bab005c"
+    },
+    {
+      "source": "02_故事开场/音频/P03_旁白_开场闯关规则.mp3",
+      "target": "assets/audio/v16/P03.mp3",
+      "sha256": "d02e6a184f8478dc7b005664e23c9046fe40ebd8a4145bb45cd9bc1ca0b3b0fd"
+    },
+    {
+      "source": "03_闯关任务/音频/P04_旁白_任务移石识字.mp3",
+      "target": "assets/audio/v16/P04.mp3",
+      "sha256": "9daaf0a7d716fc888ee9cbdbdc9c965dfef73eb61ad9239451706adc01124e8a"
+    },
+    {
+      "source": "03_闯关任务/音频/P05_旁白_任务点石学写.mp3",
+      "target": "assets/audio/v16/P05.mp3",
+      "sha256": "03b52c7f7e2601c670e67dce2a3efc4b8b617a1e43e9c81b3a3106c7679ba378"
+    },
+    {
+      "source": "03_闯关任务/音频/P06_旁白_任务答题闯关.mp3",
+      "target": "assets/audio/v16/P06.mp3",
+      "sha256": "c82abbfccad244ec30d979afeab3c902c7bef04d7e21ad8beaa8bbd7d14a8360"
+    },
+    {
+      "source": "08_认识汉字/音频/P07_旁白_雨字头讲解.mp3",
+      "target": "assets/audio/v16/P07.mp3",
+      "sha256": "2446813097a595aa04ac319120d0743f61e5918da21c70639e82d5abfe5ddbe5"
+    },
+    {
+      "source": "08_认识汉字/音频/P08_旁白_雨_下雨.mp3",
+      "target": "assets/audio/v16/P08.mp3",
+      "sha256": "988dde0aa7a61382d87ffd10ed5dcaf786d284d8588329b7fa27118c3e59312c"
+    },
+    {
+      "source": "08_认识汉字/音频/P09_旁白_雪_下雪.mp3",
+      "target": "assets/audio/v16/P09.mp3",
+      "sha256": "a67f497b4b4adca9a242d8fb7db3526d7e64c5e7351f228ce797929180e1027e"
+    },
+    {
+      "source": "08_认识汉字/音频/P10_旁白_雷_雷电.mp3",
+      "target": "assets/audio/v16/P10.mp3",
+      "sha256": "ac4327f3c23bb3704b9ba7d618a95754f52e065a59202c299862d58a11b37bd7"
+    },
+    {
+      "source": "08_认识汉字/音频/P11_旁白_霞_晚霞.mp3",
+      "target": "assets/audio/v16/P11.mp3",
+      "sha256": "b179b32d9846157bd3535f91cfd12637b1cb5807afa400c34204a4ebd0ab0c9a"
+    },
+    {
+      "source": "08_认识汉字/音频/P12_旁白_雾_大雾.mp3",
+      "target": "assets/audio/v16/P12.mp3",
+      "sha256": "9553b90f1d03f15d283b2d7a3a229829705ce889ddabb01307bbefec0c58b1bd"
+    },
+    {
+      "source": "09_描写汉字/音频/P13_旁白_描写指导.mp3",
+      "target": "assets/audio/v16/P13.mp3",
+      "sha256": "111b0a2294a4351f3ecbc7062510c10bd22458efc29eb7ef70c9b8a17e8e5065"
+    },
+    {
+      "source": "10_字形机关/音频/P14_旁白_第一题读题.mp3",
+      "target": "assets/audio/v16/P14.mp3",
+      "sha256": "b12c543bf85747015ea1e941b2dae622d0a7570bdf5444660620550238815ed4"
+    },
+    {
+      "source": "10_字形机关/音频/P15_旁白_第一题答错提示.mp3",
+      "target": "assets/audio/v16/P15.mp3",
+      "sha256": "a300e6cb3fedeb5180f65f69855b6e7f3b50ae98cc8ecf4be883d508f8fea5d5"
+    },
+    {
+      "source": "10_字形机关/音频/P16_旁白_第一题答对反馈.mp3",
+      "target": "assets/audio/v16/P16.mp3",
+      "sha256": "87a0a7d7395ce733d0c9891bfe654616326d6b9198ad50fc4087bda51d66f5ce"
+    },
+    {
+      "source": "11_字义机关/音频/P17_旁白_第二题读题与答错重播.mp3",
+      "target": "assets/audio/v16/P17.mp3",
+      "sha256": "b9867c0036d673a3f02b877495ee90adc243ee7ea778e6e6b44cd1191d14735e"
+    },
+    {
+      "source": "03_闯关任务/音频/W10_任务邀请.mp3",
+      "target": "assets/audio/v10/W10_mission_invite.mp3",
+      "sha256": "a8fb5605a7afae22fb893652c5d1fe78f9a761298df4d27a19766727cbf97ee8"
+    },
+    {
+      "source": "04_腾云到洞口/音频/W03_到达洞口.mp3",
+      "target": "assets/audio/v9/W03_cave.mp3",
+      "sha256": "d42e1dcc5120ee0fd94dd0d8ba75691ee9691801b18a92a82ecc6cb042aed083"
+    },
+    {
+      "source": "04_腾云到洞口/音频/W04_发光石头.mp3",
+      "target": "assets/audio/v9/W04_glow.mp3",
+      "sha256": "9923c8c1181601094cda2a73eb86488ce7ccbbbcae7a361b5eaafbf9a69af179"
+    },
+    {
+      "source": "05_搬石邀请/音频/W05_搬石邀请.mp3",
+      "target": "assets/audio/v9/W05_move.mp3",
+      "sha256": "0d3c9a1e1c5b4ee5c170e0f4ba7a4a42c4247879e403aa1f9e55e205e8ebadfb"
+    },
+    {
+      "source": "07_发现雨字/音频/W06_发现雨字.mp3",
+      "target": "assets/audio/v9/W06_discover.mp3",
+      "sha256": "1746c62ba717cda5e64f97d027e39c8ae59a7b0f41b0f203a7c0c45c8d843522"
+    },
+    {
+      "source": "10_字形机关/音频/W07_第一题邀请.mp3",
+      "target": "assets/audio/v9/W07_quiz1.mp3",
+      "sha256": "d0f7591b8f8c5c455d2ce610e45a521c4f19f674e41704279ce5aa7b854afae7"
+    },
+    {
+      "source": "11_字义机关/音频/W08_第二题邀请.mp3",
+      "target": "assets/audio/v9/W08_quiz2.mp3",
+      "sha256": "f92932a9d50e0862b500218faa8224985b4aa8d981495261838414da1e2cc96d"
+    },
+    {
+      "source": "12_线索到手/音频/W09_线索到手.mp3",
+      "target": "assets/audio/v9/W09_finish.mp3",
+      "sha256": "145b8517971dc0e853e18a62a7f2cdffe2aee7bee5b419f6cccdd59f4d4972f5"
+    },
+    {
+      "source": "01_封面/音频/cover_用户指定的封面录音.mp3",
+      "target": "assets/audio/v16/cover.mp3",
+      "sha256": "ac976aab65a676388fb1f41b44a6f5142e7cba69294c1066b507c8230cc4fffd"
+    },
+    {
+      "source": "00_通用素材/音频/音效_按钮点击.mp3",
+      "target": "assets/audio/v26/tap.mp3",
+      "sha256": "317600c81fb297dc710f88e6b744ae9688f64f100044ead6c6909b3f77868c90"
+    },
+    {
+      "source": "00_通用素材/音频/音效_封面跃入回弹.mp3",
+      "target": "assets/audio/v28/cover-entrance.mp3",
+      "sha256": "8b7af5db86757be6346255290dc1530758757661c3e90cb9a3d5a206fb985e8b"
+    },
+    {
+      "source": "00_通用素材/音频/音效_搬开石头发现字卡.mp3",
+      "target": "assets/audio/v11/discover.mp3",
+      "sha256": "5a7e65ef7cd59cb7e769175a13ca7a92439f66559fc21e1a979043cbb40781b8"
+    },
+    {
+      "source": "00_通用素材/音频/音效_打开字卡.mp3",
+      "target": "assets/audio/v11/open.mp3",
+      "sha256": "374e0f6f95df98fd95ca6a55401a86fe26bdf919bb0cbdff172f6ddadddb1474"
+    },
+    {
+      "source": "00_通用素材/音频/音效_进入答题机关.mp3",
+      "target": "assets/audio/v11/transition.mp3",
+      "sha256": "8d7e8d54b4d263dcac77d0483777b07683796304d53c305a236d6d13b0334559"
+    },
+    {
+      "source": "00_通用素材/音频/音效_答对提示.mp3",
+      "target": "assets/audio/v11/correct.mp3",
+      "sha256": "043209b324ed54a316561fcd9091abd8f8ecdb60c6a408760bf77ce2c99d6fa3"
+    },
+    {
+      "source": "00_通用素材/音频/音效_闯关成功.mp3",
+      "target": "assets/audio/v23/victory.mp3",
+      "sha256": "62da9354d017d891531e00d38a80b988219f4468cd9eed8d8f1272dc8cc68fa9"
+    },
+    {
+      "source": "80_最终提示词/03_生视频/O00/输入参考/01-首帧.png",
+      "target": "production-references/v33-package/frame-opening.png",
+      "sha256": "4291f3011647c16acc484460f9c56f539cde1f6213874e8c9603968699ef2c57"
+    },
+    {
+      "source": "80_最终提示词/03_生视频/O00/输入参考/02-角色参考.png",
+      "target": "production-references/v33-package/opening-character.png",
+      "sha256": "60ba0ab4b60f9e154e5b37910b4a0d6b654f52d7f7bfc22b3514b5a4506ebdba"
+    },
+    {
+      "source": "80_最终提示词/03_生视频/O00/输入参考/03-扇子造型参考.png",
+      "target": "production-references/v33-package/opening-fan.png",
+      "sha256": "1f0cda3b2ad4f568744b6e8d36a55508ce7d799e5de35873775b50fcc9bc3602"
+    },
+    {
+      "source": "80_最终提示词/03_生视频/M02/输入参考/01-上传首帧.png",
+      "target": "production-references/v33-package/frame-mission.png",
+      "sha256": "97ed11fed4b399360f7bc4e44477d8cf4fc35fc3485adf5db2187a9f55b857e7"
+    },
+    {
+      "source": "80_最终提示词/03_生视频/T01/输入参考/首帧.png",
+      "target": "production-references/v33-package/frame-arrival.png",
+      "sha256": "97ed11fed4b399360f7bc4e44477d8cf4fc35fc3485adf5db2187a9f55b857e7"
+    },
+    {
+      "source": "80_最终提示词/03_生视频/T01/输入参考/尾帧.png",
+      "target": "production-references/v33-package/frame-arrival-end.png",
+      "sha256": "6cde3e87674cd868322aaeb8c2144d2dbf7d1b5ba3f9ad13ef3db87cd409254b"
+    },
+    {
+      "source": "80_最终提示词/03_生视频/C05/输入参考/01-上传首帧.png",
+      "target": "production-references/v33-package/frame-move.png",
+      "sha256": "6cde3e87674cd868322aaeb8c2144d2dbf7d1b5ba3f9ad13ef3db87cd409254b"
+    },
+    {
+      "source": "80_最终提示词/03_生视频/E02/输入参考/01-上传首帧.png",
+      "target": "production-references/v33-package/frame-outro.png",
+      "sha256": "7d997973a598c2e1e9ab4f782de60049dc8f67e03ba0dcc37f7d9339c039285b"
+    },
+    {
+      "source": "90_说明与核验/场景预览/01_封面.png",
+      "target": "scene-previews/v33-package/cover.png",
+      "sha256": "0815bd2cbd6f3562636e8633996a96fa5cea6ba15d7787830dfaebe53f1c510c"
+    },
+    {
+      "source": "90_说明与核验/场景预览/02_故事开场.png",
+      "target": "scene-previews/v33-package/opening.png",
+      "sha256": "597812049d6ddef7270ab09a70b4e22ec89efefb2d2064a611bd1d9c23a1d272"
+    },
+    {
+      "source": "90_说明与核验/场景预览/03_闯关任务.png",
+      "target": "scene-previews/v33-package/mission.png",
+      "sha256": "715dd24c57b84f05e9cd87e1cadd0d1a25465d0b73ffbc30b9a2f7a6f1c0ef1f"
+    },
+    {
+      "source": "90_说明与核验/场景预览/04_腾云到洞口.png",
+      "target": "scene-previews/v33-package/arrival.png",
+      "sha256": "ed0d8670929cced4313e928ff3b5e65ece2217e7780bb15a4b7a39ec42c9b12e"
+    },
+    {
+      "source": "90_说明与核验/场景预览/06_搬石互动.png",
+      "target": "scene-previews/v33-package/move.png",
+      "sha256": "734012e7e08e63614fbca88d897228992d12e3d6630fdd3088401a7a3836e857"
+    },
+    {
+      "source": "90_说明与核验/场景预览/07_发现雨字.png",
+      "target": "scene-previews/v33-package/discover.png",
+      "sha256": "a45315c6036b80ad309b3aea0204c868b22e774cd84120843fb33763cfb4f5ca"
+    },
+    {
+      "source": "90_说明与核验/场景预览/08_认识汉字.png",
+      "target": "scene-previews/v33-package/learn.png",
+      "sha256": "4a076ce40bda9589d0483d3d517d24d84d4127e7eced76c5ce6fcce2aad85a27"
+    },
+    {
+      "source": "90_说明与核验/场景预览/09_描写汉字.png",
+      "target": "scene-previews/v33-package/trace.png",
+      "sha256": "15d497190d15245a1a0d98c786c4cc8c0001725c67af8048f10eb6236f1963f2"
+    },
+    {
+      "source": "90_说明与核验/场景预览/10_字形机关.png",
+      "target": "scene-previews/v33-package/quiz1.png",
+      "sha256": "ed5bd210eb987703c393dfc5c4dc4359a183eb2f6c4b7935ca3db3e2e0a164d4"
+    },
+    {
+      "source": "90_说明与核验/场景预览/11_字义机关.png",
+      "target": "scene-previews/v33-package/quiz2.png",
+      "sha256": "af8e4515cb9baeea86d10b724d3f996203b29cafaa4fde2b47e21043aeca643d"
+    },
+    {
+      "source": "90_说明与核验/场景预览/12_线索到手.png",
+      "target": "scene-previews/v33-package/outro.png",
+      "sha256": "f466d303babf9e9db29ec63697fb54d39abd0dc311d3ae2bc597a94c8e7dd930"
+    },
+    {
+      "source": "90_说明与核验/场景预览/13_闯关成功.png",
+      "target": "scene-previews/v33-package/finish.png",
+      "sha256": "62fa7b8a21c2620118586f61ece308b83c0d331fcc8adc2f8efd8f00cb67f8dd"
+    }
+  ],
+  "excludedFromEditor": [
+    {
+      "id": "R009",
+      "name": "辅助按钮_奶油白金边",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R010",
+      "name": "主按钮_青玉高光",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R011",
+      "name": "学习与描写标题装饰",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R012",
+      "name": "汉字楷体",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R013",
+      "name": "圆体界面文字",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R014",
+      "name": "带声调拼音",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R020",
+      "name": "M02说完后停帧",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R030",
+      "name": "O00_加载或失败备用静帧",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R031",
+      "name": "O00_成片内音轨_仅拆分备用",
+      "reason": "剪辑拆轨/时间轴备份，不重复生成或叠加"
+    },
+    {
+      "id": "R033",
+      "name": "M02_加载或失败备用静帧",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R034",
+      "name": "M02_成片内音轨_仅拆分备用",
+      "reason": "剪辑拆轨/时间轴备份，不重复生成或叠加"
+    },
+    {
+      "id": "R036",
+      "name": "T01加洞口到达_加载或失败备用静帧",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R037",
+      "name": "T01加洞口到达_成片内音轨_仅拆分备用",
+      "reason": "剪辑拆轨/时间轴备份，不重复生成或叠加"
+    },
+    {
+      "id": "R039",
+      "name": "C05_加载或失败备用静帧",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R040",
+      "name": "C05_成片内音轨_仅拆分备用",
+      "reason": "剪辑拆轨/时间轴备份，不重复生成或叠加"
+    },
+    {
+      "id": "R042",
+      "name": "E02_加载或失败备用静帧",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R043",
+      "name": "E02_成片内音轨_仅拆分备用",
+      "reason": "剪辑拆轨/时间轴备份，不重复生成或叠加"
+    },
+    {
+      "id": "R061",
+      "name": "O00_原旁白完整15秒时间轴",
+      "reason": "剪辑拆轨/时间轴备份，不重复生成或叠加"
+    },
+    {
+      "id": "R071",
+      "name": "音效_按钮点击",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R072",
+      "name": "音效_封面跃入回弹",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R073",
+      "name": "音效_搬开石头发现字卡",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R074",
+      "name": "音效_打开字卡",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R075",
+      "name": "音效_进入答题机关",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R076",
+      "name": "音效_答对提示",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    },
+    {
+      "id": "R077",
+      "name": "音效_闯关成功",
+      "reason": "播放器美术或音效/字体，不作为独立生成任务"
+    }
+  ]
+}

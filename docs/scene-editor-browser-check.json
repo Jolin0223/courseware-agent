@@ -1,0 +1,93 @@
+{
+  "checks": [
+    {
+      "name": "chapter edits inline without a dialog",
+      "passed": true
+    },
+    {
+      "name": "inline chapter edit persists",
+      "passed": true
+    },
+    {
+      "name": "cancel keeps chapter unchanged",
+      "passed": true
+    },
+    {
+      "name": "add chapter also stays inline",
+      "passed": true
+    },
+    {
+      "name": "scene list no longer expands scattered forms",
+      "passed": true
+    },
+    {
+      "name": "one large scene modal contains content and resources",
+      "passed": true
+    },
+    {
+      "name": "image resource editor stays inside the same dialog",
+      "passed": true
+    },
+    {
+      "name": "image reference selection does not stack another modal",
+      "passed": true
+    },
+    {
+      "name": "return from resource keeps scene draft",
+      "passed": true
+    },
+    {
+      "name": "scene title saves to plan",
+      "passed": true
+    },
+    {
+      "name": "V33 prompt and video duration remain editable together",
+      "passed": true
+    },
+    {
+      "name": "at sign opens material picker in same dialog",
+      "passed": true
+    },
+    {
+      "name": "reference is inserted into video prompt",
+      "passed": true
+    },
+    {
+      "name": "resource adoption remains in scene draft until outer save",
+      "passed": true
+    },
+    {
+      "name": "cancelling scene rolls back resource and prompt changes",
+      "passed": true
+    },
+    {
+      "name": "whole scene save persists video prompt",
+      "passed": true
+    },
+    {
+      "name": "adopted resource waits for scene save",
+      "passed": true
+    },
+    {
+      "name": "resource is committed with whole scene save",
+      "passed": true
+    },
+    {
+      "name": "mixed scene has interaction description and video in one modal",
+      "passed": true
+    },
+    {
+      "name": "large editor fits user viewport",
+      "passed": true
+    },
+    {
+      "name": "confirmation still available after scene modifications",
+      "passed": true
+    },
+    {
+      "name": "no browser errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

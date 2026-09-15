@@ -1,0 +1,32 @@
+{
+  "checks": [
+    {
+      "name": "draft and patch leave original untouched",
+      "passed": true
+    },
+    {
+      "name": "video edit invalidates only selected video",
+      "passed": true
+    },
+    {
+      "name": "video edit leaves unrelated completed scenes",
+      "passed": true
+    },
+    {
+      "name": "edited plan retains valid source signatures",
+      "passed": true
+    },
+    {
+      "name": "replaced shorter audio updates trim duration",
+      "passed": true
+    },
+    {
+      "name": "replaced audio leaves a valid nonoverlapping plan",
+      "passed": true
+    },
+    {
+      "name": "shared resource invalidates dependent scenes only",
+      "passed": true
+    }
+  ]
+}

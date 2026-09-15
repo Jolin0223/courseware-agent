@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Film, Image as ImageIcon, Volume2, Upload, RefreshCw, Loader2, ArrowLeft, Check, X, Plus } from 'lucide-react';
 import { useVideoCoursewareStore, copyPlayback } from '../../store/videoCoursewareStore';
-import type { MediaAsset, PlaybackSettings } from '../../data/videoCourseware/model';
+import type { MediaAsset, PlaybackSettings, VideoProject } from '../../data/videoCourseware/model';
 import { finishVideoProject, returnToMaterials } from './workflow';
 import { VideoModal, AssetPreview } from './Shared';
 import toast from '../../utils/toast';
@@ -13,8 +13,9 @@ function editablePrompt(asset?:MediaAsset){
  return asset.kind==='audio'?asset.text||asset.prompt:asset.kind==='image'?asset.prompt.replace(/^(?:输出文件|参考图)[:：].*(?:\n|$)/gm,'').trim():asset.prompt;
 }
 
-export default function VideoResourceEditor({projectId,onClose,initialTab='image',initialAssetId,sceneId}:{projectId:string;onClose:()=>void;initialTab?:'image'|'audio'|'video';initialAssetId?:string;sceneId?:string}){
- const project=useVideoCoursewareStore(s=>s.projects[projectId]);
+export default function VideoResourceEditor({projectId,onClose,initialTab='image',initialAssetId,sceneId,embeddedProject,onSave}:{projectId:string;onClose:()=>void;initialTab?:'image'|'audio'|'video';initialAssetId?:string;sceneId?:string;embeddedProject?:VideoProject;onSave?:(patch:Partial<VideoProject>)=>void}){
+ const storedProject=useVideoCoursewareStore(s=>s.projects[projectId]);
+ const project=embeddedProject||storedProject;
  const initialAsset=project.assets.find(a=>a.id===initialAssetId)||project.assets.find(a=>a.kind===initialTab);
  const [tab,setTab]=useState<'image'|'audio'|'video'>(initialTab);
  const [selectedId,setSelectedId]=useState(initialAssetId||project?.assets.find(a=>a.kind===initialTab)?.id||'');
@@ -55,7 +56,8 @@ export default function VideoResourceEditor({projectId,onClose,initialTab='image
  const uses=(selected?.segmentIds||[]).map(id=>project.segments.find(s=>s.id===id)?.title).filter(Boolean);
  const complete=project.phase==='ready';
  const dependentVideoIds=project.shots?changedVideoIds({...project,assets,speakers}):assets.filter(a=>a.kind==='video'&&assets.some(changedAsset=>changedAsset.kind!=='video'&&changedAsset.videoDependency!==false&&!changedAsset.overlay&&changedAsset.audioUse!=='interaction'&&changedAssetIds.includes(changedAsset.id)&&changedAsset.segmentIds.some(id=>a.segmentIds.includes(id)))).map(a=>a.id);
- return <VideoModal title="编辑资源" onClose={close}>
+ const referenceChoices=<><button className="vc-btn" onClick={()=>referenceFile.current?.click()}><Plus size={14}/>上传参考图</button><input ref={referenceFile} hidden type="file" accept="image/*" onChange={e=>uploadReference(e.target.files?.[0])}/><div className="vc-picker-grid">{assets.filter(a=>a.kind==='image'&&a.url&&project.readyAssetIds.includes(a.id)).map(a=><button className="vc-picker-asset" key={a.id} onClick={()=>{setReferenceUrl(a.url);setReferenceName(a.name);setReferencePicker(false);}}><img src={a.url} alt=""/><b>{a.name}</b></button>)}</div></>;
+ const body=<>
   <p className="vc-hint vc-edit-scope">选择要调整的素材，修改后只更新使用它的环节。</p>
   <div className="vc-tabs" role="tablist" aria-label="资源类型">{(['image','audio',...(hasVideo?['video']:[])] as Array<typeof tab>).map(kind=><button key={kind} role="tab" aria-selected={tab===kind} className={tab===kind?'active':''} onClick={()=>switchTab(kind)}>{kind==='image'?<ImageIcon size={16}/>:kind==='audio'?<Volume2 size={16}/>:<Film size={16}/ >}{kind==='image'?'图片':kind==='audio'?'旁白与角色配音':'视频'}</button>)}</div>
   <div className="vc-editor-columns">
@@ -75,8 +77,9 @@ export default function VideoResourceEditor({projectId,onClose,initialTab='image
     {candidate&&<div className="vc-candidate"><p><Check size={15}/>{project.workflowVersion===5?'演示候选沿用现有媒体，采用后更新配置；影响':'候选已准备好，采用后更新'} {uses.length} 个环节。</p><div className="vc-actions"><button className="vc-btn" onClick={()=>setCandidate(null)}>取消候选</button><button className="vc-btn primary" onClick={useCandidate}>采用候选</button></div></div>}
    </>}</main>
   </div>
-  {referencePicker&&<VideoModal title="选择图生图参考图片" onClose={()=>setReferencePicker(false)}><button className="vc-btn" onClick={()=>referenceFile.current?.click()}><Plus size={14}/>上传参考图</button><input ref={referenceFile} hidden type="file" accept="image/*" onChange={e=>uploadReference(e.target.files?.[0])}/><div className="vc-picker-grid">{assets.filter(a=>a.kind==='image'&&a.url&&project.readyAssetIds.includes(a.id)).map(a=><button className="vc-picker-asset" key={a.id} onClick={()=>{setReferenceUrl(a.url);setReferenceName(a.name);setReferencePicker(false);}}><img src={a.url} alt=""/><b>{a.name}</b></button>)}</div></VideoModal>}
-  <footer className="vc-editor-footer"><button className="vc-btn" onClick={close}><ArrowLeft size={14}/>取消</button><span>{changed?(dependentVideoIds.length?`将更新 ${dependentVideoIds.length} 段视频方案，确认后再生成视频`:'修改尚未保存'):complete?'保存修改后会生成新版本，旧版本保留':project.workflowVersion===5?'在场景方案内修改，确认后生成课件':'确认素材后再生成视频'}</span><button className="vc-btn primary" disabled={!changed||generating||Boolean(candidate)} onClick={()=>{
+  {referencePicker&&!embeddedProject&&<VideoModal title="选择图生图参考图片" onClose={()=>setReferencePicker(false)}>{referenceChoices}</VideoModal>}
+  <footer className="vc-editor-footer"><button className="vc-btn" onClick={close}><ArrowLeft size={14}/>取消</button><span>{embeddedProject?'应用后返回场景，点击“保存本场修改”统一保存。':changed?(dependentVideoIds.length?`将更新 ${dependentVideoIds.length} 段视频方案，确认后再生成视频`:'修改尚未保存'):complete?'保存修改后会生成新版本，旧版本保留':project.workflowVersion===5?'在场景方案内修改，确认后生成课件':'确认素材后再生成视频'}</span><button className="vc-btn primary" disabled={!changed||generating||Boolean(candidate)} onClick={()=>{
+ if(onSave){onSave({assets,composition,speakers});onClose();return;}
  const store=useVideoCoursewareStore.getState();
  store.update(project.id,{assets,composition,speakers});
  if(dependentVideoIds.length){
@@ -84,5 +87,6 @@ export default function VideoResourceEditor({projectId,onClose,initialTab='image
   returnToMaterials(project.id);
  }else if(complete)finishVideoProject(project.id,composition,'更新选中的素材，其他内容保留。');
  onClose();toast(dependentVideoIds.length?'素材已保存，请检查更新后的场景方案':complete?'新版本已生成，请预览后发布':'素材修改已保存');
-}}>{dependentVideoIds.length?'保存素材修改':complete?'保存修改，生成新版本':'保存素材修改'}</button></footer></VideoModal>;
+}}>{embeddedProject?'应用到场景':dependentVideoIds.length?'保存素材修改':complete?'保存修改，生成新版本':'保存素材修改'}</button></footer></>;
+ return embeddedProject?<div className="se-resource-editor">{referencePicker?<><button className="vc-text-btn" onClick={()=>setReferencePicker(false)}><ArrowLeft size={14}/>返回资源编辑</button><h3>选择图生图参考图片</h3>{referenceChoices}</>:body}</div>:<VideoModal title="编辑资源" onClose={close}>{body}</VideoModal>;
 }

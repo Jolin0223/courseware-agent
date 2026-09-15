@@ -1,3 +1,4 @@
+import { advanceSceneRevisions } from './sceneRevisionActions';
 import { advanceSceneProduction, sceneVideos } from '../../data/videoCourseware/production';
 import { compileOutline, makeOutline, outlineIssues, initialSceneContent } from '../../data/videoCourseware/outline';
 import { runtimeSettings, runtimeURL } from './runtime';
@@ -129,7 +130,8 @@ export function advanceVideoJobs(now=Date.now()){
  const store=useVideoCoursewareStore.getState();
  for(const original of Object.values(store.projects)){
   // Resume v2 drafts with measured audio and missing reference frames. Finished HTML is untouched.
-  let p=original;
+  advanceSceneRevisions(original.id,now);
+  let p=useVideoCoursewareStore.getState().projects[original.id];
   if(p.fixtureId==='wukong'&&p.assets.some(a=>a.kind==='audio'&&!a.seconds)){
    const assets:MediaAsset[]=p.assets.map(a=>({...wukongFixture.assets.find(f=>f.id===a.id),...a,seconds:a.seconds||(a.url?(audioDurations as Record<string,number>)[a.url]:undefined)}));
    for(const a of wukongFixture.assets.filter(a=>a.planningOnly))if(!assets.some(x=>x.id===a.id))assets.push(a);

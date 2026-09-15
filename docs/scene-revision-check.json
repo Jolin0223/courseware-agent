@@ -1,0 +1,88 @@
+{
+  "checks": [
+    {
+      "name": "reopening reuses existing draft",
+      "passed": true
+    },
+    {
+      "name": "name-only change is ready without media generation",
+      "passed": true
+    },
+    {
+      "name": "original project stays usable before adoption",
+      "passed": true
+    },
+    {
+      "name": "prompt edit reruns only its actual video dependency",
+      "passed": true
+    },
+    {
+      "name": "candidate progresses independently of completed course",
+      "passed": true
+    },
+    {
+      "name": "adoption creates version 2 preserving original snapshot and HTML",
+      "passed": true
+    },
+    {
+      "name": "concurrent candidates become stale and cannot overwrite new version",
+      "passed": true
+    },
+    {
+      "name": "rebasing retains another adopted scene and own prompt edit",
+      "passed": true
+    },
+    {
+      "name": "historical edit seeds one scene into latest lesson",
+      "passed": true
+    },
+    {
+      "name": "shared asset edit defaults to a scene-local fork",
+      "passed": true
+    },
+    {
+      "name": "rebase applies resource field delta without reverting newer URL or references",
+      "passed": true
+    },
+    {
+      "name": "rebase retains unrelated composition overrides",
+      "passed": true
+    },
+    {
+      "name": "only videos referencing the fork rerun",
+      "passed": true
+    },
+    {
+      "name": "runtime scopes fork to selected scene instead of global replacement",
+      "passed": true
+    },
+    {
+      "name": "explicit shared update lists affected scenes",
+      "passed": true
+    },
+    {
+      "name": "mixed scene waits for final assembly after all dependencies ready",
+      "passed": true
+    },
+    {
+      "name": "mixed scene becomes candidate after assembly",
+      "passed": true
+    },
+    {
+      "name": "discard keeps adopted outputs intact",
+      "passed": true
+    },
+    {
+      "name": "missing video fails candidate without failing original course",
+      "passed": true
+    },
+    {
+      "name": "retry retains completed candidate jobs",
+      "passed": true
+    },
+    {
+      "name": "published state and historical snapshots never rewritten",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "name": "selected scene uses scoped image replacement",
+      "passed": true
+    },
+    {
+      "name": "next scene restores original shared image",
+      "passed": true
+    },
+    {
+      "name": "scoped image also updates CSS artwork",
+      "passed": true
+    },
+    {
+      "name": "quiz transition clears previous scene CSS override",
+      "passed": true
+    },
+    {
+      "name": "legacy configuration without scoped assets retains original images",
+      "passed": true
+    },
+    {
+      "name": "no runtime errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

@@ -492,9 +492,12 @@ playTap=function(...args){if(studioConfig.soundEffects)originalTap(...args);};
 playEffect=function(...args){if(studioConfig.soundEffects)originalEffect(...args);};
 const studioStyle=document.createElement('style');document.head.append(studioStyle);
 
-let studioAssetOverrides={};
+let studioAssetOverrides={},studioScopedAssets={},studioGlobalAssets={};
+let studioActiveScene=studioParams.get('scene')||'cover';
+function validStudioAssets(input){return Object.fromEntries(Object.entries(input||{}).filter(([key,value])=>key.startsWith('assets/')&&typeof value==='string'&&(/^(data:(image|audio|video)\/|\/wukong\/assets\/)/.test(value))));}
 const studioMediaBase=JSON.parse(JSON.stringify(media));
-function resolveStudioAsset(url){return studioAssetOverrides[String(url).replace(location.origin+'/wukong/','').replace(/^\/wukong\//,'')]||url;}
+const studioAssetStyle=document.createElement('style');document.head.append(studioAssetStyle);
+function resolveStudioAsset(url){const key=String(url).replace(location.origin+'/wukong/','').replace(/^\/wukong\//,'');return studioScopedAssets[studioActiveScene]?.[key]||studioAssetOverrides[key]||url;}
 const studioOriginalSound=sound;
 sound=function(url,role){studioOriginalSound(resolveStudioAsset(url),role);};
 function applyStudioAssets(input){
@@ -509,10 +512,21 @@ function applyStudioAssets(input){
  updateImages();window.studioAssetObserver=new MutationObserver(updateImages);window.studioAssetObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['src']});
 }
 
+function applySceneAssets(id){
+ studioActiveScene=id||studioActiveScene;
+ applyStudioAssets(studioGlobalAssets);
+ const backgrounds=[['.rock-art,.sealed-rock','assets/images/v3/P01_draggable_rock.png'],['#stage .quiz-wrap .option::before','assets/images/v20/A01.png']];
+ studioAssetStyle.textContent=backgrounds.map(([selector,source])=>{const url=resolveStudioAsset(source);return url===source?'':selector+'{background-image:url('+JSON.stringify(url)+')}';}).join('');
+ media.intro=resolveStudioAsset('assets/video/'+studioConfig.openingVersion+'/opening.mp4');
+ media.introPoster=resolveStudioAsset('assets/video/'+studioConfig.openingVersion+'/opening-poster.jpg');
+ media.outro=resolveStudioAsset(studioConfig.videoVersion==='v31'?'assets/video/v31/E02.mp4':'assets/video/v32/E02.mp4');
+}
 function applyStudioConfig(input){
  studioConfig={badgeOffset:Math.max(-100,Math.min(80,Number(input.badgeOffset)||0)),badgeScale:Math.max(.7,Math.min(1.2,Number(input.badgeScale)||1)),subtitles:input.subtitles!==false,soundEffects:input.soundEffects!==false,videoVersion:input.videoVersion==='v31'?'v31':'v32',openingVersion:input.openingVersion==='v33'?'v33':'v27'};
  studioStyle.textContent=studioConfig.subtitles?'':'#cinema .subtitle-line,.mission-subtitle,.move-invite-subtitle,#introSubtitle,#introCaption,#missionSubtitle,#missionCaption,#arrivalCaption,#moveInviteCaption,#moveInviteSubtitle,#outroCaption,.spoken-subtitle{visibility:hidden!important}';
- applyStudioAssets(input.assetOverrides);
+ studioGlobalAssets=validStudioAssets(input.assetOverrides);
+ studioScopedAssets=Object.fromEntries(Object.entries(input.sceneAssetOverrides||{}).map(([id,assets])=>[id,validStudioAssets(assets)]));
+ applySceneAssets(studioActiveScene);
  media.intro=resolveStudioAsset('assets/video/'+studioConfig.openingVersion+'/opening.mp4');
  media.introPoster=resolveStudioAsset('assets/video/'+studioConfig.openingVersion+'/opening-poster.jpg');
  media.outro=resolveStudioAsset(studioConfig.videoVersion==='v31'?'assets/video/v31/E02.mp4':'assets/video/v32/E02.mp4');
@@ -529,10 +543,11 @@ const sceneId=()=>customScene|| (state.phase==='intro'?'opening':state.phase==='
 const validOrder=order=>Array.isArray(order)&&order.length>0&&new Set(order).size===order.length&&order.every(id=>canonicalOrder.includes(id)||scenePlans.some(s=>s.id===id));
 const originalApplyChange=applyChange;
 let orderEnded=false;
-function enterPlannedScene(id){customScene=null; const plan=scenePlans.find(s=>s.id===id);if(plan?.changed){renderCustomScene(plan);return;}orderEnded=!id;if(!id){director.cancel();if(studioParams.get('previewOnly')==='1'){document.querySelectorAll('video,audio').forEach(v=>v.pause());return;}originalApplyChange('finish');return;}if(!sceneToPhase[id])return;director.cancel();if(id==='quiz1'||id==='quiz2')state.quizIndex=id==='quiz2'?1:0;originalApplyChange(sceneToPhase[id]);}
+function enterPlannedScene(id){applySceneAssets(id);customScene=null; const plan=scenePlans.find(s=>s.id===id);if(plan?.changed){renderCustomScene(plan);return;}orderEnded=!id;if(!id){director.cancel();if(studioParams.get('previewOnly')==='1'){document.querySelectorAll('video,audio').forEach(v=>v.pause());return;}originalApplyChange('finish');return;}if(!sceneToPhase[id])return;director.cancel();if(id==='quiz1'||id==='quiz2')state.quizIndex=id==='quiz2'?1:0;originalApplyChange(sceneToPhase[id]);}
 applyChange=function(phase){
  const current=sceneId(),expected=canonicalOrder[canonicalOrder.indexOf(current)+1];
  if(validOrder(plannedOrder)&&expected&&sceneToPhase[expected]===phase){const next=plannedOrder[plannedOrder.indexOf(current)+1];enterPlannedScene(next);return;}
+ applySceneAssets(phase==='intro'?'opening':phase==='cave'?'move':phase==='quiz'?'quiz'+(state.quizIndex+1):phase);
  originalApplyChange(phase);
 };
 document.addEventListener('click',e=>{
@@ -599,7 +614,7 @@ window.addEventListener('message',e=>{
  if(e.data?.type!=='wukong-studio-config')return;
  if(e.data.composition&&typeof e.data.composition==='object')applyStudioConfig(e.data.composition);
 });
-const studioPhaseObserver=new MutationObserver(()=>{if(parent!==window)parent.postMessage({type:'wukong-phase',phase:state.phase==='quiz'?(state.quizIndex===1?'quiz2':'quiz1'):state.phase},location.origin);});
+const studioPhaseObserver=new MutationObserver(()=>{const current=sceneId();if(current!==studioActiveScene)applySceneAssets(current);if(parent!==window)parent.postMessage({type:'wukong-phase',phase:state.phase==='quiz'?(state.quizIndex===1?'quiz2':'quiz1'):state.phase},location.origin);});
 studioPhaseObserver.observe($('stage'),{attributes:true,attributeFilter:['data-phase']});
 studioPhaseObserver.observe($('lessonPanel'),{attributes:true,attributeFilter:['data-question-index']});
 const studioScene=studioParams.get('scene');

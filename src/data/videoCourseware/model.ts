@@ -10,7 +10,7 @@ export interface AudioCue { id:string; assetId:string; start:number; trimStart:n
 export interface OutlineChapter { id:string; title:string; content:string; sourceContent?:string; segmentIds:string[]; }
 export interface VideoSegment { content?:string; chapterId?:string; id:string; chapter:string; title:string; kind:SegmentKind; purpose:string; interaction:string; next:string; seconds:number; dialogue:string; speakerId:string; visual:string; transition:string; }
 export interface Speaker { id:string; name:string; role:'narrator'|'character'; voiceName:string; voiceId?:string; voiceLanguage?:string; sample?:string; }
-export interface MediaAsset { imageGeneration?:{mode:'image-to-image'|'text-to-image';referenceUrl?:string;referenceName?:string}; id:string; kind:AssetKind; name:string; url?:string; poster?:string; prompt:string; segmentIds:string[]; speakerId?:string; text?:string; seconds?:number; role?:string; overlay?:{sceneId:string}; audioUse?:'video'|'interaction'; referenceFor?:string; planningOnly?:boolean; revision?:number; videoDependency?:boolean; sourcePrompt?:string; videoInputs?:{firstFrameId?:string;lastFrameId?:string;references:ImageReference[];audioStarts?:number[];audioDescriptions?:string[]}; }
+export interface MediaAsset { originAssetId?:string; imageGeneration?:{mode:'image-to-image'|'text-to-image';referenceUrl?:string;referenceName?:string}; id:string; kind:AssetKind; name:string; url?:string; poster?:string; prompt:string; segmentIds:string[]; speakerId?:string; text?:string; seconds?:number; role?:string; overlay?:{sceneId:string}; audioUse?:'video'|'interaction'; referenceFor?:string; planningOnly?:boolean; revision?:number; videoDependency?:boolean; sourcePrompt?:string; videoInputs?:{firstFrameId?:string;lastFrameId?:string;references:ImageReference[];audioStarts?:number[];audioDescriptions?:string[]}; }
 export interface VideoShot {
  id:string; segmentId:string; videoAssetId:string; firstFrameId?:string; lastFrameId?:string;
  references?:ImageReference[]; audioCues?:AudioCue[];
@@ -21,12 +21,18 @@ export interface LessonFixture { id:string; title:string; subject:string; grade:
 export interface PlaybackSettings { subtitles:boolean; soundEffects:boolean; overlays:Record<string,{offsetY:number;scale:number}>; assetOverrides:Record<string,string>; }
 export interface VideoPublicationTarget { id:string;name:string;currentVersion:string;urlLabel:string;resourceScope?:'group'|'school'|'personal';schoolName?:string;subject?:string; }
 export interface VideoPublicationStatus { publishTargetId?:string;isCurrentPublished?:boolean;isHistoricalPublished?:boolean;isRemoved?:boolean; }
+export interface SceneRevision {
+ id:string;sceneId:string;baseVersion:number;sourceVersion:number;scope:'scene'|'shared';
+ base:WorkflowSnapshot;baseComposition:PlaybackSettings;draft:WorkflowSnapshot;composition:PlaybackSettings;
+ status:'draft'|'generating'|'candidate'|'failed'|'stale';startedAt?:number;elapsed?:number;error?:string;
+ candidate?:WorkflowSnapshot;candidateComposition?:PlaybackSettings;affectedSceneIds?:string[];videoIds?:string[];metadataOnly?:boolean;sceneAssemblyStarts?:Record<string,number>;
+}
 export interface VideoProject {
  id:string; conversationId:string; coursewareId:number; fixtureId:string;
  title:string; request:string; subject:string; grade:string; attachments:UploadedAttachment[];
  framework:RequirementFramework; preferences:GenerationPreferences; videoUse:string; speakers:Speaker[]; segments:VideoSegment[]; assets:MediaAsset[];
  phase:WorkflowPhase; job?:{kind:JobKind; start:number; duration:number; elapsed:number}; readyAssetIds:string[]; error?:string;
- chapters?:OutlineChapter[]; readySceneIds?:string[]; readyPageIds?:string[]; sceneAssemblyStarts?:Record<string,number>; outlineConfirmed?:boolean;
+ sceneRevisions?:Record<string,SceneRevision>; chapters?:OutlineChapter[]; readySceneIds?:string[]; readyPageIds?:string[]; sceneAssemblyStarts?:Record<string,number>; outlineConfirmed?:boolean;
  shots?:VideoShot[]; approvedPlanKey?:string; approvedMaterialsKey?:string; workflowVersion?:number;
  workflowRuns?:Partial<Record<WorkflowStage,string>>; workflowSnapshots?:Record<string,WorkflowSnapshot>;
  workflowEvents?:Array<{runId:string;stage:WorkflowStage;time:string;order?:number;confirmation:string}>;

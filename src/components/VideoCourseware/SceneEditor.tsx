@@ -9,7 +9,7 @@ import { AssetPreview, AudioPreview, VideoModal } from './Shared';
 import VideoResourceEditor from './VideoResourceEditor';
 
 type Picker={target:'content'|'reference'|'audio'|'first'|'last';shotId?:string;kind:'image'|'audio'};
-export default function SceneEditor({project,sceneId,readOnly,onClose}:{project:VideoProject;sceneId:string;readOnly:boolean;onClose:()=>void}){
+export default function SceneEditor({project,sceneId,readOnly,onClose,onSubmit,saveLabel='保存本场修改',allowSubmitUnchanged=false}:{project:VideoProject;sceneId:string;readOnly:boolean;onClose:()=>void;onSubmit?:(draft:VideoProject)=>void;saveLabel?:string;allowSubmitUnchanged?:boolean}){
  const [original]=useState(()=>structuredClone(project));
  const [draft,setDraft]=useState(()=>structuredClone(project));
  const [resource,setResource]=useState<string|null>(null),[picker,setPicker]=useState<Picker|null>(null),[all,setAll]=useState(false);
@@ -89,7 +89,7 @@ export default function SceneEditor({project,sceneId,readOnly,onClose}:{project:
      </>}
     </aside>
    </div>
-   <footer className="se-footer"><div>{!readOnly&&issues.length>0?<p className="vc-error" role="alert">{[...new Set(issues)].join(' ')}</p>:<span>{readOnly?'当前方案已确认':'场景和素材修改统一保存，确认全部场景后再生成。'}</span>}</div><button className="vc-btn" onClick={onClose}>{readOnly?'关闭':'取消'}</button>{!readOnly&&<button className="vc-btn primary" disabled={!dirty||issues.length>0} onClick={()=>{useVideoCoursewareStore.getState().update(project.id,patch);onClose();}}>保存本场修改</button>}</footer>
+   <footer className="se-footer"><div>{!readOnly&&issues.length>0?<p className="vc-error" role="alert">{[...new Set(issues)].join(' ')}</p>:<span>{readOnly?'当前方案已确认':onSubmit?'修改先保存为草稿，采用新候选后更新整课。':'场景和素材修改统一保存，确认全部场景后再生成。'}</span>}</div><button className="vc-btn" onClick={onClose}>{readOnly?'关闭':'取消'}</button>{!readOnly&&<button className="vc-btn primary" disabled={(!dirty&&!allowSubmitUnchanged)||issues.length>0} onClick={()=>{if(onSubmit){onSubmit(draft);return;}useVideoCoursewareStore.getState().update(project.id,patch);onClose();}}>{saveLabel}</button>}</footer>
   </>}
  </VideoModal>;
 }

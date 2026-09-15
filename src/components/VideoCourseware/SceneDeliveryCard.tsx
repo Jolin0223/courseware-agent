@@ -1,6 +1,9 @@
+import SceneRevisionDialog from './SceneRevisionDialog';
+import { beginSceneRevision } from './sceneRevisionActions';
+import { useVideoCoursewareStore } from '../../store/videoCoursewareStore';
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Check, Film, Gamepad2, Layers, Loader2, Play } from 'lucide-react';
+import { Check, Film, Gamepad2, Layers, Loader2, Play, PencilLine } from 'lucide-react';
 import type { VideoProject } from '../../data/videoCourseware/model';
 import { sceneProductionLabel } from '../../data/videoCourseware/production';
 import { scenePreviewURL } from '../../data/videoCourseware/scenePreview';
@@ -9,8 +12,10 @@ import { runtimeURL, sendRuntimeSettings } from './runtime';
 
 const kinds=[{kind:'video',label:'纯视频',Icon:Film},{kind:'h5',label:'纯互动页面',Icon:Gamepad2},{kind:'mixed',label:'视频＋互动',Icon:Layers}] as const;
 
-export function SceneDeliveryList({project,complete=false}:{project:VideoProject;complete?:boolean}){
+export function SceneDeliveryList({project,complete=false,version=project.revision}:{project:VideoProject;complete?:boolean;version?:number}){
   const [selected,setSelected]=useState<string|null>(null);
+  const [editing,setEditing]=useState<string|null>(null);
+  const current=useVideoCoursewareStore(s=>s.projects[project.id]);
   const frame=useRef<HTMLIFrameElement>(null);
   const isReady=(id:string)=>complete||Boolean(project.readySceneIds?.includes(id));
   // During generation preview only the chosen completed scene, never unfinished neighbours.
@@ -24,13 +29,14 @@ export function SceneDeliveryList({project,complete=false}:{project:VideoProject
     <div className="vc-result-scene-list vc-delivery-list" role="region" aria-label="按教学顺序排列的场景" tabIndex={0}>{project.segments.map((scene,i)=>{
       const ready=isReady(scene.id),preview=ready?scenePreviewURL(project,scene.id):undefined;
       const KindIcon=kinds.find(k=>k.kind===scene.kind)!.Icon;
-      return <button className="vc-result-scene" data-delivery-scene={scene.id} key={scene.id} disabled={!ready} onClick={()=>setSelected(scene.id)}>
+      return <div className={"vc-result-scene"+(!ready?" vc-scene-pending":"")} data-delivery-scene={scene.id} key={scene.id}>
         <span className="vc-order">{i+1}</span>
         {preview?<img src={preview} alt={scene.title+' · 场景截图'}/>:<span className="vc-result-scene-placeholder"><KindIcon size={20}/></span>}
         <span className="vc-result-scene-copy"><b>{scene.title}</b><small>{kinds.find(k=>k.kind===scene.kind)!.label}</small></span>
-        <span className={ready?'vc-scene-preview-link':'vc-delivery-status'}>{ready?<Play size={13}/>:project.phase!=='paused'&&project.phase!=='failed'?<Loader2 size={13} className="vc-spin"/>:null}{ready?'预览这一场':sceneProductionLabel(project,scene)}</span>
-      </button>;
+        <div className="vc-scene-row-actions">{ready?<button className="vc-text-btn" onClick={()=>setSelected(scene.id)}><Play size={13}/>预览</button>:<span className="vc-delivery-status">{project.phase!=='paused'&&project.phase!=='failed'&&<Loader2 size={13} className="vc-spin"/>}{sceneProductionLabel(project,scene)}</span>}{complete&&<button className="vc-text-btn" disabled={current?.phase!=='ready'} onClick={()=>{if(version===current?.revision)beginSceneRevision(project.id,scene.id,version);setEditing(scene.id);}}><PencilLine size={13}/>修改</button>}{complete&&version===current?.revision&&current?.sceneRevisions?.[scene.id]&&<small>{({draft:'有修改草稿',generating:'新候选制作中',candidate:'新候选可预览',failed:'候选待重试',stale:'待合并新版本'} as const)[current.sceneRevisions[scene.id].status]}</small>}</div>
+      </div>;
     })}</div>
+    {editing&&<SceneRevisionDialog projectId={project.id} sceneId={editing} version={version} onClose={()=>setEditing(null)}/>}
     {selected&&<VideoModal title={'场景预览 · '+project.segments.find(s=>s.id===selected)?.title} onClose={()=>setSelected(null)}><iframe ref={frame} className="vc-lesson" title="场景课件预览" src={url+(complete?'':'&previewOnly=1')} onLoad={()=>sendRuntimeSettings(frame.current?.contentWindow,previewProject,project.composition)} allow="autoplay; fullscreen"/><p className="vc-hint">{complete?'按教学顺序体验完整课件。':project.phase==='ready'?'整课已完成，关闭本场预览后可查看完整课件。':'当前预览已完成的这一场，其他场景继续制作。'}</p></VideoModal>}
   </>;
 }

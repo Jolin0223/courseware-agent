@@ -21,12 +21,19 @@ export function runtimeSettings(project:VideoProject, settings:PlaybackSettings)
     scenePlans:project.workflowVersion===5?project.segments.map(s=>({id:s.id,title:s.title,kind:s.kind,content:s.content,changed:sceneChanged(project,s)})):undefined,
     sceneOrder: (project.workflowVersion||0)>=4 ? project.segments.map(s=>s.id) : undefined,
     audioPlans: (project.workflowVersion||0)>=4 ? project.shots?.flatMap(shot=>{
-      const video=wukongFixture.assets.find(a=>a.id===shot.videoAssetId);
+      const source=project.assets.find(a=>a.id===shot.videoAssetId);
+      const video=wukongFixture.assets.find(a=>a.id===(source?.originAssetId||shot.videoAssetId));
       const original=video?.role==='环境视频'?[]:wukongFixture.assets.filter(a=>a.kind==='audio'&&a.audioUse!=='interaction'&&a.segmentIds.includes(shot.segmentId));
       const cues=shot.audioCues||[];
       const changed=cues.length!==original.length||cues.some((c,i)=>c.assetId!==original[i]?.id||c.start!==video?.videoInputs?.audioStarts?.[i]||c.trimStart!==0||c.trimEnd!==original[i]?.seconds||project.assets.find(a=>a.id===c.assetId)?.url!==original[i]?.url);
       return changed?[{scene:shot.segmentId,cues:cues.map(c=>({...c,url:project.assets.find(a=>a.id===c.assetId)?.url,text:project.assets.find(a=>a.id===c.assetId)?.text}))}]:[];
     }) : undefined,
+    // A forked shared asset resolves only inside the scene that adopted it.
+    sceneAssetOverrides: Object.fromEntries(project.segments.map(scene=>[scene.id,Object.fromEntries(project.assets.filter(a=>a.originAssetId&&a.segmentIds.includes(scene.id)).flatMap(a=>{
+      const source=a.originAssetId==='video-opening'?`/wukong/assets/video/${openingVersion(project)}/opening.mp4`:wukongFixture.assets.find(v=>v.id===a.originAssetId)?.url;
+      const url=settings.assetOverrides[a.id]||a.url;
+      return source&&url?[[source.replace(/^\/wukong\//,''),url]]:[];
+    }))])),
     assetOverrides: Object.fromEntries(Object.entries(settings.assetOverrides).flatMap(([id,url]) => {
       const source=id==='video-opening'?`/wukong/assets/video/${openingVersion(project)}/opening.mp4`:wukongFixture.assets.find(a=>a.id===id)?.url;
       return source ? [[source.replace(/^\/wukong\//,''),url]] : [];

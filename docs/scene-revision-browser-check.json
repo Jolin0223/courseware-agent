@@ -1,0 +1,73 @@
+{
+  "checks": [
+    {
+      "name": "rows label actions exactly preview and edit",
+      "passed": true
+    },
+    {
+      "name": "delivered scene reuses unified editor",
+      "passed": true
+    },
+    {
+      "name": "click image edits resource within same large modal",
+      "passed": true
+    },
+    {
+      "name": "scene draft remains intact when returning from resource",
+      "passed": true
+    },
+    {
+      "name": "rename avoids media regeneration",
+      "passed": true
+    },
+    {
+      "name": "candidate offers old and new preview before adoption",
+      "passed": true
+    },
+    {
+      "name": "candidate persists across reload",
+      "passed": true
+    },
+    {
+      "name": "adoption makes a second course version, old output unchanged",
+      "passed": true
+    },
+    {
+      "name": "generation keeps adopted scene usable",
+      "passed": true
+    },
+    {
+      "name": "original V33 still previews while candidate generates",
+      "passed": true
+    },
+    {
+      "name": "discard candidate preserves current course",
+      "passed": true
+    },
+    {
+      "name": "historical version offers draft, never direct overwrite",
+      "passed": true
+    },
+    {
+      "name": "historical draft opens original title",
+      "passed": true
+    },
+    {
+      "name": "shared resource defaults to current scene",
+      "passed": true
+    },
+    {
+      "name": "shared scope switch explicitly exposes affected scene names",
+      "passed": true
+    },
+    {
+      "name": "narrow editor remains inside viewport",
+      "passed": true
+    },
+    {
+      "name": "no browser script errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

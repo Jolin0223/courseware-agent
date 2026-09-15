@@ -28,7 +28,7 @@ export function advanceSceneProduction(project:VideoProject,elapsed:number):Part
 }
 
 export function sceneProductionLabel(project:VideoProject,scene:VideoSegment){
-  if(project.readySceneIds?.includes(scene.id))return '预览这一场';
+  if(project.readySceneIds?.includes(scene.id))return '预览';
   if(project.phase==='paused')return '已暂停';
   if(project.phase==='failed')return '等待重试';
   if(scene.kind==='h5')return '制作互动页面';

@@ -25,7 +25,7 @@
       "passed": true
     },
     {
-      "name": "cover has actual supplied recording but no invented transcript or speaker",
+      "name": "cover recording is grouped as Wukong without inventing a transcript",
       "passed": true
     },
     {

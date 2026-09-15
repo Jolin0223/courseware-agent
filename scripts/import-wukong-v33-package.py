@@ -47,7 +47,8 @@ voiceIds={62:'mission-voice',63:'arrival-cave',64:'arrival-glow',65:'move-voice'
 for n in list(range(44,61))+list(range(62,71)):
  a=byid[f'R{n:03}'];aid='narration-P'+str(n-43).zfill(2) if n<=60 else voiceIds[n];p,status=prompt(a)
  v=dict(id=aid,kind='audio',name=a['name'].replace('_',' · '),url='/wukong/'+a['source_path'],text=a['text'],prompt=p,promptStatus=status,segmentIds=scenes(a),seconds=a['duration'],audioUse='video' if n in [44,45,46,62,63,64,65,69] else 'interaction')
- if n!=70:v['speakerId']='narrator' if n<=60 else 'hero'
+ v['speakerId']='narrator' if n<=60 else 'hero' # Cover belongs to Wukong, confirmed by the user.
+ if n==70:v['name']='封面开场'
  assets.append(v)
 # Directly transcribe the six rows in the supplied outline; retain product scene grouping.
 text=(pack/'01_第一关真实教学大纲.md').read_text();chapterRows=[line for line in text.splitlines() if re.match(r'\| [1-6]\. ',line)]

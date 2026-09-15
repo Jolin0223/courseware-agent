@@ -1,0 +1,69 @@
+{
+  "checks": [
+    {
+      "name": "cover recording belongs to Wukong group",
+      "passed": true
+    },
+    {
+      "name": "cover appears under Wukong with concise name",
+      "passed": true
+    },
+    {
+      "name": "at opens local selector while sidebar stays visible",
+      "passed": true
+    },
+    {
+      "name": "selection inserts at original caret",
+      "passed": true
+    },
+    {
+      "name": "typing continues after inserted reference",
+      "passed": true
+    },
+    {
+      "name": "reference offers visible resource edit shortcut",
+      "passed": true
+    },
+    {
+      "name": "inserted reference opens same resource editor",
+      "passed": true
+    },
+    {
+      "name": "Escape closes picker and preserves scene draft",
+      "passed": true
+    },
+    {
+      "name": "inline references persist on save",
+      "passed": true
+    },
+    {
+      "name": "audio reference replaces selection in correct video prompt",
+      "passed": true
+    },
+    {
+      "name": "cancel keeps saved video prompt unchanged",
+      "passed": true
+    },
+    {
+      "name": "empty search shows clear feedback",
+      "passed": true
+    },
+    {
+      "name": "cross-scene insertion links the selected resource in draft",
+      "passed": true
+    },
+    {
+      "name": "cancelling cross-scene reference preserves saved associations",
+      "passed": true
+    },
+    {
+      "name": "existing saved example groups cover without rewriting history",
+      "passed": true
+    },
+    {
+      "name": "no browser errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

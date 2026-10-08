@@ -110,8 +110,8 @@ const cloudFiles = [
 ];
 
 const menuItems = [
-  { id: 'question-bank', icon: Database, title: '从学科题库选题', description: '敬请期待' },
-  { id: 'word-book', icon: BookOpen, title: '从英语词书选词', description: '敬请期待' },
+  { id: 'question-bank', icon: Database, title: '从学科题库选题', description: '将所选题目做成互动练习、闯关或讲评' },
+  { id: 'word-book', icon: BookOpen, title: '从英语词书选词', description: '围绕所选单词生成认读、听音、拼写或口语练习' },
   { id: 'cloud-pages', icon: Cloud, title: '从云盘课件选页面', description: '提取指定页面的内容、风格或玩法' },
 ] as const;
 
@@ -437,7 +437,8 @@ export default function TeachingContentPicker({
     <div ref={menuPopupRef} className={`aug-add-menu aug-add-menu-portal ${menuDirection === 'down' ? 'is-down' : ''}`} style={{ left: menuPosition.left, top: menuPosition.top, bottom: menuPosition.bottom }}>
       {menuItems.map(item => {
         const Icon = item.icon;
-        return <button key={item.id} className={`aug-add-menu-item aug-add-menu-item-${item.id}`} onClick={() => openPicker(item.id)}><span className="aug-add-menu-icon"><Icon size={18} /></span><span className="aug-add-menu-copy"><b>{item.title}</b><small>{item.description}</small></span><ChevronRight className="aug-add-menu-arrow" size={16} /></button>;
+        const comingSoon = item.id !== 'cloud-pages';
+        return <button key={item.id} className={`aug-add-menu-item aug-add-menu-item-${item.id}${comingSoon ? ' is-coming-soon' : ''}`} onClick={() => openPicker(item.id)}><span className="aug-add-menu-icon"><Icon size={18} /></span><span className="aug-add-menu-copy"><span className="aug-add-menu-heading"><b>{item.title}</b>{comingSoon && <span className="aug-add-menu-soon">敬请期待</span>}</span><small>{item.description}</small></span><ChevronRight className="aug-add-menu-arrow" size={16} /></button>;
       })}
     </div>,
     document.body,

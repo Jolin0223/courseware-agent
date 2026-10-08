@@ -615,7 +615,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     const requestText = [
       annotationPrompt,
       sceneEditPrompt,
-      trimmed ? `补充整体修改要求：${trimmed}` : '',
+      trimmed ? (annotationPrompt || sceneEditPrompt ? `补充整体修改要求：${trimmed}` : trimmed) : '',
     ].filter(Boolean).join('\n\n');
     if ((!requestText && readyAttachments.length === 0) || disabled) return;
     onSend(

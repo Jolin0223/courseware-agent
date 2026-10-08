@@ -16,6 +16,8 @@ import { useConversationStore, getFrameworkForCourseware } from './store/convers
 import { useCoursewareStore } from './store/coursewareStore';
 import { CLONE_COURSEWARE_PROMPT } from './constants/cloneCourseware';
 import toast from './utils/toast';
+import { createWindowClone, readCloneRequest } from './utils/cloneWindow';
+import { videoProjectStorage } from './store/videoProjectStorage';
 
 const NO_PERMISSION_ICON = 'https://aigc-material.xdf.cn/lingguang-aigc/material/chenjialing12/0yfywsZi-2fc4cc73-45eb-4d17-9c50-89c25838bf23.png';
 
@@ -45,6 +47,25 @@ function AppContent() {
   const activeConversationId = useConversationStore((s) => s.activeConversationId);
   const coursewares = useCoursewareStore((s) => s.coursewares);
   const showNoPermissionPage = isNoPermissionQuery(location.search);
+
+  useEffect(() => {
+    const token = new URLSearchParams(location.search).get('cloneRequest');
+    if (!token) return;
+    let cancelled = false;
+    setEntryLoading({ mode: 'clone' });
+    void readCloneRequest(token).then(request => {
+      if (cancelled) return;
+      if (!request) { toast('同款课件暂未加载，请从原课件重新打开'); setEntryLoading(null); return; }
+      const clone = createWindowClone(request);
+      setSidebarCollapsed(false);
+      openPreview(clone.coursewareId, 'v1');
+      setPendingAssistantPrompt(CLONE_COURSEWARE_PROMPT);
+      setEntryLoading(null);
+      navigate('/', { replace: true });
+      void videoProjectStorage.removeItem(`clone-request-${token}`);
+    }).catch(() => { if (!cancelled) { setEntryLoading(null); toast('同款课件加载失败，请重试'); } });
+    return () => { cancelled = true; };
+  }, [location.search, navigate, openPreview, setPendingAssistantPrompt, setSidebarCollapsed]);
 
   useEffect(() => {
     const clearPointerFocus = (event: PointerEvent) => {

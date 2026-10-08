@@ -76,12 +76,17 @@ export function rebaseSceneDraft(current:VideoProject,revision:SceneRevision):Vi
  const next=structuredClone(current);
  const old=revision.base,edited=revision.draft;
  next.segments=next.segments.map(s=>{const change=edited.segments.find(v=>v.id===s.id),before=old.segments.find(v=>v.id===s.id);if(!change||s.id!==revision.sceneId)return s;return applyDelta(s,before,change);});
+ const removedAssets=new Set(old.assets.filter(a=>!edited.assets.some(v=>v.id===a.id)).map(a=>a.id));
+ next.assets=next.assets.map(a=>removedAssets.has(a.id)?{...a,segmentIds:a.segmentIds.filter(id=>id!==revision.sceneId)}:a).filter(a=>a.segmentIds.length>0);
  for(const a of edited.assets.filter(a=>!same(a,old.assets.find(v=>v.id===a.id)))){const at=next.assets.findIndex(v=>v.id===a.id);if(at<0)next.assets.push(a);else {
   const before=old.assets.find(v=>v.id===a.id),currentAsset=next.assets[at];
   const removed=before?.segmentIds.filter(id=>!a.segmentIds.includes(id))||[],added=a.segmentIds.filter(id=>!before?.segmentIds.includes(id));
   next.assets[at]={...applyDelta(currentAsset,before,a),segmentIds:[...new Set([...currentAsset.segmentIds.filter(id=>!removed.includes(id)),...added])]};
  }
  }
+ // Locally uploaded assets are already ready. Merge only added readiness;
+ // never restore old readiness over a newer generation state.
+ next.readyAssetIds=[...new Set([...next.readyAssetIds,...edited.readyAssetIds.filter(id=>!old.readyAssetIds.includes(id)&&next.assets.some(a=>a.id===id&&a.url))])];
  next.speakers=next.speakers.map(s=>{const changed=edited.speakers.find(v=>v.id===s.id);return changed?applyDelta(s,old.speakers.find(v=>v.id===s.id),changed):s;});
  // Reconcile additions/removals too, so a scene type change survives rebase.
  const editedShots=edited.shots||[],oldShots=old.shots||[];

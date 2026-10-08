@@ -46,7 +46,7 @@ export function compileOutline(p:VideoProject):Partial<VideoProject>{
  });
  const ids=new Set(segments.map(s=>s.id));
  const assets=p.assets.map(a=>({...a,segmentIds:a.segmentIds.filter(id=>ids.has(id))})).filter(a=>a.segmentIds.length);
- return {segments,chapters:chapters.map(c=>({...c,segmentIds:segments.filter(s=>s.chapterId===c.id).map(s=>s.id)})),assets,shots:undefined,readySceneIds:[],readyPageIds:[],sceneAssemblyStarts:{},outlineConfirmed:true,approvedPlanKey:undefined,approvedMaterialsKey:undefined};
+ return {segments,chapters:chapters.map(c=>({...c,segmentIds:segments.filter(s=>s.chapterId===c.id).map(s=>s.id)})),assets,shots:undefined,readySceneIds:[],readyPageIds:[],sceneAssemblyStarts:{},sceneJobs:undefined,outlineConfirmed:true,approvedPlanKey:undefined,approvedMaterialsKey:undefined};
 }
 export function scenePlanIssues(p:VideoProject):string[]{
  return p.segments.flatMap((s,i)=>!s.title.trim()||!(s.content||'').trim()?[`场景 ${i+1} 需要名称和具体内容。`]:[]);

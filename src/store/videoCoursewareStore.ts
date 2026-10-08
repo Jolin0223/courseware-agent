@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { videoProjectStorage } from './videoProjectStorage';
 import { videoPlanKey, videoPlanIssues, materialsKey } from '../data/videoCourseware/planning';
 import type { VideoProject, JobKind, PlaybackSettings, WorkflowPhase } from '../data/videoCourseware/model';
 
@@ -13,7 +14,7 @@ export const useVideoCoursewareStore=create<State>()(persist((set,get)=>({
  start:(id,kind)=>{const p=get().projects[id];if(['video','scenes'].includes(kind)&&(videoPlanIssues(p).length||p.approvedMaterialsKey!==materialsKey(p)||p.approvedPlanKey!==videoPlanKey(p)))return false;get().update(id,{phase:jobPhase[kind],approvedPlanKey:kind==='assets'||kind==='video-plan'?undefined:p.approvedPlanKey,error:undefined,job:{kind,start:Date.now(),duration:p.workflowVersion===5&&kind==='video'?10000:p.workflowVersion===5&&kind==='assembly'?3500:durations[kind],elapsed:0}});return true;},
  pause:id=>{const p=get().projects[id];if(p.job)get().update(id,{phase:'paused',job:{...p.job,elapsed:Math.min(p.job.duration,Date.now()-p.job.start+p.job.elapsed)}});},
  resume:id=>{const p=get().projects[id];if(p.job&&['video','scenes'].includes(p.job.kind)&&(videoPlanIssues(p).length||p.approvedMaterialsKey!==materialsKey(p)||p.approvedPlanKey!==videoPlanKey(p))){get().update(id,{phase:'assets-review',job:undefined,approvedPlanKey:undefined});return;}if(p.job)get().update(id,{phase:jobPhase[p.job.kind],error:undefined,...(p.phase==='failed'&&p.job.kind==='scenes'?{sceneAssemblyStarts:{}}:{}),job:{...p.job,start:Date.now(),elapsed:p.phase==='failed'?0:p.job.elapsed}});},
-}),{name:'video-courseware-platform-v2',version:4,migrate:(persisted)=>{
+}),{name:'video-courseware-platform-v2',storage:createJSONStorage(()=>videoProjectStorage),version:4,migrate:(persisted)=>{
  const state=persisted as {projects:Record<string,VideoProject>};
  for(const project of Object.values(state.projects||{})){
   const old=project.composition as PlaybackSettings&{badgeOffset?:number;badgeScale?:number};

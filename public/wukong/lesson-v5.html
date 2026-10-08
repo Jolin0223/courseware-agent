@@ -58,6 +58,20 @@
 #stage .voice-role{display:none}
 #stage[data-phase="quiz"] .quiz-body{margin-top:62px}
 #stage[data-phase="quiz"] .quiz-feedback{margin-top:20px;min-height:86px}
+#stage .progress{display:flex!important}#stage .progress[hidden]{display:none!important}.progress-menu{height:52px;padding:0 18px;border:2px solid #d7c296;border-radius:16px;background:#fff9e9;color:#644c2e;font:700 22px/1 inherit;display:flex;align-items:center;gap:9px;cursor:pointer;box-shadow:0 4px 0 #ba9250}.progress-menu:hover,.progress-menu[aria-expanded="true"]{background:#fff0bd;border-color:#b98235}.progress-menu:focus-visible{outline:4px solid #ffe18e;outline-offset:3px}.progress-menu span{font-size:23px;padding:0}.scene-nav{position:absolute;inset:0;z-index:48;background:#10261c8c;backdrop-filter:blur(5px)}.scene-nav-shade{position:absolute;inset:0;border:0;background:transparent}.scene-nav-card{position:absolute;top:132px;left:50%;width:700px;max-height:820px;transform:translateX(-50%);display:flex;flex-direction:column;border:4px solid #f5dfac;border-radius:30px;background:#fffdf5;box-shadow:0 30px 80px #10261c66;overflow:hidden}.scene-nav-head{display:flex;align-items:center;justify-content:space-between;padding:24px 30px 20px;border-bottom:2px solid #eadbbd}.scene-nav-head h2{margin:0;color:#493824;font-size:31px}.scene-nav-close{width:52px;height:52px;border:0;border-radius:50%;background:#f1eadb;color:#6a5740;font:700 29px/1 inherit;cursor:pointer}.scene-nav-body{padding:20px 24px 26px;overflow-y:auto}.scene-nav-cover{width:100%;margin-bottom:14px;padding:16px 20px;border:0;border-radius:16px;background:#337e68;color:#fff;font:700 24px/1.2 inherit;text-align:left;cursor:pointer}.scene-nav-group{margin-top:12px}.scene-nav-group h3{margin:0 0 9px;padding:0 8px;color:#806a4d;font-size:20px}.scene-nav-items{display:grid;grid-template-columns:1fr 1fr;gap:9px}.scene-nav-items button{min-height:56px;padding:12px 16px;border:2px solid transparent;border-radius:14px;background:#f2ecdf;color:#514431;font:600 20px/1.25 inherit;text-align:left;cursor:pointer}.scene-nav-items button:hover,.scene-nav-items button:focus-visible{border-color:#b68b43;background:#fff7df;outline:0}.scene-nav-items button[aria-current="page"],.scene-nav-cover[aria-current="page"]{box-shadow:0 0 0 4px #ffd977 inset;background:#fff0bd;color:#44301b}.scene-nav-items button>small{display:block;margin-top:3px;color:#8d7b62;font-size:15px;font-weight:500}
+
+#stage>#sceneNavBtn{position:absolute;left:32px;bottom:24px;z-index:42;height:58px;padding:0 18px;border:2px solid #e7d5aa;background:#fffdf2ee;box-shadow:0 3px 12px #1d493629;font-family:inherit;font-size:23px;font-weight:600;line-height:1;backdrop-filter:blur(8px)}
+#sceneNavBtn small{font-size:17px;color:#817052;margin-left:4px}#sceneNavBtn[hidden]{display:none}
+.scene-nav-close{font-family:inherit;font-size:29px;font-weight:700;line-height:1}.scene-nav-cover{font-family:inherit;font-size:24px;font-weight:700;line-height:1.2}.scene-nav-items button{font-family:inherit;font-size:22px;font-weight:600;line-height:1.3}.scene-nav-head{flex-shrink:0}.scene-nav-body{min-height:0;scrollbar-width:thin;scrollbar-color:#cabb98 transparent}
+
+#stage>#sceneNavBtn{transform:scale(var(--nav-ui-scale,1));transform-origin:left bottom}
+#sceneNav .scene-nav-card{width:calc(700px * var(--nav-ui-scale,1));max-width:calc(100% - 80px);top:70px;max-height:940px}
+#sceneNav .scene-nav-head h2{font-size:calc(29px * var(--nav-ui-scale,1))}
+#sceneNav .scene-nav-close{width:calc(45px * var(--nav-ui-scale,1));height:calc(45px * var(--nav-ui-scale,1));font-size:calc(28px * var(--nav-ui-scale,1))}
+#sceneNav .scene-nav-group{margin-top:calc(13px * var(--nav-ui-scale,1))}
+#sceneNav .scene-nav-group h3{font-size:calc(20px * var(--nav-ui-scale,1))}
+#sceneNav .scene-nav-items button,#sceneNav .scene-nav-cover{font-size:calc(22px * var(--nav-ui-scale,1));min-height:calc(55px * var(--nav-ui-scale,1));padding:calc(12px * var(--nav-ui-scale,1)) calc(16px * var(--nav-ui-scale,1))}
+#sceneNav .scene-nav-items button>small{font-size:calc(15px * var(--nav-ui-scale,1))}
 </style><link rel="stylesheet" href="layout-v18.css?v=18"><link rel="stylesheet" href="media-v19.css?v=19"><link rel="stylesheet" href="art-v20.css?v=20"><link rel="stylesheet" href="finish-v21.css?v=21">
 <link rel="stylesheet" href="buttons-v23.css?v=23">
 <link rel="stylesheet" href="cover-v24.css?v=24">
@@ -76,6 +90,8 @@
     <nav class="progress" aria-label="本关学习进度"><span data-step="0">发现</span><i></i><span data-step="1">识字</span><i></i><span data-step="2">描写</span><i></i><span data-step="3">练习</span></nav>
     <div class="top-tools"><button id="replayVoice" class="small-btn">重听</button><button id="soundBtn" class="small-btn" aria-pressed="false">声音开</button><button id="notesBtn" class="small-btn" aria-haspopup="dialog">说明</button><button id="fullscreenBtn" class="small-btn">全屏</button></div>
   </header>
+  <button id="sceneNavBtn" class="progress-menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="sceneNav"><span aria-hidden="true">☰</span>场景目录<small id="sceneNavCount"></small></button>
+  <div id="sceneNav" class="scene-nav" role="dialog" aria-modal="true" aria-labelledby="sceneNavTitle" hidden><button class="scene-nav-shade" data-scene-nav-close aria-label="关闭场景目录"></button><section class="scene-nav-card"><header class="scene-nav-head"><h2 id="sceneNavTitle">快速跳到某一场</h2><button class="scene-nav-close" data-scene-nav-close aria-label="关闭场景目录">×</button></header><div class="scene-nav-body"><button class="scene-nav-cover" data-scene-target="cover">返回课程封面</button><section class="scene-nav-group" data-scene-group><h3>01 · 故事导入与学习任务</h3><div class="scene-nav-items"><button data-scene-target="opening">火焰山故事<small>视频</small></button><button data-scene-target="mission">闯关任务<small>互动</small></button><button data-scene-target="arrival">腾云到洞口<small>视频</small></button></div></section><section class="scene-nav-group" data-scene-group><h3>02 · 寻找线索：搬石发现“雨”</h3><div class="scene-nav-items"><button data-scene-target="move">搬石找线索<small>视频＋互动</small></button><button data-scene-target="discover">发现雨字<small>互动</small></button></div></section><section class="scene-nav-group" data-scene-group><h3>03 · 认识汉字：雨与雨字头</h3><div class="scene-nav-items"><button data-scene-target="learn">认识雨字家族<small>互动</small></button></div></section><section class="scene-nav-group" data-scene-group><h3>04 · 写一写：描写“雨、雪”</h3><div class="scene-nav-items"><button data-scene-target="trace">动手描写<small>互动</small></button></div></section><section class="scene-nav-group" data-scene-group><h3>05 · 试一试：两道雨字头机关</h3><div class="scene-nav-items"><button data-scene-target="quiz1">第一道练习<small>互动</small></button><button data-scene-target="quiz2">第二道练习<small>互动</small></button></div></section><section class="scene-nav-group" data-scene-group><h3>06 · 线索到手：本关总结</h3><div class="scene-nav-items"><button data-scene-target="outro">领取线索<small>视频</small></button><button data-scene-target="finish">回顾所学<small>互动</small></button></div></section></div></section></div>
   <aside id="inventory" class="inventory">借扇线索<strong>雨</strong><small id="inventoryLabel">等待发现</small></aside>
   <div id="dropZone" class="drop-zone" aria-label="石头的放置区域"><b aria-hidden="true">←</b><strong id="dropLabel">放到这里</strong></div>
   <div class="drag-trail" aria-hidden="true"><span>‹</span><span>‹</span><span>‹</span></div>
@@ -134,7 +150,7 @@ const log=[];
 const record=(event,detail={})=>log.push({time:new Date().toISOString(),event,...detail});
 try{const raw=JSON.parse(localStorage.getItem(KEY));if(raw&&['cover','intro','mission','arrival','cave','discover','learn','trace','quiz','outro','finish'].includes(raw.phase)&&raw.drawings&&Array.isArray(raw.drawings['雨'])&&Array.isArray(raw.drawings['雪'])&&Array.isArray(raw.answers)&&raw.answers.length===2&&Array.isArray(raw.attempts)&&[0,1].includes(raw.quizIndex))saved=raw;}catch{}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch{}};
-function fit(){scale=Math.min(innerWidth/1920,innerHeight/1080);$('stage').style.transform=`translate(-50%,-50%) scale(${scale})`;}
+function fit(){scale=Math.min(innerWidth/1920,innerHeight/1080);$('stage').style.transform=`translate(-50%,-50%) scale(${scale})`;$('stage').style.setProperty('--nav-ui-scale',String(Math.min(2.5,Math.max(1,.65/scale))));}
 window.addEventListener('resize',fit);fit();
 function toast(text){clearTimeout(noticeTimer);$('notice').textContent=text;$('notice').hidden=false;noticeTimer=setTimeout(()=>$('notice').hidden=true,4200);}
 function hide(...ids){ids.forEach(id=>$(id).hidden=true);}function show(...ids){ids.forEach(id=>$(id).hidden=false);}
@@ -515,7 +531,7 @@ function applyStudioAssets(input){
 function applySceneAssets(id){
  studioActiveScene=id||studioActiveScene;
  applyStudioAssets(studioGlobalAssets);
- const backgrounds=[['.rock-art,.sealed-rock','assets/images/v3/P01_draggable_rock.png'],['#stage .quiz-wrap .option::before','assets/images/v20/A01.png']];
+ const backgrounds=[['.rock-art,.sealed-rock','assets/images/v3/P01_draggable_rock.png'],['#stage .quiz-wrap .option::before','assets/images/v3/P01_draggable_rock.png']];
  studioAssetStyle.textContent=backgrounds.map(([selector,source])=>{const url=resolveStudioAsset(source);return url===source?'':selector+'{background-image:url('+JSON.stringify(url)+')}';}).join('');
  media.intro=resolveStudioAsset('assets/video/'+studioConfig.openingVersion+'/opening.mp4');
  media.introPoster=resolveStudioAsset('assets/video/'+studioConfig.openingVersion+'/opening-poster.jpg');
@@ -541,6 +557,45 @@ const sceneTitles={cover:'课程封面',opening:'火焰山故事',mission:'闯�
 let scenePlans=[],customScene=null;
 const sceneId=()=>customScene|| (state.phase==='intro'?'opening':state.phase==='cave'?'move':state.phase==='quiz'?'quiz'+(state.quizIndex+1):state.phase);
 const validOrder=order=>Array.isArray(order)&&order.length>0&&new Set(order).size===order.length&&order.every(id=>canonicalOrder.includes(id)||scenePlans.some(s=>s.id===id));
+let sceneNavPlaying=[];
+let sceneChapters=[];
+function rebuildSceneNav(){
+ if(!scenePlans.length||!sceneChapters.length)return;
+ const body=document.querySelector('.scene-nav-body');body.replaceChildren();
+ for(const [index,chapter] of sceneChapters.entries()){
+  const scenes=availableSceneOrder().map(id=>scenePlans.find(s=>s.id===id)).filter(s=>s&&chapter.segmentIds.includes(s.id));if(!scenes.length)continue;
+  const group=document.createElement('section');group.className='scene-nav-group';group.dataset.sceneGroup='';
+  const heading=document.createElement('h3');heading.textContent=String(index+1).padStart(2,'0')+' · '+chapter.title;
+  const items=document.createElement('div');items.className='scene-nav-items';
+  for(const scene of scenes){const button=document.createElement('button');button.dataset.sceneTarget=scene.id;button.textContent=scene.title;items.append(button);}
+  group.append(heading,items);body.append(group);
+ }
+}
+function availableSceneOrder(){return validOrder(plannedOrder)?plannedOrder:canonicalOrder;}
+function syncSceneNav(){
+ const order=availableSceneOrder(),enabled=order.length>1&&studioParams.get('previewOnly')!=='1';
+ $('sceneNavBtn').hidden=!enabled||studioParams.get('hostNav')==='1';
+ document.querySelector('.progress').hidden=!enabled;
+ $('sceneNavCount').textContent=(Math.max(0,order.indexOf(sceneId()))+1)+' / '+order.length;
+ document.querySelectorAll('[data-scene-target]').forEach(button=>{const id=button.dataset.sceneTarget;button.hidden=id!=='cover'&&!order.includes(id);if(id===sceneId())button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
+ document.querySelectorAll('[data-scene-group]').forEach(group=>{group.hidden=!group.querySelector('[data-scene-target]:not([hidden])');});
+}
+function openSceneNav(){
+ syncSceneNav();if($('sceneNavBtn').hidden)return;
+ clearTimeout(noticeTimer);hide('notice');
+ sceneNavPlaying=[...document.querySelectorAll('video,audio')].filter(node=>!node.paused);sceneNavPlaying.forEach(node=>node.pause());
+ $('sceneNav').hidden=false;$('sceneNavBtn').setAttribute('aria-expanded','true');
+ const current=$('sceneNav').querySelector('[aria-current="page"]');(current||$('sceneNav').querySelector('[data-scene-target]:not([hidden])'))?.focus();
+}
+function closeSceneNav(resume=true){
+ if($('sceneNav').hidden)return;$('sceneNav').hidden=true;$('sceneNavBtn').setAttribute('aria-expanded','false');
+ const pending=sceneNavPlaying;sceneNavPlaying=[];if(resume)pending.forEach(node=>node.play().catch(()=>{}));$('sceneNavBtn').focus();
+}
+$('sceneNavBtn').onclick=openSceneNav;
+$('sceneNav').querySelectorAll('[data-scene-nav-close]').forEach(button=>button.onclick=()=>closeSceneNav(true));
+$('sceneNav').addEventListener('click',event=>{const button=event.target.closest('[data-scene-target]');if(!button)return;closeSceneNav(false);enterPlannedScene(button.dataset.sceneTarget);syncSceneNav();});
+document.addEventListener('keydown',event=>{if($('sceneNav').hidden)return;if(event.key==='Escape'){event.preventDefault();closeSceneNav(true);}if(event.key==='Tab'){const buttons=[...$('sceneNav').querySelectorAll('.scene-nav-card button')].filter(b=>!b.hidden&&!b.closest('[hidden]'));const first=buttons[0],last=buttons.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}});
+const sceneNavObserver=new MutationObserver(syncSceneNav);sceneNavObserver.observe($('stage'),{attributes:true,attributeFilter:['data-phase']});sceneNavObserver.observe($('lessonPanel'),{attributes:true,attributeFilter:['data-question-index']});syncSceneNav();
 const originalApplyChange=applyChange;
 let orderEnded=false;
 function enterPlannedScene(id){applySceneAssets(id);customScene=null; const plan=scenePlans.find(s=>s.id===id);if(plan?.changed){renderCustomScene(plan);return;}orderEnded=!id;if(!id){director.cancel();if(studioParams.get('previewOnly')==='1'){document.querySelectorAll('video,audio').forEach(v=>v.pause());return;}originalApplyChange('finish');return;}if(!sceneToPhase[id])return;director.cancel();if(id==='quiz1'||id==='quiz2')state.quizIndex=id==='quiz2'?1:0;originalApplyChange(sceneToPhase[id]);}
@@ -604,6 +659,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseCues()
 const originalStopAudio=stopAudio;stopAudio=function(){pauseCues();originalStopAudio();};
 applyStudioConfig=function(input){
  originalStudioConfig(input);if(Array.isArray(input.scenePlans))scenePlans=input.scenePlans;if(validOrder(input.sceneOrder))plannedOrder=input.sceneOrder;
+ if(Array.isArray(input.sceneChapters))sceneChapters=input.sceneChapters;rebuildSceneNav();syncSceneNav();
  const requested=studioParams.get('scene');if(!window.planInitialized&&scenePlans.length){window.planInitialized=true;const id=scenePlans.some(s=>s.id===requested)?requested:plannedOrder[0];if(scenePlans.find(s=>s.id===id)?.changed)renderCustomScene(scenePlans.find(s=>s.id===id));}
  if(Array.isArray(input.audioPlans)){pauseCues();cuePlayers.clear();plannedAudio=input.audioPlans;}
 };
@@ -611,10 +667,11 @@ applyStudioConfig(studioConfig);
 window.addEventListener('message',e=>{
  if(e.origin!==location.origin||e.source!==parent)return;
  if(e.data?.type==='wukong-studio-pause'||e.data?.type==='pause-video-courseware'){document.querySelectorAll('video,audio').forEach(v=>v.pause());pauseCues();stopAudio();stopEffect();tapAudio.pause();return;}
+ if(e.data?.type==='wukong-studio-navigate'&&typeof e.data.sceneId==='string'&&availableSceneOrder().includes(e.data.sceneId)){enterPlannedScene(e.data.sceneId);syncSceneNav();return;}
  if(e.data?.type!=='wukong-studio-config')return;
  if(e.data.composition&&typeof e.data.composition==='object')applyStudioConfig(e.data.composition);
 });
-const studioPhaseObserver=new MutationObserver(()=>{const current=sceneId();if(current!==studioActiveScene)applySceneAssets(current);if(parent!==window)parent.postMessage({type:'wukong-phase',phase:state.phase==='quiz'?(state.quizIndex===1?'quiz2':'quiz1'):state.phase},location.origin);});
+const studioPhaseObserver=new MutationObserver(()=>{const current=sceneId();if(current!==studioActiveScene)applySceneAssets(current);if(parent!==window){parent.postMessage({type:'wukong-phase',phase:state.phase==='quiz'?(state.quizIndex===1?'quiz2':'quiz1'):state.phase},location.origin);parent.postMessage({type:'courseware-scene-change',sceneId:current},location.origin);}});
 studioPhaseObserver.observe($('stage'),{attributes:true,attributeFilter:['data-phase']});
 studioPhaseObserver.observe($('lessonPanel'),{attributes:true,attributeFilter:['data-question-index']});
 const studioScene=studioParams.get('scene');

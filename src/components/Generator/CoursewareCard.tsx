@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette } from 'lucide-react';
 import type { Courseware, GenerationPreferences, LearningDataRecoveryItem, LearningDataRecoveryRequest, LearningDataReportCapability, VisualStyleRegenerationRequest, VoiceOption } from '../../types';
 import { useUIStore } from '../../store/uiStore';
-import { useConversationStore, getFrameworkForCourseware } from '../../store/conversationStore';
-import { CLONE_COURSEWARE_PROMPT } from '../../constants/cloneCourseware';
+import { openCloneWindow } from '../../utils/cloneWindow';
 import toast from '../../utils/toast';
 import ResourceEditModal from './ResourceEditModal';
 import VideoResourceEditor from '../VideoCourseware/VideoResourceEditor';
@@ -12,6 +10,7 @@ import LearningDataRecoveryModal from './LearningDataRecoveryModal';
 import VisualStylePickerModal from './VisualStylePickerModal';
 import GenerationModeDropdown from './GenerationModeDropdown';
 import HtmlTypeBadge from '../common/HtmlTypeBadge';
+import VideoTypeBadge from '../common/VideoTypeBadge';
 import { demoVoiceOptions, generationModeOptions, getGenerationModeByModels, imageModelOptions } from '../../data/augustDemoData';
 import { getVisualStyleSelection } from '../../data/visualStylePresets';
 
@@ -65,7 +64,7 @@ export default function CoursewareCard({
   generationPreferences?: GenerationPreferences;
   learningDataReportCapability?: LearningDataReportCapability;
 }) {
-  const [copied, setCopied] = useState(false);
+  const videoProjectId=courseware.videoProjectId;
   const [feedbackCopied, setFeedbackCopied] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [images, setImages] = useState(MOCK_IMAGES);
@@ -88,9 +87,7 @@ export default function CoursewareCard({
     generationPreferences?.generationModeId
       || getGenerationModeByModels(generationPreferences?.htmlModelId, generationPreferences?.imageModelId).id,
   );
-  const navigate = useNavigate();
-  const { appMode, insertCourseware, openPreview, setPendingAssistantPrompt } = useUIStore();
-  const createCloneConversation = useConversationStore((s) => s.createCloneConversation);
+  const { appMode, insertCourseware } = useUIStore();
   const isEmbedded = appMode === 'embedded';
   const feedbackLocator = '2fc7b609481e45868a38a74b4490400a';
   const feedbackTime = '2026-06-05 14:30';
@@ -151,18 +148,7 @@ export default function CoursewareCard({
   };
 
 
-  const handleClone = () => {
-    const framework = getFrameworkForCourseware(courseware.id);
-    const clone = createCloneConversation(courseware.title, framework, courseware.htmlContent);
-    openPreview(clone.coursewareId, 'v1');
-    setPendingAssistantPrompt(CLONE_COURSEWARE_PROMPT);
-    setCopied(true);
-    toast('已创建同款课件第一版');
-    setTimeout(() => {
-      setCopied(false);
-      navigate('/');
-    }, 600);
-  };
+  const handleClone = () => { void openCloneWindow(courseware, previewVersionKey); };
 
   const handleImageReplace = (imageId: string, file: File) => {
     setImages(prev => prev.map(img => 
@@ -309,11 +295,11 @@ export default function CoursewareCard({
       ? variant === 'primary'
         ? 'var(--agent-primary-text)'
         : '#475569'
-      : '#CBD5E1',
+      : videoProjectId ? '#94A3B8' : '#CBD5E1',
     fontSize: 12,
     fontWeight: 750,
     cursor: enabled ? 'pointer' : 'not-allowed',
-    opacity: enabled ? 1 : 0.68,
+    opacity: enabled || videoProjectId ? 1 : 0.68,
     transition: 'border-color 0.15s, color 0.15s, background 0.15s',
     outline: 'none',
     whiteSpace: 'nowrap',
@@ -366,7 +352,7 @@ export default function CoursewareCard({
           borderRadius: `${UI_RADIUS}px ${UI_RADIUS}px 0 0`,
         }}
         >
-          <HtmlTypeBadge size="large" />
+          {courseware.type === '视频互动课件' ? <VideoTypeBadge size="large" /> : <HtmlTypeBadge size="large" />}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <span style={{ fontSize: 16, fontWeight: 760, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{courseware.title}</span>
@@ -419,20 +405,16 @@ export default function CoursewareCard({
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            flexWrap: 'nowrap',
+            flexWrap: videoProjectId ? 'wrap' : 'nowrap',
             overflow: 'visible',
           }}>
           <button
             onClick={handleClone}
-            style={getActionButtonStyle('primary')}
-            onMouseDown={e => e.preventDefault()}
-            onMouseEnter={e => handleActionEnter(e)}
-            onMouseLeave={e => handleActionLeave(e, 'primary')}
-            onBlur={e => handleActionLeave(e, 'primary')}
-          >
-            {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
-            {copied ? '已创建' : '一键同款'}
-          </button>
+            style={getActionButtonStyle('primary', true)}
+            onMouseEnter={e => handleActionEnter(e, true)}
+            onMouseLeave={e => handleActionLeave(e, 'primary', true)}
+            onBlur={e => handleActionLeave(e, 'primary', true)}
+          ><Copy size={15} />一键同款</button>
           <div style={{ position: 'relative', display: 'inline-flex' }}
             onMouseEnter={() => { if (!isLatest) setEditDisabledTooltip(true); }}
             onMouseLeave={() => setEditDisabledTooltip(false)}
@@ -458,27 +440,29 @@ export default function CoursewareCard({
               </div>
             )}
           </div>
-          <div style={{ position: 'relative', display: 'inline-flex' }}
-            onMouseEnter={() => { if (!isLatest) setStyleDisabledTooltip(true); }}
+          <div className={videoProjectId?'cw-coming-soon':''} tabIndex={videoProjectId?0:undefined} style={{ position: 'relative', display: 'inline-flex' }}
+            onMouseEnter={() => { if (!isLatest&&!videoProjectId) setStyleDisabledTooltip(true); }}
             onMouseLeave={() => setStyleDisabledTooltip(false)}
           >
             <button
               onClick={() => {
-                if (!isLatest) return;
+                if (!isLatest || videoProjectId) return;
                 const inheritedMode = generationModeOptions.find(mode => mode.id === generationPreferences?.generationModeId)
                   || getGenerationModeByModels(generationPreferences?.htmlModelId, generationPreferences?.imageModelId);
                 setStyleGenerationModeId(inheritedMode.id);
                 setShowVisualStyleModal(true);
               }}
-              style={getActionButtonStyle('secondary', isLatest)}
+              disabled={Boolean(videoProjectId)}
+              style={getActionButtonStyle('secondary', isLatest && !videoProjectId)}
               onMouseDown={e => e.preventDefault()}
-              onMouseEnter={e => handleActionEnter(e, isLatest)}
-              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest)}
-              onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
+              onMouseEnter={e => handleActionEnter(e, isLatest && !videoProjectId)}
+              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest && !videoProjectId)}
+              onBlur={e => handleActionLeave(e, 'secondary', isLatest && !videoProjectId)}
             >
               <Palette size={15} />
               调整风格
             </button>
+            {videoProjectId&&<span className="cw-coming-soon-tip" role="tooltip">敬请期待</span>}
             {styleDisabledTooltip && !isLatest && (
               <div style={{
                 position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
@@ -489,21 +473,23 @@ export default function CoursewareCard({
               </div>
             )}
           </div>
-          <div style={{ position: 'relative', display: 'inline-flex' }}
-            onMouseEnter={() => { if (!isLatest) setReportDisabledTooltip(true); }}
+          <div className={videoProjectId?'cw-coming-soon':''} tabIndex={videoProjectId?0:undefined} style={{ position: 'relative', display: 'inline-flex' }}
+            onMouseEnter={() => { if (!isLatest&&!videoProjectId) setReportDisabledTooltip(true); }}
             onMouseLeave={() => setReportDisabledTooltip(false)}
           >
             <button
+              disabled={Boolean(videoProjectId)}
               onClick={handleReportClick}
-              style={getActionButtonStyle('secondary', isLatest)}
+              style={getActionButtonStyle('secondary', isLatest && !videoProjectId)}
               onMouseDown={e => e.preventDefault()}
-              onMouseEnter={e => handleActionEnter(e, isLatest)}
-              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest)}
-              onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
+              onMouseEnter={e => handleActionEnter(e, isLatest && !videoProjectId)}
+              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest && !videoProjectId)}
+              onBlur={e => handleActionLeave(e, 'secondary', isLatest && !videoProjectId)}
             >
               <BarChart3 size={15} />
               {reportButtonLabel}
             </button>
+            {videoProjectId&&<span className="cw-coming-soon-tip" role="tooltip">敬请期待</span>}
             {reportDisabledTooltip && !isLatest && (
               <div style={{
                 position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',

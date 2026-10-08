@@ -187,9 +187,9 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
             </div>
           )}
 
-          <p style={{ fontSize: 13, color: '#64748B', marginBottom: 12 }}>
+          {stage.status !== 'completed' && <p style={{ fontSize: 13, color: '#64748B', marginBottom: 12 }}>
             {stage.detail || '为课件生成配套图片资源。'}
-          </p>
+          </p>}
           {stage.status === 'completed' && (
             <p style={{ fontSize: 12, color: 'var(--agent-primary)', marginBottom: 12 }}>
               ✅ 已完成，可在编辑阶段重新生成或上传本地图片

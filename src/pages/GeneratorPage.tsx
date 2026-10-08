@@ -1,7 +1,10 @@
+import ChatLoadingDots from '../components/Generator/ChatLoadingDots';
+import { isVideoChatLocked } from '../components/VideoCourseware/chatAvailability';
 import { useState, useCallback, useRef, useEffect, type UIEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUp, ChevronDown, ChevronUp, Headphones, Info, Mic, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowUp, ChevronDown, ChevronUp, Headphones, Info, ListChecks, MessageSquare, Mic, RotateCcw, Sparkles } from 'lucide-react';
 import ChatInput from '../components/Generator/ChatInput';
+import { hasVideoCoursewareAccess } from '../utils/videoCoursewareAccess';
 // ChatHistory moved to Sidebar
 import RequirementCard from '../components/Generator/RequirementCard';
 import CoursewareRecommendationCard from '../components/Generator/CoursewareRecommendationCard';
@@ -48,13 +51,16 @@ import { CLONE_COURSEWARE_PROMPT } from '../constants/cloneCourseware';
 import toast from '../utils/toast';
 import VideoResultScenes from '../components/VideoCourseware/VideoResultScenes';
 import VideoWorkflowCard from '../components/VideoCourseware/VideoWorkflowCard';
-import { startVideoProject, useVideoJobs } from '../components/VideoCourseware/workflow';
+import { ConfirmationDockContext } from '../components/VideoCourseware/ConfirmationDockContext';
+import { confirmOutline, startVideoProject, useVideoJobs } from '../components/VideoCourseware/workflow';
+import { startDirectSceneEdits } from '../components/VideoCourseware/sceneRevisionActions';
 import { useVideoCoursewareStore, videoProjectForConversation } from '../store/videoCoursewareStore';
 import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
 import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
+import type { PreviewAnnotationBatch } from '../types/previewAnnotation';
 
 type GenerationPhase = 'input' | 'analyzing' | 'recommendation' | 'loading-framework' | 'framework' | 'generating' | 'completed';
-const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中~';
+const GENERIC_AI_WAITING_TEXT = '正在处理，请稍候…';
 
 const buildCloneReferenceHtml = (item: GameplayInspiration) => {
   const previewUrl = item.examplePreviewUrl || item.coverUrl || '';
@@ -475,13 +481,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   welcomeHeroCopy: {
     marginBottom: 26,
+    paddingRight: 132,
   },
   welcomeRobot: {
     position: 'absolute',
-    right: 76,
-    top: 4,
-    width: 156,
-    maxWidth: '17vw',
+    right: 42,
+    top: 22,
+    width: 128,
+    maxWidth: '15vw',
     pointerEvents: 'none',
     userSelect: 'none',
     zIndex: 1,
@@ -627,26 +634,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 15,
     lineHeight: 1.5,
     border: '1px solid #E2E8F0',
-  },
-  waitingStack: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: 9,
-    maxWidth: 'var(--chat-content-max, 864px)',
-  },
-  waitingDots: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: 0,
-    height: 18,
-  },
-  waitingDot: {
-    width: 9,
-    height: 9,
-    borderRadius: '50%',
-    animation: 'dotBounce 1.4s infinite ease-in-out both',
   },
 };
 
@@ -1119,6 +1106,31 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     justifyContent: 'flex-end',
     gap: 8,
   },
+  annotationGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  annotationSummaryRow: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  annotationSummaryChip: {
+    minHeight: 34,
+    padding: '0 13px',
+    borderRadius: 999,
+    border: '1px solid #D8DEE8',
+    background: '#FFFFFF',
+    color: '#1E293B',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 7,
+    fontSize: 14,
+    fontWeight: 800,
+    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+  },
   imageCard: {
     width: 108,
     height: 80,
@@ -1280,6 +1292,8 @@ function UserMessage({
   const [playwayPromptOpen, setPlaywayPromptOpen] = useState(false);
   const message = typeof content === 'string' ? { text: content } : content;
   const images = message.attachments?.filter(file => file.type === 'image') || [];
+  const annotationImages = images.filter(file => file.id.startsWith('annotation-'));
+  const regularImages = images.filter(file => !file.id.startsWith('annotation-'));
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
   const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
   const teachingAttachments = message.attachments?.filter(file => Boolean(file.teachingSource)) || [];
@@ -1298,12 +1312,14 @@ function UserMessage({
       ? `生成：${selectedGenerationMode.name}`
       : null,
   ].filter((item): item is string => Boolean(item));
-  const appliedPlaywayMessage = message.text ? parseAppliedPlaywayMessage(message.text) : null;
+  const hasStructuredEditSummary = Boolean(message.annotationCount || message.sceneEditCount);
+  const visibleText = hasStructuredEditSummary ? message.displayText?.trim() || '' : message.text;
+  const appliedPlaywayMessage = visibleText ? parseAppliedPlaywayMessage(visibleText) : null;
   const hasAttachments = images.length > 0 || documents.length > 0 || htmlAttachments.length > 0 || teachingAttachments.length > 0 || selectedPreferences.length > 0;
   const isLongText = Boolean(
-    message.text
+    visibleText
     && !appliedPlaywayMessage
-    && (message.text.length > 260 || message.text.split('\n').length > 8)
+    && (visibleText.length > 260 || visibleText.split('\n').length > 8)
   );
   const shouldUseFullWidthBubble = Boolean(isLongText || hasAttachments || appliedPlaywayMessage);
 
@@ -1311,9 +1327,42 @@ function UserMessage({
     <>
       <div className="agent-user-message" style={styles.messageUser}>
         <div className="agent-user-message-stack" style={userMessageStyles.stack}>
-          {images.length > 0 && (
+          {(annotationImages.length > 0 || message.annotationCount || message.sceneEditCount) && (
+            <div style={userMessageStyles.annotationGroup}>
+              {annotationImages.length > 0 && (
+                <div className="agent-user-message-image-grid" style={userMessageStyles.imageGrid}>
+                  {annotationImages.map(image => (
+                    <button
+                      key={image.id}
+                      onClick={() => setPreviewImage(image)}
+                      style={userMessageStyles.imageCard}
+                      title="点击预览标注截图"
+                    >
+                      <img src={image.url} alt={image.name} style={userMessageStyles.image} />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div style={userMessageStyles.annotationSummaryRow}>
+                {Boolean(message.annotationCount) && (
+                  <span style={userMessageStyles.annotationSummaryChip} aria-label={`${message.annotationCount} 条注释`}>
+                    <MessageSquare size={16} />
+                    {message.annotationCount} 条注释
+                  </span>
+                )}
+                {Boolean(message.sceneEditCount) && (
+                  <span style={userMessageStyles.annotationSummaryChip} aria-label={`${message.sceneEditCount} 个场景修改`}>
+                    <ListChecks size={16} />
+                    {message.sceneEditCount} 个场景
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {regularImages.length > 0 && (
             <div className="agent-user-message-image-grid" style={userMessageStyles.imageGrid}>
-              {images.map(image => (
+              {regularImages.map(image => (
                 <button
                   key={image.id}
                   onClick={() => setPreviewImage(image)}
@@ -1419,7 +1468,7 @@ function UserMessage({
             </div>
           )}
 
-          {message.text && !appliedPlaywayMessage && (
+          {visibleText && !appliedPlaywayMessage && (
             <div className="agent-user-message-text-wrap" style={userMessageStyles.textWrap}>
               <div
                 className={`agent-user-message-bubble ${shouldUseFullWidthBubble ? 'is-full-width' : ''}`}
@@ -1431,7 +1480,7 @@ function UserMessage({
                   whiteSpace: 'pre-wrap',
                 }}
               >
-                {message.text}
+                {visibleText}
                 {isLongText && !longTextExpanded && <div style={userMessageStyles.fadeMask} />}
               </div>
               {isLongText && (
@@ -1515,16 +1564,7 @@ const SimpleStreamText: React.FC<{ text: string; speed?: number }> = ({ text, sp
 const AIWaitingMessage: React.FC = () => (
   <div style={styles.messageAssistant}>
     <AIAvatar />
-    <div style={styles.waitingStack}>
-      <div style={styles.assistantBubble}>
-        {GENERIC_AI_WAITING_TEXT}
-      </div>
-      <div style={styles.waitingDots} aria-label="AI 正在处理">
-        <span style={{ ...styles.waitingDot, background: '#8CB9FF', animationDelay: '0s' }} />
-        <span style={{ ...styles.waitingDot, background: '#65D9E5', animationDelay: '0.16s' }} />
-        <span style={{ ...styles.waitingDot, background: '#1F86FF', animationDelay: '0.32s' }} />
-      </div>
-    </div>
+    <div><div style={styles.assistantBubble}>{GENERIC_AI_WAITING_TEXT}</div><ChatLoadingDots/></div>
   </div>
 );
 
@@ -1973,6 +2013,12 @@ function AssistantMessage({
   }
 
   if (message.type === 'video-courseware-workflow') {
+    if(workflowMessage?.stage==='resource-update'){
+      const event=workflowProject?.workflowEvents?.find(e=>e.runId===workflowMessage.runId);
+      const pending=event?.status==='generating';
+      return <div style={styles.messageAssistant} data-resource-update-message={event?.runId}><AIAvatar/><div><div style={styles.assistantBubble}>{event?.status==='failed'?event.error:event?.status==='completed'?`已更新 ${event.sceneCount||1} 个场景，新版本已生成。`:`正在更新 ${event?.sceneCount||1} 个场景，完成后自动生成新版本…`}</div>{pending&&<ChatLoadingDots/>}</div></div>;
+    }
+
     // Hide the finished generation row without unmounting an open scene-preview portal.
     if(workflowProject?.workflowVersion===5&&(workflowMessage?.stage==='assembly'||(workflowMessage?.stage==='production'&&(Boolean(workflowMessage.runId&&workflowMessage.runId!==workflowProject.workflowRuns?.production)))))return null;
     return <div style={workflowProject?.workflowVersion===5&&workflowMessage?.stage==='production'&&workflowProject.phase==='ready'?{display:'none'}:styles.messageAssistant}><AIAvatar/><div style={styles.assistantContent}><VideoWorkflowCard projectId={(message.content as { videoProjectId: string }).videoProjectId} stage={(message.content as { stage?: 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly' }).stage} runId={(message.content as {runId?:string}).runId}/></div></div>;
@@ -2178,6 +2224,7 @@ function AssistantMessage({
 }
 
 export default function GeneratorPage() {
+  const [confirmationDock, setConfirmationDock] = useState<HTMLDivElement | null>(null);
   useVideoJobs();
   const {
     conversations,
@@ -2212,6 +2259,13 @@ export default function GeneratorPage() {
   const [frameworkDone, setFrameworkDone] = useState(false);
   const [draftPrompt, setDraftPrompt] = useState('');
   const [draftVersion, setDraftVersion] = useState(0);
+  const [pendingPreviewAnnotationState, setPendingPreviewAnnotationState] = useState<{
+    conversationId: string | null;
+    batch: PreviewAnnotationBatch;
+  } | null>(null);
+  const pendingPreviewAnnotations = pendingPreviewAnnotationState?.conversationId === activeConversationId
+    ? pendingPreviewAnnotationState.batch
+    : null;
   const [selectedInspiration, setSelectedInspiration] = useState<GameplayInspiration | null>(null);
   const [promptFly, setPromptFly] = useState<PromptFlyState | null>(null);
   const [showBackToInput, setShowBackToInput] = useState(false);
@@ -2390,6 +2444,16 @@ export default function GeneratorPage() {
       setSelectedInspiration(null);
     }
   }, []);
+
+  const handleSubmitPreviewAnnotations = useCallback((batch: PreviewAnnotationBatch) => {
+    setPendingPreviewAnnotationState({ conversationId: activeConversationId, batch });
+    window.requestAnimationFrame(() => {
+      bottomInputAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      window.setTimeout(() => {
+        bottomInputAnchorRef.current?.querySelector('textarea')?.focus();
+      }, 260);
+    });
+  }, [activeConversationId]);
 
   const getActiveInputAnchor = useCallback(() => {
     if (!hasMessages && phase === 'input') return centeredInputAnchorRef.current;
@@ -2594,12 +2658,16 @@ export default function GeneratorPage() {
   }, [addAssistantMessage, startRecommendationFlow]);
 
   useEffect(() => {
+    const videoProject=videoProjectForConversation(activeConversationId);
+    // The first single-scene approval adds a delivery card, but must not pull the
+    // teacher away from the remaining plans they are still reviewing.
+    if(videoProject?.phase==='assets-review'&&videoProject.sceneJobs&&videoProject.segments.some(s=>!videoProject.sceneJobs?.[s.id]||videoProject.sceneJobs[s.id].status==='needs-confirmation'))return;
     if (chatAreaRef.current) {
       requestAnimationFrame(() => {
         chatAreaRef.current!.scrollTop = chatAreaRef.current!.scrollHeight;
       });
     }
-  }, [activeConversation?.messages.length, phase]);
+  }, [activeConversation?.messages.length, phase, activeConversationId]);
 
   useEffect(() => {
     if (!activeConversationId) return;
@@ -2673,17 +2741,64 @@ export default function GeneratorPage() {
     text: string,
     attachments: UploadedAttachment[] = [],
     generationPreferences: GenerationPreferences = {},
+    displayMeta?: { displayText?: string; annotationCount?: number; sceneEditCount?: number; sceneEditIds?: string[]; sceneEditRequests?: Record<string, string>; sceneEditReferences?: Record<string, string[]> },
   ) => {
     const videoProject = videoProjectForConversation(activeConversationId);
     if (videoProject) {
-      addUserMessage(videoProject.conversationId, text);
-      useVideoCoursewareStore.getState().update(videoProject.id, { phase: 'plan', job: undefined, framework: { ...videoProject.framework, userRequirement: videoProject.framework.userRequirement + '\n补充要求：' + text }, pendingEdit: text });
+      if (isVideoChatLocked(videoProject)) return;
+      addUserMessage(videoProject.conversationId, {
+        text,
+        attachments,
+        generationPreferences,
+        ...displayMeta,
+      });
+      const directSceneIds = displayMeta?.sceneEditIds?.filter(id => videoProject.segments.some(scene => scene.id === id)) || [];
+      if (videoProject.phase === 'ready' && directSceneIds.length > 0) {
+        const started = startDirectSceneEdits(videoProject.id, directSceneIds.map(sceneId => ({
+          sceneId,
+          instruction: displayMeta?.sceneEditRequests?.[sceneId] || text,
+          referenceNames: displayMeta?.sceneEditReferences?.[sceneId] || [],
+        })));
+        if (started) {
+          // Keep captured preview screenshots with the revision task as well as
+          // the chat message, so the scene generator can retain the visual
+          // evidence while the candidate is being produced.
+          useVideoCoursewareStore.getState().update(videoProject.id, {
+            pendingEdit: text,
+            pendingEditAttachments: attachments,
+          });
+          const labels = directSceneIds.map(id => { const index = videoProject.segments.findIndex(scene => scene.id === id); return index >= 0 ? `第${index + 1}场景` : ''; }).filter(Boolean).join('、');
+          addAssistantMessage(videoProject.conversationId, `正在更新${labels || '指定场景'}并生成 V${videoProject.revision + 1}，完成后合并整课供你确认。其他场景保持不变。`, 'text');
+          closePreview();
+          setWaitingForUserAction(videoProject.conversationId, false);
+          return;
+        }
+      }
+      const needsOutlineReview = /剧情|教学目标|章节|结构|重写|完全不匹配|完全换内容|重新设计/.test(text);
+      useVideoCoursewareStore.getState().update(videoProject.id, {
+        phase: 'plan',
+        job: undefined,
+        framework: { ...videoProject.framework, userRequirement: videoProject.framework.userRequirement + '\n补充要求：' + text },
+        pendingEdit: text,
+        pendingEditAttachments: attachments,
+      });
+      if (videoProject.phase === 'ready' && !needsOutlineReview) {
+        confirmOutline(videoProject.id);
+        addAssistantMessage(videoProject.conversationId, '已按现有教学大纲继续处理这次整课修改。', 'text');
+        closePreview();
+        setWaitingForUserAction(videoProject.conversationId, false);
+        return;
+      }
       closePreview();
       setWaitingForUserAction(videoProject.conversationId, true);
       requestAnimationFrame(() => document.querySelector(`[data-video-plan="${videoProject.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
       return;
     }
     if (generationPreferences.contentFormat === 'video') {
+      if (!hasVideoCoursewareAccess()) {
+        toast('当前账号未开通视频互动课件');
+        return;
+      }
       const videoConversation = createNewConversation(text || '视频互动课件');
       startVideoProject(videoConversation, text || '根据上传材料制作视频互动课件', attachments, generationPreferences);
       setPhase('input');
@@ -2711,6 +2826,7 @@ export default function GeneratorPage() {
       text: originalUserRequirement,
       attachments,
       generationPreferences,
+      ...displayMeta,
     });
     setDraftPrompt('');
     setSelectedInspiration(null);
@@ -3454,7 +3570,6 @@ export default function GeneratorPage() {
               minHeight: welcomeHeroMinHeight,
             }}
           >
-            <img className="agent-welcome-robot" src={HOMEPAGE_ROBOT_URL} alt="" style={styles.welcomeRobot} />
             <div className="agent-welcome-hero-content" style={styles.welcomeHeroContent}>
               <div className="agent-welcome-hero-copy" style={styles.welcomeHeroCopy}>
                 <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
@@ -3463,6 +3578,7 @@ export default function GeneratorPage() {
               <div className="agent-welcome-input" ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 980 }}>
                 <ChatInput
                   onSend={handleSend}
+                  welcomeRobotUrl={HOMEPAGE_ROBOT_URL}
                   centered
                   disabled={isGenerating}
                   placeholder="例如：做一个颜色单词游戏，或者上传材料后描述你想怎么用"
@@ -3728,6 +3844,8 @@ export default function GeneratorPage() {
           </div>
         </div>
         
+        <div ref={setConfirmationDock} className="agent-video-confirm-dock" />
+
         {!videoProject && (phase === 'loading-framework' || phase === 'framework') && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 24px 0' }}>
             {phase === 'loading-framework' || !frameworkDone ? (
@@ -3777,15 +3895,19 @@ export default function GeneratorPage() {
         <div className="agent-chat-input-area" ref={bottomInputAnchorRef} style={{ ...styles.inputArea, ...chatContentVars, padding: inputAreaPadding }}>
           <div style={{ width: '100%', maxWidth: chatContentMaxWidth }}>
             <ChatInput 
+              key={activeConversationId || 'bottom-input'}
+              placeholder={videoProject && videoProject.revision < 1 ? '首版课件完成后可发送修改意见，请先在上方确认大纲和场景' : undefined}
               onSend={handleSend} 
-              disabled={false} 
-              isGenerating={videoProject ? ['planning','assets-loading','video-planning','video-loading','assembling'].includes(videoProject.phase) : phase !== 'input' && phase !== 'completed'}
+              disabled={Boolean(videoProject && isVideoChatLocked(videoProject)) || (!videoProject && phase !== 'input' && phase !== 'completed')}
+              isGenerating={Boolean(videoProject ? ['planning','scene-planning','images-loading','audio-loading','assets-loading','video-planning','video-loading','scenes-loading','assembling'].includes(videoProject.phase) : phase !== 'input' && phase !== 'completed')}
               onStop={videoProject ? () => useVideoCoursewareStore.getState().pause(videoProject.id) : handleStop}
               injectedText={draftPrompt}
               injectedTextVersion={draftVersion}
               onTextChange={handleDraftPromptChange}
               lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
               forceHighlight={isCloneDemandInput}
+              annotationBatch={pendingPreviewAnnotations}
+              onClearAnnotationBatch={() => setPendingPreviewAnnotationState(null)}
             />
           </div>
         </div>
@@ -3798,7 +3920,7 @@ export default function GeneratorPage() {
       <div ref={splitContainerRef} style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Main Content */}
         <div className={`generator-main-content${previewPanelOpen ? ' is-preview-split' : ''}`} style={{ ...styles.mainContent, flex: previewPanelOpen ? undefined : 1, width: previewPanelOpen ? `${chatWidth}%` : '100%' }}>
-          {renderContent()}
+          <ConfirmationDockContext.Provider value={confirmationDock}>{renderContent()}</ConfirmationDockContext.Provider>
         </div>
 
         {/* Draggable Divider + Preview Panel */}
@@ -3825,6 +3947,7 @@ export default function GeneratorPage() {
                 coursewareId={previewCoursewareId} 
                 initialVersion={previewInitialVersion}
                 onClose={closePreview} 
+                onSubmitAnnotations={handleSubmitPreviewAnnotations}
               />
             </div>
           </>
@@ -3862,10 +3985,6 @@ export default function GeneratorPage() {
         @keyframes blink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
-        }
-        @keyframes dotBounce {
-          0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-          40% { transform: scale(1); opacity: 1; }
         }
         .back-to-input-wrap:hover .back-to-input-tooltip,
         .back-to-input-wrap:focus-within .back-to-input-tooltip {

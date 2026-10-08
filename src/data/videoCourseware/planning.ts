@@ -14,7 +14,7 @@ export function shotSourceKey(project: VideoProject, video: MediaAsset, selected
   const ids=[input?.firstFrameId,input?.lastFrameId,...(input?.references||[]).map(r=>r.assetId),
     ...(selectedShot?.audioCues?.map(c=>c.assetId)||selectedShot?.audioIds||project.assets.filter(a=>a.kind==='audio'&&a.audioUse!=='interaction'&&video.role!=='环境视频'&&a.segmentIds.some(id=>video.segmentIds.includes(id))).map(a=>a.id))];
   const related=project.assets.filter(a=>ids.includes(a.id));
-  return key({segments:project.segments.filter(s=>video.segmentIds.includes(s.id)),
+  return key({segments:project.segments.filter(s=>video.segmentIds.includes(s.id)).map(scene=>({...scene,revision:undefined})),
     assets:related.map(a=>[a.id,a.url,a.prompt,a.text,a.seconds,a.revision]),
     voices:project.speakers.filter(s=>related.some(a=>a.speakerId===s.id)),style:project.framework.designStyle});
 }
@@ -104,7 +104,7 @@ export function synchronizeSegment(project: VideoProject, draft: VideoSegment): 
   const before = project.segments.find(s => s.id === draft.id)!;
   const dialogueChanged = before.dialogue !== draft.dialogue || before.speakerId !== draft.speakerId;
   const relatedAudio = project.assets.filter(a => a.kind === 'audio' && a.audioUse !== 'interaction' && a.segmentIds.includes(draft.id));
-  let assets = project.assets.filter(a => !(a.kind === 'video' && a.segmentIds.includes(draft.id) && draft.kind === 'h5'));
+  let assets = project.assets.map(a => a.kind === 'video' && a.segmentIds.includes(draft.id) && draft.kind === 'h5' ? {...a, segmentIds:a.segmentIds.filter(id=>id!==draft.id)} : a).filter(a=>a.kind!=='video'||a.segmentIds.length>0);
   assets = assets.map(a => {
     if (!a.segmentIds.includes(draft.id)) return a;
     if (a.kind === 'video' && a.role !== '环境视频') return {...a, name: draft.title, prompt: draft.visual, text: draft.dialogue, seconds: draft.seconds};

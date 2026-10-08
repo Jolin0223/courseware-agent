@@ -1,13 +1,16 @@
 import { useVideoCoursewareStore, videoProjectForCourseware } from '../../store/videoCoursewareStore';
+import { buildVideoLessonHTML, finishVideoProject } from '../VideoCourseware/workflow';
+import { VideoModal } from '../VideoCourseware/Shared';
 import VideoResourceEditor from '../VideoCourseware/VideoResourceEditor';
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, MousePointer2, Highlighter, CheckCircle2, AlertCircle, Loader2, Copy } from 'lucide-react';
+import { Maximize2, X, Edit3, RefreshCw, Send, Download, Square, Globe, Monitor, Tablet, Users, GraduationCap, MessageSquarePlus, CheckCircle2, AlertCircle, Loader2, Copy, Trash2, Settings2 } from 'lucide-react';
 import { useCoursewareStore } from '../../store/coursewareStore';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore } from '../../store/conversationStore';
 import { mockCoursewares } from '../../data/mockCoursewares';
 import { demoPublishedTargets, demoSessionVersions } from '../../data/demoCoursewareVersions';
 import type { CoursewareResult } from '../../types';
+import type { PreviewAnnotation, PreviewAnnotationBatch } from '../../types/previewAnnotation';
 import PublishModal from '../Library/PublishModal';
 import toast from '../../utils/toast';
 
@@ -15,6 +18,7 @@ interface PreviewPanelProps {
   coursewareId: number | null;
   initialVersion?: string | null;
   onClose: () => void;
+  onSubmitAnnotations?: (batch: PreviewAnnotationBatch) => void;
 }
 
 const PLACEHOLDER_HTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94A3B8;font-size:16px;">课件预览区域</div>';
@@ -80,13 +84,6 @@ interface ResourceUpdateTask {
   remainingSeconds: number;
 }
 
-interface PreviewAnnotation {
-  id: number;
-  x: number;
-  y: number;
-  text: string;
-}
-
 const REAL_CASE_TITLES = [
   '近义词大挑战',
   '单词神枪手',
@@ -110,7 +107,7 @@ const buildSessionVersions = (courseware?: { id?: number; title?: string; htmlCo
     return demoSessionVersions.map(version => ({ ...version }));
   }
   const videoProject = courseware.id ? videoProjectForCourseware(courseware.id) : undefined;
-  if (videoProject) return videoProject.resultMessages.map(r => ({ version: `v${r.version}`, sessionNumber: r.version, title: videoProject.title, htmlContent: r.html, createdAt: r.time, ...videoProject.publishedVersions?.[`v${r.version}`] }));
+  if (videoProject) return videoProject.resultMessages.map(r => ({ version: `v${r.version}`, sessionNumber: r.version, title: videoProject.title, htmlContent: videoProject.workflowVersion === 5 ? buildVideoLessonHTML({ ...videoProject, ...(r.snapshot || {}) }, r.composition || videoProject.composition) : r.html, createdAt: r.time, ...videoProject.publishedVersions?.[`v${r.version}`] }));
   const baseHtml = courseware.htmlContent || '';
   const baseTitle = courseware.title || '互动课件';
   if (isRealCaseCourseware(baseTitle) || baseTitle.endsWith('-同款版')) {
@@ -192,7 +189,7 @@ const buildPublishedTargets = (courseware?: { id?:number; title?: string; subjec
   ];
 };
 
-export default function PreviewPanel({ coursewareId, initialVersion, onClose }: PreviewPanelProps) {
+export default function PreviewPanel({ coursewareId, initialVersion, onClose, onSubmitAnnotations }: PreviewPanelProps) {
   const { coursewares, updateCourseware } = useCoursewareStore();
   const conversations = useConversationStore((s) => s.conversations);
   const { appMode, insertCourseware } = useUIStore();
@@ -262,15 +259,20 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('default');
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [videoResourcesOpen, setVideoResourcesOpen] = useState(false);
+  const [coursewareSettingsOpen, setCoursewareSettingsOpen] = useState(false);
+  const [showSceneNavigation, setShowSceneNavigation] = useState(true);
   const videoProject = coursewareId ? videoProjectForCourseware(coursewareId) : undefined;
   const [annotationModeOpen, setAnnotationModeOpen] = useState(false);
   const [annotations, setAnnotations] = useState<PreviewAnnotation[]>([]);
-  const [draftAnnotation, setDraftAnnotation] = useState<{ x: number; y: number; text: string } | null>(null);
+  const [draftAnnotation, setDraftAnnotation] = useState<Omit<PreviewAnnotation, 'id'> | null>(null);
   const [activeAnnotationId, setActiveAnnotationId] = useState<number | null>(null);
+  const [annotationPageLabel, setAnnotationPageLabel] = useState('当前页面');
+  const [isCapturingAnnotation, setIsCapturingAnnotation] = useState(false);
   const [hoveredHeaderButton, setHoveredHeaderButton] = useState<string | null>(null);
   const [resourceUpdateTask, setResourceUpdateTask] = useState<ResourceUpdateTask | null>(null);
   const publishBtnRef = useRef<HTMLDivElement>(null);
   const versionScrollRef = useRef<HTMLDivElement>(null);
+  const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const resourceUpdateTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const resourceUpdateCountdownRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
 
@@ -306,6 +308,7 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     setAnnotations([]);
     setDraftAnnotation(null);
     setActiveAnnotationId(null);
+    setAnnotationPageLabel('当前页面');
   }, [coursewareId, initialVersion, versionSourceCourseware?.htmlContent, versionSourceCourseware?.title]);
 
   useEffect(() => {
@@ -339,10 +342,72 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     setFullscreenOpen(true);
   };
 
+  const resolveDeepPreviewPoint = (xPercent: number, yPercent: number) => {
+    let frameWindow = previewIframeRef.current?.contentWindow || null;
+    let frameDocument = previewIframeRef.current?.contentDocument || null;
+    if (!frameWindow || !frameDocument) return null;
+    let pointX = (xPercent / 100) * frameWindow.innerWidth;
+    let pointY = (yPercent / 100) * frameWindow.innerHeight;
+
+    for (let depth = 0; depth < 4; depth += 1) {
+      const target = frameDocument.elementFromPoint(pointX, pointY) as HTMLElement | null;
+      if (target?.tagName !== 'IFRAME') {
+        return { frameWindow, frameDocument, pointX, pointY, target };
+      }
+      const nestedFrame = target as HTMLIFrameElement;
+      const nestedWindow = nestedFrame.contentWindow;
+      const nestedDocument = nestedFrame.contentDocument;
+      if (!nestedWindow || !nestedDocument) {
+        return { frameWindow, frameDocument, pointX, pointY, target };
+      }
+      const nestedRect = nestedFrame.getBoundingClientRect();
+      if (!nestedRect.width || !nestedRect.height) {
+        return { frameWindow, frameDocument, pointX, pointY, target };
+      }
+      pointX = ((pointX - nestedRect.left) / nestedRect.width) * nestedWindow.innerWidth;
+      pointY = ((pointY - nestedRect.top) / nestedRect.height) * nestedWindow.innerHeight;
+      frameWindow = nestedWindow;
+      frameDocument = nestedDocument;
+    }
+
+    return {
+      frameWindow,
+      frameDocument,
+      pointX,
+      pointY,
+      target: frameDocument.elementFromPoint(pointX, pointY) as HTMLElement | null,
+    };
+  };
+
+  const resolveFramePageLabel = (
+    target?: HTMLElement | null,
+    sourceDocument?: Document | null,
+    sourceWindow?: Window | null,
+  ) => {
+    const frameDocument = sourceDocument || previewIframeRef.current?.contentDocument;
+    const frameWindow = sourceWindow || previewIframeRef.current?.contentWindow;
+    const visiblePage = Array.from(frameDocument?.querySelectorAll<HTMLElement>('[data-scene-title], [data-scene], [data-page], [data-slide], [aria-current="page"], .scene, .page, .slide') || []).find(node => {
+      const nodeRect = node.getBoundingClientRect();
+      const style = frameWindow?.getComputedStyle(node);
+      return nodeRect.width > 0 && nodeRect.height > 0 && style?.display !== 'none' && style?.visibility !== 'hidden' && style?.opacity !== '0';
+    });
+    const pageNode = target?.closest<HTMLElement>('[data-scene-title], [data-scene], [data-page], [data-slide], [aria-current="page"]') || visiblePage;
+    const pageValue = pageNode?.dataset.sceneTitle
+      || pageNode?.dataset.scene
+      || pageNode?.dataset.page
+      || pageNode?.dataset.slide
+      || pageNode?.getAttribute('aria-label')
+      || pageNode?.id;
+    const hash = frameWindow?.location.hash.replace(/^#/, '').trim();
+    return pageValue || hash || frameDocument?.title?.trim() || '当前页面';
+  };
+
   const handleEdit = () => {
     if (isRemovedVersion) return;
     setFullscreenOpen(false);
-    setAnnotationModeOpen(true);
+    setPreviewDevice('default');
+    if (!annotationModeOpen) setAnnotationPageLabel(resolveFramePageLabel());
+    setAnnotationModeOpen(previous => !previous);
     setDraftAnnotation(null);
   };
 
@@ -633,27 +698,237 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
     const rect = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
+    const deepPoint = resolveDeepPreviewPoint(x, y);
+    const frameWindow = deepPoint?.frameWindow;
+    const frameDocument = deepPoint?.frameDocument;
+    let pageLabel = resolveFramePageLabel();
+    let targetText: string | undefined;
+    let targetTag: string | undefined;
+    let videoTimeSeconds: number | undefined;
+
+    try {
+      const target = deepPoint?.target || null;
+      pageLabel = resolveFramePageLabel(target, frameDocument, frameWindow);
+
+      const rawTargetText = target?.getAttribute('aria-label')
+        || target?.getAttribute('title')
+        || target?.innerText
+        || target?.textContent
+        || '';
+      const normalizedTargetText = rawTargetText.replace(/\s+/g, ' ').trim();
+      if (normalizedTargetText) targetText = normalizedTargetText.slice(0, 48);
+      if (target?.tagName) targetTag = target.tagName.toLowerCase();
+
+      const visibleVideo = Array.from(frameDocument?.querySelectorAll('video') || []).find(video => {
+        const videoRect = video.getBoundingClientRect();
+        return videoRect.width > 0 && videoRect.height > 0;
+      });
+      if (visibleVideo && Number.isFinite(visibleVideo.currentTime)) videoTimeSeconds = visibleVideo.currentTime;
+    } catch {
+      // srcDoc is same-origin in this demo; coordinates remain a reliable fallback.
+    }
+
     setDraftAnnotation({
       x: Math.max(3, Math.min(97, x)),
       y: Math.max(3, Math.min(97, y)),
       text: '',
+      pageLabel,
+      deviceLabel: previewDevices.find(device => device.id === previewDevice)?.label || '默认预览',
+      targetText,
+      targetTag,
+      videoTimeSeconds,
+      viewportWidth: Math.round(frameWindow?.innerWidth || rect.width),
+      viewportHeight: Math.round(frameWindow?.innerHeight || rect.height),
     });
+    setAnnotationPageLabel(pageLabel);
     setActiveAnnotationId(null);
   };
 
-  const handleSaveAnnotation = () => {
+  const captureAnnotationScreenshot = async (annotation: Omit<PreviewAnnotation, 'id'>, id: number) => {
+    const deepPoint = resolveDeepPreviewPoint(annotation.x, annotation.y);
+    const frameWindow = deepPoint?.frameWindow;
+    const frameDocument = deepPoint?.frameDocument;
+    if (!deepPoint || !frameWindow || !frameDocument?.documentElement) return undefined;
+    const captureElement = (frameDocument.querySelector('#stage') as HTMLElement | null) || frameDocument.documentElement;
+    const captureRect = captureElement.getBoundingClientRect();
+
+    const isVisibleMedia = (node: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement) => {
+      const nodeRect = node.getBoundingClientRect();
+      const style = frameWindow.getComputedStyle(node);
+      if (!nodeRect.width || !nodeRect.height || style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) return false;
+      if (node.tagName === 'IMG') return (node as HTMLImageElement).complete && Boolean((node as HTMLImageElement).naturalWidth);
+      if (node.tagName === 'VIDEO') return (node as HTMLVideoElement).readyState >= 2;
+      return true;
+    };
+
+    const drawMarkerAndCrop = (source: HTMLCanvasElement) => {
+      const sourcePointX = ((deepPoint.pointX - captureRect.left) / captureRect.width) * source.width;
+      const sourcePointY = ((deepPoint.pointY - captureRect.top) / captureRect.height) * source.height;
+      const cropWidth = Math.min(560, source.width);
+      const cropHeight = Math.min(315, source.height);
+      const cropX = Math.max(0, Math.min(source.width - cropWidth, sourcePointX - cropWidth / 2));
+      const cropY = Math.max(0, Math.min(source.height - cropHeight, sourcePointY - cropHeight / 2));
+      const output = document.createElement('canvas');
+      output.width = cropWidth;
+      output.height = cropHeight;
+      const context = output.getContext('2d');
+      if (!context) return undefined;
+      context.drawImage(source, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+      const markerX = sourcePointX - cropX;
+      const markerY = sourcePointY - cropY;
+      context.beginPath();
+      context.arc(markerX, markerY, 15, 0, Math.PI * 2);
+      context.fillStyle = '#0274FC';
+      context.fill();
+      context.lineWidth = 3;
+      context.strokeStyle = '#FFFFFF';
+      context.stroke();
+      context.fillStyle = '#FFFFFF';
+      context.font = '800 13px system-ui, sans-serif';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(String(id), markerX, markerY + 0.5);
+      return {
+        dataUrl: output.toDataURL('image/jpeg', 0.82),
+        width: output.width,
+        height: output.height,
+      };
+    };
+
+    const visibleCover = Array.from(captureElement.querySelectorAll<HTMLImageElement>('#cover img'))
+      .find(node => isVisibleMedia(node));
+    if (visibleCover) {
+      const source = document.createElement('canvas');
+      source.width = Math.max(1, Math.round(captureElement.scrollWidth || captureRect.width));
+      source.height = Math.max(1, Math.round(captureElement.scrollHeight || captureRect.height));
+      const context = source.getContext('2d');
+      if (context) {
+        context.fillStyle = '#FFFFFF';
+        context.fillRect(0, 0, source.width, source.height);
+        try {
+          context.drawImage(visibleCover, 0, 0, source.width, source.height);
+          const captured = drawMarkerAndCrop(source);
+          if (captured) return captured;
+        } catch {
+          // Continue with the bounded DOM capture below when media taints the canvas.
+        }
+      }
+    }
+
+    const paintVisibleMedia = (canvas: HTMLCanvasElement) => {
+      const context = canvas.getContext('2d');
+      if (!context || !captureRect.width || !captureRect.height) return;
+      const mediaNodes = Array.from(captureElement.querySelectorAll<HTMLImageElement | HTMLVideoElement | HTMLCanvasElement>('img, video, canvas'));
+      mediaNodes.forEach(node => {
+        if (!isVisibleMedia(node)) return;
+        const nodeRect = node.getBoundingClientRect();
+        const isFullStageMedia = Boolean(node.closest('#cover'))
+          || node.classList.contains('backdrop')
+          || node.classList.contains('scene-video');
+        if (isFullStageMedia) {
+          try {
+            context.drawImage(node, 0, 0, canvas.width, canvas.height);
+          } catch {
+            // Keep the DOM capture when a media element cannot be painted.
+          }
+          return;
+        }
+        const x = ((nodeRect.left - captureRect.left) / captureRect.width) * canvas.width;
+        const y = ((nodeRect.top - captureRect.top) / captureRect.height) * canvas.height;
+        const width = (nodeRect.width / captureRect.width) * canvas.width;
+        const height = (nodeRect.height / captureRect.height) * canvas.height;
+        try {
+          context.drawImage(node, x, y, width, height);
+        } catch {
+          // Cross-origin media cannot be painted client-side; the DOM capture remains available.
+        }
+      });
+    };
+
+    const fallbackScreenshot = () => {
+      const fallback = document.createElement('canvas');
+      fallback.width = Math.max(1, Math.round(captureRect.width || frameWindow.innerWidth));
+      fallback.height = Math.max(1, Math.round(captureRect.height || frameWindow.innerHeight));
+      const context = fallback.getContext('2d');
+      if (!context) return undefined;
+      const background = frameWindow.getComputedStyle(captureElement).backgroundColor;
+      context.fillStyle = background && background !== 'rgba(0, 0, 0, 0)' ? background : '#FFFFFF';
+      context.fillRect(0, 0, fallback.width, fallback.height);
+      paintVisibleMedia(fallback);
+      try {
+        return drawMarkerAndCrop(fallback);
+      } catch {
+        return undefined;
+      }
+    };
+
+    // The 1920×1080 lesson stage contains large animated media. Painting its
+    // visible media directly is both faithful and fast; a full DOM clone can
+    // otherwise block the annotation action for tens of seconds in production.
+    if (captureElement.id === 'stage') return fallbackScreenshot();
+
+    try {
+      const screenshot = await Promise.race<HTMLCanvasElement | null>([
+        import('html2canvas').then(({ default: html2canvas }) => html2canvas(captureElement, {
+          backgroundColor: '#FFFFFF',
+          logging: false,
+          useCORS: true,
+          allowTaint: false,
+          scale: captureElement.id === 'stage' ? 0.5 : 1,
+          width: captureElement.scrollWidth || frameWindow.innerWidth,
+          height: captureElement.scrollHeight || frameWindow.innerHeight,
+          windowWidth: frameWindow.innerWidth,
+          windowHeight: frameWindow.innerHeight,
+          scrollX: -frameWindow.scrollX,
+          scrollY: -frameWindow.scrollY,
+        })),
+        new Promise<null>(resolve => window.setTimeout(() => resolve(null), 6000)),
+      ]);
+      if (!screenshot) return fallbackScreenshot();
+      paintVisibleMedia(screenshot);
+      return drawMarkerAndCrop(screenshot);
+    } catch {
+      return fallbackScreenshot();
+    }
+  };
+
+  const handleSaveAnnotation = async () => {
     const text = draftAnnotation?.text.trim();
-    if (!draftAnnotation || !text) return;
+    if (!draftAnnotation || !text || isCapturingAnnotation) return;
     const id = annotations.length ? Math.max(...annotations.map(item => item.id)) + 1 : 1;
-    setAnnotations(prev => [...prev, { id, x: draftAnnotation.x, y: draftAnnotation.y, text }]);
-    setActiveAnnotationId(id);
+    setIsCapturingAnnotation(true);
+    const screenshot = await captureAnnotationScreenshot(draftAnnotation, id);
+    setAnnotations(prev => [...prev, {
+      ...draftAnnotation,
+      id,
+      text,
+      screenshotDataUrl: screenshot?.dataUrl,
+      screenshotWidth: screenshot?.width,
+      screenshotHeight: screenshot?.height,
+    }]);
+    setActiveAnnotationId(null);
+    setDraftAnnotation(null);
+    setIsCapturingAnnotation(false);
+  };
+
+  const handleCancelAnnotationMode = () => {
+    setAnnotationModeOpen(false);
     setDraftAnnotation(null);
   };
 
-  const handleFinishAnnotation = () => {
+  const handleSubmitAnnotations = () => {
+    if (!coursewareId || annotations.length === 0) return;
+    onSubmitAnnotations?.({
+      coursewareId,
+      coursewareTitle: currentTitle,
+      version: selectedVersion,
+      versionLabel: `第${currentVersion?.sessionNumber || 1}版`,
+      createdAt: new Date().toISOString(),
+      annotations,
+    });
     setAnnotationModeOpen(false);
     setDraftAnnotation(null);
-    toast(annotations.length ? `已保存 ${annotations.length} 条页面批注` : '已退出页面批注');
+    toast(`已将 ${annotations.length} 条标注带入修改框`);
   };
 
   return (
@@ -722,6 +997,21 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
             </button>
             {renderHeaderTooltip('fullscreen', '全屏预览并测试')}
           </div>
+          {videoProject?.workflowVersion === 5 && selectedVersion === latestVersion?.version && !isRemovedVersion && (
+            <div style={panelStyle.headerIconWrap}>
+              <button
+                type="button"
+                onClick={() => { setShowSceneNavigation(videoProject.composition.showSceneNavigation !== false); setCoursewareSettingsOpen(true); }}
+                onMouseEnter={() => setHoveredHeaderButton('courseware-settings')}
+                onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'courseware-settings' ? null : prev)}
+                style={getIconButtonStyle('courseware-settings')}
+                aria-label="课件设置"
+              >
+                <Settings2 size={15} />
+              </button>
+              {renderHeaderTooltip('courseware-settings', '课件设置')}
+            </div>
+          )}
           <div style={panelStyle.headerIconWrap}>
             <button
               type="button"
@@ -729,12 +1019,16 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
               disabled={isRemovedVersion}
               onMouseEnter={() => setHoveredHeaderButton('edit')}
               onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'edit' ? null : prev)}
-              style={getIconButtonStyle('edit', isRemovedVersion)}
-              aria-label={isRemovedVersion ? '已下架资源不可编辑' : '编辑效果'}
+              style={{
+                ...getIconButtonStyle('edit', isRemovedVersion),
+                ...(annotationModeOpen ? panelStyle.annotationEntryActive : {}),
+              }}
+              aria-label={isRemovedVersion ? '已下架资源不可标注' : '标注修改'}
             >
-              <Edit3 size={15} />
+              <MessageSquarePlus size={15} />
+              {annotations.length > 0 && <span style={panelStyle.annotationEntryCount}>{annotations.length}</span>}
             </button>
-            {renderHeaderTooltip('edit', isRemovedVersion ? '已下架资源不可编辑' : '编辑效果')}
+            {renderHeaderTooltip('edit', isRemovedVersion ? '已下架资源不可标注' : '标注修改')}
           </div>
           <div style={panelStyle.headerIconWrap}>
             <button
@@ -765,157 +1059,22 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
       )}
 
       {videoResourcesOpen && videoProject && <VideoResourceEditor projectId={videoProject.id} onClose={() => setVideoResourcesOpen(false)}/>}
-
-      {annotationModeOpen && (
-        <div style={panelStyle.annotationMask}>
-          <div style={panelStyle.annotationHeader}>
-            <div style={panelStyle.annotationTitleBlock}>
-              <span style={panelStyle.annotationTitle}>{currentTitle}</span>
-              <span style={panelStyle.annotationSubtitle}>第{currentVersion?.sessionNumber || 1}版 · 页面批注编辑</span>
-            </div>
-            <div style={panelStyle.annotationHeaderActions}>
-              {renderPublishActions({ exitFullscreenFirst: true, exitAnnotationFirst: true })}
-              <button type="button" onClick={handleFinishAnnotation} style={panelStyle.annotationHeaderBtn}>
-                <X size={16} />
-                退出全屏
-              </button>
-              <button type="button" onClick={handleFinishAnnotation} style={panelStyle.annotationHeaderBtn}>
-                <Edit3 size={16} />
-                退出编辑
-              </button>
-              <button type="button" style={{ ...panelStyle.annotationHeaderBtn, ...panelStyle.annotationHeaderBtnMuted }}>
-                编辑资源
-              </button>
-            </div>
+      {coursewareSettingsOpen && videoProject && (
+        <VideoModal title="课件设置" onClose={() => setCoursewareSettingsOpen(false)} className="vc-courseware-settings-modal">
+          <label className="vc-courseware-setting-row">
+            <span><strong>显示场景目录</strong><small>播放整课时，老师可通过画布左侧目录跳到指定教学环节。</small></span>
+            <input type="checkbox" checked={showSceneNavigation} onChange={event => setShowSceneNavigation(event.target.checked)} />
+            <span className="vc-courseware-setting-switch" aria-hidden="true" />
+          </label>
+          <div className="vc-actions">
+            <button type="button" className="vc-btn" onClick={() => setCoursewareSettingsOpen(false)}>取消</button>
+            <button type="button" className="vc-btn primary" disabled={showSceneNavigation === (videoProject.composition.showSceneNavigation !== false)} onClick={() => {
+              finishVideoProject(videoProject.id, { ...videoProject.composition, showSceneNavigation });
+              setCoursewareSettingsOpen(false);
+              toast('课件设置已保存为新版本');
+            }}>保存为新版本</button>
           </div>
-
-          <div style={panelStyle.annotationWorkspace}>
-            <main style={panelStyle.annotationStage}>
-              <div style={panelStyle.annotationCanvas}>
-                <iframe
-                  srcDoc={srcDoc}
-                  title={`${currentTitle} 批注编辑预览`}
-                  sandbox="allow-scripts allow-same-origin"
-                  style={panelStyle.annotationIframe}
-                />
-                <div style={panelStyle.annotationLayer} onClick={handleAnnotationSurfaceClick}>
-                  {annotations.map(annotation => {
-                    const active = annotation.id === activeAnnotationId;
-                    return (
-                      <button
-                        key={annotation.id}
-                        type="button"
-                        style={{
-                          ...panelStyle.annotationPin,
-                          left: `${annotation.x}%`,
-                          top: `${annotation.y}%`,
-                          ...(active ? panelStyle.annotationPinActive : {}),
-                        }}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setActiveAnnotationId(annotation.id);
-                        }}
-                        aria-label={`批注 ${annotation.id}`}
-                      >
-                        {annotation.id}
-                      </button>
-                    );
-                  })}
-
-                  {draftAnnotation && (
-                    <div
-                      style={{
-                        ...panelStyle.annotationDraft,
-                        left: `${draftAnnotation.x}%`,
-                        top: `${draftAnnotation.y}%`,
-                      }}
-                      onClick={event => event.stopPropagation()}
-                    >
-                      <div style={panelStyle.annotationDraftHeader}>
-                        <span style={panelStyle.annotationDraftBadge}>{annotations.length + 1}</span>
-                        <span>添加批注</span>
-                      </div>
-                      <textarea
-                        value={draftAnnotation.text}
-                        onChange={event => setDraftAnnotation(prev => prev ? { ...prev, text: event.target.value } : prev)}
-                        placeholder="描述这里希望怎么改，例如：按钮文案更短一点，背景不要遮住主体。"
-                        style={panelStyle.annotationTextarea}
-                        autoFocus
-                      />
-                      <div style={panelStyle.annotationDraftActions}>
-                        <button type="button" onClick={() => setDraftAnnotation(null)} style={panelStyle.annotationCancelBtn}>取消</button>
-                        <button
-                          type="button"
-                          onClick={handleSaveAnnotation}
-                          disabled={!draftAnnotation.text.trim()}
-                          style={{
-                            ...panelStyle.annotationSaveBtn,
-                            ...(!draftAnnotation.text.trim() ? panelStyle.annotationSaveBtnDisabled : {}),
-                          }}
-                        >
-                          保存批注
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </main>
-
-            <aside style={panelStyle.annotationSidePanel}>
-              <div style={panelStyle.annotationToolHeader}>
-                <div>
-                  <div style={panelStyle.annotationPanelTitle}>页面批注</div>
-                  <div style={panelStyle.annotationPanelDesc}>点击课件画面，标出要调整的位置</div>
-                </div>
-                <span style={panelStyle.annotationCount}>{annotations.length}</span>
-              </div>
-
-              <div style={panelStyle.annotationTools}>
-                <button type="button" style={{ ...panelStyle.annotationToolBtn, ...panelStyle.annotationToolBtnActive }}>
-                  <MessageSquarePlus size={15} />
-                  批注
-                </button>
-                <button type="button" style={panelStyle.annotationToolBtn}>
-                  <MousePointer2 size={15} />
-                  选择
-                </button>
-                <button type="button" style={panelStyle.annotationToolBtn}>
-                  <Highlighter size={15} />
-                  标记
-                </button>
-              </div>
-
-              <div style={panelStyle.annotationList}>
-                {annotations.length === 0 ? (
-                  <div style={panelStyle.annotationEmpty}>
-                    <MessageSquarePlus size={24} />
-                    <span>还没有批注</span>
-                    <small>点击左侧预览画面开始添加</small>
-                  </div>
-                ) : annotations.map(annotation => (
-                  <button
-                    key={annotation.id}
-                    type="button"
-                    onClick={() => setActiveAnnotationId(annotation.id)}
-                    style={{
-                      ...panelStyle.annotationListItem,
-                      ...(activeAnnotationId === annotation.id ? panelStyle.annotationListItemActive : {}),
-                    }}
-                  >
-                    <span style={panelStyle.annotationListIndex}>{annotation.id}</span>
-                    <span style={panelStyle.annotationListText}>{annotation.text}</span>
-                  </button>
-                ))}
-              </div>
-
-              <button type="button" onClick={handleFinishAnnotation} style={panelStyle.annotationDoneBtn}>
-                <CheckCircle2 size={16} />
-                完成批注
-              </button>
-            </aside>
-          </div>
-        </div>
+        </VideoModal>
       )}
 
       {fullscreenOpen && (
@@ -989,6 +1148,35 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
             })}
           </div>
 
+          {annotationModeOpen && (
+            <div style={panelStyle.annotationInlineBar}>
+              <div style={panelStyle.annotationInlineGuide}>
+                <span style={panelStyle.annotationInlineIcon}><MessageSquarePlus size={14} /></span>
+                <span style={panelStyle.annotationInlineCopy}>
+                  <strong>标注修改</strong>
+                  <small>点击课件中需要调整的位置</small>
+                </span>
+              </div>
+              <div style={panelStyle.annotationInlineActions}>
+                <span style={panelStyle.annotationInlineCount}>
+                  本页 {annotations.filter(annotation => annotation.pageLabel === annotationPageLabel).length} 处 · 全部 {annotations.length} 处
+                </span>
+                <button type="button" onClick={handleCancelAnnotationMode} style={panelStyle.annotationInlineCancel}>取消</button>
+                <button
+                  type="button"
+                  onClick={handleSubmitAnnotations}
+                  disabled={annotations.length === 0}
+                  style={{
+                    ...panelStyle.annotationInlineSubmit,
+                    ...(annotations.length === 0 ? panelStyle.annotationInlineSubmitDisabled : {}),
+                  }}
+                >
+                  带入修改框
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Preview Container */}
           <div style={panelStyle.previewContainer}>
             {currentVersion?.visualStylePrompt && (
@@ -1001,11 +1189,127 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose }: 
               {previewDevice === 'default' ? (
                 <div style={panelStyle.defaultFrame}>
                   <iframe
+                    ref={previewIframeRef}
                     srcDoc={srcDoc}
                     title={`${currentTitle} 默认预览`}
                     sandbox="allow-scripts allow-same-origin"
                     style={panelStyle.defaultIframe}
                   />
+                  {annotationModeOpen && (
+                    <div style={panelStyle.annotationLayer} onClick={handleAnnotationSurfaceClick}>
+                      {annotations.filter(annotation => annotation.pageLabel === annotationPageLabel).map(annotation => {
+                        const active = annotation.id === activeAnnotationId;
+                        return (
+                          <button
+                            key={annotation.id}
+                            type="button"
+                            style={{
+                              ...panelStyle.annotationPin,
+                              left: `${annotation.x}%`,
+                              top: `${annotation.y}%`,
+                              ...(active ? panelStyle.annotationPinActive : {}),
+                            }}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveAnnotationId(active ? null : annotation.id);
+                            }}
+                            aria-label={`标注 ${annotation.id}：${annotation.text}`}
+                          >
+                            {annotation.id}
+                          </button>
+                        );
+                      })}
+
+                      {annotations.filter(annotation => annotation.pageLabel === annotationPageLabel).map(annotation => annotation.id === activeAnnotationId ? (
+                        <div
+                          key={`detail-${annotation.id}`}
+                          style={{
+                            ...panelStyle.annotationDetail,
+                            left: `${annotation.x}%`,
+                            top: `${annotation.y}%`,
+                            transform: `translate(${annotation.x > 55 ? 'calc(-100% - 18px)' : '18px'}, ${annotation.y > 65 ? 'calc(-100% + 18px)' : '-18px'})`,
+                          }}
+                          onClick={event => event.stopPropagation()}
+                        >
+                          <div style={panelStyle.annotationDetailHeader}>
+                            <span>标注 {annotation.id}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAnnotations(previous => previous.filter(item => item.id !== annotation.id));
+                                setActiveAnnotationId(null);
+                              }}
+                              style={panelStyle.annotationDeleteBtn}
+                              aria-label={`删除标注 ${annotation.id}`}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                          <div style={panelStyle.annotationDetailText}>{annotation.text}</div>
+                          <div style={panelStyle.annotationDetailMeta}>{annotation.pageLabel} · {annotation.deviceLabel}</div>
+                        </div>
+                      ) : null)}
+
+                      {draftAnnotation && (
+                        <div
+                          style={{
+                            ...panelStyle.annotationDraft,
+                            left: `${draftAnnotation.x}%`,
+                            top: `${draftAnnotation.y}%`,
+                            transform: `translate(${draftAnnotation.x > 55 ? 'calc(-100% - 18px)' : '18px'}, ${draftAnnotation.y > 65 ? 'calc(-100% + 18px)' : '-18px'})`,
+                          }}
+                          onClick={event => event.stopPropagation()}
+                        >
+                          <span
+                            style={panelStyle.annotationDraftBadge}
+                            title={draftAnnotation.targetText ? `已识别：${draftAnnotation.targetText}` : '页面标注'}
+                          >
+                            {annotations.length + 1}
+                          </span>
+                          <textarea
+                            aria-label="标注意见"
+                            value={draftAnnotation.text}
+                            onChange={event => setDraftAnnotation(previous => previous ? { ...previous, text: event.target.value } : previous)}
+                            onKeyDown={event => {
+                              if (event.key === 'Escape') {
+                                event.preventDefault();
+                                setDraftAnnotation(null);
+                              }
+                              if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                                event.preventDefault();
+                                void handleSaveAnnotation();
+                              }
+                            }}
+                            placeholder="添加修改意见…"
+                            style={panelStyle.annotationTextarea}
+                            rows={1}
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setDraftAnnotation(null)}
+                            style={panelStyle.annotationPillButton}
+                            aria-label="取消标注"
+                          >
+                            <X size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleSaveAnnotation()}
+                            disabled={!draftAnnotation.text.trim() || isCapturingAnnotation}
+                            style={{
+                              ...panelStyle.annotationPillButton,
+                              ...panelStyle.annotationPillSubmit,
+                              ...(!draftAnnotation.text.trim() || isCapturingAnnotation ? panelStyle.annotationPillSubmitDisabled : {}),
+                            }}
+                            aria-label="添加标注"
+                          >
+                            {isCapturingAnnotation ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : previewDevice === 'web' ? (
                 <div style={panelStyle.webFrame}>
@@ -1092,6 +1396,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     borderBottom: '1px solid #E2E8F0',
     display: 'flex',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
     alignItems: 'center',
     flexShrink: 0,
     gap: 8,
@@ -1287,6 +1592,28 @@ const panelStyle: Record<string, React.CSSProperties> = {
     cursor: 'default',
     background: '#F8FAFC',
     borderColor: '#E2E8F0',
+  },
+  annotationEntryActive: {
+    color: '#0759C9',
+    borderColor: '#8CCBFF',
+    background: '#EAF6FF',
+    boxShadow: '0 0 0 2px rgba(2, 116, 252, 0.10)',
+  },
+  annotationEntryCount: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    minWidth: 16,
+    height: 16,
+    padding: '0 4px',
+    borderRadius: 999,
+    border: '2px solid #FFFFFF',
+    background: '#0274FC',
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: 900,
+    lineHeight: '12px',
+    boxSizing: 'border-box',
   },
   headerIconWrap: {
     position: 'relative',
@@ -1496,6 +1823,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     inset: 0,
     cursor: 'crosshair',
     background: 'rgba(255,255,255,0.01)',
+    zIndex: 5,
   },
   annotationPin: {
     position: 'absolute',
@@ -1518,14 +1846,19 @@ const panelStyle: Record<string, React.CSSProperties> = {
   },
   annotationDraft: {
     position: 'absolute',
-    width: 300,
+    width: 'min(286px, calc(100% - 28px))',
+    minHeight: 48,
     transform: 'translate(14px, -18px)',
-    padding: 12,
-    borderRadius: 12,
-    border: '1px solid #BFE9F5',
+    padding: '6px 7px',
+    borderRadius: 999,
+    border: '1px solid #D8E1EB',
     background: '#FFFFFF',
-    boxShadow: '0 18px 42px rgba(15, 23, 42, 0.18)',
+    boxShadow: '0 10px 28px rgba(15, 23, 42, 0.16)',
     zIndex: 4,
+    boxSizing: 'border-box',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
   },
   annotationDraftHeader: {
     display: 'flex',
@@ -1537,8 +1870,8 @@ const panelStyle: Record<string, React.CSSProperties> = {
     marginBottom: 8,
   },
   annotationDraftBadge: {
-    width: 22,
-    height: 22,
+    width: 27,
+    height: 27,
     borderRadius: 999,
     display: 'inline-flex',
     alignItems: 'center',
@@ -1549,17 +1882,95 @@ const panelStyle: Record<string, React.CSSProperties> = {
     fontWeight: 900,
   },
   annotationTextarea: {
-    width: '100%',
-    minHeight: 86,
+    flex: 1,
+    minWidth: 0,
+    height: 32,
+    minHeight: 32,
+    maxHeight: 54,
     resize: 'none',
-    padding: 10,
-    borderRadius: 9,
-    border: '1px solid #DCE7F2',
+    padding: '6px 4px',
+    borderRadius: 0,
+    border: 'none',
     outline: 'none',
     color: '#0F172A',
     fontSize: 13,
-    lineHeight: 1.55,
+    lineHeight: '20px',
     boxSizing: 'border-box',
+    background: 'transparent',
+  },
+  annotationPillButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 999,
+    border: 'none',
+    background: 'transparent',
+    color: '#7A8B9D',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  annotationPillSubmit: {
+    background: '#0274FC',
+    color: '#FFFFFF',
+  },
+  annotationPillSubmitDisabled: {
+    background: '#D7E0E9',
+    color: '#FFFFFF',
+    cursor: 'not-allowed',
+  },
+  annotationTargetHint: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 5,
+    margin: '-2px 0 8px',
+    color: '#52708E',
+    fontSize: 11,
+    lineHeight: 1.35,
+  },
+  annotationDetail: {
+    position: 'absolute',
+    width: 'min(220px, calc(100% - 30px))',
+    padding: 9,
+    borderRadius: 10,
+    border: '1px solid #BFE0FF',
+    background: '#FFFFFF',
+    boxShadow: '0 10px 26px rgba(15, 23, 42, 0.16)',
+    zIndex: 4,
+    boxSizing: 'border-box',
+  },
+  annotationDetailHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 6,
+    color: '#0759C9',
+    fontSize: 12,
+    fontWeight: 850,
+  },
+  annotationDeleteBtn: {
+    width: 26,
+    height: 26,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 7,
+    border: 'none',
+    background: '#FFF3F3',
+    color: '#D64141',
+    cursor: 'pointer',
+  },
+  annotationDetailText: {
+    color: '#1E293B',
+    fontSize: 13,
+    lineHeight: 1.5,
+  },
+  annotationDetailMeta: {
+    marginTop: 7,
+    color: '#7B8EA3',
+    fontSize: 11,
   },
   annotationDraftActions: {
     display: 'flex',
@@ -1737,6 +2148,84 @@ const panelStyle: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     background: '#F8FAFC',
   },
+  annotationInlineBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 12,
+    minHeight: 48,
+    padding: '7px 14px',
+    borderBottom: '1px solid #BFE0FF',
+    background: 'linear-gradient(90deg, #F0F8FF 0%, #F7FCFF 100%)',
+    flexShrink: 0,
+  },
+  annotationInlineGuide: {
+    minWidth: 0,
+    flex: '1 1 160px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 9,
+    color: '#0F3F72',
+    fontSize: 12,
+  },
+  annotationInlineIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#FFFFFF',
+    background: '#0274FC',
+    boxShadow: '0 6px 14px rgba(2, 116, 252, 0.20)',
+    flexShrink: 0,
+  },
+  annotationInlineCopy: {
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+  },
+  annotationInlineActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 7,
+    flexShrink: 0,
+    marginLeft: 'auto',
+  },
+  annotationInlineCount: {
+    color: '#52708E',
+    fontSize: 11,
+    whiteSpace: 'nowrap',
+  },
+  annotationInlineCancel: {
+    height: 30,
+    padding: '0 10px',
+    borderRadius: 8,
+    border: '1px solid #C7DDF3',
+    background: '#FFFFFF',
+    color: '#52708E',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  annotationInlineSubmit: {
+    height: 30,
+    padding: '0 12px',
+    borderRadius: 8,
+    border: 'none',
+    background: 'var(--agent-hero-gradient)',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  annotationInlineSubmitDisabled: {
+    background: '#C8D5E3',
+    cursor: 'not-allowed',
+  },
   deviceSwitcher: {
     display: 'flex',
     alignItems: 'center',
@@ -1829,6 +2318,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     fontSize: 12,
   },
   defaultFrame: {
+    position: 'relative',
     width: '100%',
     maxWidth: 'min(100%, 960px)',
     aspectRatio: '16/9',

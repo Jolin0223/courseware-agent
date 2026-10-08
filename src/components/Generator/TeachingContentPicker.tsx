@@ -25,6 +25,7 @@ import type {
   TeachingWordItem,
   UploadedAttachment,
 } from '../../types';
+import toast from '../../utils/toast';
 import './augustDemo.css';
 import './TeachingContentPicker.css';
 
@@ -109,8 +110,8 @@ const cloudFiles = [
 ];
 
 const menuItems = [
-  { id: 'question-bank', icon: Database, title: '从学科题库选题', description: '将所选题目做成互动练习、闯关或讲评' },
-  { id: 'word-book', icon: BookOpen, title: '从英语词书选词', description: '围绕所选单词生成认读、听音、拼写或口语练习' },
+  { id: 'question-bank', icon: Database, title: '从学科题库选题', description: '敬请期待' },
+  { id: 'word-book', icon: BookOpen, title: '从英语词书选词', description: '敬请期待' },
   { id: 'cloud-pages', icon: Cloud, title: '从云盘课件选页面', description: '提取指定页面的内容、风格或玩法' },
 ] as const;
 
@@ -184,21 +185,11 @@ export default function TeachingContentPicker({
 
   const openPicker = (id: typeof menuItems[number]['id']) => {
     setMenuOpen(false);
+    if (id === 'question-bank' || id === 'word-book') { toast('敬请期待'); return; }
     setValidationMessage('');
-    if (id === 'question-bank') {
-      setSelectedQuestions(new Set());
-      setQuestionSubject('数学');
-      setQuestionType('全部');
-    }
-    if (id === 'word-book') {
-      setSelectedWords(new Set());
-      setSelectedUnit('Unit 1');
-    }
-    if (id === 'cloud-pages') {
-      setSelectedPages(new Set());
-      setCloudPageBatch(0);
-      setSelectedCloudFileId(cloudFiles[0].id);
-    }
+    setSelectedPages(new Set());
+    setCloudPageBatch(0);
+    setSelectedCloudFileId(cloudFiles[0].id);
     setMode(id);
   };
 

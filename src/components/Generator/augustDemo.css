@@ -812,8 +812,8 @@
     padding: 14px 14px 12px !important;
     box-sizing: border-box;
   }
-  .agent-welcome-robot { right: 18px !important; top: 4px !important; width: 84px !important; max-width: none !important; }
-  .agent-welcome-hero-copy { padding-right: 32px; }
+  .agent-welcome-robot-anchor { width: 120px !important; height: 108px !important; right: 10px !important; }
+  .agent-welcome-hero-copy { padding-right: 116px !important; }
   .agent-chat-input-toolbar { align-items: flex-end !important; gap: 8px; }
   .agent-home-prompt-row {
     display: grid !important;
@@ -1036,3 +1036,34 @@
   .aug-replace-all-confirm { align-items: stretch; flex-direction: column; }
   .aug-replace-all-confirm > div:last-child { justify-content: flex-end; }
 }
+
+/* Anchor the illustration to the input, including when the format row is hidden. */
+.is-centered .agent-chat-input-shell{position:relative}
+.agent-welcome-robot-anchor{position:absolute;right:8px;bottom:100%;width:168px;height:151px;overflow:hidden;pointer-events:none;user-select:none}
+.agent-welcome-robot-anchor .agent-welcome-robot{position:absolute;left:0;bottom:-10%;width:100%;height:auto;max-width:none;display:block}
+.vc-format-choice{padding-right:176px;min-height:34px}
+@media(max-width:760px){.vc-format-choice{padding-right:128px}}
+
+.agent-welcome-hero-copy{padding-right:176px!important}
+.agent-welcome-hero-copy h1 span{white-space:nowrap}
+@media(min-width:761px) and (max-width:1000px){
+ .agent-welcome-hero{padding:36px 28px 28px!important}
+ .agent-welcome-hero-copy{padding-right:156px!important}
+ .agent-welcome-hero-copy h1{font-size:26px!important;line-height:1.35!important}
+ .agent-welcome-robot-anchor{width:150px;height:135px}
+ .vc-format-choice{padding-right:158px}
+}
+@media(max-width:760px){.agent-welcome-hero-copy{padding-right:116px!important}}
+.of-design-style{margin-top:24px}
+.agent-chat-loading-dots{display:flex;gap:6px;align-items:center;height:22px;padding:9px 4px}
+.agent-chat-loading-dots i{width:5px;height:5px;background:var(--agent-primary);border-radius:50%;animation:agent-chat-dot 1.2s ease-in-out infinite}
+.agent-chat-loading-dots i:nth-child(2){animation-delay:.16s}
+.agent-chat-loading-dots i:nth-child(3){animation-delay:.32s}
+@keyframes agent-chat-dot{0%,60%,100%{opacity:.25;transform:scale(.65)}30%{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.agent-chat-loading-dots i{animation:none;opacity:.6}}
+
+/* Voice selection sits above its parent resource editor. */
+.aug-voice-picker-mask{z-index:32000}
+.aug-voice-clone-mask{z-index:32010}
+
+.ci-scene-image-hint { grid-column:1 / -1; display:block; margin:0; font-size:12px; line-height:1.6; color:var(--agent-primary); font-weight:500; }

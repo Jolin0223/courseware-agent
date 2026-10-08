@@ -41,7 +41,7 @@ wukongFixture.segments=wukongFixture.segments.map(s=>{
  const chapter=pack.chapters.find(c=>c.segmentIds.includes(s.id))!;
  return {...s,chapter:chapter.title,sourceContent:content,content,purpose:content,visual:content,seconds:wukongFixture.assets.find(a=>a.kind==='video'&&a.id==='video-'+s.id)?.seconds||0};
 });
-wukongFixture.speakers=wukongFixture.speakers.map(s=>({...s,voiceName:s.id==='narrator'?'原教学老师声音':'原悟空角色声音'}));
+wukongFixture.speakers=wukongFixture.speakers.map(s=>({...s,voiceName:'智能匹配'}));
 
 export function createFixture(request:string,attachments:UploadedAttachment[],preferences:GenerationPreferences):LessonFixture {
  if(/悟空|雨字头/.test(request)||attachments.some(x=>x.id.startsWith('video-example-page-')))return structuredClone({...wukongFixture,request,attachments,framework:{...wukongFixture.framework,designStyle:preferences.visualStyleName ? preferences.visualStyleName + '。' + wukongFixture.framework.designStyle : wukongFixture.framework.designStyle}});

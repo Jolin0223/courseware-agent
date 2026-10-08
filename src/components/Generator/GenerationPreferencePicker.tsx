@@ -419,7 +419,7 @@ export default function GenerationPreferencePicker({
   })();
 
   const overlay = voiceModalOpen ? createPortal(
-    <div className="aug-modal-mask" onMouseDown={event => { if (event.target === event.currentTarget) closeVoiceModal(); }}>
+    <div className="aug-modal-mask aug-voice-picker-mask" onMouseDown={event => { if (event.target === event.currentTarget) closeVoiceModal(); }}>
       <section className="aug-voice-modal" role="dialog" aria-modal="true" aria-labelledby="voice-modal-title">
         <header className="aug-modal-header">
           <div><h2 id="voice-modal-title">选择{voiceLabel}</h2><p>仅展示当前平台真实可用的音色</p></div>

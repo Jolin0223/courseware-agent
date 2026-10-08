@@ -415,6 +415,11 @@ export interface VoiceCapabilitySelection {
 
 export interface UserMaterialMessage {
   text: string;
+  displayText?: string;
+  annotationCount?: number;
+  sceneEditCount?: number;
+  sceneEditIds?: string[];
+  sceneEditRequests?: Record<string, string>;
   attachments?: UploadedAttachment[];
   resolvedIntents?: MaterialIntentResolution[];
   generationPreferences?: GenerationPreferences;
@@ -423,7 +428,7 @@ export interface UserMaterialMessage {
 export interface ConversationMessage {
   id: string;
   role: MessageRole;
-  content: { videoProjectId: string; stage?: 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly'; runId?: string } | string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | TeachingVideoPlan | TeachingVideoProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
+  content: { videoProjectId: string; stage?: 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly' | 'resource-update'; runId?: string } | string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | TeachingVideoPlan | TeachingVideoProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
   type?: MessageType;
   timestamp: Date;
 }

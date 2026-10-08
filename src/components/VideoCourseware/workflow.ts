@@ -1,7 +1,9 @@
+import { advanceConfirmedScenes, enqueueScene, sceneGenerationIssues } from '../../data/videoCourseware/sceneJobs';
 import { advanceSceneRevisions } from './sceneRevisionActions';
 import { advanceSceneProduction, sceneVideos } from '../../data/videoCourseware/production';
 import { compileOutline, makeOutline, outlineIssues, initialSceneContent } from '../../data/videoCourseware/outline';
 import { runtimeSettings, runtimeURL } from './runtime';
+import { buildCoursewareShellHTML } from './sceneNavigationShell';
 import { useEffect } from 'react';
 import type { Courseware, CoursewareResult, GenerationPreferences, UploadedAttachment, ConversationMessage } from '../../types';
 import type { VideoProject, PlaybackSettings, MediaAsset, WorkflowStage } from '../../data/videoCourseware/model';
@@ -18,7 +20,7 @@ import { useUIStore } from '../../store/uiStore';
 export function ensureWorkflowMessage(project:VideoProject,stage:Exclude<WorkflowStage,'plan'>){
  const store=useVideoCoursewareStore.getState(),current=store.projects[project.id];
  const runId=crypto.randomUUID();
- const confirmation=current.workflowVersion===5?(stage==='production'?'全部场景方案已确认，开始生成视频和互动页面。':stage==='assets'?'教学大纲已确认，开始规划场景并准备图片和音频。':''):stage==='production'?'视频方案已确认，开始生成视频。':stage==='video-plan'?'画面与配音已确认，生成视频方案。':stage==='assembly'?'':current.revision?'素材已修改，请确认画面与配音。':'确认需求，开始生成图片和配音。';
+ const confirmation=current.workflowVersion===5?(stage==='production'?'已确认的场景开始制作，可以继续检查其余场景。':stage==='assets'?'教学大纲已确认，开始规划场景并准备图片和音频。':''):stage==='production'?'视频方案已确认，开始生成视频。':stage==='video-plan'?'画面与配音已确认，生成视频方案。':stage==='assembly'?'':current.revision?'素材已修改，请确认画面与配音。':'确认需求，开始生成图片和配音。';
  store.update(project.id,{
   workflowRuns:{...current.workflowRuns,[stage]:runId},
   workflowEvents:[...current.workflowEvents||[],{runId,stage,time:new Date().toISOString(),order:(current.workflowEvents?.length||0)+current.resultMessages.length,confirmation}],
@@ -57,9 +59,18 @@ export function beginVideoPlanReview(id:string):boolean{
  useConversationStore.getState().setWaitingForUserAction(p.conversationId,false);
  return true;
 }
+export function confirmScenePlan(id:string,sceneId:string):boolean{
+ const store=useVideoCoursewareStore.getState(),p=store.projects[id];
+ if(p.phase!=='assets-review'||sceneGenerationIssues(p,sceneId).length)return false;
+ const patch=enqueueScene(p,sceneId,Date.now());if(!patch.sceneJobs)return true;
+ store.update(id,patch);
+ if(!p.workflowRuns?.production)ensureWorkflowMessage(store.projects[id],'production');
+ return true;
+}
 export function confirmVideoPlan(id:string):boolean{
  const store=useVideoCoursewareStore.getState(),p=store.projects[id];
  if(p.phase!=='assets-review'||(p.workflowVersion!==5&&p.approvedMaterialsKey!==materialsKey(p))||videoPlanIssues(p).length)return false;
+ if(p.workflowVersion===5){for(const scene of p.segments)confirmScenePlan(id,scene.id);return true;}
  const signature=videoPlanKey(p);
  store.update(id,{approvedMaterialsKey:materialsKey(p),approvedPlanKey:signature,assets:p.assets.map(a=>{
   const shot=p.shots?.find(s=>s.videoAssetId===a.id);
@@ -84,10 +95,12 @@ export function startVideoProject(conversationId:string,request:string,attachmen
 }
 export function buildVideoLessonHTML(project:VideoProject,composition:PlaybackSettings=project.composition){
  const url=runtimeURL(project,composition);if(!url)return '';
- const serialized=JSON.stringify(runtimeSettings(project,composition)).replace(/</g,'\\u003c');
- const root=JSON.stringify(location.origin);
-
- return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#fff"><iframe id="lesson" title="互动课件" src="${url}" style="width:100vw;height:100vh;border:0" allow="autoplay; fullscreen"></iframe><script>const frame=document.getElementById('lesson');frame.addEventListener('load',()=>frame.contentWindow.postMessage({type:'wukong-studio-config',composition:${serialized}},${root}));window.addEventListener('message',e=>{if(e.origin!==${root}||e.source!==parent)return;if(e.data?.type==='pause-video-courseware')frame.contentWindow.postMessage({type:'wukong-studio-pause'},${root});});</script></body></html>`;
+ const navigation=project.workflowVersion===5&&project.segments.length>1&&composition.showSceneNavigation!==false?{
+  scenes:project.segments.map(scene=>({id:scene.id,title:scene.title})),
+  chapters:project.chapters?.map(chapter=>({title:chapter.title,sceneIds:chapter.segmentIds}))||[],
+  navigateMessageType:'wukong-studio-navigate',activeMessageType:'courseware-scene-change',
+ }:undefined;
+ return buildCoursewareShellHTML(project.workflowVersion===5?`${url}&hostNav=1`:url,{type:'wukong-studio-config',composition:runtimeSettings(project,composition)},navigation,'wukong-studio-pause');
 }
 function coursewareFor(p:VideoProject,html:string):Courseware{return {id:p.coursewareId,title:p.title,subject:p.subject,grade:p.grade,type:'视频互动课件',author:'我',publishTime:new Date().toLocaleString('sv-SE'),views:0,favorites:0,likes:0,isOwn:true,isPublished:false,resourceScope:'personal',videoProjectId:p.id,thumbnail:p.assets.find(a=>a.id==='cover')?.url,htmlContent:html};}
 export function finishVideoProject(id:string,composition?:PlaybackSettings,note?:string){
@@ -95,7 +108,7 @@ export function finishVideoProject(id:string,composition?:PlaybackSettings,note?
  const html=buildVideoLessonHTML(next);if(!html){store.update(id,{phase:'failed',error:'场景方案已保存。当前演示尚未接入本课的页面生成服务，无法交付完整课件。'});return;}
  const version=p.revision+1,time=new Date().toISOString(),messageId=`${id}-result-${version}`;
  const result:CoursewareResult={coursewareId:p.coursewareId,title:p.title,version:`v${version}`,htmlContent:html,thumbnail:p.assets.find(a=>a.id==='cover')?.url,generationPreferences:p.preferences,videoProjectId:p.id};
- store.update(id,{phase:'ready',job:undefined,composition:next.composition,revision:version,resultMessages:[...p.resultMessages,{id:messageId,html,version,time,snapshot:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds},composition:next.composition,order:(p.workflowEvents?.length||0)+p.resultMessages.length}],pendingEdit:undefined});
+ store.update(id,{phase:'ready',job:undefined,composition:next.composition,revision:version,resultMessages:[...p.resultMessages,{id:messageId,html,version,time,snapshot:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds},composition:next.composition,order:(p.workflowEvents?.length||0)+p.resultMessages.length}],pendingEdit:undefined,pendingEditAttachments:undefined});
  if(note)useConversationStore.getState().addUserMessage(p.conversationId,note);
  const cw=useCoursewareStore.getState();if(cw.coursewares.some(c=>c.id===p.coursewareId))cw.updateCourseware(p.coursewareId,coursewareFor(p,html));else cw.addCourseware(coursewareFor(p,html));
  useConversationStore.getState().addAssistantMessage(p.conversationId,result,'courseware-result');
@@ -180,8 +193,11 @@ export function advanceVideoJobs(now=Date.now()){
 }
 export function useVideoJobs(){
  useEffect(()=>{
-  restoreVideoConversations();
-  advanceVideoJobs();const timer=setInterval(()=>advanceVideoJobs(),160);return()=>clearInterval(timer);
+  const restore=()=>{restoreVideoConversations();advanceVideoJobs();};
+  const unsubscribe=useVideoCoursewareStore.persist.onFinishHydration(restore);
+  if(useVideoCoursewareStore.persist.hasHydrated())restore();
+  const timer=setInterval(()=>{if(useVideoCoursewareStore.persist.hasHydrated())advanceVideoJobs();},160);
+  return()=>{unsubscribe();clearInterval(timer);};
  },[]);
 }
 
@@ -200,6 +216,16 @@ export function confirmOutline(id:string):boolean {
 // Each phase is persisted, and scene plans remain hidden until images AND audio finish.
 function advanceOutlineFlow(p:VideoProject,now:number){
  const store=useVideoCoursewareStore.getState(),job=p.job;
+ if(p.sceneJobs&&p.phase==='assets-review'){
+  const patch=advanceConfirmedScenes(p,now);
+  if(JSON.stringify(patch)!==JSON.stringify({sceneJobs:p.sceneJobs,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds,readyAssetIds:p.readyAssetIds}))store.update(p.id,patch);
+  const next=useVideoCoursewareStore.getState().projects[p.id];
+  if(next.segments.length&&next.segments.every(s=>next.sceneJobs?.[s.id]?.status==='ready'&&next.readySceneIds?.includes(s.id))){
+   store.update(p.id,{approvedPlanKey:videoPlanKey(next),approvedMaterialsKey:materialsKey(next)});
+   store.start(p.id,'assembly');useConversationStore.getState().setWaitingForUserAction(p.conversationId,false);
+  }
+  return;
+ }
  if(!job||['paused','failed','ready','plan','assets-review'].includes(p.phase))return;
  if(['video','h5'].includes(job.kind)){
   store.start(p.id,'scenes');

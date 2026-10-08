@@ -5,7 +5,8 @@ import { arrangeAudioCues, buildVideoShots, changedVideoIds, materialsKey, shotS
 export function prepareSceneEdit(original:VideoProject,draft:VideoProject,sceneId:string):Partial<VideoProject>{
  const changedAssets=draft.assets.filter(a=>JSON.stringify(a)!==JSON.stringify(original.assets.find(o=>o.id===a.id)));
  const affected=new Set([sceneId,...changedAssets.flatMap(a=>a.segmentIds)]);
- if(JSON.stringify(original.speakers)!==JSON.stringify(draft.speakers))draft.assets.filter(a=>a.kind==='audio').forEach(a=>a.segmentIds.forEach(id=>affected.add(id)));
+ const changedSpeakers=draft.speakers.filter(s=>JSON.stringify(s)!==JSON.stringify(original.speakers.find(v=>v.id===s.id))).map(s=>s.id);
+ draft.assets.filter(a=>a.kind==='audio'&&changedSpeakers.includes(a.speakerId||'')).forEach(a=>a.segmentIds.forEach(id=>affected.add(id)));
  const invalid=new Set(changedVideoIds(draft));
  draft.shots?.forEach(s=>{if(JSON.stringify(s)!==JSON.stringify(original.shots?.find(o=>o.id===s.id)))invalid.add(s.videoAssetId);});
  const shots=buildVideoShots(draft).map(shot=>{

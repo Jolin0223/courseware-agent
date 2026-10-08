@@ -29,6 +29,8 @@ export function advanceSceneProduction(project:VideoProject,elapsed:number):Part
 
 export function sceneProductionLabel(project:VideoProject,scene:VideoSegment){
   if(project.readySceneIds?.includes(scene.id))return '预览';
+  const job=project.sceneJobs?.[scene.id];
+  if(project.sceneJobs){if(!job)return '待确认';if(job.status==='queued')return '排队中';if(job.status==='needs-confirmation')return '待重新确认';if(job.status==='failed')return '生成失败';}
   if(project.phase==='paused')return '已暂停';
   if(project.phase==='failed')return '等待重试';
   if(scene.kind==='h5')return '制作互动页面';

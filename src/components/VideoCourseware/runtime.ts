@@ -19,6 +19,7 @@ export function runtimeSettings(project:VideoProject, settings:PlaybackSettings)
     badgeScale: settings.overlays.badge?.scale || 1,
     videoVersion: 'v32',
     openingVersion: openingVersion(project),
+    sceneChapters:project.workflowVersion===5?project.chapters?.map(c=>({title:c.title,segmentIds:c.segmentIds})):undefined,
     scenePlans:project.workflowVersion===5?project.segments.map(s=>({id:s.id,title:s.title,kind:s.kind,content:s.content,changed:sceneChanged(project,s)})):undefined,
     sceneOrder: (project.workflowVersion||0)>=4 ? project.segments.map(s=>s.id) : undefined,
     audioPlans: (project.workflowVersion||0)>=4 ? project.shots?.flatMap(shot=>{
@@ -44,13 +45,15 @@ export function runtimeSettings(project:VideoProject, settings:PlaybackSettings)
 export function runtimeURL(project:VideoProject, settings:PlaybackSettings, scene=project.segments[0]?.id||'cover', inspect=false) {
   const entry=getRuntime(project.fixtureId);
   if(!entry)return undefined;
+  const runtimeEntry=(project.workflowVersion||0)>=4?entry.replace('index.html',project.workflowVersion===5?'lesson-v5.html':'lesson-v4.html'):entry;
+  const deployedEntry=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?runtimeEntry:runtimeEntry.replace(/\.html$/,'');
   const legacy=runtimeSettings(project,settings) as {badgeOffset?:number;badgeScale?:number};
   const params=new URLSearchParams({studio:'1',scene,subtitles:settings.subtitles?'1':'0',soundEffects:settings.soundEffects?'1':'0',badgeOffset:String(legacy.badgeOffset||0),badgeScale:String(legacy.badgeScale||1),videoVersion:'v32'});
   if(inspect)params.set('inspect','1');
   if(project.segments.some(s=>s.sourceContent))params.set('resourcePack','v33-20260915');
   if(project.workflowVersion===5)params.set('openingVersion',openingVersion(project));
   if((project.workflowVersion||0)>=4)params.set('sceneOrder',project.segments.map(s=>s.id).join(','));
-  return `${location.origin}${(project.workflowVersion||0)>=4?entry.replace('index.html',project.workflowVersion===5?'lesson-v5.html':'lesson-v4.html'):entry}?${params}`;
+  return `${location.origin}${deployedEntry}?${params}`;
 }
 export function sendRuntimeSettings(target:Window|null|undefined,project:VideoProject,settings:PlaybackSettings) {
   if(project.fixtureId==='wukong')target?.postMessage({type:'wukong-studio-config',composition:runtimeSettings(project,settings)},location.origin);

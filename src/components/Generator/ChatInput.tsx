@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import {
   Link,
   Film,
-  Gamepad2,
   SendHorizontal,
   Sparkles,
   Square,
@@ -13,10 +12,14 @@ import {
   ImagePlus,
   Paperclip,
   X,
+  MessageSquarePlus,
+  ListChecks,
+  Check,
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore } from '../../store/conversationStore';
 import type { GenerationPreferences, UploadedAttachment } from '../../types';
+import { buildPreviewAnnotationPrompt, type PreviewAnnotationBatch } from '../../types/previewAnnotation';
 import HtmlTypeBadge from '../common/HtmlTypeBadge';
 import TeachingContentPicker from './TeachingContentPicker';
 import TeachingContentPreviewModal from './TeachingContentPreviewModal';
@@ -27,9 +30,16 @@ import { useVideoComposer, useVideoCoursewareStore } from '../../store/videoCour
 import { VIDEO_EXAMPLE_PROMPT, exampleAttachments, wukongFixture } from '../../data/videoCourseware/fixtures';
 import '../VideoCourseware/videoCourseware.css';
 import { generationModeOptions } from '../../data/augustDemoData';
+import { hasVideoCoursewareAccess } from '../../utils/videoCoursewareAccess';
 
 interface ChatInputProps {
-  onSend: (text: string, attachments?: UploadedAttachment[], preferences?: GenerationPreferences) => void;
+  welcomeRobotUrl?: string;
+  onSend: (
+    text: string,
+    attachments?: UploadedAttachment[],
+    preferences?: GenerationPreferences,
+    displayMeta?: { displayText?: string; annotationCount?: number; sceneEditCount?: number; sceneEditIds?: string[]; sceneEditRequests?: Record<string, string>; sceneEditReferences?: Record<string, string[]> },
+  ) => void;
   disabled?: boolean;
   isGenerating?: boolean;
   onStop?: () => void;
@@ -40,6 +50,8 @@ interface ChatInputProps {
   onTextChange?: (text: string) => void;
   lockedAttachments?: UploadedAttachment[];
   forceHighlight?: boolean;
+  annotationBatch?: PreviewAnnotationBatch | null;
+  onClearAnnotationBatch?: () => void;
 }
 
 const HOMEPAGE_CONTENT_MAX_WIDTH = 1080;
@@ -415,6 +427,7 @@ const MarkdownPromptPreview = ({ text }: { text: string }) => {
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
+  welcomeRobotUrl,
   disabled,
   isGenerating,
   onStop,
@@ -425,6 +438,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onTextChange,
   lockedAttachments = [],
   forceHighlight = false,
+  annotationBatch = null,
+  onClearAnnotationBatch,
 }) => {
   const { format, setFormat, exampleRequested } = useVideoComposer();
   const appMode = useUIStore((s) => s.appMode);
@@ -449,21 +464,28 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [draggedSceneId, setDraggedSceneId] = useState<string | null>(null);
   const [isDraftPromptOpen, setIsDraftPromptOpen] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [placeholderAnimating, setPlaceholderAnimating] = useState(true);
   const [homepagePromptGroupIndex, setHomepagePromptGroupIndex] = useState(0);
+  const [scenePickerOpen, setScenePickerOpen] = useState(false);
+  const [sceneEdits, setSceneEdits] = useState<Record<string, string>>({});
+  const [sceneEditImages, setSceneEditImages] = useState<Record<string, AttachedFile[]>>({});
   const isMacPlatform = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
   const sendShortcutLabel = `↵ 发送 / ${isMacPlatform ? '⌘↵' : 'Ctrl+↵'} 换行`;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const sceneImageInputRef = useRef<HTMLInputElement>(null);
+  const sceneImageTargetRef = useRef<string | null>(null);
   const dragFileIdRef = useRef<string | null>(null);
 
   const [stopTooltip, setStopTooltip] = useState(false);
   const isInputHighlighted = isFocused || forceHighlight;
 
-  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0) && !disabled;
+  const videoAccess = hasVideoCoursewareAccess();
+  const effectiveFormat = videoAccess ? format : 'h5';
   const imageFiles = attachedFiles.filter(file => file.type === 'image');
   const documentFiles = attachedFiles.filter(file => file.type === 'document');
   const appliedInspirationDraft = parseAppliedInspirationDraft(text);
@@ -472,7 +494,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
     : '';
   const currentConversationId = useConversationStore(s => s.activeConversationId);
   const currentVideo = useVideoCoursewareStore(s => centered ? undefined : Object.values(s.projects).find(p => p.conversationId === currentConversationId));
-  const homepagePromptChips = format === 'video' ? [VIDEO_EXAMPLE_PROMPT, '在餐厅点餐，练习 I’d like…', '用情境视频引入10以内加法，再做互动练习'] : HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length];
+  const selectedSceneIds = currentVideo?.segments.filter(scene => Object.hasOwn(sceneEdits, scene.id)).map(scene => scene.id) || [];
+  const hasSceneEditContent = selectedSceneIds.some(id => sceneEdits[id]?.trim() || sceneEditImages[id]?.length);
+  const hasIncompleteSceneEdits = selectedSceneIds.some(id => !sceneEdits[id]?.trim() && !sceneEditImages[id]?.length);
+  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0 || Boolean(annotationBatch?.annotations.length) || hasSceneEditContent) && !disabled && !hasIncompleteSceneEdits && !selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading));
+  const homepagePromptChips = effectiveFormat === 'video' ? [VIDEO_EXAMPLE_PROMPT, '在餐厅点餐，练习 I’d like…', '用情境视频引入10以内加法，再做互动练习'] : HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length];
   const shouldShowHomepageExamples = false;
   const shouldShowHomepagePromptChips = Boolean(
     centered
@@ -494,6 +520,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
     if (documentFiles.length > 0) {
       return '请描述文档要怎么使用，例如：提取题目、作为知识内容、生成脚本或参考结构';
     }
+    if (annotationBatch?.annotations.length || selectedSceneIds.length > 0) return '可补充整体修改要求，也可以直接发送以上分场意见';
+    if (centered && effectiveFormat === 'video') return '例如：先用故事视频引入，再设计互动练习';
     return placeholder;
   })();
 
@@ -547,19 +575,72 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }, [injectedText, injectedTextVersion, onTextChange, resizeTextarea]);
 
   const handleSend = useCallback(() => {
+    if (hasIncompleteSceneEdits || selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading))) return;
     const trimmed = text.trim();
     const readyFiles = attachedFiles.filter(f => !f.loading);
+    const annotationAttachments: UploadedAttachment[] = annotationBatch?.annotations
+      .filter(annotation => Boolean(annotation.screenshotDataUrl))
+      .map(annotation => ({
+        id: `annotation-${annotationBatch.coursewareId}-${annotationBatch.version}-${annotation.id}`,
+        type: 'image' as const,
+        name: `${annotationBatch.coursewareTitle}-${annotationBatch.versionLabel}-标注${annotation.id}.jpg`,
+        url: annotation.screenshotDataUrl,
+        sourceTitle: `页面标注 ${annotation.id}：${annotation.text}`,
+      })) || [];
     const readyAttachments: UploadedAttachment[] = [
       ...lockedAttachments,
       ...readyFiles.map(({ id, type, name, url }) => ({ id, type, name, url })),
       ...teachingAttachments,
+      ...annotationAttachments,
+      ...((currentVideo?.segments || []).filter(scene => selectedSceneIds.includes(scene.id)).flatMap(scene => (sceneEditImages[scene.id] || []).filter(file => file.url && !file.loading).map(file => ({
+        id: `scene-reference-${scene.id}-${file.id}`,
+        type: 'image' as const,
+        name: file.name,
+        url: file.url,
+        sourceTitle: `场景「${scene.title}」修改参考图`,
+      })))),
     ];
-    if ((!trimmed && readyAttachments.length === 0) || disabled) return;
-    onSend(trimmed, readyAttachments, format === 'video' ? { generationModeId: generationPreferences.generationModeId, visualStyleMode: 'smart', voiceMode: 'smart', contentFormat: 'video' } : { ...generationPreferences, contentFormat: format });
+    const annotationPrompt = annotationBatch?.annotations.length
+      ? buildPreviewAnnotationPrompt(annotationBatch)
+      : '';
+    const sceneEditLines = currentVideo?.segments
+      .filter(scene => selectedSceneIds.includes(scene.id) && (sceneEdits[scene.id]?.trim() || sceneEditImages[scene.id]?.length))
+      .map((scene, index) => {
+        const refs = sceneEditImages[scene.id]?.map(file => file.name).join('、');
+        return `${index + 1}. 场景「${scene.title}」：${sceneEdits[scene.id]?.trim() || '请结合参考图片调整本场'}${refs ? `（参考图片：${refs}）` : ''}`;
+      }) || [];
+    const sceneEditPrompt = sceneEditLines.length
+      ? ['请按以下清单分别修改场景，未列出的场景保持不变：', ...sceneEditLines].join('\n')
+      : '';
+    const requestText = [
+      annotationPrompt,
+      sceneEditPrompt,
+      trimmed ? `补充整体修改要求：${trimmed}` : '',
+    ].filter(Boolean).join('\n\n');
+    if ((!requestText && readyAttachments.length === 0) || disabled) return;
+    onSend(
+      requestText,
+      readyAttachments,
+      effectiveFormat === 'video' ? { generationModeId: generationPreferences.generationModeId, visualStyleMode: 'smart', voiceMode: 'smart', contentFormat: 'video' } : { ...generationPreferences, contentFormat: effectiveFormat },
+      annotationPrompt || sceneEditLines.length
+        ? {
+            displayText: trimmed || undefined,
+            annotationCount: annotationBatch?.annotations.length || undefined,
+            sceneEditCount: sceneEditLines.length || undefined,
+            sceneEditIds: selectedSceneIds,
+            sceneEditRequests: Object.fromEntries(selectedSceneIds.map(id => [id, sceneEdits[id]?.trim() || ''])),
+            sceneEditReferences: Object.fromEntries(selectedSceneIds.map(id => [id, (sceneEditImages[id] || []).map(file => file.name)])),
+          }
+        : undefined,
+    );
+    if (annotationPrompt) onClearAnnotationBatch?.();
     setText('');
     onTextChange?.('');
     setAttachedFiles([]);
     setTeachingAttachments([]);
+    setSceneEdits({});
+    setSceneEditImages({});
+    setScenePickerOpen(false);
     setGenerationPreferences({
       visualStyleMode: 'smart',
       visualStyleEnhancementIds: undefined,
@@ -569,7 +650,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       htmlModelId: 'gemini-3.1-pro',
       imageModelId: 'jimeng-5.0',
     });
-  }, [text, attachedFiles, teachingAttachments, lockedAttachments, generationPreferences, format, disabled, onSend, onTextChange]);
+  }, [text, attachedFiles, teachingAttachments, lockedAttachments, annotationBatch, sceneEdits, sceneEditImages, selectedSceneIds, currentVideo, generationPreferences, effectiveFormat, hasIncompleteSceneEdits, disabled, onSend, onTextChange, onClearAnnotationBatch]);
 
   const applyHomepagePromptChip = useCallback((value: string) => {
     const example = value === VIDEO_EXAMPLE_PROMPT;
@@ -639,6 +720,56 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleImageUpload = () => {
     imageInputRef.current?.click();
+  };
+
+  const handleSceneImageUpload = (sceneId: string) => {
+    sceneImageTargetRef.current = sceneId;
+    sceneImageInputRef.current?.click();
+  };
+
+  const addSceneImages = (sceneId: string, files: File[]) => {
+    if (disabled) return;
+    const slots = Math.max(0, 3 - (sceneEditImages[sceneId]?.length || 0));
+    const valid = files.filter(file => {
+      if (!isSupportedImage(file)) { toast('本场图片仅支持 PNG、JPG、JPEG 和 GIF 格式'); return false; }
+      if (file.size > MAX_IMAGE_FILE_SIZE_MB * BYTES_PER_MB) { toast(`图片大小不能超过 ${MAX_IMAGE_FILE_SIZE_MB}MB`); return false; }
+      return true;
+    });
+    if (valid.length > slots) toast('每场最多添加 3 张图片，请先移除不需要的图片');
+    const incoming = valid.slice(0, slots).map(file => ({file, id: crypto.randomUUID()}));
+    setSceneEditImages(previous => ({...previous, [sceneId]: [...previous[sceneId] || [], ...incoming.map(({file,id}) => ({id,type:'image' as const,name:file.name || '粘贴截图.png',loading:true}))].slice(0,3)}));
+    incoming.forEach(({file,id}) => {
+      const failed = () => { setSceneEditImages(previous => ({...previous,[sceneId]:(previous[sceneId] || []).filter(item => item.id !== id)})); toast('图片无法读取，请重新粘贴或选择图片'); };
+      const reader = new FileReader();
+      reader.onerror = failed;
+      reader.onload = () => {
+        const url = String(reader.result), image = new Image();
+        image.onerror = failed;
+        image.onload = () => setSceneEditImages(previous => ({...previous,[sceneId]:(previous[sceneId] || []).map(item => item.id === id ? {...item,url,loading:false} : item)}));
+        image.src = url;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleSceneImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const sceneId = sceneImageTargetRef.current;
+    if (sceneId) addSceneImages(sceneId, Array.from(event.target.files || []));
+    event.target.value = '';
+    sceneImageTargetRef.current = null;
+  };
+
+  const removeSceneImage = (sceneId: string, imageId: string) => {
+    setSceneEditImages(previous => {
+      const image = previous[sceneId]?.find(item => item.id === imageId);
+      if (image?.url) URL.revokeObjectURL(image.url);
+      return { ...previous, [sceneId]: (previous[sceneId] || []).filter(item => item.id !== imageId) };
+    });
+  };
+
+  const removeSceneEdit = (sceneId: string) => {
+    setSceneEdits(previous => { const next = { ...previous }; delete next[sceneId]; return next; });
+    setSceneEditImages(previous => { const next = { ...previous }; delete next[sceneId]; return next; });
   };
 
   const handleFileUpload = () => {
@@ -938,8 +1069,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
     <>
       <style>{HOVER_CSS}</style>
       <input ref={imageInputRef} type="file" accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" multiple hidden onChange={handleImageSelect} />
+      <input ref={sceneImageInputRef} type="file" multiple accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" hidden onChange={handleSceneImageSelect} />
       <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" multiple hidden onChange={handleFileSelect} />
       <div className={`agent-chat-input-wrapper ${centered ? 'is-centered' : 'is-bottom'}`} style={centered ? styles.wrapperCentered : styles.wrapperBottom}>
+        {centered && videoAccess && (
+          <div className="vc-format-choice">
+            <button type="button" className={'vc-format-toggle'+(effectiveFormat === 'video' ? ' active' : '')} aria-pressed={effectiveFormat === 'video'} onClick={() => setFormat(effectiveFormat === 'video' ? 'h5' : 'video')}>
+              <Film size={16}/><span>视频互动课件</span>{effectiveFormat === 'video' && <Check size={13}/>}
+            </button>
+            <span className="vc-format-choice-hint">{effectiveFormat === 'video' ? '先用视频讲故事，再穿插互动练习' : '默认生成互动课件；选中后加入视频场景'}</span>
+          </div>
+        )}
         <div
           className="agent-chat-input-shell"
           onDragEnter={(e) => {
@@ -981,7 +1121,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               : '0 2px 8px rgba(0,0,0,0.06)',
           }}
         >
-          {centered && <><div className="vc-input-formats" role="group" aria-label="课件形式"><button type="button" className={format === 'h5' ? 'active' : ''} aria-pressed={format === 'h5'} onClick={() => setFormat('h5')}><Gamepad2 size={15}/>互动课件</button><button type="button" className={format === 'video' ? 'active' : ''} aria-pressed={format === 'video'} onClick={() => setFormat('video')}><Film size={15}/>视频互动课件</button><span>{format === 'video' ? '情境视频与互动练习自然衔接' : '图片、声音与互动练习'}</span></div></>}
+          {centered && welcomeRobotUrl && <span className="agent-welcome-robot-anchor"><img className="agent-welcome-robot" src={welcomeRobotUrl} alt="" /></span>}
           {isDraggingFiles && (
             <div style={styles.dragHint}>松开即可上传图片、PDF、Word 或 MD 材料</div>
           )}
@@ -1115,8 +1255,136 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
           )}
 
+          {(scenePickerOpen || selectedSceneIds.length > 0) && currentVideo && (
+            <div style={styles.scenePickerPanel}>
+              <div style={styles.scenePickerHeader}>
+                <div>
+                  <strong style={styles.scenePickerTitle}>按场景填写修改意见</strong>
+                  <span style={styles.scenePickerHint}>可选多场，每场单独填写</span>
+                </div>
+                <button type="button" onClick={() => setScenePickerOpen(previous => !previous)} style={styles.sceneEditChange}>{scenePickerOpen ? '收起场景' : '添加场景'}</button>
+              </div>
+              {scenePickerOpen && <div style={styles.scenePickerList}>
+                {currentVideo.segments.map((scene, index) => {
+                  const selected = Object.hasOwn(sceneEdits, scene.id);
+                  return (
+                    <button
+                      key={scene.id}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => selected ? removeSceneEdit(scene.id) : setSceneEdits(previous => ({ ...previous, [scene.id]: '' }))}
+                      style={{
+                        ...styles.scenePickerItem,
+                        ...(selected ? styles.scenePickerItemSelected : {}),
+                      }}
+                      aria-pressed={selected}
+                    >
+                      <span style={{ ...styles.scenePickerCheck, ...(selected ? styles.scenePickerCheckSelected : {}) }}>
+                        {selected && <Check size={12} />}
+                      </span>
+                      <span style={styles.scenePickerNumber}>{index + 1}</span>
+                      <span style={styles.scenePickerName}>{scene.title}</span>
+                    </button>
+                  );
+                })}
+              </div>}
+              {selectedSceneIds.length > 0 && <div style={styles.sceneEditList}>
+                {currentVideo.segments.filter(scene => Object.hasOwn(sceneEdits, scene.id)).map(scene => (
+                  <div key={scene.id} data-scene-edit={scene.id} tabIndex={0}
+                    onPaste={event => {
+                      const images = Array.from(event.clipboardData.items).filter(item => item.type.startsWith('image/')).map(item => item.getAsFile()).filter((file): file is File => Boolean(file));
+                      if (!images.length) return;
+                      event.preventDefault(); event.stopPropagation(); addSceneImages(scene.id, images);
+                    }}
+                    onDragEnter={event => { if (!Array.from(event.dataTransfer.types).includes('Files')) return; event.preventDefault(); event.stopPropagation(); if (!disabled) setDraggedSceneId(scene.id); }}
+                    onDragOver={event => { if (!Array.from(event.dataTransfer.types).includes('Files')) return; event.preventDefault(); event.stopPropagation(); event.dataTransfer.dropEffect = disabled ? 'none' : 'copy'; }}
+                    onDragLeave={event => { event.stopPropagation(); if (!event.currentTarget.contains(event.relatedTarget as Node)) setDraggedSceneId(null); }}
+                    onDrop={event => { event.preventDefault(); event.stopPropagation(); setDraggedSceneId(null); setIsDraggingFiles(false); addSceneImages(scene.id, Array.from(event.dataTransfer.files)); }}
+                    style={{...styles.sceneEditRow,outline:draggedSceneId===scene.id?'2px dashed var(--agent-primary)':undefined,background:draggedSceneId===scene.id?'var(--agent-soft)':undefined}}>
+                    <div style={styles.sceneEditLabel}><span style={styles.sceneEditBadge}>{currentVideo.segments.findIndex(item => item.id === scene.id) + 1}</span><span style={styles.sceneEditName}>{scene.title}</span></div>
+                    <textarea
+                      value={sceneEdits[scene.id]}
+                      onChange={event => setSceneEdits(previous => ({ ...previous, [scene.id]: event.target.value }))}
+                      placeholder="填写这个场景的修改意见"
+                      style={styles.sceneEditInput}
+                      aria-label={`场景${currentVideo.segments.findIndex(item => item.id === scene.id) + 1}修改意见`}
+                      rows={2}
+                      disabled={disabled}
+                    />
+                    <span className="ci-scene-image-hint">截图后在本场输入框粘贴（⌘V / Ctrl+V），也可拖拽图片到这里</span>
+                    <div style={styles.sceneEditReferenceRow}>
+                      {(sceneEditImages[scene.id] || []).map(image => (
+                        <span key={image.id} style={styles.sceneEditReferenceThumb} title={image.name}>
+                          {image.url && <img src={image.url} alt={image.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5 }} />}
+                          <button type="button" onClick={() => removeSceneImage(scene.id, image.id)} aria-label={`移除参考图 ${image.name}`} style={{ position: 'absolute', top: -6, right: -6, width: 16, height: 16, border: '1px solid #FFFFFF', borderRadius: '50%', background: '#334155', color: '#FFFFFF', display: 'grid', placeItems: 'center', padding: 0, cursor: 'pointer' }}><X size={10} /></button>
+                        </span>
+                      ))}
+                      <button type="button" disabled={disabled} onClick={() => handleSceneImageUpload(scene.id)} style={styles.sceneEditReferenceButton}>
+                        <ImagePlus size={14} /> 添加本场图片
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => removeSceneEdit(scene.id)}
+                      style={styles.sceneEditRemove}
+                      aria-label={`移除场景 ${scene.title}`}
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>}
+              {hasIncompleteSceneEdits && <span style={styles.scenePickerHint}>请为每个所选场景填写意见或添加图片后发送</span>}
+            </div>
+          )}
+
+          {annotationBatch && annotationBatch.annotations.length > 0 && (
+            <div className="ci-annotation-context">
+              <div className="ci-annotation-thumbs">
+                {annotationBatch.annotations.slice(0, 5).map(annotation => (
+                  <span key={annotation.id} className="ci-annotation-thumb" tabIndex={0} aria-label={`标注 ${annotation.id}：${annotation.text}`}>
+                    {annotation.screenshotDataUrl && <img src={annotation.screenshotDataUrl} alt="" />}
+                    <b>{annotation.id}</b>
+                    <span className="ci-annotation-tip" role="tooltip">{annotation.text}</span>
+                  </span>
+                ))}
+                {annotationBatch.annotations.length > 5 && <span className="ci-annotation-more">+{annotationBatch.annotations.length - 5}</span>}
+              </div>
+              <div className="ci-annotation-summary" tabIndex={0} aria-label={`${annotationBatch.annotations.length} 条注释，悬停查看详情`}>
+                <MessageSquarePlus size={14} /> {annotationBatch.annotations.length} 条注释
+                <div className="ci-annotation-list" role="tooltip">
+                  {annotationBatch.annotations.map(annotation => <p key={annotation.id}><b>{annotation.id}</b> {annotation.text}</p>)}
+                </div>
+              </div>
+                <button
+                  type="button"
+                  onClick={onClearAnnotationBatch}
+                  className="ci-annotation-remove"
+                  aria-label="移除页面标注"
+                >
+                  <X size={14} />
+                </button>
+            </div>
+          )}
+
           {!appliedInspirationDraft && (
             <div className="agent-chat-input-textarea-wrap" style={styles.textareaWrap}>
+              {!centered && currentVideo && (
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => setScenePickerOpen(previous => !previous)}
+                  className={'ci-scene-scope'+(scenePickerOpen || selectedSceneIds.length ? ' active' : '')}
+                  aria-expanded={scenePickerOpen}
+                  aria-label="选择场景修改"
+                >
+                  <ListChecks size={15}/>
+                  <span>修改范围：</span>
+                  <strong>{selectedSceneIds.length ? `已选 ${selectedSceneIds.length} 场` : '整节课'}</strong>
+                  <ChevronDown size={14}/>
+                </button>
+              )}
               {shouldShowHomepageExamples && (
                 <div style={styles.rotatingPlaceholder} aria-hidden="true">
                   <div
@@ -1196,9 +1464,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 }}
               />
 
-              {!(centered ? format === 'video' : Boolean(currentVideo)) && <><span className="aug-toolbar-divider" />
+              {!(centered ? effectiveFormat === 'video' : Boolean(currentVideo)) && <><span className="aug-toolbar-divider" />
               <GenerationPreferencePicker
-                voiceLabel={(centered ? format === 'video' : Boolean(currentVideo)) ? '旁白音色' : '课件音色'}
+                voiceLabel={(centered ? effectiveFormat === 'video' : Boolean(currentVideo)) ? '旁白音色' : '课件音色'}
                 value={currentVideo?.preferences || generationPreferences}
                 onChange={value => {
                   setGenerationPreferences(value);
@@ -1309,7 +1577,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   style={styles.homepagePromptChip}
                   onClick={() => applyHomepagePromptChip(item)}
                 >
-                  {format === 'video' ? (item === VIDEO_EXAMPLE_PROMPT ? '悟空故事识字' : item.includes('餐厅') ? '餐厅点餐英语' : '视频学10以内加法') : item}
+                  {effectiveFormat === 'video' ? (item === VIDEO_EXAMPLE_PROMPT ? '悟空故事识字' : item.includes('餐厅') ? '餐厅点餐英语' : '视频学10以内加法') : item}
                 </button>
               ))}
             </div>
@@ -1496,6 +1764,357 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--agent-primary-text)',
     fontSize: 13,
     fontWeight: 700,
+  },
+  annotationContext: {
+    display: 'grid',
+    gap: 8,
+    marginBottom: 10,
+    padding: '10px 11px',
+    borderRadius: 12,
+    border: '1px solid #BFE0FF',
+    background: 'linear-gradient(135deg, #F0F8FF 0%, #F8FCFF 100%)',
+  },
+  annotationContextHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 7,
+    minWidth: 0,
+  },
+  annotationContextIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#FFFFFF',
+    background: '#0274FC',
+    flexShrink: 0,
+  },
+  annotationContextTitle: {
+    minWidth: 0,
+    color: '#0F3F72',
+    fontSize: 12,
+    fontWeight: 850,
+  },
+  annotationContextMeta: {
+    color: '#71879D',
+    fontSize: 11,
+    whiteSpace: 'nowrap',
+  },
+  annotationContextClose: {
+    marginLeft: 'auto',
+    width: 26,
+    height: 26,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    border: 'none',
+    background: 'transparent',
+    color: '#71879D',
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  annotationContextList: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+    overflow: 'hidden',
+  },
+  annotationContextItem: {
+    minWidth: 0,
+    maxWidth: 190,
+    height: 26,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '0 9px 0 6px',
+    borderRadius: 8,
+    border: '1px solid #D6E9FA',
+    background: '#FFFFFF',
+    color: '#49647E',
+    fontSize: 11,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  annotationContextThumb: {
+    width: 34,
+    height: 20,
+    borderRadius: 4,
+    objectFit: 'cover',
+    border: '1px solid #D6E9FA',
+    flexShrink: 0,
+  },
+  annotationContextMore: {
+    color: '#0759C9',
+    fontSize: 11,
+    fontWeight: 800,
+    flexShrink: 0,
+  },
+  scenePickerPanel: {
+    display: 'grid',
+    gap: 10,
+    marginBottom: 10,
+    padding: 12,
+    borderRadius: 13,
+    border: '1px solid #CFDCEA',
+    background: '#F8FBFE',
+  },
+  scenePickerHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  scenePickerTitle: {
+    display: 'block',
+    color: '#172B45',
+    fontSize: 13,
+    fontWeight: 850,
+  },
+  scenePickerHint: {
+    display: 'block',
+    marginTop: 2,
+    color: '#73859A',
+    fontSize: 11,
+  },
+  scenePickerCount: {
+    padding: '3px 8px',
+    borderRadius: 999,
+    background: '#EAF4FF',
+    color: '#0759C9',
+    fontSize: 11,
+    fontWeight: 800,
+    whiteSpace: 'nowrap',
+  },
+  scenePickerList: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 6,
+    maxHeight: 118,
+    overflowY: 'auto',
+    paddingRight: 2,
+  },
+  scenePickerItem: {
+    minWidth: 0,
+    height: 36,
+    display: 'grid',
+    gridTemplateColumns: '18px 20px minmax(0, 1fr)',
+    alignItems: 'center',
+    gap: 6,
+    padding: '0 8px',
+    borderRadius: 9,
+    border: '1px solid #DFE7F0',
+    background: '#FFFFFF',
+    color: '#50657B',
+    cursor: 'pointer',
+    textAlign: 'left',
+  },
+  scenePickerItemSelected: {
+    borderColor: '#8CCBFF',
+    background: '#EEF8FF',
+    color: '#0B579E',
+  },
+  scenePickerCheck: {
+    width: 16,
+    height: 16,
+    borderRadius: 5,
+    border: '1px solid #BBCADA',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#FFFFFF',
+  },
+  scenePickerCheckSelected: {
+    borderColor: '#0274FC',
+    background: '#0274FC',
+  },
+  scenePickerNumber: {
+    color: '#8A9BAD',
+    fontSize: 11,
+    fontVariantNumeric: 'tabular-nums',
+  },
+  scenePickerName: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    fontSize: 12,
+    fontWeight: 750,
+  },
+  scenePickerFooter: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+  },
+  scenePickerDone: {
+    height: 31,
+    padding: '0 13px',
+    borderRadius: 9,
+    border: 'none',
+    background: '#0274FC',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: 'pointer',
+  },
+  sceneEditPanel: {
+    display: 'grid',
+    gap: 8,
+    marginBottom: 10,
+    padding: 10,
+    borderRadius: 12,
+    border: '1px solid #D6E5F3',
+    background: '#F8FBFE',
+  },
+  sceneEditHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    color: '#31516F',
+    fontSize: 12,
+    fontWeight: 850,
+  },
+  sceneEditChange: {
+    padding: 0,
+    border: 'none',
+    background: 'transparent',
+    color: '#0274FC',
+    fontSize: 11,
+    fontWeight: 750,
+    cursor: 'pointer',
+  },
+  sceneEditList: {
+    display: 'grid',
+    gap: 8,
+    maxHeight: 260,
+    overflowY: 'auto',
+  },
+  sceneEditRow: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 26px',
+    alignItems: 'start',
+    gap: 6,
+    minWidth: 0,
+  },
+  sceneEditLabel: {
+    gridColumn: '1',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 7,
+    minWidth: 0,
+  },
+  sceneEditBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#EAF4FF',
+    color: '#0759C9',
+    fontSize: 11,
+    fontWeight: 850,
+  },
+  sceneEditName: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: '#405B75',
+    fontSize: 11,
+    fontWeight: 750,
+  },
+  sceneEditInput: {
+    gridColumn: '1 / -1',
+    minWidth: 0,
+    minHeight: 54,
+    padding: '8px 10px',
+    borderRadius: 8,
+    border: '1px solid #D8E3EE',
+    outline: 'none',
+    background: '#FFFFFF',
+    color: '#172B45',
+    fontSize: 12,
+    resize: 'vertical',
+  },
+  sceneEditReferenceRow: {
+    gridColumn: '1 / -1',
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  sceneEditReferenceThumb: {
+    position: 'relative',
+    width: 42,
+    height: 34,
+    borderRadius: 6,
+    overflow: 'visible',
+    border: '1px solid #CFE1F3',
+    background: '#FFFFFF',
+  },
+  sceneEditReferenceButton: {
+    height: 30,
+    padding: '0 9px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 7,
+    border: '1px dashed #AFC8E1',
+    background: '#FFFFFF',
+    color: '#28689D',
+    fontSize: 11,
+    cursor: 'pointer',
+  },
+  sceneEditRemove: {
+    gridColumn: '2',
+    gridRow: '1',
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    border: 'none',
+    background: 'transparent',
+    color: '#8A9BAD',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  scenePickerEntry: {
+    height: 34,
+    padding: '0 9px',
+    borderRadius: 9,
+    border: '1px solid #DCE5EE',
+    background: '#FFFFFF',
+    color: '#60758B',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    fontSize: 12,
+    fontWeight: 750,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  scenePickerEntryActive: {
+    borderColor: '#8CCBFF',
+    background: '#EEF8FF',
+    color: '#0759C9',
+  },
+  scenePickerEntryCount: {
+    minWidth: 18,
+    height: 18,
+    padding: '0 5px',
+    borderRadius: 999,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0274FC',
+    color: '#FFFFFF',
+    fontSize: 10,
   },
   attachmentGroups: {
     display: 'flex',

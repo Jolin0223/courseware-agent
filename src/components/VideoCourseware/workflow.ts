@@ -20,7 +20,7 @@ import { useUIStore } from '../../store/uiStore';
 export function ensureWorkflowMessage(project:VideoProject,stage:Exclude<WorkflowStage,'plan'>){
  const store=useVideoCoursewareStore.getState(),current=store.projects[project.id];
  const runId=crypto.randomUUID();
- const confirmation=current.workflowVersion===5?(stage==='production'?'全部场景方案已确认，开始生成整课。':stage==='assets'?'教学大纲已确认，开始规划场景并准备图片和音频。':''):stage==='production'?'视频方案已确认，开始生成视频。':stage==='video-plan'?'画面与配音已确认，生成视频方案。':stage==='assembly'?'':current.revision?'素材已修改，请确认画面与配音。':'确认需求，开始生成图片和配音。';
+ const confirmation=current.workflowVersion===5?(stage==='production'?'全部场景方案已确认，开始生成视频互动课件。':stage==='assets'?'教学大纲已确认，开始规划场景并准备图片和音频。':''):stage==='production'?'视频方案已确认，开始生成视频。':stage==='video-plan'?'画面与配音已确认，生成视频方案。':stage==='assembly'?'':current.revision?'素材已修改，请确认画面与配音。':'确认需求，开始生成图片和配音。';
  store.update(project.id,{
   workflowRuns:{...current.workflowRuns,[stage]:runId},
   workflowEvents:[...current.workflowEvents||[],{runId,stage,time:new Date().toISOString(),order:(current.workflowEvents?.length||0)+current.resultMessages.length,confirmation}],
@@ -78,7 +78,7 @@ export function confirmVideoPlan(id:string):boolean{
  if(p.workflowRuns?.['video-plan'])store.update(id,{workflowSnapshots:{...p.workflowSnapshots,[p.workflowRuns['video-plan']]:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds}}});
  store.update(id,{readySceneIds:[],readyPageIds:[],sceneJobs:undefined,sceneAssemblyStarts:{}});
  if(!store.start(id,p.workflowVersion===5?'scenes':'video'))return false;
- useConversationStore.getState().addUserMessage(p.conversationId,p.workflowVersion===5?'全部场景方案已确认，开始生成整课。':'视频方案已确认，开始生成视频。');
+ useConversationStore.getState().addUserMessage(p.conversationId,p.workflowVersion===5?'全部场景方案已确认，开始生成视频互动课件。':'视频方案已确认，开始生成视频。');
  ensureWorkflowMessage(store.projects[id],'production');
  useConversationStore.getState().setWaitingForUserAction(p.conversationId,false);
  return true;
@@ -226,7 +226,7 @@ function advanceOutlineFlow(p:VideoProject,now:number){
   if(ready.length!==p.readyAssetIds.length)store.update(p.id,{readyAssetIds:ready});
   if(ratio<1)return;
   if(videos.some(a=>!a.url)){
-   store.update(p.id,{phase:'failed',error:'部分视频素材尚未就绪，方案和已完成素材已保留。请补全后继续生成整课。',job:{...job,elapsed:job.duration}});
+   store.update(p.id,{phase:'failed',error:'部分视频素材尚未就绪，方案和已完成素材已保留。请补全后继续生成视频互动课件。',job:{...job,elapsed:job.duration}});
    return;
   }
   store.start(p.id,'assembly');

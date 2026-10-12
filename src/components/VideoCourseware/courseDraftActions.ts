@@ -35,11 +35,21 @@ export function saveCourseChatDraft(projectId:string,instruction:string,edits:Ar
  return true;
 }
 
+// Resource replacements join the same saved draft as scene and chat edits.
+export function saveCourseResourceDraft(original:VideoProject,edited:VideoProject,sceneIds:string[]):boolean {
+ const store=useVideoCoursewareStore.getState(),current=store.projects[original.id];
+ if(!current||current.phase!=='ready'||current.revision!==original.revision||current.courseDraft?.status==='generating')return false;
+ const base=courseDraftProject(current);
+ if(JSON.stringify(sceneSnapshot(base))!==JSON.stringify(sceneSnapshot(original))||JSON.stringify(base.composition)!==JSON.stringify(original.composition))return false;
+ store.update(current.id,{courseDraft:{baseVersion:current.revision,snapshot:sceneSnapshot(edited),composition:edited.composition,sceneIds:[...new Set([...current.courseDraft?.sceneIds||[],...sceneIds])],instruction:current.courseDraft?.instruction,status:'draft'}});
+ return true;
+}
+
 export function startCourseDraft(projectId:string,now=Date.now()):boolean {
  const store=useVideoCoursewareStore.getState(),p=store.projects[projectId],draft=p.courseDraft;
  if(!draft||p.phase!=='ready'||draft.status==='generating')return false;
  const issues=videoPlanIssues(courseDraftProject(p));
- const error=draft.baseVersion!==p.revision?'整课版本已变化，请重新核对修改。':issues.length?[...new Set(issues)].join(' '):undefined;
+ const error=draft.baseVersion!==p.revision?'视频互动课件版本已变化，请重新核对修改。':issues.length?[...new Set(issues)].join(' '):undefined;
  store.update(projectId,{courseDraft:{...draft,status:error?'failed':'generating',error,startedAt:error?undefined:now}});
  return !error;
 }
@@ -50,10 +60,10 @@ export function advanceCourseDraft(projectId:string,now:number){
  const store=useVideoCoursewareStore.getState(),p=store.projects[projectId],draft=p.courseDraft;
  if(!draft||draft.status!=='generating'||now-(draft.startedAt??now)<9000)return;
  const candidate=courseDraftProject(p);
- const error=draft.baseVersion!==p.revision?'整课版本已变化，修改草稿已保留。':candidate.assets.some(a=>a.segmentIds.length&&!a.url)?'部分素材尚未就绪，请补全后重新生成。':!buildVideoLessonHTML(candidate)?'当前演示未接入本课的页面生成服务，修改草稿已保留。':undefined;
+ const error=draft.baseVersion!==p.revision?'视频互动课件版本已变化，修改草稿已保留。':candidate.assets.some(a=>a.segmentIds.length&&!a.url)?'部分素材尚未就绪，请补全后重新生成。':!buildVideoLessonHTML(candidate)?'当前演示未接入本课的页面生成服务，修改草稿已保留。':undefined;
  if(error){store.update(projectId,{courseDraft:{...draft,status:'failed',error}});return;}
  store.update(projectId,{...sceneSnapshot(candidate),composition:candidate.composition,readySceneIds:candidate.segments.map(s=>s.id),readyPageIds:candidate.segments.filter(s=>s.kind!=='video').map(s=>s.id),readyAssetIds:candidate.assets.filter(a=>a.url).map(a=>a.id),courseDraft:undefined});
- finishVideoProject(projectId,undefined,'全部修改已确认，生成新的整课版本。');
+ finishVideoProject(projectId,undefined,'全部修改已确认，生成新的视频互动课件版本。');
 }
 
 export function discardCourseDraft(projectId:string){

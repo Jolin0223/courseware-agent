@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import { createServer } from 'vite';
+const data=new Map();
+globalThis.localStorage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
+globalThis.location=new URL('http://127.0.0.1:4186');globalThis.window={localStorage,location};
+const server=await createServer({server:{middlewareMode:true},appType:'custom',logLevel:'error'});
+try {
+ const {wukongFixture,exampleAttachments}=await server.ssrLoadModule('/src/data/videoCourseware/fixtures.ts');
+ const {useVideoCoursewareStore:store}=await server.ssrLoadModule('/src/store/videoCoursewareStore.ts');
+ const {useConversationStore:conv}=await server.ssrLoadModule('/src/store/conversationStore.ts');
+ const flow=await server.ssrLoadModule('/src/components/VideoCourseware/workflow.ts');
+ const actions=await server.ssrLoadModule('/src/components/VideoCourseware/courseDraftActions.ts');
+ const cid=conv.getState().createNewConversation('resource draft check');flow.startVideoProject(cid,wukongFixture.request,exampleAttachments,{contentFormat:'video'});
+ const id='video-'+cid,get=()=>store.getState().projects[id],tick=ms=>flow.advanceVideoJobs(get().job.start+ms);
+ tick(2400);flow.confirmOutline(id);tick(1800);tick(6500);tick(6500);
+ store.getState().update(id,{readyAssetIds:get().assets.map(a=>a.id),readySceneIds:get().segments.map(s=>s.id),readyPageIds:get().segments.filter(s=>s.kind!=='video').map(s=>s.id)});flow.finishVideoProject(id);
+ const original=structuredClone(get()),scene=original.segments[0].id;
+ assert.equal(actions.saveCourseChatDraft(id,'保留此前修改意见',[{sceneId:scene,instruction:'按钮更清楚'}]),true);
+ const opened=structuredClone(actions.courseDraftProject(get())),edited=structuredClone(opened);
+ const asset=edited.assets.find(a=>a.kind==='image'&&a.segmentIds.includes(scene));asset.prompt+='\n保留主体，背景更明亮。';
+ assert.equal(actions.saveCourseResourceDraft(opened,edited,[scene]),true);
+ assert.equal(get().revision,original.revision);assert.deepEqual(get().resultMessages,original.resultMessages);
+ assert.equal(get().courseDraft.instruction,'保留此前修改意见');assert.match(get().courseDraft.snapshot.segments[0].content,/按钮更清楚/);
+ assert.equal(actions.courseDraftProject(get()).assets.find(a=>a.id===asset.id).prompt,asset.prompt);
+ assert.equal(actions.saveCourseResourceDraft(opened,edited,[scene]),false);
+ console.log('PASS resource save preserves scene/chat drafts and delivered version; stale writes rejected');
+ assert.equal(actions.startCourseDraft(id,100),true);
+ assert.equal(actions.saveCourseResourceDraft(actions.courseDraftProject(get()),edited,[scene]),false);
+ actions.advanceCourseDraft(id,10000);
+ assert.equal(get().revision,original.revision+1);assert.equal(get().courseDraft,undefined);
+ assert.equal(get().assets.find(a=>a.id===asset.id).prompt,asset.prompt);
+ console.log('PASS one unified generation creates the next version with saved resource changes');
+} finally { await server.close(); }

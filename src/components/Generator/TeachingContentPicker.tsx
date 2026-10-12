@@ -110,9 +110,9 @@ const cloudFiles = [
 ];
 
 const menuItems = [
+  { id: 'cloud-pages', icon: Cloud, title: '从云盘课件选页面', description: '提取指定页面的内容、风格或玩法' },
   { id: 'question-bank', icon: Database, title: '从学科题库选题', description: '将所选题目做成互动练习、闯关或讲评' },
   { id: 'word-book', icon: BookOpen, title: '从英语词书选词', description: '围绕所选单词生成认读、听音、拼写或口语练习' },
-  { id: 'cloud-pages', icon: Cloud, title: '从云盘课件选页面', description: '提取指定页面的内容、风格或玩法' },
 ] as const;
 
 const createAttachment = (source: TeachingContentSource): UploadedAttachment => ({

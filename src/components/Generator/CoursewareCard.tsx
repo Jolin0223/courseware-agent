@@ -419,21 +419,20 @@ export default function CoursewareCard({
             ><Copy size={15} />一键同款</button>
             {videoProjectId&&<span className="cw-coming-soon-tip" role="tooltip">敬请期待</span>}
           </div>
-          <div className={videoProjectId?'cw-coming-soon':''} tabIndex={videoProjectId?0:undefined} style={{ position: 'relative', display: 'inline-flex' }}
-            onMouseEnter={() => { if (!isLatest&&!videoProjectId) setEditDisabledTooltip(true); }}
+          <div style={{ position: 'relative', display: 'inline-flex' }}
+            onMouseEnter={() => { if (!isLatest) setEditDisabledTooltip(true); }}
             onMouseLeave={() => setEditDisabledTooltip(false)}
           >
             <button
-              disabled={Boolean(videoProjectId)}
-              onClick={() => { if (isLatest&&!videoProjectId) setShowEditModal(true); }}
-              style={getActionButtonStyle('secondary', isLatest&&!videoProjectId)}
+              disabled={!isLatest}
+              onClick={() => { if (isLatest) setShowEditModal(true); }}
+              style={getActionButtonStyle('secondary', isLatest)}
               onMouseDown={e => e.preventDefault()}
-              onMouseEnter={e => handleActionEnter(e, isLatest&&!videoProjectId)}
-              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest&&!videoProjectId)}
-              onBlur={e => handleActionLeave(e, 'secondary', isLatest&&!videoProjectId)}
+              onMouseEnter={e => handleActionEnter(e, isLatest)}
+              onMouseLeave={e => handleActionLeave(e, 'secondary', isLatest)}
+              onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
             ><Edit3 size={15} />编辑资源</button>
-            {videoProjectId&&<span className="cw-coming-soon-tip" role="tooltip">敬请期待</span>}
-            {editDisabledTooltip && !isLatest && !videoProjectId && (
+            {editDisabledTooltip && !isLatest && (
               <div style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff', fontSize: 11, whiteSpace: 'nowrap', zIndex: 40 }}>
                 当前为旧版，不支持编辑，请在最新版互动游戏上编辑资源哦~
               </div>

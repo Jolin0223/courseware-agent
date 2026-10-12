@@ -4,6 +4,7 @@ import { useVideoCoursewareStore, copyPlayback } from '../../store/videoCoursewa
 import type { MediaAsset, PlaybackSettings, VideoProject } from '../../data/videoCourseware/model';
 import { returnToMaterials } from './workflow';
 import { startResourceUpdate } from './sceneRevisionActions';
+import { courseDraftProject, saveCourseResourceDraft } from './courseDraftActions';
 import { replaceSceneResource } from '../../data/videoCourseware/resourceReplacement';
 import { VideoModal, AssetPreview } from './Shared';
 import ResourceAudioPlayer from './ResourceAudioPlayer';
@@ -19,7 +20,9 @@ function editablePrompt(asset?:MediaAsset){
 
 export default function VideoResourceEditor({projectId,onClose,initialTab='image',initialAssetId,sceneId,embeddedProject,onSave}:{projectId:string;onClose:()=>void;initialTab?:'image'|'audio'|'video';initialAssetId?:string;sceneId?:string;embeddedProject?:VideoProject;onSave?:(patch:Partial<VideoProject>)=>void}){
  const storedProject=useVideoCoursewareStore(s=>s.projects[projectId]);
- const project=embeddedProject||storedProject;
+ const project=embeddedProject||(storedProject.workflowVersion===5?courseDraftProject(storedProject):storedProject);
+ const openingProject=useRef(project);
+ const saveToCourseDraft=!embeddedProject&&project.workflowVersion===5&&project.phase==='ready';
  const initialAsset=project.assets.find(a=>a.id===initialAssetId)||project.assets.find(a=>a.kind===initialTab);
  const [shots,setShots]=useState(()=>structuredClone(project.shots));
  const [readyAssetIds,setReadyAssetIds]=useState(()=>[...project.readyAssetIds]);
@@ -75,7 +78,7 @@ export default function VideoResourceEditor({projectId,onClose,initialTab='image
  const dependentVideoIds=project.shots?changedVideoIds({...project,assets,speakers}):assets.filter(a=>a.kind==='video'&&assets.some(changedAsset=>changedAsset.kind!=='video'&&changedAsset.videoDependency!==false&&!changedAsset.overlay&&changedAsset.audioUse!=='interaction'&&changedAssetIds.includes(changedAsset.id)&&changedAsset.segmentIds.some(id=>a.segmentIds.includes(id)))).map(a=>a.id);
  const referenceChoices=<><button className="vc-btn" onClick={()=>referenceFile.current?.click()}><Plus size={14}/>上传参考图</button><input ref={referenceFile} hidden type="file" accept="image/*" onChange={e=>uploadReference(e.target.files?.[0])}/><div className="vc-picker-grid">{assets.filter(a=>a.kind==='image'&&a.url&&readyAssetIds.includes(a.id)).map(a=><button className="vc-picker-asset" key={a.id} onClick={()=>{setReferenceUrl(a.url);setReferenceName(a.name);setReferencePicker(false);}}><img src={a.url} alt=""/><b>{a.name}</b></button>)}</div></>;
  const body=<>
-  <p className="vc-hint vc-edit-scope">{embeddedProject&&complete?'选择素材，预览修改效果后应用到场景。':'选择要调整的素材，保存后自动更新相关场景并生成新版本。'}</p>
+  <p className="vc-hint vc-edit-scope">{embeddedProject&&complete?'选择素材，预览修改效果后应用到场景。':saveToCourseDraft?'选择要调整的素材，保存到视频互动课件草稿后，可继续修改并统一生成。':'选择要调整的素材，保存后自动更新相关场景并生成新版本。'}</p>
   <div className="vc-tabs" role="tablist" aria-label="资源类型">{(['image','audio',...(hasVideo?['video']:[])] as Array<typeof tab>).map(kind=><button key={kind} role="tab" aria-selected={tab===kind} className={tab===kind?'active':''} onClick={()=>switchTab(kind)}>{kind==='image'?<ImageIcon size={16}/>:kind==='audio'?<Volume2 size={16}/>:<Film size={16}/ >}{kind==='image'?'图片':kind==='audio'?'旁白与角色配音':'视频'}</button>)}</div>
   <div className="vc-editor-columns">
    <aside className="vc-resource-list">{assets.filter(a=>a.kind===tab&&(!sceneId||a.segmentIds.includes(sceneId))).map(a=><button key={a.id} disabled={!readyAssetIds.includes(a.id)} className={selected?.id===a.id?'active':''} onClick={()=>pick(a)}>{a.kind==='audio'?<Volume2 size={19}/>:readyAssetIds.includes(a.id)?<img src={a.poster||a.url} alt=""/>:<Loader2 size={19} className="vc-spin"/>}<span><b>{a.name}</b><small>{a.kind==='audio'?project.speakers.find(s=>s.id===a.speakerId)?.name:a.kind==='video'?a.seconds+' 秒':a.role}</small></span></button>)}</aside>
@@ -105,9 +108,13 @@ export default function VideoResourceEditor({projectId,onClose,initialTab='image
    </>}</main>
   </div>
   {referencePicker&&!embeddedProject&&<VideoModal title="选择图生图参考图片" onClose={()=>setReferencePicker(false)}>{referenceChoices}</VideoModal>}
-  <footer className="vc-editor-footer"><button className="vc-btn" onClick={close}><ArrowLeft size={14}/>取消</button><span>{embeddedProject?'应用后返回场景，场景和素材修改统一保存。':complete?'保存后自动更新相关场景并生成新版本，旧版本保留。':'素材修改随场景方案一起保存。'}</span><button className="vc-btn primary" disabled={!changed||generating||Boolean(candidate)} onClick={()=>{
+  <footer className="vc-editor-footer"><button className="vc-btn" onClick={close}><ArrowLeft size={14}/>取消</button><span>{embeddedProject?'应用后返回场景，场景和素材修改统一保存。':saveToCourseDraft?'保存后在课件卡片点击「全部生成」，更新完整视频互动课件。':complete?'保存后自动更新相关场景并生成新版本，旧版本保留。':'素材修改随场景方案一起保存。'}</span><button className="vc-btn primary" disabled={!changed||generating||Boolean(candidate)} onClick={()=>{
  const patch={assets,composition,speakers,shots,readyAssetIds};
  if(onSave){onSave(patch);onClose();return;}
+ if(saveToCourseDraft){
+  if(!saveCourseResourceDraft(openingProject.current,{...openingProject.current,...patch},affectedSceneIds)){toast('当前版本或草稿已变化，请重新打开资源编辑后再试');return;}
+  toast('资源修改已保存到视频互动课件草稿');onClose();return;
+ }
  if(complete){
   const error=startResourceUpdate(project.id,{...project,...patch},affectedSceneIds);
   if(error){toast(error);return;}
@@ -116,7 +123,7 @@ export default function VideoResourceEditor({projectId,onClose,initialTab='image
  const store=useVideoCoursewareStore.getState();store.update(project.id,patch);
  if(dependentVideoIds.length)returnToMaterials(project.id);
  onClose();toast('素材修改已保存');
-}}>{embeddedProject?'应用到场景':complete?'保存修改，生成新版本':'保存素材修改'}</button></footer></>;
+}}>{embeddedProject?'应用到场景':saveToCourseDraft?'保存修改':complete?'保存修改，生成新版本':'保存素材修改'}</button></footer></>;
 
  return embeddedProject?<div className="se-resource-editor">{referencePicker?<><button className="vc-text-btn" onClick={()=>setReferencePicker(false)}><ArrowLeft size={14}/>返回资源编辑</button><h3>选择图生图参考图片</h3>{referenceChoices}</>:body}</div>:<VideoModal title="编辑资源" onClose={close}>{body}</VideoModal>;
 }

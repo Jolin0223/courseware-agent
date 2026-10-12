@@ -2764,7 +2764,7 @@ export default function GeneratorPage() {
             pendingEdit: text,
             pendingEditAttachments: [...videoProject.pendingEditAttachments || [], ...attachments],
           });
-          addAssistantMessage(videoProject.conversationId, '修改意见已保存到整课草稿。可继续修改其他场景，完成后在课件卡片点击「全部生成」。', 'text');
+          addAssistantMessage(videoProject.conversationId, '修改意见已保存到视频互动课件草稿。可继续修改其他场景，完成后在课件卡片点击「全部生成」。', 'text');
           setWaitingForUserAction(videoProject.conversationId, true);
         }
         return;
@@ -2779,7 +2779,7 @@ export default function GeneratorPage() {
       });
       if (videoProject.phase === 'ready' && !needsOutlineReview) {
         confirmOutline(videoProject.id);
-        addAssistantMessage(videoProject.conversationId, '已按现有教学大纲继续处理这次整课修改。', 'text');
+        addAssistantMessage(videoProject.conversationId, '已按现有教学大纲继续处理这次视频互动课件修改。', 'text');
         closePreview();
         setWaitingForUserAction(videoProject.conversationId, false);
         return;

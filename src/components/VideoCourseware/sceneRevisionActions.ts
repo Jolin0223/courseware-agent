@@ -41,7 +41,7 @@ export function saveSceneRevisionDraft(projectId:string,sceneId:string,draft:Vid
 }
 export function startSceneRevision(projectId:string,sceneId:string,now=Date.now()){
  const p=projectFor(projectId),r=p.sceneRevisions?.[sceneId];if(!r||r.status==='generating'||p.phase!=='ready')return false;
- if(p.revision!==r.baseVersion){setSceneRevision(projectId,sceneId,{status:'stale',error:'整课已有更新，请先合并到当前版本再生成。'});return false;}
+ if(p.revision!==r.baseVersion){setSceneRevision(projectId,sceneId,{status:'stale',error:'视频互动课件已有更新，请先合并到当前版本再生成。'});return false;}
  const generationId=r.status==='failed'?r.id:crypto.randomUUID();
  const result=buildSceneCandidate(revisionProject(p,r.base,r.baseComposition),revisionProject(p,r.draft,r.composition),sceneId,r.scope,generationId);
  const issues=videoPlanIssues(result.project);
@@ -88,13 +88,13 @@ export function advanceSceneRevisions(projectId:string,now:number){
  const p=projectFor(projectId);
  for(const [sceneId,r] of Object.entries(p.sceneRevisions||{})){
   if(r.status!=='generating'||!r.candidate)continue;
-  if(p.revision!==r.baseVersion){setSceneRevision(projectId,sceneId,{status:'stale',error:'整课已更新，候选暂未采用。请合并当前版本后继续。'});continue;}
+  if(p.revision!==r.baseVersion){setSceneRevision(projectId,sceneId,{status:'stale',error:'视频互动课件已更新，候选暂未采用。请合并当前版本后继续。'});continue;}
   const elapsed=now-(r.startedAt??now),draft=revisionProject(p,r.candidate,r.candidateComposition||r.composition);
   const progress=advanceSceneProduction({...draft,sceneAssemblyStarts:r.sceneAssemblyStarts},elapsed);
   const candidate={...draft,...progress},ids=r.affectedSceneIds||[sceneId];
   const ready=ids.every(id=>candidate.readySceneIds?.includes(id));
   const missing=ids.some(id=>candidate.segments.find(s=>s.id===id)?.kind!=='h5'&&!candidate.assets.some(a=>a.kind==='video'&&a.url&&a.segmentIds.includes(id)))||candidate.assets.some(a=>a.kind==='video'&&a.segmentIds.some(id=>ids.includes(id))&&!a.url);
-  setSceneRevision(projectId,sceneId,{candidate:sceneSnapshot(candidate),sceneAssemblyStarts:progress.sceneAssemblyStarts,elapsed,status:ready?'candidate':elapsed>=14000&&missing?'failed':'generating',error:elapsed>=14000&&missing?'部分视频未完成，原整课仍可预览。请修改或重试候选。':undefined});
+  setSceneRevision(projectId,sceneId,{candidate:sceneSnapshot(candidate),sceneAssemblyStarts:progress.sceneAssemblyStarts,elapsed,status:ready?'candidate':elapsed>=14000&&missing?'failed':'generating',error:elapsed>=14000&&missing?'部分视频未完成，原视频互动课件仍可预览。请修改或重试候选。':undefined});
   if(ready)retainSceneVersion(projectId,sceneId);
   if(ready&&r.autoAdopt)adoptSceneRevision(projectId,sceneId);
  }
@@ -109,14 +109,14 @@ export function discardSceneRevision(projectId:string,sceneId:string){
 export function adoptSceneRevision(projectId:string,sceneId:string){
  retainSceneVersion(projectId,sceneId);
  const p=projectFor(projectId),key=p.sceneRevisions?.[sceneId]?sceneId:Object.entries(p.sceneRevisions||{}).find(([,revision])=>revision.affectedSceneIds?.includes(sceneId))?.[0],r=key?p.sceneRevisions?.[key]:undefined;if(!r?.candidate||r.status!=='candidate'||p.phase!=='ready')return false;
- if(p.revision!==r.baseVersion){setSceneRevision(projectId,sceneId,{status:'stale',error:'整课已有更新，请合并当前版本后再采用。'});return false;}
+ if(p.revision!==r.baseVersion){setSceneRevision(projectId,sceneId,{status:'stale',error:'视频互动课件已有更新，请合并当前版本后再采用。'});return false;}
  const changedIds=r.affectedSceneIds||[sceneId];
  const candidate={...r.candidate,segments:r.candidate.segments.map(scene=>changedIds.includes(scene.id)?{...scene,revision:p.sceneVersionHistory?.[scene.id]?.find(entry=>entry.id===r.id)?.version||((p.segments.find(previous=>previous.id===scene.id)?.revision||1)+1)}:scene)};
  const remaining={...p.sceneRevisions};delete remaining[key!];
- for(const id of Object.keys(remaining))remaining[id]={...remaining[id],status:'stale',error:'整课已采用其他修改，请合并到当前版本后继续。'};
- useVideoCoursewareStore.getState().update(projectId,{...candidate,composition:r.candidateComposition||r.composition,sceneRevisions:remaining,workflowEvents:p.workflowEvents?.map(e=>r.autoAdopt&&e.runId===r.id?{...e,status:'completed' as const}:e.stage==='resource-update'&&e.status==='generating'&&remaining['resource-update']?.status==='stale'?{...e,status:'failed' as const,error:'整课已有更新，请重新编辑资源后生成。'}:e)});
+ for(const id of Object.keys(remaining))remaining[id]={...remaining[id],status:'stale',error:'视频互动课件已采用其他修改，请合并到当前版本后继续。'};
+ useVideoCoursewareStore.getState().update(projectId,{...candidate,composition:r.candidateComposition||r.composition,sceneRevisions:remaining,workflowEvents:p.workflowEvents?.map(e=>r.autoAdopt&&e.runId===r.id?{...e,status:'completed' as const}:e.stage==='resource-update'&&e.status==='generating'&&remaining['resource-update']?.status==='stale'?{...e,status:'failed' as const,error:'视频互动课件已有更新，请重新编辑资源后生成。'}:e)});
  const changedLabel=changedIds.map(id=>{const index=p.segments.findIndex(scene=>scene.id===id);return index>=0?`第${index+1}场景`:''}).filter(Boolean).join('、');
- finishVideoProject(projectId,undefined,r.autoAdopt?undefined:`更新${changedLabel||'指定场景'}并更新整课。`);return true;
+ finishVideoProject(projectId,undefined,r.autoAdopt?undefined:`更新${changedLabel||'指定场景'}并更新视频互动课件。`);return true;
 }
 
 export function startResourceUpdate(projectId:string,draft:VideoProject,affectedSceneIds:string[]):string|undefined {

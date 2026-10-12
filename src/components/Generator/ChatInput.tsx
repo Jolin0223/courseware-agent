@@ -1388,7 +1388,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 >
                   <ListChecks size={15}/>
                   <span>修改范围：</span>
-                  <strong>{selectedSceneIds.length ? `已选 ${selectedSceneIds.length} 场` : '整节课'}</strong>
+                  <strong>{selectedSceneIds.length ? `已选 ${selectedSceneIds.length} 场` : '整体视频互动课件'}</strong>
                   <ChevronDown size={14}/>
                 </button>
               )}

@@ -27,7 +27,8 @@ import TeachingContentSummaryCard from './TeachingContentSummaryCard';
 import GenerationPreferencePicker from './GenerationPreferencePicker';
 import GenerationModeDropdown from './GenerationModeDropdown';
 import { useVideoComposer, useVideoCoursewareStore } from '../../store/videoCoursewareStore';
-import { VIDEO_EXAMPLE_PROMPT, exampleAttachments, wukongFixture } from '../../data/videoCourseware/fixtures';
+import { VIDEO_EXAMPLE_PROMPT, exampleAttachments } from '../../data/videoCourseware/fixtures';
+import { VIDEO_HOMEPAGE_PROMPT_GROUPS } from '../../data/videoCourseware/homepagePrompts';
 import '../VideoCourseware/videoCourseware.css';
 import { generationModeOptions } from '../../data/augustDemoData';
 import { hasVideoCoursewareAccess } from '../../utils/videoCoursewareAccess';
@@ -498,7 +499,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const hasSceneEditContent = selectedSceneIds.some(id => sceneEdits[id]?.trim() || sceneEditImages[id]?.length);
   const hasIncompleteSceneEdits = selectedSceneIds.some(id => !sceneEdits[id]?.trim() && !sceneEditImages[id]?.length);
   const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0 || Boolean(annotationBatch?.annotations.length) || hasSceneEditContent) && !disabled && !hasIncompleteSceneEdits && !selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading));
-  const homepagePromptChips = effectiveFormat === 'video' ? [VIDEO_EXAMPLE_PROMPT, '在餐厅点餐，练习 I’d like…', '用情境视频引入10以内加法，再做互动练习'] : HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length];
+  const homepagePromptChips = effectiveFormat === 'video'
+    ? VIDEO_HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % VIDEO_HOMEPAGE_PROMPT_GROUPS.length]
+    : HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length].map(prompt => ({ label: prompt, prompt }));
   const shouldShowHomepageExamples = false;
   const shouldShowHomepagePromptChips = Boolean(
     centered
@@ -652,20 +655,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
     });
   }, [text, attachedFiles, teachingAttachments, lockedAttachments, annotationBatch, sceneEdits, sceneEditImages, selectedSceneIds, currentVideo, generationPreferences, effectiveFormat, hasIncompleteSceneEdits, disabled, onSend, onTextChange, onClearAnnotationBatch]);
 
-  const applyHomepagePromptChip = useCallback((value: string) => {
-    const example = value === VIDEO_EXAMPLE_PROMPT;
-    const nextText = example ? wukongFixture.request : value;
-    setText(nextText);
-    onTextChange?.(nextText);
+  const applyHomepagePromptChip = useCallback((prompt: string) => {
+    const example = prompt === VIDEO_EXAMPLE_PROMPT;
+    setText(prompt);
+    onTextChange?.(prompt);
     if (example) {
       setAttachedFiles(exampleAttachments.map(a => ({id:a.id,type:'image',name:a.name,url:a.url})));
       setGenerationPreferences(previous => ({ ...previous, voiceLanguage: '中文' }));
+    } else {
+      setAttachedFiles(previous => previous.filter(file => !file.id.startsWith('video-example-page-')));
+      if (effectiveFormat === 'video') {
+        setGenerationPreferences(previous => ({ ...previous, voiceLanguage: /英语|英文/i.test(prompt) ? '英语-英音' : '中文' }));
+      }
     }
     window.requestAnimationFrame(() => {
       resizeTextarea();
       textareaRef.current?.focus();
     });
-  }, [onTextChange, resizeTextarea]);
+  }, [effectiveFormat, onTextChange, resizeTextarea]);
 
   useEffect(() => {
     if (centered && exampleRequested > 0) {
@@ -688,8 +695,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }, []);
 
   const switchHomepagePromptGroup = useCallback(() => {
-    setHomepagePromptGroupIndex(prev => (prev + 1) % HOMEPAGE_PROMPT_GROUPS.length);
-  }, []);
+    setHomepagePromptGroupIndex(prev => (prev + 1) % (effectiveFormat === 'video' ? VIDEO_HOMEPAGE_PROMPT_GROUPS.length : HOMEPAGE_PROMPT_GROUPS.length));
+  }, [effectiveFormat]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== 'Enter' || e.nativeEvent.isComposing || e.keyCode === 229) return;
@@ -1570,14 +1577,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <div className="agent-home-prompt-chips" style={styles.homepagePromptChips}>
               {homepagePromptChips.map(item => (
                 <button
-                  key={item}
+                  key={item.label}
                   type="button"
                   disabled={disabled}
                   className="agent-home-prompt-chip"
                   style={styles.homepagePromptChip}
-                  onClick={() => applyHomepagePromptChip(item)}
+                  onClick={() => applyHomepagePromptChip(item.prompt)}
                 >
-                  {effectiveFormat === 'video' ? (item === VIDEO_EXAMPLE_PROMPT ? '悟空故事识字' : item.includes('餐厅') ? '餐厅点餐英语' : '视频学10以内加法') : item}
+                  {item.label}
                 </button>
               ))}
             </div>

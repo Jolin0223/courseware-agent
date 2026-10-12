@@ -80,7 +80,7 @@ export function shotIssues(project:VideoProject,shot:VideoShot):string[] {
   }
   const spoken=cues.filter(c=>c.mode==='playback').sort((a,b)=>a.start-b.start);
   if(spoken.some((c,i)=>i>0&&c.start<spoken[i-1].start+cueDuration(spoken[i-1])-.02))issues.push('两段配音时间重叠，请调整播放位置。');
-  if(!shot.prompt.trim())issues.push('请填写视频生成描述。');
+  if(!shot.prompt.trim())issues.push('请填写视频画面描述提示词。');
   if((shot.references||[]).some(r=>!r.purpose.trim()||!r.range.trim()))issues.push('请说明参考图片的用途和使用范围。');
   return [...new Set(issues)];
 }

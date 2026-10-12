@@ -22,9 +22,9 @@ export function buildCoursewareShellHTML(
   return `<!doctype html><html lang="zh-CN"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
     *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1220}#canvas{position:absolute;left:50%;top:50%;width:1920px;height:1080px;overflow:hidden;transform:translate(-50%,-50%) scale(var(--canvas-scale,0));background:#000}#lesson{position:absolute;inset:0;display:block;width:100%;height:100%;border:0}
     ${themedNavigation ? wukongTeacherToolsCSS : ''}
-  </style></head><body><div id="canvas"><iframe id="lesson" title="互动课件" src="${safeUrl}" allow="autoplay; fullscreen"></iframe></div>${themedNavigation ? wukongTeacherToolsMarkup : ''}<script>
+  </style></head><body><div id="canvas"><iframe id="lesson" title="互动课件" src="${safeUrl}" allow="autoplay; fullscreen"></iframe>${themedNavigation ? wukongTeacherToolsMarkup : ''}</div><script>
     const config=${data},origin=${origin},frame=document.getElementById('lesson'),root=document.getElementById('teacher-tools'),trigger=document.getElementById('tools-trigger'),shade=document.getElementById('tools-shade'),list=document.getElementById('tools-list'),nav=config.navigation;
-    const resizeCanvas=()=>{const scale=Math.min(innerWidth/1920,innerHeight/1080);document.getElementById('canvas').style.setProperty('--canvas-scale',scale);if(root){root.style.width=1920*scale+'px';root.style.height=1080*scale+'px'}};
+    const resizeCanvas=()=>document.getElementById('canvas').style.setProperty('--canvas-scale',Math.min(innerWidth/1920,innerHeight/1080));
     resizeCanvas();window.addEventListener('resize',resizeCanvas);
     let activeId=nav?.scenes?.[0]?.id;
     function closeTools(){shade.hidden=true;trigger.hidden=false;trigger.setAttribute('aria-expanded','false');trigger.focus()}

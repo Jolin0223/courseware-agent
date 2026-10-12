@@ -49,7 +49,7 @@ export function compileOutline(p:VideoProject):Partial<VideoProject>{
  return {segments,sceneReviews:{},chapters:chapters.map(c=>({...c,segmentIds:segments.filter(s=>s.chapterId===c.id).map(s=>s.id)})),assets,shots:undefined,readySceneIds:[],readyPageIds:[],sceneAssemblyStarts:{},sceneJobs:undefined,outlineConfirmed:true,approvedPlanKey:undefined,approvedMaterialsKey:undefined};
 }
 export function scenePlanIssues(p:VideoProject):string[]{
- return p.segments.flatMap((s,i)=>!s.title.trim()||!(s.content||'').trim()?[`场景 ${i+1} 需要名称和具体内容。`]:[]);
+ return p.segments.flatMap((s,i)=>!s.title.trim()||(s.kind!=='video'&&!(s.content||'').trim())?[`场景 ${i+1} 需要名称和互动内容。`]:[]);
 }
 export function sceneChanged(p:VideoProject,scene:VideoSegment){
  const baseline=legacyWukongFixture.segments.find(s=>s.id===scene.id);

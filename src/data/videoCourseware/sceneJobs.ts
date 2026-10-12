@@ -12,7 +12,7 @@ export function sceneGenerationKey(p:VideoProject,id:string){
 export function sceneGenerationIssues(p:VideoProject,id:string){
  const scene=p.segments.find(s=>s.id===id);if(!scene)return ['场景不存在。'];
  const issues:string[]=[];
- if(!scene.title.trim()||!scene.content?.trim())issues.push('请填写场景名称与内容。');
+ if(!scene.title.trim()||(scene.kind!=='video'&&!scene.content?.trim()))issues.push('请填写场景名称与互动内容。');
  if(p.assets.some(a=>a.kind!=='video'&&a.segmentIds.includes(id)&&(!a.url||!p.readyAssetIds.includes(a.id))))issues.push('本场图片或配音尚未准备好。');
  if(scene.kind!=='h5'){
   const videos=sceneVideos(p,scene);if(!videos.length)issues.push('本场缺少视频方案。');

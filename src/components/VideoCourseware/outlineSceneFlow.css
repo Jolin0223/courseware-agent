@@ -87,3 +87,10 @@ body.of-is-sorting *{cursor:grabbing!important}
 .of-scene-review.is-edited{color:#247556;background:#eff8f3;border-radius:4px;padding:2px 6px}
 .of-scene{padding:14px 16px}
 .of-scene-description{margin-top:8px}
+
+/* Scene type artwork conveys format without requiring generated cover images. */
+.of-scene-type-art{display:block;width:96px;aspect-ratio:16/9;object-fit:cover;border:1px solid #e6eef7;border-radius:8px;flex-shrink:0;background:#f3f9ff}
+.of-scene-summary{gap:16px}.of-scene-copy{gap:6px 10px}
+.se-section-note{font-size:12px;line-height:1.7;color:#64748b;margin:0 0 4px}
+.se-prompt-label{font-weight:600;color:#475569}
+@media(max-width:760px){.of-scene-type-art{width:76px}.of-scene-summary{gap:10px}}

@@ -127,8 +127,8 @@ function SceneCard({project,scene,index,readOnly}:{project:VideoProject;scene:Vi
  const issues=sceneGenerationIssues(project,scene.id);
  const review=project.sceneReviews?.[scene.id];
  return <article className="of-scene" data-scene-id={scene.id}>
-  <div className="of-scene-summary"><div className="of-scene-copy"><span className="of-scene-index">场景 {index+1}</span><h4>{scene.title}</h4><Kind kind={scene.kind}/>{review?.status==='edited'&&<span className="of-scene-review is-edited">已编辑保存</span>}</div><button className="vc-text-btn" onClick={()=>setEditing(true)}><PencilLine size={14}/>{readOnly?'查看':'编辑'}</button></div>
-  <p className="of-scene-description">{scene.content}</p>{!readOnly&&issues.map(issue=><p className="vc-error" key={issue}>{issue}</p>)}
+  <div className="of-scene-summary"><img className="of-scene-type-art" src={`/video-courseware/scene-types/${scene.kind==='h5'?'interactive':scene.kind}.png`} alt="" data-scene-type={scene.kind}/><div className="of-scene-copy"><span className="of-scene-index">场景 {index+1}</span><h4>{scene.title}</h4><Kind kind={scene.kind}/>{review?.status==='edited'&&<span className="of-scene-review is-edited">已编辑保存</span>}</div><button className="vc-text-btn" onClick={()=>setEditing(true)}><PencilLine size={14}/>{readOnly?'查看':'编辑'}</button></div>
+  {!readOnly&&issues.map(issue=><p className="vc-error" key={issue}>{issue}</p>)}
   {editing&&<SceneEditor project={project} sceneId={scene.id} readOnly={readOnly} onClose={()=>setEditing(false)}/>}
  </article>;
 }

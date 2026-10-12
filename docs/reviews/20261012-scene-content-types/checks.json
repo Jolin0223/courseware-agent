@@ -1,0 +1,50 @@
+{
+  "checks": [
+    "场景列表无内容摘要，三种类型默认图全部加载",
+    "纯互动只有互动内容模块，描述可编辑保存",
+    "纯视频没有场景内容模块，单段显示本场景视频内容",
+    "多个视频按01/02编号，各自提示词、首尾帧、配音独立保存",
+    "纯视频旧内容字段为空也可保存，不增加隐形填写要求",
+    "视频加互动显示两个模块，修改互动描述保留视频提示词",
+    "刷新后多视频配置与类型模块保持一致",
+    "三种类型均可统一生成整课",
+    "教师工具按钮随1920画布等比缩放",
+    "展开工具为画布一半宽一半高，占四分之一面积",
+    "缩放后教师工具仍可切换真实教学环节",
+    "原尺寸画布中工具面板为960×540",
+    "无页面脚本错误"
+  ],
+  "metrics": {
+    "previewTrigger": {
+      "rootWidth": 476.4444580078125,
+      "rootHeight": 268,
+      "panelWidth": 0,
+      "panelHeight": 0,
+      "buttonWidth": 45.65925598144531,
+      "buttonHeight": 13.89630126953125,
+      "panelLogicalWidth": 0,
+      "panelLogicalHeight": 0
+    },
+    "previewPanel": {
+      "rootWidth": 476.4444580078125,
+      "rootHeight": 268,
+      "panelWidth": 238.22222900390625,
+      "panelHeight": 134,
+      "buttonWidth": 0,
+      "buttonHeight": 0,
+      "panelLogicalWidth": 960,
+      "panelLogicalHeight": 540
+    },
+    "fullPanel": {
+      "rootWidth": 1920,
+      "rootHeight": 1080,
+      "panelWidth": 960,
+      "panelHeight": 540,
+      "buttonWidth": 0,
+      "buttonHeight": 0,
+      "panelLogicalWidth": 960,
+      "panelLogicalHeight": 540
+    }
+  },
+  "errors": []
+}

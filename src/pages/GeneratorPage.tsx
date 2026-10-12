@@ -53,7 +53,7 @@ import VideoResultScenes from '../components/VideoCourseware/VideoResultScenes';
 import VideoWorkflowCard from '../components/VideoCourseware/VideoWorkflowCard';
 import { ConfirmationDockContext } from '../components/VideoCourseware/ConfirmationDockContext';
 import { confirmOutline, startVideoProject, useVideoJobs } from '../components/VideoCourseware/workflow';
-import { startDirectSceneEdits } from '../components/VideoCourseware/sceneRevisionActions';
+import { saveCourseChatDraft } from '../components/VideoCourseware/courseDraftActions';
 import { useVideoCoursewareStore, videoProjectForConversation } from '../store/videoCoursewareStore';
 import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
 import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
@@ -2753,26 +2753,21 @@ export default function GeneratorPage() {
         ...displayMeta,
       });
       const directSceneIds = displayMeta?.sceneEditIds?.filter(id => videoProject.segments.some(scene => scene.id === id)) || [];
-      if (videoProject.phase === 'ready' && directSceneIds.length > 0) {
-        const started = startDirectSceneEdits(videoProject.id, directSceneIds.map(sceneId => ({
+      if (videoProject.workflowVersion === 5 && videoProject.phase === 'ready') {
+        const saved = saveCourseChatDraft(videoProject.id, text, directSceneIds.map(sceneId => ({
           sceneId,
           instruction: displayMeta?.sceneEditRequests?.[sceneId] || text,
           referenceNames: displayMeta?.sceneEditReferences?.[sceneId] || [],
         })));
-        if (started) {
-          // Keep captured preview screenshots with the revision task as well as
-          // the chat message, so the scene generator can retain the visual
-          // evidence while the candidate is being produced.
+        if (saved) {
           useVideoCoursewareStore.getState().update(videoProject.id, {
             pendingEdit: text,
-            pendingEditAttachments: attachments,
+            pendingEditAttachments: [...videoProject.pendingEditAttachments || [], ...attachments],
           });
-          const labels = directSceneIds.map(id => { const index = videoProject.segments.findIndex(scene => scene.id === id); return index >= 0 ? `第${index + 1}场景` : ''; }).filter(Boolean).join('、');
-          addAssistantMessage(videoProject.conversationId, `正在更新${labels || '指定场景'}并生成 V${videoProject.revision + 1}，完成后合并整课供你确认。其他场景保持不变。`, 'text');
-          closePreview();
-          setWaitingForUserAction(videoProject.conversationId, false);
-          return;
+          addAssistantMessage(videoProject.conversationId, '修改意见已保存到整课草稿。可继续修改其他场景，完成后在课件卡片点击「全部生成」。', 'text');
+          setWaitingForUserAction(videoProject.conversationId, true);
         }
+        return;
       }
       const needsOutlineReview = /剧情|教学目标|章节|结构|重写|完全不匹配|完全换内容|重新设计/.test(text);
       useVideoCoursewareStore.getState().update(videoProject.id, {
@@ -3892,11 +3887,11 @@ export default function GeneratorPage() {
           </div>
         )}
 
-        <div className="agent-chat-input-area" ref={bottomInputAnchorRef} style={{ ...styles.inputArea, ...chatContentVars, padding: inputAreaPadding }}>
+        {(!videoProject || videoProject.revision >= 1) && <div className="agent-chat-input-area" ref={bottomInputAnchorRef} style={{ ...styles.inputArea, ...chatContentVars, padding: inputAreaPadding }}>
           <div style={{ width: '100%', maxWidth: chatContentMaxWidth }}>
             <ChatInput 
               key={activeConversationId || 'bottom-input'}
-              placeholder={videoProject && videoProject.revision < 1 ? '首版课件完成后可发送修改意见，请先在上方确认大纲和场景' : undefined}
+              placeholder={videoProject ? '输入修改意见，保存后可统一生成新版本' : undefined}
               onSend={handleSend} 
               disabled={Boolean(videoProject && isVideoChatLocked(videoProject)) || (!videoProject && phase !== 'input' && phase !== 'completed')}
               isGenerating={Boolean(videoProject ? ['planning','scene-planning','images-loading','audio-loading','assets-loading','video-planning','video-loading','scenes-loading','assembling'].includes(videoProject.phase) : phase !== 'input' && phase !== 'completed')}
@@ -3910,7 +3905,7 @@ export default function GeneratorPage() {
               onClearAnnotationBatch={() => setPendingPreviewAnnotationState(null)}
             />
           </div>
-        </div>
+        </div>}
       </>
     );
   };

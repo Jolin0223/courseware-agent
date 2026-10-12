@@ -1,9 +1,8 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ConfirmationDockContext } from './ConfirmationDockContext';
-import { ArrowDown, ArrowUp, Check, ChevronDown, Play, GripVertical, Film, Gamepad2, Layers, ListOrdered, Loader2, PencilLine, Plus, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Film, Gamepad2, Layers, ListOrdered, Loader2, PencilLine, Plus, X } from 'lucide-react';
 import type { MediaAsset, OutlineChapter, VideoProject, VideoSegment, WorkflowStage } from '../../data/videoCourseware/model';
-import { scenePreviewURL } from '../../data/videoCourseware/scenePreview';
 import { outlineIssues } from '../../data/videoCourseware/outline';
 import { sceneGenerationIssues } from '../../data/videoCourseware/sceneJobs';
 import { videoPlanIssues } from '../../data/videoCourseware/planning';
@@ -12,7 +11,6 @@ import { confirmOutline, confirmVideoPlan } from './workflow';
 import { displayVoiceName } from '../../data/videoCourseware/voices';
 import { AssetPreview, VideoModal } from './Shared';
 import SceneEditor from './SceneEditor';
-import ScenePreview from './ScenePreview';
 import RequirementCard from '../Generator/RequirementCard';
 import ImageGenerationPanelV2 from '../Generator/ImageGenerationPanelV2';
 import AudioGenerationPanel from '../Generator/AudioGenerationPanel';
@@ -125,29 +123,25 @@ function MaterialCards({project}:{project:VideoProject}){
  </>;
 }
 function SceneCard({project,scene,index,readOnly}:{project:VideoProject;scene:VideoSegment;index:number;readOnly:boolean}){
- const [editing,setEditing]=useState(false),[previewing,setPreviewing]=useState(false);
- const job=project.sceneJobs?.[scene.id],issues=sceneGenerationIssues(project,scene.id);
- const busy=job&&['queued','generating'].includes(job.status);
- const images=project.assets.filter(a=>a.kind==='image'&&a.segmentIds.includes(scene.id));
- const scenePreview=scenePreviewURL(project,scene.id);
- const thumbnail=images.find(a=>a.role==='镜头画面'||a.role==='封面')||images.find(a=>a.role==='场景画面')||images[0];
- return <article className={'of-scene'+(job?.status==='ready'?' is-ready':'')} data-scene-id={scene.id}><div className="of-scene-summary"><div className="of-scene-image">{scenePreview?<img src={scenePreview} alt={scene.title}/>:thumbnail?<img src={thumbnail.url} alt={thumbnail.name}/>:<Gamepad2 size={25}/>}</div><div className="of-scene-copy"><span className="of-scene-index">场景 {index+1}</span><h4>{scene.title}</h4><div className="of-scene-labels"><Kind kind={scene.kind}/>{job?.status==='ready'&&<span className="of-scene-ready" role="status"><Check size={13}/>已生成</span>}</div></div><div className="of-scene-actions"><button className="vc-text-btn" onClick={()=>setEditing(true)}><PencilLine size={14}/>{readOnly?'查看':'编辑'}</button>{busy?<span className="of-scene-job is-loading" role="status"><Loader2 size={14} className="vc-spin"/>{job.status==='queued'?'排队中…':'生成中…'}</span>:job?.status==='ready'?<button className="vc-text-btn" onClick={()=>setPreviewing(true)}><Play size={14}/>预览</button>:job?.status==='failed'?<span className="of-scene-job is-error">生成失败</span>:job?.status==='needs-confirmation'?<span className="of-scene-job">待重新确认</span>:null}</div></div>
- <p className="of-scene-description">{scene.content}</p>{!readOnly&&<>{job?.error&&<p className="of-scene-job is-error" role="status">{job.error}</p>}{issues.map(issue=><p className="vc-error" key={issue}>{issue}</p>)}</>}
- {previewing&&<ScenePreview project={project} sceneId={scene.id} onClose={()=>setPreviewing(false)}/>}
- {editing&&<SceneEditor project={project} sceneId={scene.id} readOnly={readOnly} onClose={()=>setEditing(false)}/>}
+ const [editing,setEditing]=useState(false);
+ const issues=sceneGenerationIssues(project,scene.id);
+ return <article className="of-scene" data-scene-id={scene.id}>
+  <div className="of-scene-summary"><div className="of-scene-copy"><span className="of-scene-index">场景 {index+1}</span><h4>{scene.title}</h4><Kind kind={scene.kind}/></div><button className="vc-text-btn" onClick={()=>setEditing(true)}><PencilLine size={14}/>{readOnly?'查看':'编辑'}</button></div>
+  <p className="of-scene-description">{scene.content}</p>{!readOnly&&issues.map(issue=><p className="vc-error" key={issue}>{issue}</p>)}
+  {editing&&<SceneEditor project={project} sceneId={scene.id} readOnly={readOnly} onClose={()=>setEditing(false)}/>}
  </article>;
 }
-function remainingSceneCount(project:VideoProject){return project.segments.filter(s=>!['queued','generating','ready'].includes(project.sceneJobs?.[s.id]?.status||'')).length;}
 function Scenes({project,readOnly}:{project:VideoProject;readOnly:boolean}){
- const issues=videoPlanIssues(project),pending=remainingSceneCount(project),done=project.readySceneIds?.length||0;
+ const issues=videoPlanIssues(project);
  const [expanded,setExpanded]=useState(false);
- const showList=(!readOnly&&pending>0)||!project.sceneJobs||expanded;
- return <section className={'vc-card of-scene-plan'+(!showList?' is-collapsed':'')}><div className="vc-card-header"><div><h3><Film size={17}/>{showList?'完整场景方案':'场景方案已确认'}</h3><p>{project.chapters?.length} 个章节 · {project.segments.length} 场{project.sceneJobs?' · 已完成 '+done+' 场':''}</p></div>{project.sceneJobs&&pending===0?<button className="vc-text-btn" onClick={()=>setExpanded(!expanded)}>{showList?'收起方案':'查看方案'}<ChevronDown size={14}/></button>:<span className="vc-kind">{readOnly?'已确认':'可编辑'}</span>}</div>
- {!showList&&<div className="of-confirmed-outline">{project.chapters?.map((c,i)=><div key={c.id}><span>{String(i+1).padStart(2,'0')}</span><div><b>{c.title}</b><p>{project.segments.filter(s=>s.chapterId===c.id).map(s=>s.title).join(' · ')}</p></div></div>)}</div>}
- {showList&&<><p className="of-plan-intro">检查每场内容，进入编辑后可单独生成，也可确认后一次生成全部。</p>
- {project.sceneJobs&&<div className="vc-delivery-types">{(['video','h5','mixed'] as const).map(kind=>{const scenes=project.segments.filter(s=>s.kind===kind);return <span key={kind} className={'vc-kind vc-kind-'+kind}><Kind kind={kind}/>{scenes.filter(s=>project.readySceneIds?.includes(s.id)).length} / {scenes.length}</span>;})}</div>}
- <div className="of-scenes-scroll" role="region" aria-label="场景方案列表" tabIndex={0} onWheel={handoffNestedScroll}>{project.chapters?.map((c,i)=><section className="of-scene-chapter" key={c.id}><header><span>{String(i+1).padStart(2,'0')}</span><div><h4>{c.title}</h4><small>{project.segments.filter(s=>s.chapterId===c.id).length} 个场景</small></div></header>{project.segments.filter(s=>s.chapterId===c.id).map(s=><SceneCard key={s.id} project={project} scene={s} index={project.segments.indexOf(s)} readOnly={readOnly}/>)}</section>)}</div>
- {!readOnly&&<footer className="of-confirm of-review-footer"><div><b>{pending?'还有 '+pending+' 场待确认':'全部场景已确认'}</b><p>{pending?'已开始的场景继续生成，不会重复制作。':'完成后将自动剪辑并交付整课。'}</p>{issues.length>0&&<p className="vc-error">部分场景需补全内容，请在对应场景编辑。</p>}</div>{pending>0?<button className="vc-btn primary" disabled={Boolean(issues.length)} onClick={()=>confirmVideoPlan(project.id)}>{project.sceneJobs?'确认并生成剩余 '+pending+' 场':'确认全部场景，生成课件'}</button>:<Check size={18}/>}</footer>}</>}
+ const showList=!readOnly||expanded;
+ return <section className={'vc-card of-scene-plan'+(!showList?' is-collapsed':'')}>
+  <div className="vc-card-header"><div><h3><Film size={17}/>{showList?'完整场景方案':'场景方案已确认'}</h3><p>{project.chapters?.length} 个章节 · {project.segments.length} 个场景</p></div>{readOnly?<button className="vc-text-btn" onClick={()=>setExpanded(!expanded)}>{showList?'收起方案':'查看方案'}<ChevronDown size={14}/></button>:<span className="vc-kind">可编辑</span>}</div>
+  {!showList&&<div className="of-confirmed-outline">{project.chapters?.map((c,i)=><div key={c.id}><span>{String(i+1).padStart(2,'0')}</span><div><b>{c.title}</b><p>{project.segments.filter(s=>s.chapterId===c.id).map(s=>s.title).join(' · ')}</p></div></div>)}</div>}
+  {showList&&<><p className="of-plan-intro">可逐场景编辑并保存，全部确认后统一生成课件。</p>
+   <div className="of-scenes-scroll" role="region" aria-label="场景方案列表" tabIndex={0} onWheel={handoffNestedScroll}>{project.chapters?.map((c,i)=><section className="of-scene-chapter" key={c.id}><header><span>{String(i+1).padStart(2,'0')}</span><div><h4>{c.title}</h4><small>{project.segments.filter(s=>s.chapterId===c.id).length} 个场景</small></div></header>{project.segments.filter(s=>s.chapterId===c.id).map(scene=><SceneCard key={scene.id} project={project} scene={scene} index={project.segments.indexOf(scene)} readOnly={readOnly}/>)}</section>)}</div>
+   {!readOnly&&<footer className="of-confirm of-review-footer"><div><b>检查全部场景后，统一生成</b><p>已保存的修改会随本次提交一起生效。</p>{issues.length>0&&<p className="vc-error">部分场景需补全内容，请在对应场景编辑。</p>}</div><button className="vc-btn primary" disabled={Boolean(issues.length)} onClick={()=>confirmVideoPlan(project.id)}>确认全部场景，生成课件</button></footer>}
+  </>}
  </section>;
 }
 export default function OutlineSceneFlow({project,stage,runId}:{project:VideoProject;stage:WorkflowStage;runId?:string}){
@@ -156,6 +150,6 @@ export default function OutlineSceneFlow({project,stage,runId}:{project:VideoPro
  const current=snapshot?{...project,...snapshot,phase:'ready' as const,job:undefined}:project;
  if(stage==='plan')return <Outline project={project}/>;
  if(!old&&['planning','plan'].includes(project.phase))return null;
- if(stage==='assembly'||(stage==='production'&&(old||(project.sceneJobs&&project.phase==='assets-review'&&remainingSceneCount(project)>0))))return null;
+ if(stage==='assembly'||(stage==='production'&&(old||project.phase==='assets-review')))return null;
  return <div className="vc-workflow of-flow" data-workflow-stage={stage}>{stage==='assets'?<MaterialCards project={current}/>:stage==='video-plan'?<Scenes project={current} readOnly={old||project.phase!=='assets-review'}/>:<SceneDeliveryCard project={current}><Controls project={current}/></SceneDeliveryCard>}</div>;
 }

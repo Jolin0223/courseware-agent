@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import { writeFileSync } from 'node:fs';
+import { createServer } from 'vite';
+const data=new Map();globalThis.localStorage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};globalThis.location=new URL('http://127.0.0.1:4186');globalThis.window={localStorage,location};
+const server=await createServer({server:{middlewareMode:true,hmr:false},appType:'custom',logLevel:'error'}),checks=[];
+const check=(name,fn)=>{fn();checks.push(name);console.log('PASS',name);};
+try{
+ const {wukongFixture,exampleAttachments}=await server.ssrLoadModule('/src/data/videoCourseware/fixtures.ts');
+ const {useVideoCoursewareStore:s}=await server.ssrLoadModule('/src/store/videoCoursewareStore.ts');
+ const {useConversationStore:c}=await server.ssrLoadModule('/src/store/conversationStore.ts');
+ const flow=await server.ssrLoadModule('/src/components/VideoCourseware/workflow.ts');
+ const a=await server.ssrLoadModule('/src/components/VideoCourseware/courseDraftActions.ts');
+ const cid=c.getState().createNewConversation('whole lesson check');flow.startVideoProject(cid,wukongFixture.request,exampleAttachments,{contentFormat:'video'});const id='video-'+cid,get=()=>s.getState().projects[id],tick=()=>{const job=get().job;flow.advanceVideoJobs(job.start+job.duration);};
+ tick();flow.confirmOutline(id);tick();tick();tick();
+ check('单场生成入口被状态层阻止',()=>assert.equal(flow.confirmScenePlan(id,'cover'),false));
+ assert.ok(flow.confirmVideoPlan(id));tick();tick();
+ const before=structuredClone(get()),originalHTML=before.resultMessages[0].html;
+ let draft=structuredClone(before);const asset=draft.assets.find(a=>a.kind==='image'&&a.segmentIds.includes('move')&&a.segmentIds.length>1),assetId=asset.id;asset.url='/wukong/assets/edited-example.png';draft.composition.assetOverrides[asset.id]=asset.url;
+ assert.ok(a.saveCourseSceneDraft(before,draft,'move'));
+ check('共享素材只为所选场景创建草稿副本',()=>{const candidate=a.courseDraftProject(get()),fork=candidate.assets.find(a=>a.originAssetId===assetId);assert.deepEqual(fork.segmentIds,['move']);assert.equal(candidate.assets.find(a=>a.id===assetId).url,before.assets.find(a=>a.id===assetId).url);assert.deepEqual(get().assets,before.assets);});
+ check('场景聊天意见与已保存素材修改合并',()=>{assert.ok(a.saveCourseChatDraft(id,'增大雨字提示',[{sceneId:'learn',instruction:'提示字号增大',referenceNames:['参考.png']}]));const draft=get().courseDraft;assert.deepEqual(draft.sceneIds,['move','learn']);assert.match(draft.snapshot.segments.find(s=>s.id==='learn').content,/参考.png/);assert.ok(draft.snapshot.assets.some(a=>a.originAssetId===assetId));});
+ check('整课聊天意见保留已有两场草稿',()=>{assert.ok(a.saveCourseChatDraft(id,'所有按钮更大一些'));assert.equal(get().courseDraft.sceneIds.length,12);assert.match(get().courseDraft.snapshot.segments.find(s=>s.id==='learn').content,/提示字号增大/);assert.equal(get().revision,1);});
+ const beforeGenerate=structuredClone(get());
+ check('一次集中提交及生成期间保护',()=>{assert.ok(a.startCourseDraft(id,1000),get().courseDraft.error);assert.equal(a.startCourseDraft(id,1100),false);assert.equal(a.saveCourseSceneDraft(before,draft,'move'),false);assert.equal(a.saveCourseChatDraft(id,'迟到意见'),false);a.discardCourseDraft(id);assert.equal(get().courseDraft.status,'generating');});
+ a.advanceCourseDraft(id,9999);assert.equal(get().revision,1);a.advanceCourseDraft(id,10000);
+ check('整课替换仅交付一次且历史不变',()=>{assert.equal(get().revision,2);assert.equal(get().resultMessages[0].html,originalHTML);assert.deepEqual(get().resultMessages[0],before.resultMessages[0]);a.advanceCourseDraft(id,20000);assert.equal(get().resultMessages.length,2);});
+ s.getState().put({...beforeGenerate,revision:2});
+ check('过期草稿不能覆盖更高版本',()=>{assert.equal(a.startCourseDraft(id),false);assert.equal(get().courseDraft.status,'failed');assert.equal(get().revision,2);assert.match(get().courseDraft.error,/版本已变化/);});
+ writeFileSync('docs/reviews/20261012-whole-course/state-checks.json',JSON.stringify({checks},null,2)+'\n');
+}finally{await server.close();}

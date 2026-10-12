@@ -16,7 +16,7 @@ import { readLocalSceneAsset } from './localSceneAsset';
 import VideoResourceEditor from './VideoResourceEditor';
 
 type Picker={target:'content'|'reference'|'audio'|'first'|'last'|'asset';shotId?:string;kind:'image'|'audio'};
-export default function SceneEditor({project,sceneId,readOnly,onClose,onSubmit,onSaveDraft,saveLabel='保存并开始生成',allowSubmitUnchanged=false,revisionScope='scene',onScopeChange}:{project:VideoProject;sceneId:string;readOnly:boolean;onClose:()=>void;onSubmit?:(draft:VideoProject)=>void;onSaveDraft?:(draft:VideoProject)=>void;saveLabel?:string;allowSubmitUnchanged?:boolean;revisionScope?:'scene'|'shared';onScopeChange?:(scope:'scene'|'shared')=>void}){
+export default function SceneEditor({project,sceneId,readOnly,onClose,onSubmit,onSaveDraft,saveLabel='保存并开始生成',allowSubmitUnchanged=false,revisionScope='scene',onScopeChange}:{project:VideoProject;sceneId:string;readOnly:boolean;onClose:()=>void;onSubmit?:(draft:VideoProject)=>void;onSaveDraft?:(draft:VideoProject)=>boolean|void;saveLabel?:string;allowSubmitUnchanged?:boolean;revisionScope?:'scene'|'shared';onScopeChange?:(scope:'scene'|'shared')=>void}){
  const [original]=useState(()=>structuredClone(project));
  const [draft,setDraft]=useState(()=>structuredClone(project));
  const uploadInput=useRef<HTMLInputElement|null>(null);
@@ -41,12 +41,13 @@ export default function SceneEditor({project,sceneId,readOnly,onClose,onSubmit,o
  const job=current?.sceneJobs?.[sceneId],busy=!onSubmit&&!dirty&&['queued','generating'].includes(job?.status||'');
  const shared=onScopeChange?buildSceneCandidate(original,draft,sceneId,revisionScope,'scope-preview').sharedSceneIds:[];
  function save(generate:boolean){
+  if(project.workflowVersion===5&&onSaveDraft){if(onSaveDraft(draft)!==false)onClose();return;}
   if(onSubmit){if(generate)onSubmit(draft);else onSaveDraft?.(draft);return;}
   const result=dirty?saveScenePlanDraft(original,draft,sceneId):'plan';
   if(generate){
    const success=result==='revision'?startSceneRevision(project.id,sceneId):confirmScenePlan(project.id,sceneId);
    if(!success){toast('请检查本场素材和方案后重试');return;}
-  }else if(result==='revision')toast('本次修改已保存为本场草稿');
+  }else if(result==='revision')toast('本次修改已保存到整课草稿');
   onClose();
  }
  function editScene(values:Partial<VideoSegment>){setDraft(p=>({...p,segments:p.segments.map(s=>s.id===sceneId?{...s,...values}:s)}));}
@@ -130,7 +131,7 @@ export default function SceneEditor({project,sceneId,readOnly,onClose,onSubmit,o
      </>}
     </aside>
    </div>
-   <footer className="se-footer"><div>{inserted&&<p className="se-insert-status" role="status">{inserted}</p>}{!readOnly&&issues.length>0?<p className="vc-error" role="alert">{[...new Set(issues)].join(' ')}</p>:<span>{readOnly?'':onSubmit?'生成后先预览修改效果，再更新整课。':'保存并生成本场，其余场景可继续检查。'}</span>}</div><button className="vc-btn" onClick={onClose}>{readOnly?'关闭':'取消'}</button>{!readOnly&&<><button className="vc-btn" disabled={uploading||!dirty||issues.length>0} onClick={()=>save(false)}>仅保存</button><button className="vc-btn primary" disabled={uploading||issues.length>0||busy||Boolean(onSubmit&&!dirty&&!allowSubmitUnchanged)||Boolean(!onSubmit&&!dirty&&job?.status==='ready')} onClick={()=>save(true)}>{busy?'生成中…':!onSubmit&&!dirty&&job?.status==='ready'?'已生成':saveLabel}</button></>}</footer>
+   <footer className="se-footer"><div>{inserted&&<p className="se-insert-status" role="status">{inserted}</p>}{!readOnly&&issues.length>0?<p className="vc-error" role="alert">{[...new Set(issues)].join(' ')}</p>:<span>{readOnly?'':project.workflowVersion===5?(project.revision?'保存到整课草稿，全部修改完成后统一生成。':'保存场景方案，全部确认后统一生成课件。'):onSubmit?'生成后先预览修改效果，再更新整课。':'保存并生成本场，其余场景可继续检查。'}</span>}</div><button className="vc-btn" onClick={onClose}>{readOnly?'关闭':'取消'}</button>{!readOnly&&(project.workflowVersion===5?<button className="vc-btn primary" disabled={uploading||!dirty||issues.length>0||current?.courseDraft?.status==='generating'} onClick={()=>save(false)}>保存</button>:<><button className="vc-btn" disabled={uploading||!dirty||issues.length>0} onClick={()=>save(false)}>仅保存</button><button className="vc-btn primary" disabled={uploading||issues.length>0||busy||Boolean(onSubmit&&!dirty&&!allowSubmitUnchanged)||Boolean(!onSubmit&&!dirty&&job?.status==='ready')} onClick={()=>save(true)}>{busy?'生成中…':!onSubmit&&!dirty&&job?.status==='ready'?'已生成':saveLabel}</button></>)}</footer>
    {picker&&['content','reference'].includes(picker.target)&&<div className="se-reference-popover" style={pickerPosition}>{pickerUI}</div>}
   </>}
  </VideoModal>;

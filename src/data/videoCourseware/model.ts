@@ -31,6 +31,7 @@ export interface SceneRevision {
 }
 export interface SceneGenerationJob { id:string; key:string; status:'queued'|'generating'|'ready'|'failed'|'needs-confirmation'; confirmedAt:number; startedAt?:number; error?:string; }
 export interface VideoProject {
+ courseDraft?:{baseVersion:number;snapshot:WorkflowSnapshot;composition:PlaybackSettings;sceneIds:string[];instruction?:string;status:'draft'|'generating'|'failed';startedAt?:number;error?:string};
  sceneVersionHistory?:Record<string,SceneVersion[]>;
  sceneJobs?:Record<string,SceneGenerationJob>;
  id:string; conversationId:string; coursewareId:number; fixtureId:string;

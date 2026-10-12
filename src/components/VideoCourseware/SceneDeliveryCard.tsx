@@ -1,56 +1,72 @@
-import SceneRevisionDialog from './SceneRevisionDialog';
-import { beginSceneRevision, sceneRevisionForScene } from './sceneRevisionActions';
 import { useVideoCoursewareStore } from '../../store/videoCoursewareStore';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Check, Film, Gamepad2, Layers, Loader2, Play, PencilLine } from 'lucide-react';
+import { Film, Gamepad2, Layers, Loader2, Play, PencilLine } from 'lucide-react';
 import type { VideoProject } from '../../data/videoCourseware/model';
-import { sceneProductionLabel } from '../../data/videoCourseware/production';
-import { scenePreviewURL, sceneResourcePreviewURL } from '../../data/videoCourseware/scenePreview';
 import { VideoModal } from './Shared';
 import { runtimeURL, sendRuntimeSettings } from './runtime';
 import { handoffNestedScroll } from './nestedScroll';
+import SceneEditor from './SceneEditor';
+import { courseDraftProject, discardCourseDraft, saveCourseSceneDraft, startCourseDraft } from './courseDraftActions';
+import toast from '../../utils/toast';
 
 const kinds=[{kind:'video',label:'纯视频',Icon:Film},{kind:'h5',label:'纯互动页面',Icon:Gamepad2},{kind:'mixed',label:'视频＋互动',Icon:Layers}] as const;
 
+function CourseDraftBar({project}:{project:VideoProject}){
+ const [discarding,setDiscarding]=useState(false);
+ const [,tick]=useState(0);
+ const draft=project.courseDraft;
+ const busy=draft?.status==='generating';
+ useEffect(()=>{if(!busy)return;const timer=window.setInterval(()=>tick(value=>value+1),400);return()=>window.clearInterval(timer);},[busy]);
+ if(!draft)return null;
+ const elapsed=Date.now()-(draft.startedAt||Date.now());
+ return <section className="vc-course-draft" aria-label="整课修改草稿">
+  <div className="vc-course-draft-heading"><strong>{busy?'正在生成新的整课版本':`${draft.sceneIds.length} 个场景有待生成修改`}</strong><span>基于第 {draft.baseVersion} 版</span></div>
+  <p>{busy?(elapsed<3500?'正在准备本次修改所需的素材…':'正在生成完整课件并检查场景衔接…'):'可继续逐场景修改；全部生成后，更新为一个新的整课版本。'}</p>
+  <div className="vc-draft-scenes">{draft.sceneIds.map(id=><span key={id}>{draft.snapshot.segments.find(s=>s.id===id)?.title}</span>)}</div>
+  {draft.instruction&&<details className="vc-draft-instruction"><summary>查看修改意见</summary><p>{draft.instruction}</p></details>}
+  {draft.error&&<p className="vc-error" role="alert">{draft.error} 上一版仍可预览。</p>}
+  <div className="vc-course-draft-actions">
+   <span role="status">{busy?'完成后可预览，当前仍可查看上一版':'草稿已保存，当前预览为上一版'}</span>
+   <button className="vc-text-btn" disabled={busy} onClick={()=>setDiscarding(true)}>放弃草稿</button>
+   <button className="vc-btn primary" disabled={busy} onClick={()=>startCourseDraft(project.id)}>{busy?<><Loader2 size={14} className="vc-spin"/>生成中…</>:draft.status==='failed'?'重新生成整课':'全部生成'}</button>
+  </div>
+  {discarding&&<div className="vc-draft-discard" role="dialog" aria-label="放弃整课草稿"><strong>放弃这次已保存的全部修改？</strong><div><button className="vc-btn" onClick={()=>setDiscarding(false)}>取消</button><button className="vc-btn danger" onClick={()=>discardCourseDraft(project.id)}>放弃草稿</button></div></div>}
+ </section>;
+}
+
 export function SceneDeliveryList({project,complete=false,version=project.revision}:{project:VideoProject;complete?:boolean;version?:number}){
-  const [selected,setSelected]=useState<string|null>(null);
-  const [editing,setEditing]=useState<string|null>(null);
-  const current=useVideoCoursewareStore(s=>s.projects[project.id]);
-  const frame=useRef<HTMLIFrameElement>(null);
-  const isReady=(id:string)=>complete||Boolean(project.readySceneIds?.includes(id));
-  // A row preview always shows only that scene; the full lesson lives in the preview panel.
-  const previewProject=selected?{...project,segments:project.segments.filter(s=>s.id===selected)}:project;
-  const url=selected?runtimeURL(previewProject,project.composition,selected):undefined;
-  return <>
-    <div className="vc-delivery-types" aria-label="三种场景类型进度">{kinds.map(({kind,label,Icon})=>{
-      const scenes=project.segments.filter(s=>s.kind===kind);
-      return <span key={kind} className={'vc-kind vc-kind-'+kind}><Icon size={13}/>{label}<b>{scenes.filter(s=>isReady(s.id)).length} / {scenes.length}</b></span>;
-    })}</div>
-    <div className="vc-result-scene-list vc-delivery-list" role="region" aria-label="按教学顺序排列的场景" tabIndex={0} onWheel={handoffNestedScroll}>{project.segments.map((scene,i)=>{
-      const ready=isReady(scene.id),preview=ready?scenePreviewURL(project,scene.id):undefined;
-      const thumbnail=preview||(ready?sceneResourcePreviewURL(project,scene.id):undefined);
-      const KindIcon=kinds.find(k=>k.kind===scene.kind)!.Icon;
-      const revision=current?sceneRevisionForScene(current,scene.id):undefined;
-      return <div className={"vc-result-scene"+(!ready?" vc-scene-pending":"")} data-delivery-scene={scene.id} key={scene.id}>
-        <span className="vc-order">{i+1}</span>
-        {thumbnail?<img src={thumbnail} alt={scene.title+(preview?' · 场景截图':' · 本场素材')}/>:<span className="vc-result-scene-placeholder"><KindIcon size={20}/></span>}
-        <span className="vc-result-scene-copy"><b>{scene.title}</b><small>{complete&&<strong className="vc-scene-version">V{scene.revision||1}</strong>}{kinds.find(k=>k.kind===scene.kind)!.label}</small></span>
-        <div className="vc-scene-row-actions">{ready?<button className="vc-text-btn" onClick={()=>setSelected(scene.id)}><Play size={13}/>预览</button>:<span className="vc-delivery-status">{project.phase!=='paused'&&project.phase!=='failed'&&(!project.sceneJobs||['queued','generating'].includes(project.sceneJobs[scene.id]?.status))&&<Loader2 size={13} className="vc-spin"/>}{sceneProductionLabel(project,scene)}</span>}{complete&&<button className="vc-text-btn" disabled={current?.phase!=='ready'} onClick={()=>{if(version===current?.revision)beginSceneRevision(project.id,scene.id,version);setEditing(scene.id);}}><PencilLine size={13}/>修改</button>}{complete&&version===current?.revision&&revision&&<small>{({draft:'有修改草稿',generating:'修改内容生成中',candidate:'修改后可预览',failed:'修改待重试',stale:'待合并新版本'} as const)[revision.status]}</small>}</div>
-      </div>;
-    })}</div>
-    {editing&&<SceneRevisionDialog projectId={project.id} sceneId={editing} version={version} onClose={()=>setEditing(null)}/>}
-    {selected&&<VideoModal title={'场景预览 · '+project.segments.find(s=>s.id===selected)?.title} onClose={()=>setSelected(null)}><iframe ref={frame} className="vc-lesson" title="场景课件预览" src={url+'&previewOnly=1'} onLoad={()=>sendRuntimeSettings(frame.current?.contentWindow,previewProject,project.composition)} allow="autoplay; fullscreen"/><p className="vc-hint">{complete?'仅预览这一场；完整课件可在右侧查看。':'当前预览已完成的这一场，其他场景继续制作。'}</p></VideoModal>}
-  </>;
+ const [selected,setSelected]=useState<string|null>(null),[editing,setEditing]=useState<string|null>(null);
+ const current=useVideoCoursewareStore(s=>s.projects[project.id]);
+ const frame=useRef<HTMLIFrameElement>(null);
+ const latest=version===current?.revision;
+ const busy=current?.courseDraft?.status==='generating'||current?.phase!=='ready';
+ // This previews a section of the existing complete lesson, not a separate build.
+ const previewProject=selected?{...project,segments:project.segments.filter(s=>s.id===selected)}:project;
+ const url=selected?runtimeURL(previewProject,project.composition,selected):undefined;
+ const editorProject=current&&latest?courseDraftProject(current):project;
+ return <>
+  <div className="vc-delivery-types" aria-label="场景类型">{kinds.map(({kind,label,Icon})=><span key={kind} className={'vc-kind vc-kind-'+kind}><Icon size={13}/>{label}<b>{project.segments.filter(s=>s.kind===kind).length}</b></span>)}</div>
+  <div className="vc-result-scene-list vc-delivery-list" role="region" aria-label="按教学顺序排列的场景" tabIndex={0} onWheel={handoffNestedScroll}>{project.segments.map((scene,i)=><div className="vc-result-scene" data-delivery-scene={scene.id} key={scene.id}>
+   <span className="vc-order">{i+1}</span>
+   <span className="vc-result-scene-copy"><b>{scene.title}</b><small>{kinds.find(k=>k.kind===scene.kind)!.label}</small></span>
+   <div className="vc-scene-row-actions">{complete&&<><button className="vc-text-btn" onClick={()=>setSelected(scene.id)}><Play size={13}/>预览</button><button className="vc-text-btn" disabled={latest&&busy} onClick={()=>setEditing(scene.id)}><PencilLine size={13}/>{latest?'修改':'查看方案'}</button></>}{latest&&current?.courseDraft?.sceneIds.includes(scene.id)&&<small className="vc-draft-marker">已保存修改</small>}</div>
+  </div>)}</div>
+  {complete&&latest&&current&&<CourseDraftBar project={current}/>}
+  {editing&&<SceneEditor key={editing} project={editorProject} sceneId={editing} readOnly={!latest} onClose={()=>setEditing(null)} onSaveDraft={draft=>{const saved=saveCourseSceneDraft(editorProject,draft,editing);toast(saved?'已保存到整课草稿':'当前无法保存，请重新打开场景后再试');return saved;}}/>}
+  {selected&&<VideoModal title={'场景预览 · '+project.segments.find(s=>s.id===selected)?.title} onClose={()=>setSelected(null)}><iframe ref={frame} className="vc-lesson" title="场景课件预览" src={url+'&previewOnly=1'} onLoad={()=>sendRuntimeSettings(frame.current?.contentWindow,previewProject,project.composition)} allow="autoplay; fullscreen"/><p className="vc-hint">正在预览第 {version} 版中的这一场景；完整课件可在右侧查看。</p></VideoModal>}
+ </>;
 }
 
 export default function SceneDeliveryCard({project,children}:{project:VideoProject;children?:ReactNode}){
-  const done=project.segments.filter(s=>project.readySceneIds?.includes(s.id)).length;
-  const percent=Math.round(done/Math.max(project.segments.length,1)*100);
-  return <section className="vc-card vc-delivery-card">
-    <div className="vc-card-header"><div><h3>{done===project.segments.length?<Check size={17}/>:<Layers size={17}/>}场景生成与交付</h3><p>{project.phase==='assembling'?'所有场景已就绪，正在剪辑、衔接并检查整课。':'整课生成预计约 30–60 分钟，场景会陆续完成；你可以先预览，也可以离开当前页面。'}</p></div><span className="vc-delivery-count">V{project.revision||1} · {done} / {project.segments.length} 场</span></div>
-    <div className="vc-progress-track" role="progressbar" aria-label="场景生成进度" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><i style={{width:percent+'%'}}/></div>
-    <SceneDeliveryList project={project}/>
-    {children}
-  </section>;
+ const assembling=project.phase==='assembling';
+ const videos=project.assets.filter(a=>a.kind==='video'),done=videos.filter(a=>project.readyAssetIds.includes(a.id)).length;
+ const percent=assembling?85:Math.round(done/Math.max(videos.length,1)*70);
+ return <section className="vc-card vc-delivery-card">
+  <div className="vc-card-header"><div><h3><Layers size={17}/>生成整课</h3><p>{assembling?'正在生成完整课件并检查场景衔接。':'正在准备视频素材，随后生成完整课件。'}</p></div></div>
+  <div className="vc-progress-track" role="progressbar" aria-label="整课生成进度" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><i style={{width:percent+'%'}}/></div>
+  <div className="vc-course-production-steps"><span className={assembling?'is-done':'is-active'}>1 · 准备视频素材 {done}/{videos.length}</span><span className={assembling?'is-active':''}>2 · 生成整课与检查</span></div>
+  <p className="vc-hint">全部完成后统一预览。可离开当前会话，稍后回来查看。</p>
+  {children}
+ </section>;
 }

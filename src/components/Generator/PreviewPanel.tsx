@@ -1,5 +1,5 @@
 import { useVideoCoursewareStore, videoProjectForCourseware } from '../../store/videoCoursewareStore';
-import { buildVideoLessonHTML, finishVideoProject } from '../VideoCourseware/workflow';
+import { finishVideoProject } from '../VideoCourseware/workflow';
 import { VideoModal } from '../VideoCourseware/Shared';
 import VideoResourceEditor from '../VideoCourseware/VideoResourceEditor';
 import { useEffect, useMemo, useState, useRef } from 'react';
@@ -107,7 +107,7 @@ const buildSessionVersions = (courseware?: { id?: number; title?: string; htmlCo
     return demoSessionVersions.map(version => ({ ...version }));
   }
   const videoProject = courseware.id ? videoProjectForCourseware(courseware.id) : undefined;
-  if (videoProject) return videoProject.resultMessages.map(r => ({ version: `v${r.version}`, sessionNumber: r.version, title: videoProject.title, htmlContent: videoProject.workflowVersion === 5 ? buildVideoLessonHTML({ ...videoProject, ...(r.snapshot || {}) }, r.composition || videoProject.composition) : r.html, createdAt: r.time, ...videoProject.publishedVersions?.[`v${r.version}`] }));
+  if (videoProject) return videoProject.resultMessages.map(r => ({ version: `v${r.version}`, sessionNumber: r.version, title: videoProject.title, htmlContent: r.html, createdAt: r.time, ...videoProject.publishedVersions?.[`v${r.version}`] }));
   const baseHtml = courseware.htmlContent || '';
   const baseTitle = courseware.title || '互动课件';
   if (isRealCaseCourseware(baseTitle) || baseTitle.endsWith('-同款版')) {
@@ -261,7 +261,7 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose, on
   const [videoResourcesOpen, setVideoResourcesOpen] = useState(false);
   const [coursewareSettingsOpen, setCoursewareSettingsOpen] = useState(false);
   const [showSceneNavigation, setShowSceneNavigation] = useState(true);
-  const videoProject = coursewareId ? videoProjectForCourseware(coursewareId) : undefined;
+  const videoProject = useVideoCoursewareStore(state => Object.values(state.projects).find(project => project.coursewareId === coursewareId));
   const [annotationModeOpen, setAnnotationModeOpen] = useState(false);
   const [annotations, setAnnotations] = useState<PreviewAnnotation[]>([]);
   const [draftAnnotation, setDraftAnnotation] = useState<Omit<PreviewAnnotation, 'id'> | null>(null);
@@ -403,6 +403,7 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose, on
   };
 
   const handleEdit = () => {
+    if (videoProject) return;
     if (isRemovedVersion) return;
     setFullscreenOpen(false);
     setPreviewDevice('default');
@@ -688,8 +689,8 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose, on
   };
 
   const handleFullscreenEdit = () => {
+    if (videoProject) return;
     setFullscreenOpen(false);
-    if (videoProject) { setVideoResourcesOpen(true); return; }
     handleEdit();
   };
 
@@ -1004,31 +1005,32 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose, on
                 onClick={() => { setShowSceneNavigation(videoProject.composition.showSceneNavigation !== false); setCoursewareSettingsOpen(true); }}
                 onMouseEnter={() => setHoveredHeaderButton('courseware-settings')}
                 onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'courseware-settings' ? null : prev)}
-                style={getIconButtonStyle('courseware-settings')}
-                aria-label="课件设置"
+                style={getIconButtonStyle('courseware-settings', Boolean(videoProject.courseDraft))}
+                disabled={Boolean(videoProject.courseDraft)}
+                aria-label={videoProject.courseDraft ? '课件设置，请先完成整课草稿' : '课件设置'}
               >
                 <Settings2 size={15} />
               </button>
-              {renderHeaderTooltip('courseware-settings', '课件设置')}
+              {renderHeaderTooltip('courseware-settings', videoProject.courseDraft ? '请先完成或放弃整课草稿' : '课件设置')}
             </div>
           )}
           <div style={panelStyle.headerIconWrap}>
             <button
               type="button"
               onClick={handleEdit}
-              disabled={isRemovedVersion}
+              disabled={isRemovedVersion || Boolean(videoProject)}
               onMouseEnter={() => setHoveredHeaderButton('edit')}
               onMouseLeave={() => setHoveredHeaderButton(prev => prev === 'edit' ? null : prev)}
               style={{
-                ...getIconButtonStyle('edit', isRemovedVersion),
+                ...getIconButtonStyle('edit', isRemovedVersion || Boolean(videoProject)),
                 ...(annotationModeOpen ? panelStyle.annotationEntryActive : {}),
               }}
-              aria-label={isRemovedVersion ? '已下架资源不可标注' : '标注修改'}
+              aria-label={videoProject ? '标注修改，敬请期待' : isRemovedVersion ? '已下架资源不可标注' : '标注修改'}
             >
               <MessageSquarePlus size={15} />
               {annotations.length > 0 && <span style={panelStyle.annotationEntryCount}>{annotations.length}</span>}
             </button>
-            {renderHeaderTooltip('edit', isRemovedVersion ? '已下架资源不可标注' : '标注修改')}
+            {renderHeaderTooltip('edit', videoProject ? '标注修改，敬请期待' : isRemovedVersion ? '已下架资源不可标注' : '标注修改')}
           </div>
           <div style={panelStyle.headerIconWrap}>
             <button
@@ -1085,12 +1087,12 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose, on
               {renderPublishActions({ exitFullscreenFirst: true })}
               <button
                 onClick={handleFullscreenEdit}
-                disabled={isRemovedVersion}
+                disabled={isRemovedVersion || Boolean(videoProject)}
                 style={{
                   ...panelStyle.fullscreenActionBtn,
-                  ...(isRemovedVersion ? { color: '#CBD5E1', cursor: 'default', background: '#F8FAFC' } : {}),
+                  ...(isRemovedVersion || videoProject ? { color: '#CBD5E1', cursor: 'default', background: '#F8FAFC' } : {}),
                 }}
-                title={isRemovedVersion ? '已下架资源不可编辑' : '编辑资源'}
+                aria-label={videoProject ? '编辑资源，敬请期待' : isRemovedVersion ? '已下架资源不可编辑' : '编辑资源'}
               >
                 <Edit3 size={14} />
                 编辑资源

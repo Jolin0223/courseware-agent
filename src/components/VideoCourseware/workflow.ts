@@ -1,6 +1,6 @@
-import { advanceConfirmedScenes, enqueueScene, sceneGenerationIssues } from '../../data/videoCourseware/sceneJobs';
+import { enqueueScene, sceneGenerationIssues } from '../../data/videoCourseware/sceneJobs';
 import { advanceSceneRevisions } from './sceneRevisionActions';
-import { advanceSceneProduction, sceneVideos } from '../../data/videoCourseware/production';
+import { advanceCourseDraft } from './courseDraftActions';
 import { compileOutline, makeOutline, outlineIssues, initialSceneContent } from '../../data/videoCourseware/outline';
 import { runtimeSettings, runtimeURL } from './runtime';
 import { buildCoursewareShellHTML } from './sceneNavigationShell';
@@ -20,7 +20,7 @@ import { useUIStore } from '../../store/uiStore';
 export function ensureWorkflowMessage(project:VideoProject,stage:Exclude<WorkflowStage,'plan'>){
  const store=useVideoCoursewareStore.getState(),current=store.projects[project.id];
  const runId=crypto.randomUUID();
- const confirmation=current.workflowVersion===5?(stage==='production'?'已确认的场景开始制作，可以继续检查其余场景。':stage==='assets'?'教学大纲已确认，开始规划场景并准备图片和音频。':''):stage==='production'?'视频方案已确认，开始生成视频。':stage==='video-plan'?'画面与配音已确认，生成视频方案。':stage==='assembly'?'':current.revision?'素材已修改，请确认画面与配音。':'确认需求，开始生成图片和配音。';
+ const confirmation=current.workflowVersion===5?(stage==='production'?'全部场景方案已确认，开始生成整课。':stage==='assets'?'教学大纲已确认，开始规划场景并准备图片和音频。':''):stage==='production'?'视频方案已确认，开始生成视频。':stage==='video-plan'?'画面与配音已确认，生成视频方案。':stage==='assembly'?'':current.revision?'素材已修改，请确认画面与配音。':'确认需求，开始生成图片和配音。';
  store.update(project.id,{
   workflowRuns:{...current.workflowRuns,[stage]:runId},
   workflowEvents:[...current.workflowEvents||[],{runId,stage,time:new Date().toISOString(),order:(current.workflowEvents?.length||0)+current.resultMessages.length,confirmation}],
@@ -61,7 +61,7 @@ export function beginVideoPlanReview(id:string):boolean{
 }
 export function confirmScenePlan(id:string,sceneId:string):boolean{
  const store=useVideoCoursewareStore.getState(),p=store.projects[id];
- if(p.phase!=='assets-review'||sceneGenerationIssues(p,sceneId).length)return false;
+ if(p.workflowVersion===5||p.phase!=='assets-review'||sceneGenerationIssues(p,sceneId).length)return false;
  const patch=enqueueScene(p,sceneId,Date.now());if(!patch.sceneJobs)return true;
  store.update(id,patch);
  if(!p.workflowRuns?.production)ensureWorkflowMessage(store.projects[id],'production');
@@ -70,16 +70,15 @@ export function confirmScenePlan(id:string,sceneId:string):boolean{
 export function confirmVideoPlan(id:string):boolean{
  const store=useVideoCoursewareStore.getState(),p=store.projects[id];
  if(p.phase!=='assets-review'||(p.workflowVersion!==5&&p.approvedMaterialsKey!==materialsKey(p))||videoPlanIssues(p).length)return false;
- if(p.workflowVersion===5){for(const scene of p.segments)confirmScenePlan(id,scene.id);return true;}
  const signature=videoPlanKey(p);
  store.update(id,{approvedMaterialsKey:materialsKey(p),approvedPlanKey:signature,assets:p.assets.map(a=>{
   const shot=p.shots?.find(s=>s.videoAssetId===a.id);
   return shot?{...a,prompt:shot.prompt,seconds:shot.seconds}:a;
  })});
  if(p.workflowRuns?.['video-plan'])store.update(id,{workflowSnapshots:{...p.workflowSnapshots,[p.workflowRuns['video-plan']]:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds}}});
- store.update(id,{readySceneIds:[],sceneAssemblyStarts:{}});
+ store.update(id,{readySceneIds:[],readyPageIds:[],sceneJobs:undefined,sceneAssemblyStarts:{}});
  if(!store.start(id,p.workflowVersion===5?'scenes':'video'))return false;
- useConversationStore.getState().addUserMessage(p.conversationId,p.workflowVersion===5?'全部场景方案已确认，开始生成视频和互动页面。':'视频方案已确认，开始生成视频。');
+ useConversationStore.getState().addUserMessage(p.conversationId,p.workflowVersion===5?'全部场景方案已确认，开始生成整课。':'视频方案已确认，开始生成视频。');
  ensureWorkflowMessage(store.projects[id],'production');
  useConversationStore.getState().setWaitingForUserAction(p.conversationId,false);
  return true;
@@ -143,7 +142,8 @@ export function advanceVideoJobs(now=Date.now()){
  const store=useVideoCoursewareStore.getState();
  for(const original of Object.values(store.projects)){
   // Resume v2 drafts with measured audio and missing reference frames. Finished HTML is untouched.
-  advanceSceneRevisions(original.id,now);
+  if(original.workflowVersion===5)advanceCourseDraft(original.id,now);
+  else advanceSceneRevisions(original.id,now);
   let p=useVideoCoursewareStore.getState().projects[original.id];
   if(p.fixtureId==='wukong'&&p.assets.some(a=>a.kind==='audio'&&!a.seconds)){
    const assets:MediaAsset[]=p.assets.map(a=>({...wukongFixture.assets.find(f=>f.id===a.id),...a,seconds:a.seconds||(a.url?(audioDurations as Record<string,number>)[a.url]:undefined)}));
@@ -216,29 +216,19 @@ export function confirmOutline(id:string):boolean {
 // Each phase is persisted, and scene plans remain hidden until images AND audio finish.
 function advanceOutlineFlow(p:VideoProject,now:number){
  const store=useVideoCoursewareStore.getState(),job=p.job;
- if(p.sceneJobs&&p.phase==='assets-review'){
-  const patch=advanceConfirmedScenes(p,now);
-  if(JSON.stringify(patch)!==JSON.stringify({sceneJobs:p.sceneJobs,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds,readyAssetIds:p.readyAssetIds}))store.update(p.id,patch);
-  const next=useVideoCoursewareStore.getState().projects[p.id];
-  if(next.segments.length&&next.segments.every(s=>next.sceneJobs?.[s.id]?.status==='ready'&&next.readySceneIds?.includes(s.id))){
-   store.update(p.id,{approvedPlanKey:videoPlanKey(next),approvedMaterialsKey:materialsKey(next)});
-   store.start(p.id,'assembly');useConversationStore.getState().setWaitingForUserAction(p.conversationId,false);
-  }
-  return;
- }
  if(!job||['paused','failed','ready','plan','assets-review'].includes(p.phase))return;
- if(['video','h5'].includes(job.kind)){
-  store.start(p.id,'scenes');
-  return;
- }
  if(job.kind==='scenes'){
-  const elapsed=now-job.start+job.elapsed;
-  const patch=advanceSceneProduction(p,elapsed);
-  if(JSON.stringify([p.readyAssetIds,p.readyPageIds,p.readySceneIds,p.sceneAssemblyStarts])!==JSON.stringify([patch.readyAssetIds,patch.readyPageIds,patch.readySceneIds,patch.sceneAssemblyStarts]))store.update(p.id,patch);
-  const next=useVideoCoursewareStore.getState().projects[p.id];
-  if(next.segments.every(s=>next.readySceneIds?.includes(s.id))){store.start(p.id,'assembly');return;}
-  const missingVideo=next.segments.some(s=>s.kind!=='h5'&&(!sceneVideos(next,s).length||sceneVideos(next,s).some(a=>!a.url)));
-  if(elapsed>=job.duration&&missingVideo)store.update(p.id,{phase:'failed',error:'部分场景的视频未完成，已完成场景仍可预览。请修复缺失视频后继续。',job:{...job,elapsed:job.duration}});
+  const ratio=Math.min(1,(now-job.start+job.elapsed)/job.duration);
+  const videos=p.assets.filter(a=>a.kind==='video');
+  const completed=videos.filter((a,i)=>a.url&&ratio>=(i+1)/Math.max(videos.length,1)).map(a=>a.id);
+  const ready=[...new Set([...p.readyAssetIds,...completed])];
+  if(ready.length!==p.readyAssetIds.length)store.update(p.id,{readyAssetIds:ready});
+  if(ratio<1)return;
+  if(videos.some(a=>!a.url)){
+   store.update(p.id,{phase:'failed',error:'部分视频素材尚未就绪，方案和已完成素材已保留。请补全后继续生成整课。',job:{...job,elapsed:job.duration}});
+   return;
+  }
+  store.start(p.id,'assembly');
   return;
  }
  let ratio=Math.min(1,(now-job.start+job.elapsed)/job.duration);
@@ -263,5 +253,8 @@ function advanceOutlineFlow(p:VideoProject,now:number){
   store.update(p.id,{shots:buildVideoShots(p),approvedMaterialsKey:materialsKey(p),phase:'assets-review',job:undefined});
   ensureWorkflowMessage(store.projects[p.id],'video-plan');
   useConversationStore.getState().setWaitingForUserAction(p.conversationId,true);
- }else if(job.kind==='assembly')finishVideoProject(p.id);
+ }else if(job.kind==='assembly'){
+  store.update(p.id,{readySceneIds:p.segments.map(s=>s.id),readyPageIds:p.segments.filter(s=>s.kind!=='video').map(s=>s.id)});
+  finishVideoProject(p.id);
+ }
 }

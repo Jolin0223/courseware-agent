@@ -55,3 +55,29 @@ body.of-is-sorting *{cursor:grabbing!important}
 .of-scene-plan .vc-card-header h3>svg{color:#1685FF}
 
 .agent-video-confirm-dock{flex-shrink:0;background:#F6FBFF}.agent-video-confirm-dock:empty{display:none}.agent-video-confirm-dock>.vc-confirm-action{padding:10px 24px 0}.agent-video-confirm-dock .vc-btn.primary{padding:10px 28px;min-height:40px}
+
+/* One saved draft and one generation action per complete lesson. */
+.vc-course-draft{position:relative;margin-top:16px;padding:16px;border:1px solid #b9dcff;border-radius:10px;background:#f5fbff}
+.vc-course-draft-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#24364e;font-size:14px}
+.vc-course-draft-heading>span{font-size:12px;color:#64748b;white-space:nowrap}
+.vc-course-draft>p{font-size:12px;line-height:1.7;color:#64748b;margin:8px 0}
+.vc-draft-scenes{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.vc-draft-scenes>span{background:white;border:1px solid #dce8f2;border-radius:5px;padding:3px 7px;font-size:12px;color:#486079}
+.vc-course-draft-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:12px}
+.vc-course-draft-actions>span{flex:1 1 150px;font-size:12px;color:#64748b}
+.vc-course-draft-actions>.vc-btn{flex-shrink:0}
+.vc-draft-marker{color:#1675c5!important;font-size:11px}
+.vc-draft-instruction{font-size:12px;color:#486079;line-height:1.7}
+.vc-draft-instruction p{white-space:pre-wrap}
+.vc-draft-discard{position:absolute;right:12px;bottom:64px;max-width:calc(100% - 24px);background:#fff;border:1px solid #dce5ef;border-radius:10px;box-shadow:0 8px 30px #19355520;padding:18px;z-index:3;font-size:14px}
+.vc-draft-discard>div{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.vc-course-production-steps{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:#8b9bb0;margin-top:16px}
+.vc-course-production-steps .is-active{color:#087cff;font-weight:600}
+.vc-course-production-steps .is-done{color:#398365}
+
+.vc-delivery-list .vc-result-scene{grid-template-columns:23px minmax(0,1fr) auto;align-items:center}
+@container(max-width:420px){
+ .vc-delivery-list .vc-result-scene{grid-template-columns:23px minmax(0,1fr)}
+ .vc-delivery-list .vc-result-scene>.vc-order{grid-row:span 2}
+ .vc-delivery-list .vc-scene-row-actions{grid-column:2;justify-content:flex-start}
+}

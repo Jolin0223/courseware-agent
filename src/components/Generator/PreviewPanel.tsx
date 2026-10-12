@@ -1,5 +1,5 @@
 import { useVideoCoursewareStore, videoProjectForCourseware } from '../../store/videoCoursewareStore';
-import { finishVideoProject } from '../VideoCourseware/workflow';
+import { buildVideoLessonHTML, finishVideoProject } from '../VideoCourseware/workflow';
 import { VideoModal } from '../VideoCourseware/Shared';
 import VideoResourceEditor from '../VideoCourseware/VideoResourceEditor';
 import { useEffect, useMemo, useState, useRef } from 'react';
@@ -107,7 +107,16 @@ const buildSessionVersions = (courseware?: { id?: number; title?: string; htmlCo
     return demoSessionVersions.map(version => ({ ...version }));
   }
   const videoProject = courseware.id ? videoProjectForCourseware(courseware.id) : undefined;
-  if (videoProject) return videoProject.resultMessages.map(r => ({ version: `v${r.version}`, sessionNumber: r.version, title: videoProject.title, htmlContent: r.html, createdAt: r.time, ...videoProject.publishedVersions?.[`v${r.version}`] }));
+  if (videoProject) return videoProject.resultMessages.map(r => ({
+    version: `v${r.version}`, sessionNumber: r.version, title: videoProject.title,
+    // Refresh the local Wukong preview's teacher tools using that version's own
+    // snapshot. The saved HTML remains immutable; versions without a snapshot
+    // keep their original output instead of borrowing today's scene content.
+    htmlContent: videoProject.fixtureId === 'wukong' && videoProject.workflowVersion === 5 && r.snapshot
+      ? buildVideoLessonHTML({ ...videoProject, ...r.snapshot }, r.composition || videoProject.composition)
+      : r.html,
+    createdAt: r.time, ...videoProject.publishedVersions?.[`v${r.version}`],
+  }));
   const baseHtml = courseware.htmlContent || '';
   const baseTitle = courseware.title || '互动课件';
   if (isRealCaseCourseware(baseTitle) || baseTitle.endsWith('-同款版')) {
@@ -1064,8 +1073,8 @@ export default function PreviewPanel({ coursewareId, initialVersion, onClose, on
       {coursewareSettingsOpen && videoProject && (
         <VideoModal title="课件设置" onClose={() => setCoursewareSettingsOpen(false)} className="vc-courseware-settings-modal">
           <label className="vc-courseware-setting-row">
-            <span><strong>显示场景目录</strong><small>播放整课时，老师可通过画布左侧目录跳到指定教学环节。</small></span>
-            <input type="checkbox" checked={showSceneNavigation} onChange={event => setShowSceneNavigation(event.target.checked)} />
+            <span><strong>显示教师工具</strong><small>在课件左下角显示入口，方便课堂中切换教学环节。工具外观跟随当前课件的配色与风格。</small></span>
+            <input type="checkbox" aria-label="显示教师工具" checked={showSceneNavigation} onChange={event => setShowSceneNavigation(event.target.checked)} />
             <span className="vc-courseware-setting-switch" aria-hidden="true" />
           </label>
           <div className="vc-actions">

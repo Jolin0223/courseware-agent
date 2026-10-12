@@ -125,22 +125,24 @@ function MaterialCards({project}:{project:VideoProject}){
 function SceneCard({project,scene,index,readOnly}:{project:VideoProject;scene:VideoSegment;index:number;readOnly:boolean}){
  const [editing,setEditing]=useState(false);
  const issues=sceneGenerationIssues(project,scene.id);
+ const review=project.sceneReviews?.[scene.id];
  return <article className="of-scene" data-scene-id={scene.id}>
-  <div className="of-scene-summary"><div className="of-scene-copy"><span className="of-scene-index">场景 {index+1}</span><h4>{scene.title}</h4><Kind kind={scene.kind}/></div><button className="vc-text-btn" onClick={()=>setEditing(true)}><PencilLine size={14}/>{readOnly?'查看':'编辑'}</button></div>
+  <div className="of-scene-summary"><div className="of-scene-copy"><span className="of-scene-index">场景 {index+1}</span><h4>{scene.title}</h4><Kind kind={scene.kind}/>{review?.status==='edited'&&<span className="of-scene-review is-edited">已编辑保存</span>}</div><button className="vc-text-btn" onClick={()=>setEditing(true)}><PencilLine size={14}/>{readOnly?'查看':'编辑'}</button></div>
   <p className="of-scene-description">{scene.content}</p>{!readOnly&&issues.map(issue=><p className="vc-error" key={issue}>{issue}</p>)}
   {editing&&<SceneEditor project={project} sceneId={scene.id} readOnly={readOnly} onClose={()=>setEditing(false)}/>}
  </article>;
 }
 function Scenes({project,readOnly}:{project:VideoProject;readOnly:boolean}){
  const issues=videoPlanIssues(project);
+ const edited=project.segments.filter(s=>project.sceneReviews?.[s.id]?.status==='edited').length;
  const [expanded,setExpanded]=useState(false);
  const showList=!readOnly||expanded;
  return <section className={'vc-card of-scene-plan'+(!showList?' is-collapsed':'')}>
   <div className="vc-card-header"><div><h3><Film size={17}/>{showList?'完整场景方案':'场景方案已确认'}</h3><p>{project.chapters?.length} 个章节 · {project.segments.length} 个场景</p></div>{readOnly?<button className="vc-text-btn" onClick={()=>setExpanded(!expanded)}>{showList?'收起方案':'查看方案'}<ChevronDown size={14}/></button>:<span className="vc-kind">可编辑</span>}</div>
   {!showList&&<div className="of-confirmed-outline">{project.chapters?.map((c,i)=><div key={c.id}><span>{String(i+1).padStart(2,'0')}</span><div><b>{c.title}</b><p>{project.segments.filter(s=>s.chapterId===c.id).map(s=>s.title).join(' · ')}</p></div></div>)}</div>}
-  {showList&&<><p className="of-plan-intro">可逐场景编辑并保存，全部确认后统一生成课件。</p>
+  {showList&&<><p className="of-plan-intro">可按需编辑场景并保存，修改将随整课统一生成。</p>
    <div className="of-scenes-scroll" role="region" aria-label="场景方案列表" tabIndex={0} onWheel={handoffNestedScroll}>{project.chapters?.map((c,i)=><section className="of-scene-chapter" key={c.id}><header><span>{String(i+1).padStart(2,'0')}</span><div><h4>{c.title}</h4><small>{project.segments.filter(s=>s.chapterId===c.id).length} 个场景</small></div></header>{project.segments.filter(s=>s.chapterId===c.id).map(scene=><SceneCard key={scene.id} project={project} scene={scene} index={project.segments.indexOf(scene)} readOnly={readOnly}/>)}</section>)}</div>
-   {!readOnly&&<footer className="of-confirm of-review-footer"><div><b>检查全部场景后，统一生成</b><p>已保存的修改会随本次提交一起生效。</p>{issues.length>0&&<p className="vc-error">部分场景需补全内容，请在对应场景编辑。</p>}</div><button className="vc-btn primary" disabled={Boolean(issues.length)} onClick={()=>confirmVideoPlan(project.id)}>确认全部场景，生成课件</button></footer>}
+   {!readOnly&&<footer className="of-confirm of-review-footer"><div><b>{edited>0?`${edited} 个场景已编辑保存`:'可直接生成，也可按需修改'}</b><p>{edited>0?'已保存的修改会随本次提交一起生效。':'确认后统一生成整课。'}</p>{issues.length>0&&<p className="vc-error">部分场景需补全内容，请在对应场景编辑。</p>}</div><button className="vc-btn primary" disabled={Boolean(issues.length)} onClick={()=>confirmVideoPlan(project.id)}>确认全部场景，生成课件</button></footer>}
   </>}
  </section>;
 }

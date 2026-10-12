@@ -17,7 +17,9 @@ export function saveScenePlanDraft(original:VideoProject,draft:VideoProject,scen
   else{beginSceneRevision(latest.id,sceneId,latest.revision);saveSceneRevisionDraft(latest.id,sceneId,rebased);}
   return 'revision';
  }
- const next={...latest,...prepareSceneEdit(latest,rebased,sceneId)};
+ const changed=JSON.stringify(sceneSnapshot(original))!==JSON.stringify(sceneSnapshot(draft))||JSON.stringify(original.composition)!==JSON.stringify(draft.composition);
+ if(!changed)return 'plan';
+ const next={...latest,...prepareSceneEdit(latest,rebased,sceneId),sceneReviews:{...latest.sceneReviews,[sceneId]:{status:'edited' as const,savedAt:new Date().toISOString()}}};
  const progress=next.sceneJobs?advanceConfirmedScenes(next,Date.now()):{};
  store.update(latest.id,{...next,...progress,phase:'assets-review',job:undefined,approvedPlanKey:undefined});
  useConversationStore.getState().setWaitingForUserAction(latest.conversationId,true);

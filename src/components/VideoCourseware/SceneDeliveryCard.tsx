@@ -1,5 +1,5 @@
 import { useVideoCoursewareStore } from '../../store/videoCoursewareStore';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Film, Gamepad2, Layers, Loader2, Play, PencilLine } from 'lucide-react';
 import type { VideoProject } from '../../data/videoCourseware/model';
@@ -14,15 +14,12 @@ const kinds=[{kind:'video',label:'纯视频',Icon:Film},{kind:'h5',label:'纯互
 
 function CourseDraftBar({project}:{project:VideoProject}){
  const [discarding,setDiscarding]=useState(false);
- const [,tick]=useState(0);
  const draft=project.courseDraft;
  const busy=draft?.status==='generating';
- useEffect(()=>{if(!busy)return;const timer=window.setInterval(()=>tick(value=>value+1),400);return()=>window.clearInterval(timer);},[busy]);
  if(!draft)return null;
- const elapsed=Date.now()-(draft.startedAt||Date.now());
  return <section className="vc-course-draft" aria-label="整课修改草稿">
   <div className="vc-course-draft-heading"><strong>{busy?'正在生成新的整课版本':`${draft.sceneIds.length} 个场景有待生成修改`}</strong><span>基于第 {draft.baseVersion} 版</span></div>
-  <p>{busy?(elapsed<3500?'正在准备本次修改所需的素材…':'正在生成完整课件并检查场景衔接…'):'可继续逐场景修改；全部生成后，更新为一个新的整课版本。'}</p>
+  <p>{busy?'整课生成预计约 30–60 分钟，可离开当前会话，完成后回来查看。':'可继续逐场景修改；全部生成后，更新为一个新的整课版本。'}</p>
   <div className="vc-draft-scenes">{draft.sceneIds.map(id=><span key={id}>{draft.snapshot.segments.find(s=>s.id===id)?.title}</span>)}</div>
   {draft.instruction&&<details className="vc-draft-instruction"><summary>查看修改意见</summary><p>{draft.instruction}</p></details>}
   {draft.error&&<p className="vc-error" role="alert">{draft.error} 上一版仍可预览。</p>}
@@ -63,10 +60,8 @@ export default function SceneDeliveryCard({project,children}:{project:VideoProje
  const videos=project.assets.filter(a=>a.kind==='video'),done=videos.filter(a=>project.readyAssetIds.includes(a.id)).length;
  const percent=assembling?85:Math.round(done/Math.max(videos.length,1)*70);
  return <section className="vc-card vc-delivery-card">
-  <div className="vc-card-header"><div><h3><Layers size={17}/>生成整课</h3><p>{assembling?'正在生成完整课件并检查场景衔接。':'正在准备视频素材，随后生成完整课件。'}</p></div></div>
+  <div className="vc-card-header"><div><h3><Layers size={17}/>生成整课</h3><p>整课生成预计约 30–60 分钟，可离开当前会话，完成后回来查看。</p></div></div>
   <div className="vc-progress-track" role="progressbar" aria-label="整课生成进度" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><i style={{width:percent+'%'}}/></div>
-  <div className="vc-course-production-steps"><span className={assembling?'is-done':'is-active'}>1 · 准备视频素材 {done}/{videos.length}</span><span className={assembling?'is-active':''}>2 · 生成整课与检查</span></div>
-  <p className="vc-hint">全部完成后统一预览。可离开当前会话，稍后回来查看。</p>
   {children}
  </section>;
 }

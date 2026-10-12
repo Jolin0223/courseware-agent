@@ -94,7 +94,8 @@ export function startVideoProject(conversationId:string,request:string,attachmen
 }
 export function buildVideoLessonHTML(project:VideoProject,composition:PlaybackSettings=project.composition){
  const url=runtimeURL(project,composition);if(!url)return '';
- const navigation=project.workflowVersion===5&&project.segments.length>1&&composition.showSceneNavigation!==false?{
+ const navigation=project.fixtureId==='wukong'&&project.workflowVersion===5&&project.segments.length>1&&composition.showSceneNavigation!==false?{
+  theme:'wukong' as const,
   scenes:project.segments.map(scene=>({id:scene.id,title:scene.title})),
   chapters:project.chapters?.map(chapter=>({title:chapter.title,sceneIds:chapter.segmentIds}))||[],
   navigateMessageType:'wukong-studio-navigate',activeMessageType:'courseware-scene-change',

@@ -1,0 +1,37 @@
+{
+  "project": "courseware-agent",
+  "production_branch": "main",
+  "source": {
+    "type": "github",
+    "config": {
+      "owner": "Jolin0223",
+      "owner_id": "25903818",
+      "repo_name": "courseware-agent",
+      "repo_id": "1211303860",
+      "production_branch": "main",
+      "pr_comments_enabled": true,
+      "deployments_enabled": true,
+      "production_deployments_enabled": true,
+      "preview_deployment_setting": "all",
+      "preview_branch_includes": [
+        "*"
+      ],
+      "preview_branch_excludes": [],
+      "path_includes": [
+        "*"
+      ],
+      "path_excludes": []
+    }
+  },
+  "deployment_id": "842316e9-8565-4839-8aab-b4bd7015359f",
+  "deployment_url": "https://842316e9.courseware-agent.pages.dev",
+  "trigger": {
+    "type": "ad_hoc",
+    "metadata": {
+      "branch": "main",
+      "commit_hash": "7536c8b83e2d121d4ad22a86c52cd8544b2eb64b",
+      "commit_message": "Deploy whole HTML review branch 7536c8b",
+      "commit_dirty": true
+    }
+  }
+}

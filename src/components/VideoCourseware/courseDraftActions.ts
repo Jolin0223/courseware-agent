@@ -11,13 +11,15 @@ export function courseDraftProject(project:VideoProject):VideoProject {
 }
 
 // Each save updates a single shared lesson draft, never the delivered lesson.
-export function saveCourseSceneDraft(original:VideoProject,edited:VideoProject,sceneId:string):boolean {
+export function saveCourseSceneDraft(original:VideoProject,edited:VideoProject,sceneId:string,scope:'scene'|'shared'='scene'):boolean {
  const store=useVideoCoursewareStore.getState(),current=store.projects[original.id];
  if(current.phase!=='ready'||current.courseDraft?.status==='generating'||original.revision!==current.revision)return false;
  const base=courseDraftProject(current);
  const merged=rebaseSceneDraft(base,{id:'lesson-draft',sceneId,baseVersion:original.revision,sourceVersion:original.revision,scope:'scene',status:'draft',base:sceneSnapshot(original),draft:sceneSnapshot(edited),baseComposition:original.composition,composition:edited.composition});
- const next=buildSceneCandidate(base,merged,sceneId,'scene',crypto.randomUUID()).project;
- store.update(current.id,{courseDraft:{baseVersion:current.revision,snapshot:sceneSnapshot(next),composition:next.composition,sceneIds:[...new Set([...current.courseDraft?.sceneIds||[],sceneId])],instruction:current.courseDraft?.instruction,status:'draft'}});
+ // The resource editor has already asked for the replacement scope. Keep that choice.
+ const candidate=buildSceneCandidate(base,merged,sceneId,scope,crypto.randomUUID());
+ const next=candidate.project;
+ store.update(current.id,{courseDraft:{baseVersion:current.revision,snapshot:sceneSnapshot(next),composition:next.composition,sceneIds:[...new Set([...current.courseDraft?.sceneIds||[],...candidate.affectedSceneIds])],instruction:current.courseDraft?.instruction,status:'draft'}});
  return true;
 }
 
@@ -47,7 +49,7 @@ export function saveCourseResourceDraft(original:VideoProject,edited:VideoProjec
 
 export function startCourseDraft(projectId:string,now=Date.now()):boolean {
  const store=useVideoCoursewareStore.getState(),p=store.projects[projectId],draft=p.courseDraft;
- if(!draft||p.phase!=='ready'||draft.status==='generating')return false;
+ if(!draft||p.phase!=='ready'||draft.status==='generating'||Object.values(p.sceneRevisions||{}).some(r=>r.status==='generating'))return false;
  const issues=videoPlanIssues(courseDraftProject(p));
  const error=draft.baseVersion!==p.revision?'视频互动课件版本已变化，请重新核对修改。':issues.length?[...new Set(issues)].join(' '):undefined;
  store.update(projectId,{courseDraft:{...draft,status:error?'failed':'generating',error,startedAt:error?undefined:now}});
@@ -69,4 +71,16 @@ export function advanceCourseDraft(projectId:string,now:number){
 export function discardCourseDraft(projectId:string){
  const store=useVideoCoursewareStore.getState(),p=store.projects[projectId];
  if(p.courseDraft?.status!=='generating')store.update(projectId,{courseDraft:undefined,pendingEdit:undefined,pendingEditAttachments:undefined});
+}
+
+// Keep separately saved scene edits pending after a global resource replacement.
+// Replay their delta on the new version, so later generation cannot restore old resources.
+export function rebaseCourseDraftAfterResourceUpdate(before:VideoProject){
+ const saved=before.courseDraft;if(!saved)return;
+ const store=useVideoCoursewareStore.getState(),current=store.projects[before.id];
+ let next=structuredClone(current);
+ for(const sceneId of saved.sceneIds)next=rebaseSceneDraft(next,{id:'preserved-course-draft',sceneId,baseVersion:before.revision,sourceVersion:before.revision,scope:'shared',status:'draft',base:sceneSnapshot(before),draft:saved.snapshot,baseComposition:before.composition,composition:saved.composition});
+ const addedSpeakers=saved.snapshot.speakers.filter(s=>!before.speakers.some(old=>old.id===s.id)&&!next.speakers.some(now=>now.id===s.id));
+ next.speakers.push(...addedSpeakers);
+ store.update(before.id,{courseDraft:{...saved,baseVersion:current.revision,snapshot:sceneSnapshot(next),composition:next.composition,status:'draft',error:undefined,startedAt:undefined}});
 }

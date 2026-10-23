@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Image as ImageIcon, Music, Upload, RotateCcw, Play, Pause, Globe, ChevronDown, Wand2, ImagePlus, Check, Info } from 'lucide-react';
 import type { EnhancedImageItem, AudioItem, GenerationPreferences, VoiceOption } from '../../types';
 import toast from '../../utils/toast';
 import { useConversationStore } from '../../store/conversationStore';
 import { imageModelOptions } from '../../data/augustDemoData';
 import './augustDemo.css';
+import ImageModeTip, { dismissImageModeTip } from './ImageModeTip';
 
 export interface ResourceGenerationDefaults {
   imageModelId: string;
@@ -78,7 +80,7 @@ const ImageEditCard: React.FC<{
   onReplace?: (imageId: string, file: File) => void;
   onRegenerate?: (imageId: string, prompt: string, imageModelId: string) => void;
 }> = ({ image, imageModelId, imageModelName, onRegenerate }) => {
-  const [activeTab, setActiveTab] = useState<'text' | 'image' | 'upload' | 'transparent'>('text');
+  const [activeTab, setActiveTab] = useState<'text' | 'image' | 'upload' | 'transparent'>('image');
   const [promptText, setPromptText] = useState('');
   const [img2imgPrompt, setImg2imgPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -91,6 +93,7 @@ const ImageEditCard: React.FC<{
   const handleGenerate = (type: 'text' | 'image') => {
     const prompt = type === 'text' ? promptText : img2imgPrompt;
     if (!prompt.trim() && type === 'text') return;
+    dismissImageModeTip();
     setIsGenerating(true);
     setGeneratedPreview(null);
     setTimeout(() => {
@@ -101,6 +104,7 @@ const ImageEditCard: React.FC<{
   };
 
   const handleTransparent = () => {
+    dismissImageModeTip();
     setIsGenerating(true);
     setGeneratedPreview(null);
     setTimeout(() => {
@@ -173,7 +177,7 @@ const ImageEditCard: React.FC<{
             <>
               {/* Tab 切换 */}
               <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-                {([['text', '文生图', ImagePlus], ['image', '图生图', Wand2], ['upload', '本地上传', Upload], ['transparent', '图片透明化', Globe]] as const).map(([key, label, Icon]) => (
+                {([['image', '图生图', Wand2], ['text', '文生图', ImagePlus], ['upload', '本地上传', Upload], ['transparent', '图片透明化', Globe]] as const).map(([key, label, Icon]) => (
                   <button key={key} onClick={() => setActiveTab(key as 'text' | 'image' | 'upload' | 'transparent')} style={{
                     padding: '6px 14px', borderRadius: 6, border: '1px solid ' + (activeTab === key ? '#BFE9F5' : '#E2E8F0'),
                     borderColor: activeTab === key ? '#BFE9F5' : '#E2E8F0',
@@ -440,53 +444,29 @@ const AudioEditCard: React.FC<{
 };
 
 // 重新合成下拉组件
-const VoiceRegenerateDropdown: React.FC<{
-  voices: VoiceOption[];
-  selectedVoice: string;
+export const VoiceRegenerateDropdown: React.FC<{
+  voices: VoiceOption[]; selectedVoice: string; disabled?: boolean;
   onRegenerate: (voiceId: string) => void;
-}> = ({ voices, selectedVoice, onRegenerate }) => {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  return (
-    <div ref={ref} style={{ position: 'relative', flex: 1 }}>
-      <button onClick={() => setOpen(!open)} style={{
-        padding: '6px 12px', borderRadius: 5, border: 'none', background: 'var(--agent-soft)', color: 'var(--agent-primary)', fontSize: 11, cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, whiteSpace: 'nowrap', fontWeight: 500, width: '100%',
-      }}>
-        <RotateCcw size={11} /> 重新合成 <ChevronDown size={12} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 10,
-          background: '#fff', borderRadius: 6, border: '1px solid #E2E8F0',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'hidden', minWidth: 160,
-        }}>
-          {voices.map(v => (
-            <div key={v.id} onClick={() => { onRegenerate(v.id); setOpen(false); }} style={{
-              padding: '7px 10px', fontSize: 11, cursor: 'pointer',
-              background: v.id === selectedVoice ? 'var(--agent-soft)' : '#fff',
-              color: v.id === selectedVoice ? 'var(--agent-primary)' : '#334155',
-            }}
-              onMouseEnter={e => { if (v.id !== selectedVoice) e.currentTarget.style.background = '#F8FAFC'; }}
-              onMouseLeave={e => { if (v.id !== selectedVoice) e.currentTarget.style.background = '#fff'; }}
-            >
-              <div style={{ fontWeight: 500 }}>{v.name}</div>
-              <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 1 }}>{v.description}</div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+}> = ({ voices, selectedVoice, disabled, onRegenerate }) => {
+  const [position,setPosition]=useState<{left:number;top:number;width:number}|null>(null);
+  const trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    if(!position)return;
+    const outside=(event:PointerEvent)=>{if(!trigger.current?.contains(event.target as Node)&&!menu.current?.contains(event.target as Node))setPosition(null);};
+    const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setPosition(null);trigger.current?.focus();}};
+    const scroll=(event:Event)=>{if(!menu.current?.contains(event.target as Node))setPosition(null);};
+    const resize=()=>setPosition(null);
+    document.addEventListener('pointerdown',outside);document.addEventListener('keydown',key,true);document.addEventListener('scroll',scroll,true);window.addEventListener('resize',resize);
+    menu.current?.querySelector<HTMLButtonElement>('button')?.focus({preventScroll:true});
+    return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',key,true);document.removeEventListener('scroll',scroll,true);window.removeEventListener('resize',resize);};
+  },[position]);
+  return <div style={{flex:1,minWidth:120}}><button ref={trigger} disabled={disabled} aria-haspopup="menu" aria-expanded={Boolean(position)} onClick={()=>{
+    if(position){setPosition(null);return;}const r=trigger.current!.getBoundingClientRect(),width=Math.min(280,innerWidth-32),height=Math.min(220,voices.length*48);
+    setPosition({left:Math.max(16,Math.min(r.right-width,innerWidth-width-16)),top:r.bottom+height+8<innerHeight?r.bottom+5:Math.max(16,r.top-height-5),width});
+  }} style={{padding:'7px 12px',borderRadius:5,border:0,background:'var(--agent-soft)',color:'var(--agent-primary)',fontSize:11,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:4,width:'100%'}}><RotateCcw size={12}/>重新合成<ChevronDown size={12}/></button>
+  {position&&createPortal(<div ref={menu} role="menu" aria-label="选择音色并重新合成" style={{position:'fixed',...position,zIndex:31050,background:'#fff',border:'1px solid #e2e8f0',borderRadius:8,boxShadow:'0 6px 22px #0f172a20',maxHeight:220,overflowY:'auto',padding:4}} onKeyDown={e=>{if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;e.preventDefault();const buttons=Array.from(menu.current!.querySelectorAll('button')),i=buttons.indexOf(document.activeElement as HTMLButtonElement);buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}}>
+    {voices.map(v=><button key={v.id} role="menuitem" onClick={()=>{onRegenerate(v.id);setPosition(null);}} style={{display:'block',width:'100%',border:0,borderRadius:4,textAlign:'left',padding:'8px 10px',cursor:'pointer',background:v.id===selectedVoice?'var(--agent-soft)':'#fff',color:'#334155',fontSize:12}}><div>{v.name}</div><div style={{color:'#94a3b8',fontSize:10,marginTop:3}}>{v.description}</div></button>)}
+  </div>,document.body)}</div>;
 };
 
 const ResourceOptionPicker: React.FC<{
@@ -703,6 +683,7 @@ const ResourceEditModal: React.FC<ResourceEditModalProps> = ({
               <label className="aug-resource-default-check"><input type="checkbox" className="custom-checkbox" checked={saveImageAsDefault} onChange={event => setSaveImageAsDefault(event.target.checked)} />设为本课件后续默认</label>
               <div className="aug-resource-creation-record"><Info size={12} />创建时使用：{creationImageModel.name}</div>
             </div>
+            <ImageModeTip/>
             {images.map(img => (
               <ImageEditCard key={img.id} image={img} imageModelId={selectedImageModel.id} imageModelName={selectedImageModel.name} onReplace={onImageReplace} onRegenerate={onImageRegenerate} />
             ))}

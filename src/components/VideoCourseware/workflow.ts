@@ -144,7 +144,7 @@ export function advanceVideoJobs(now=Date.now()){
  for(const original of Object.values(store.projects)){
   // Resume v2 drafts with measured audio and missing reference frames. Finished HTML is untouched.
   if(original.workflowVersion===5)advanceCourseDraft(original.id,now);
-  else advanceSceneRevisions(original.id,now);
+  advanceSceneRevisions(original.id,now);
   let p=useVideoCoursewareStore.getState().projects[original.id];
   if(p.fixtureId==='wukong'&&p.assets.some(a=>a.kind==='audio'&&!a.seconds)){
    const assets:MediaAsset[]=p.assets.map(a=>({...wukongFixture.assets.find(f=>f.id===a.id),...a,seconds:a.seconds||(a.url?(audioDurations as Record<string,number>)[a.url]:undefined)}));

@@ -2016,7 +2016,7 @@ function AssistantMessage({
     if(workflowMessage?.stage==='resource-update'){
       const event=workflowProject?.workflowEvents?.find(e=>e.runId===workflowMessage.runId);
       const pending=event?.status==='generating';
-      return <div style={styles.messageAssistant} data-resource-update-message={event?.runId}><AIAvatar/><div><div style={styles.assistantBubble}>{event?.status==='failed'?event.error:event?.status==='completed'?`已更新 ${event.sceneCount||1} 个场景，新版本已生成。`:`正在更新 ${event?.sceneCount||1} 个场景，完成后自动生成新版本…`}</div>{pending&&<ChatLoadingDots/>}</div></div>;
+      return <div style={styles.messageAssistant} data-resource-update-message={event?.runId}><AIAvatar/><div><div style={styles.assistantBubble}>{event?.status==='failed'?event.error:event?.status==='completed'?`已更新 ${event.sceneCount||1} 个场景，新版本已生成。`:`${event?.confirmation||'替换了素材'}，正在重新生成...`}</div>{pending&&<ChatLoadingDots/>}</div></div>;
     }
 
     // Hide the finished generation row without unmounting an open scene-preview portal.

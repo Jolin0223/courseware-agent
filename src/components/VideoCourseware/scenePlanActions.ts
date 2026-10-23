@@ -7,13 +7,13 @@ import { useConversationStore } from '../../store/conversationStore';
 import { saveCourseSceneDraft } from './courseDraftActions';
 import { beginSceneRevision, saveSceneRevisionDraft } from './sceneRevisionActions';
 
-export function saveScenePlanDraft(original:VideoProject,draft:VideoProject,sceneId:string):'plan'|'revision'{
+export function saveScenePlanDraft(original:VideoProject,draft:VideoProject,sceneId:string,scope:'scene'|'shared'='scene'):'plan'|'revision'{
  const store=useVideoCoursewareStore.getState(),latest=store.projects[original.id];
  const rebased=rebaseSceneDraft(latest,{id:'edit',sceneId,baseVersion:original.revision,sourceVersion:original.revision,scope:'shared',status:'draft',base:sceneSnapshot(original),draft:sceneSnapshot(draft),baseComposition:original.composition,composition:draft.composition});
  // Generation may have finished while the teacher was editing. Never mutate the
  // newly delivered version or sneak unconfirmed edits into its assembly.
  if(latest.phase==='ready'){
-  if(latest.workflowVersion===5)saveCourseSceneDraft(original,draft,sceneId);
+  if(latest.workflowVersion===5)saveCourseSceneDraft(original,draft,sceneId,scope);
   else{beginSceneRevision(latest.id,sceneId,latest.revision);saveSceneRevisionDraft(latest.id,sceneId,rebased);}
   return 'revision';
  }

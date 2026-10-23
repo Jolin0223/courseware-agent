@@ -5,6 +5,7 @@ import { videoPlanIssues } from '../../data/videoCourseware/planning';
 import { useVideoCoursewareStore } from '../../store/videoCoursewareStore';
 import { useConversationStore } from '../../store/conversationStore';
 import { finishVideoProject } from './workflow';
+import { rebaseCourseDraftAfterResourceUpdate } from './courseDraftActions';
 import { sceneVersionsFor } from '../../data/videoCourseware/sceneVersions';
 
 const projectFor=(id:string)=>useVideoCoursewareStore.getState().projects[id];
@@ -116,13 +117,17 @@ export function adoptSceneRevision(projectId:string,sceneId:string){
  for(const id of Object.keys(remaining))remaining[id]={...remaining[id],status:'stale',error:'视频互动课件已采用其他修改，请合并到当前版本后继续。'};
  useVideoCoursewareStore.getState().update(projectId,{...candidate,composition:r.candidateComposition||r.composition,sceneRevisions:remaining,workflowEvents:p.workflowEvents?.map(e=>r.autoAdopt&&e.runId===r.id?{...e,status:'completed' as const}:e.stage==='resource-update'&&e.status==='generating'&&remaining['resource-update']?.status==='stale'?{...e,status:'failed' as const,error:'视频互动课件已有更新，请重新编辑资源后生成。'}:e)});
  const changedLabel=changedIds.map(id=>{const index=p.segments.findIndex(scene=>scene.id===id);return index>=0?`第${index+1}场景`:''}).filter(Boolean).join('、');
- finishVideoProject(projectId,undefined,r.autoAdopt?undefined:`更新${changedLabel||'指定场景'}并更新视频互动课件。`);return true;
+ finishVideoProject(projectId,undefined,r.autoAdopt?undefined:`更新${changedLabel||'指定场景'}并更新视频互动课件。`);
+ if(r.autoAdopt&&key==='resource-update'&&p.courseDraft)rebaseCourseDraftAfterResourceUpdate(p);
+ return true;
 }
 
 export function startResourceUpdate(projectId:string,draft:VideoProject,affectedSceneIds:string[]):string|undefined {
  const p=projectFor(projectId),ids=[...new Set(affectedSceneIds)].filter(id=>p.segments.some(s=>s.id===id));
  if(p.phase!=='ready'||!ids.length)return '当前课件尚未完成，请完成生成后再更新资源。';
- if(p.sceneRevisions?.['resource-update']?.status==='generating')return '素材正在更新，请完成后再修改。';
+ if(p.revision!==draft.revision)return '课件版本已变化，请重新打开资源编辑。';
+ if(p.courseDraft?.status==='generating')return '场景修改正在生成，请完成后再替换资源。';
+ if(Object.values(p.sceneRevisions||{}).some(r=>r.status==='generating'))return '素材正在更新，请完成后再修改。';
  const token=crypto.randomUUID(),result=buildSceneCandidate(p,draft,ids[0],'shared',token);
  const candidate=result.project;
  // Membership changes caused by a fork must not rerun the untouched scenes.
@@ -133,8 +138,8 @@ export function startResourceUpdate(projectId:string,draft:VideoProject,affected
  const issues=videoPlanIssues(candidate);if(issues.length)return [...new Set(issues)].join(' ');
  const revision:SceneRevision={id:token,sceneId:ids[0],baseVersion:p.revision,sourceVersion:p.revision,scope:'shared',autoAdopt:true,status:'generating',base:sceneSnapshot(p),baseComposition:structuredClone(p.composition),draft:sceneSnapshot(draft),composition:draft.composition,candidate:sceneSnapshot(candidate),candidateComposition:candidate.composition,affectedSceneIds:ids,videoIds,startedAt:Date.now(),elapsed:0,sceneAssemblyStarts:{}};
  const kinds=[...new Set(draft.assets.filter(a=>JSON.stringify(a)!==JSON.stringify(p.assets.find(old=>old.id===a.id))).map(a=>a.kind))];
- const label=kinds.length===1?({image:'图片',audio:'配音',video:'视频'} as const)[kinds[0]]:'素材';
- const event={runId:token,stage:'resource-update' as const,time:new Date().toISOString(),order:(p.workflowEvents?.length||0)+p.resultMessages.length,confirmation:'更新'+label,sceneCount:ids.length,status:'generating' as const};
+ const label=(['image','audio','video'] as const).filter(kind=>kinds.includes(kind)).map(kind=>'替换了'+({image:'图片',audio:'音频',video:'视频'} as const)[kind]).join('、');
+ const event={runId:token,stage:'resource-update' as const,time:new Date().toISOString(),order:(p.workflowEvents?.length||0)+p.resultMessages.length,confirmation:label,sceneCount:ids.length,status:'generating' as const};
  useVideoCoursewareStore.getState().update(projectId,{sceneRevisions:{...p.sceneRevisions,'resource-update':revision},workflowEvents:[...p.workflowEvents||[],event]});
  const conversation=useConversationStore.getState();
  conversation.addUserMessage(p.conversationId,event.confirmation);

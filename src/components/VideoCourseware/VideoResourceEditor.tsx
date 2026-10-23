@@ -1,129 +1,165 @@
-import { useEffect, useRef, useState } from 'react';
-import { Film, Image as ImageIcon, Volume2, Upload, RefreshCw, Loader2, ArrowLeft, Check, X, Plus } from 'lucide-react';
-import { useVideoCoursewareStore, copyPlayback } from '../../store/videoCoursewareStore';
-import type { MediaAsset, PlaybackSettings, VideoProject } from '../../data/videoCourseware/model';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Film, Image as ImageIcon, Volume2, Upload, Loader2, Check, X, Globe, Wand2, ImagePlus } from 'lucide-react';
+import type { ClipboardEvent } from 'react';
+import { useVideoCoursewareStore } from '../../store/videoCoursewareStore';
+import type { MediaAsset, Speaker, VideoProject } from '../../data/videoCourseware/model';
 import { returnToMaterials } from './workflow';
 import { startResourceUpdate } from './sceneRevisionActions';
-import { courseDraftProject, saveCourseResourceDraft } from './courseDraftActions';
+
 import { replaceSceneResource } from '../../data/videoCourseware/resourceReplacement';
 import { VideoModal, AssetPreview } from './Shared';
 import ResourceAudioPlayer from './ResourceAudioPlayer';
-import { displayVoiceName } from '../../data/videoCourseware/voices';
+import { demoVoiceOptions } from '../../data/augustDemoData';
+import { VoiceRegenerateDropdown } from '../Generator/ResourceEditModal';
+import ImageModeTip, { dismissImageModeTip } from '../Generator/ImageModeTip';
 import toast from '../../utils/toast';
-import GenerationPreferencePicker from '../Generator/GenerationPreferencePicker';
-import { changedVideoIds } from '../../data/videoCourseware/planning';
 
-function editablePrompt(asset?:MediaAsset){
- if(!asset)return '';
- return asset.kind==='audio'?asset.text??asset.prompt:asset.kind==='image'?asset.prompt.replace(/^(?:输出文件|参考图)[:：].*(?:\n|$)/gm,'').trim():asset.prompt;
+import { changedVideoIds } from '../../data/videoCourseware/planning';
+import './videoResourceEditor.css';
+
+type ImageMode = 'text-to-image' | 'image-to-image' | 'upload' | 'transparent';
+type ResourceCardProps = {
+ asset: MediaAsset; speaker?: Speaker; ready: boolean; sceneId?: string; showModeTip: boolean; onDismissModeTip:()=>void;
+ onApply: (asset: MediaAsset, onlyScene?: string, voice?: Speaker) => void;
+ onPending: (id: string, pending: boolean) => void;
+};
+
+// Each card owns its new input. Internal production prompts are never copied into the form.
+function ResourceEditCard({asset,speaker,ready,sceneId,showModeTip,onDismissModeTip,onApply,onPending}:ResourceCardProps){
+ const [mode,setMode]=useState<ImageMode>('image-to-image');
+ const [inputs,setInputs]=useState({text:'',image:'',video:''});
+ const [candidate,setCandidate]=useState<MediaAsset|null>(null);
+ const [candidateVoice,setCandidateVoice]=useState<Speaker>();
+ const [loading,setLoading]=useState(false);
+ const [scope,setScope]=useState<'scene'|'all'>(sceneId?'scene':'all');
+ const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ const fileInput=useRef<HTMLInputElement>(null);
+ const operation=useRef(0);
+ const pending=Boolean(candidate||loading||inputs.text.trim()||inputs.image.trim()||inputs.video.trim());
+ useEffect(()=>{onPending(asset.id,pending);return()=>onPending(asset.id,false);},[asset.id,pending,onPending]);
+ useEffect(()=>()=>{operation.current++;if(timer.current)clearTimeout(timer.current);},[]);
+ const prompt=asset.kind==='video'?inputs.video:mode==='image-to-image'?inputs.image:inputs.text;
+ function reset(){operation.current++;if(timer.current)clearTimeout(timer.current);setLoading(false);setCandidate(null);setCandidateVoice(undefined);setInputs({text:'',image:'',video:''});}
+ function generate(selectedVoice?: Speaker){
+  if(!ready||!asset.url)return;
+  if(asset.kind==='image'&&mode==='text-to-image'&&!prompt.trim())return;
+  if(asset.kind==='image')dismissImageModeTip();
+  const token=++operation.current;
+  setLoading(true);setCandidate(null);
+  timer.current=setTimeout(()=>{
+   if(operation.current!==token)return;
+   // Local prototype: same prepared media provider as the ordinary editor.
+   setCandidate({...asset,prompt:asset.kind==='audio'?asset.prompt:mode==='transparent'?'去除当前图片背景，保留主体。':prompt.trim()||asset.prompt,
+    imageGeneration:asset.kind==='image'&&mode!=='transparent'&&mode!=='upload'?{mode,referenceUrl:mode==='image-to-image'?asset.url:undefined,referenceName:mode==='image-to-image'?asset.name:undefined}:asset.imageGeneration,
+    revision:(asset.revision||0)+1});
+   setCandidateVoice(asset.kind==='audio'?selectedVoice:undefined);setLoading(false);
+  },600);
+ }
+ function upload(file?:File){
+  if(!file)return;
+  const kind=asset.kind==='image'?'image/':asset.kind==='audio'?'audio/':'video/';
+  if(!file.type.startsWith(kind)){toast('请选择对应类型的文件');return;}
+  if(file.size>2*1024*1024){toast('文件大小不能超过 2 MB');return;}
+  const token=++operation.current;setLoading(true);setCandidate(null);
+  const reader=new FileReader();
+  const fail=()=>{if(operation.current===token){setLoading(false);toast('无法读取文件，请重新选择');}};
+  reader.onerror=fail;
+  reader.onload=()=>{
+   if(operation.current!==token)return;
+   const url=String(reader.result);
+   const next={...asset,url,revision:(asset.revision||0)+1};
+   if(asset.kind==='image'){setCandidate(next);setLoading(false);return;}
+   const media=document.createElement(asset.kind==='audio'?'audio':'video');
+   const release=()=>{media.removeAttribute('src');media.load();};
+   media.preload='metadata';media.onloadedmetadata=()=>{
+    if(operation.current===token){if(Number.isFinite(media.duration)&&media.duration>0){setCandidate({...next,seconds:media.duration});setLoading(false);}else fail();}release();
+   };media.onerror=()=>{fail();release();};media.src=url;
+  };reader.readAsDataURL(file);
+ }
+ function paste(e:ClipboardEvent){const file=Array.from(e.clipboardData.files).find(f=>f.type.startsWith('image/'));if(asset.kind==='image'&&file){e.preventDefault();upload(file);}}
+ function apply(){if(!candidate)return;onApply(candidate,new Set(asset.segmentIds).size>1&&scope==='scene'?sceneId:undefined,candidateVoice);reset();}
+ const scopeChoice=sceneId&&new Set(asset.segmentIds).size>1&&<div className="vre-inline-scope">
+  {sceneId?<><span>应用范围</span><button aria-pressed={scope==='scene'} className={scope==='scene'?'selected':''} onClick={()=>setScope('scene')}>当前场景</button><button aria-pressed={scope==='all'} className={scope==='all'?'selected':''} onClick={()=>setScope('all')}>全部 {new Set(asset.segmentIds).size} 个引用场景</button></>:<span>替换后同步更新 {new Set(asset.segmentIds).size} 个引用场景</span>}
+ </div>;
+ const preview=(value:MediaAsset)=>value.kind==='audio'?<ResourceAudioPlayer url={value.url} seconds={value.seconds}/>:<AssetPreview asset={value} ready={ready} showAudioText={false}/>;
+ return <article className={'vre-card vre-'+asset.kind} aria-label={asset.name}>
+  {asset.kind==='audio'&&<div className="vre-audio-heading"><Volume2 size={15}/><b>{asset.name}</b><small className="vre-usage">{sceneId?'引用于':'替换影响'} {new Set(asset.segmentIds).size} 个场景</small></div>}
+  <div className="vre-card-row">
+   <div className="vre-original">{preview(asset)}{asset.kind!=='audio'&&<div className="vre-asset-name">{asset.name}<small className="vre-usage">{sceneId?'引用于':'替换影响'} {new Set(asset.segmentIds).size} 个场景</small></div>}</div>
+   <div className="vre-controls" onPaste={paste}>
+    {loading?<div className="vre-loading" role="status"><Loader2 className="vc-spin" size={18}/>{mode==='upload'?'上传中…':'处理中…'}</div>:candidate?<>
+     <div className="vre-result"><div className="vre-result-preview" aria-label={asset.kind==='audio'?'新音频':undefined}>{preview(candidate)}{asset.kind!=='audio'&&<small>{asset.kind==='image'?'新图片':'新视频'}</small>}</div><div className="vre-result-actions"><button className="vc-btn primary" onClick={apply}><Check size={13}/>{asset.kind==='image'?'使用此图':asset.kind==='audio'?'使用此音频':'使用此视频'}</button><button className="vc-btn" onClick={reset}><X size={13}/>取消</button></div></div>
+     {scopeChoice}
+    </>:asset.kind==='image'?<>
+     <div className="vre-mode-wrap">{showModeTip&&<ImageModeTip onDismiss={onDismissModeTip}/>}<div className="vc-options vre-image-modes" role="group" aria-label="图片生成方式">
+      {([['image-to-image','图生图',Wand2],['text-to-image','文生图',ImagePlus],['upload','本地上传',Upload],['transparent','图片透明化',Globe]] as const).map(([key,label,Icon])=><button key={key} className={mode===key?'selected':''} onClick={()=>setMode(key)}><Icon size={13}/>{label}</button>)}
+     </div></div>
+     <p className="vre-instruction">{mode==='text-to-image'?'输入文字描述生成一张全新的图':mode==='image-to-image'?'基于当前图片进行针对性优化修改':mode==='upload'?'上传本地图片（不超过 2 MB）':'去除图片背景，生成透明底图片'}</p>
+     {mode==='upload'?<button className="vre-upload" onClick={()=>fileInput.current?.click()}><Upload size={20}/>点击或粘贴上传图片</button>:mode==='transparent'?<div className="vre-transparent"><span>点击下方按钮去除当前图片背景</span><button className="vc-btn primary" disabled={!ready} onClick={()=>generate()}><Globe size={13}/>开始透明化</button></div>:<><textarea className="vre-input" aria-label={mode==='image-to-image'?'图片修改要求':'新图片描述'} value={prompt} placeholder={mode==='image-to-image'?'描述要如何修改…':'描述你想要的图片…'} onChange={e=>setInputs({...inputs,[mode==='image-to-image'?'image':'text']:e.target.value})}/><button className="vc-btn primary vre-generate" disabled={!ready||(mode==='text-to-image'&&!prompt.trim())} onClick={()=>generate()}>生成</button></>}
+    </>:asset.kind==='audio'?<div className="vre-audio-controls">
+     <button className="vc-btn" disabled={!ready} onClick={()=>fileInput.current?.click()}><Upload size={13}/>本地上传</button>
+     <VoiceRegenerateDropdown voices={demoVoiceOptions.filter(v=>!v.dedicated).map(v=>({id:v.id,name:v.name,description:v.language,gender:v.gender==='男生'||v.gender==='男孩'?'male':'female'}))} selectedVoice={speaker?.voiceId||''} disabled={!ready} onRegenerate={id=>{const v=demoVoiceOptions.find(v=>v.id===id)!;generate({...speaker,id:speaker?.id||'voice-'+asset.id,name:speaker?.name||asset.name,role:speaker?.role||'narrator',voiceId:v.id,voiceName:v.name,voiceLanguage:v.language});}}/>
+
+    </div>:<>
+     <p className="vre-instruction">填写视频修改要求，或上传本地视频替换。</p><textarea className="vre-input" aria-label="视频修改要求" placeholder="描述要如何修改视频…" value={inputs.video} onChange={e=>setInputs({...inputs,video:e.target.value})}/><div className="vre-video-actions"><button className="vc-btn primary" disabled={!ready||!inputs.video.trim()} onClick={()=>generate()}>生成</button><button className="vc-btn" onClick={()=>fileInput.current?.click()}><Upload size={13}/>本地上传</button></div>
+    </>}
+   </div>
+  </div>
+  <input hidden ref={fileInput} type="file" accept={asset.kind==='image'?'image/*':asset.kind==='audio'?'audio/*':'video/*'} onChange={e=>{upload(e.target.files?.[0]);e.target.value='';}}/>
+ </article>;
 }
 
-export default function VideoResourceEditor({projectId,onClose,initialTab='image',initialAssetId,sceneId,embeddedProject,onSave}:{projectId:string;onClose:()=>void;initialTab?:'image'|'audio'|'video';initialAssetId?:string;sceneId?:string;embeddedProject?:VideoProject;onSave?:(patch:Partial<VideoProject>)=>void}){
+export default function VideoResourceEditor({projectId,onClose,initialTab='image',initialAssetId,sceneId,embeddedProject,onSave}:{projectId:string;onClose:()=>void;initialTab?:'image'|'audio'|'video';initialAssetId?:string;sceneId?:string;embeddedProject?:VideoProject;onSave?:(patch:Partial<VideoProject>,affectedSceneIds:string[])=>void}){
  const storedProject=useVideoCoursewareStore(s=>s.projects[projectId]);
- const project=embeddedProject||(storedProject.workflowVersion===5?courseDraftProject(storedProject):storedProject);
+ const project=embeddedProject||storedProject;
  const openingProject=useRef(project);
- const saveToCourseDraft=!embeddedProject&&project.workflowVersion===5&&project.phase==='ready';
- const initialAsset=project.assets.find(a=>a.id===initialAssetId)||project.assets.find(a=>a.kind===initialTab);
- const [shots,setShots]=useState(()=>structuredClone(project.shots));
- const [readyAssetIds,setReadyAssetIds]=useState(()=>[...project.readyAssetIds]);
+ const [draft,setDraft]=useState(()=>structuredClone(project));
+ const [tab,setTab]=useState(initialTab);
+ const [focusedId,setFocusedId]=useState(initialAssetId);
  const [affectedSceneIds,setAffectedSceneIds]=useState<string[]>([]);
- const [replacementScope,setReplacementScope]=useState<'scene'|'all'|null>(null);
- const [targetSceneId,setTargetSceneId]=useState(sceneId||'');
- const [tab,setTab]=useState<'image'|'audio'|'video'>(initialTab);
- const [selectedId,setSelectedId]=useState(initialAssetId||project?.assets.find(a=>a.kind===initialTab)?.id||'');
- const [speakers,setSpeakers]=useState(()=>project.speakers.map(s=>({...s})));
- const [assets,setAssets]=useState(()=>project?.assets.map(a=>({...a}))||[]);
- const [composition,setComposition]=useState<PlaybackSettings>(()=>copyPlayback(project.composition));
- const [candidate,setCandidate]=useState<MediaAsset|null>(null),[generating,setGenerating]=useState(false),[changed,setChanged]=useState(false);
- const [prompt,setPrompt]=useState(editablePrompt(initialAsset));
- const [imageMode,setImageMode]=useState<'image-to-image'|'text-to-image'|'upload'>(initialAsset?.imageGeneration?.mode||'image-to-image');
- const [referenceUrl,setReferenceUrl]=useState<string|undefined>(initialAsset?.imageGeneration?.referenceUrl||initialAsset?.url);
- const [referenceName,setReferenceName]=useState(initialAsset?.imageGeneration?.referenceName||'当前图片'),[referencePicker,setReferencePicker]=useState(false);
- const referenceFile=useRef<HTMLInputElement>(null);
- const [changedAssetIds,setChangedAssetIds]=useState<string[]>([]);const fileRef=useRef<HTMLInputElement>(null);const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
- useEffect(()=>()=>{if(timer.current)clearTimeout(timer.current);},[]);
- const selected=assets.find(a=>a.id===selectedId)||assets.find(a=>a.kind===tab);
- const hasVideo=project.assets.some(a=>a.kind==='video'&&readyAssetIds.includes(a.id));
- function close(){if(timer.current)clearTimeout(timer.current);onClose();}
- function pick(a:MediaAsset){if(timer.current)clearTimeout(timer.current);setGenerating(false);setCandidate(null);setReplacementScope(null);setTargetSceneId(sceneId||'');setSelectedId(a.id);setPrompt(editablePrompt(a));setImageMode(a.imageGeneration?.mode||'image-to-image');setReferenceUrl(a.imageGeneration?.referenceUrl||a.url);setReferenceName(a.imageGeneration?.referenceName||'当前图片');}
- function switchTab(next:typeof tab){setTab(next);const first=assets.find(a=>a.kind===next&&(!sceneId||a.segmentIds.includes(sceneId)));if(first)pick(first);}
- function generate(){
-  if(imageMode==='upload'||!selected?.url||selected.kind==='image'&&imageMode==='image-to-image'&&!referenceUrl)return;
-  setCandidate(null);setGenerating(true);
-  timer.current=setTimeout(()=>{setGenerating(false);setCandidate({...selected,prompt,text:selected.kind==='audio'?prompt:selected.text,imageGeneration:selected.kind==='image'?{mode:imageMode,referenceUrl:imageMode==='image-to-image'?referenceUrl:undefined,referenceName:imageMode==='image-to-image'?referenceName:undefined}:undefined,revision:(selected.revision||0)+1});},4800);
+ const [changedIds,setChangedIds]=useState<string[]>([]);
+ const [pendingIds,setPendingIds]=useState<string[]>([]);
+ const [discarding,setDiscarding]=useState(false);
+ const [modeTipDismissed,setModeTipDismissed]=useState(false);
+ const cardsRef=useRef<HTMLDivElement>(null);
+ function switchTab(kind:typeof tab){cardsRef.current?.querySelectorAll<HTMLMediaElement>('audio,video').forEach(media=>media.pause());setTab(kind);}
+ const focused=Boolean(embeddedProject&&initialAssetId);
+ const hasVideo=project.assets.some(a=>a.kind==='video'&&project.readyAssetIds.includes(a.id));
+ const onPending=useCallback((id:string,pending:boolean)=>setPendingIds(ids=>pending?ids.includes(id)?ids:[...ids,id]:ids.includes(id)?ids.filter(value=>value!==id):ids),[]);
+ function apply(replacement:MediaAsset,onlyScene?:string,voice?:Speaker){
+  const original=draft.assets.find(a=>a.id===replacement.id);
+  if(!original)return;
+  const next=replaceSceneResource(draft,replacement,onlyScene);
+  const applied=onlyScene&&original.segmentIds.length>1?next.assets.find(a=>a.originAssetId===(original.originAssetId||original.id)&&a.segmentIds.length===1&&a.segmentIds[0]===onlyScene):next.assets.find(a=>a.id===original.id);
+  if(!applied)return;
+  // Audio cards change only the selected resource; other clips by the speaker keep their voice.
+  if(voice&&(voice.voiceId!==draft.speakers.find(s=>s.id===original.speakerId)?.voiceId||voice.voiceName!==draft.speakers.find(s=>s.id===original.speakerId)?.voiceName)){
+   const speakerId=`${voice.id}--${applied.id}`;
+   next.speakers=[...next.speakers.filter(s=>s.id!==speakerId),{...voice,id:speakerId}];
+   applied.speakerId=speakerId;
+  }
+  setDraft(next);if(focused)setFocusedId(applied.id);
+  setAffectedSceneIds(ids=>[...new Set([...ids,...(onlyScene?[onlyScene]:original.segmentIds)])]);
+  setChangedIds(ids=>[...new Set([...ids,applied.id])]);
  }
- function uploadReference(file?:File){
-  if(!file)return;if(!file.type.startsWith('image/')||file.size>2*1024*1024){toast('请选择 2 MB 以内的图片');return;}
-  const reader=new FileReader();reader.onload=()=>{setReferenceUrl(String(reader.result));setReferenceName(file.name);setReferencePicker(false);};reader.readAsDataURL(file);
+ function close(){setDiscarding(true);}
+ function save(){
+  const {assets,composition,speakers,shots,readyAssetIds}=draft;
+  const patch={assets,composition,speakers,shots,readyAssetIds};
+  if(onSave){onSave(patch,affectedSceneIds);onClose();return;}
+  if(project.phase==='ready'){if(storedProject.revision!==openingProject.current.revision){toast('课件版本已变化，请重新打开资源编辑');return;}const error=startResourceUpdate(project.id,{...openingProject.current,...patch},affectedSceneIds);if(error){toast(error);return;}onClose();return;}
+  useVideoCoursewareStore.getState().update(project.id,patch);
+  if(changedVideoIds(draft).length)returnToMaterials(project.id);
+  onClose();toast('素材修改已保存');
  }
- function fileSelected(file?:File){if(!file||!selected)return;const expected=selected.kind==='image'?'image/':selected.kind==='audio'?'audio/':'video/';if(!file.type.startsWith(expected)){toast('文件类型不匹配，请选择对应的图片、音频或视频');return;}if(file.size>2*1024*1024){toast('当前上传文件不能超过 2 MB');return;}const reader=new FileReader();reader.onload=()=>{
- const url=String(reader.result);
- if(selected.kind==='image'){setCandidate({...selected,url,prompt,revision:(selected.revision||0)+1});return;}
- const media=document.createElement(selected.kind==='audio'?'audio':'video');
- media.preload='metadata';media.src=url;
- media.onloadedmetadata=()=>{if(Number.isFinite(media.duration)&&media.duration>0)setCandidate({...selected,url,prompt,text:selected.kind==='audio'?prompt:selected.text,seconds:media.duration,revision:(selected.revision||0)+1});else toast('无法读取文件时长，请换一个文件');media.removeAttribute('src');media.load();};
- media.onerror=()=>{toast('无法读取此文件，请使用可播放的音频或视频');media.removeAttribute('src');media.load();};
-};reader.readAsDataURL(file);}
- function useCandidate(){
-  if(!candidate||!selected||(selected.segmentIds.length>1&&(!replacementScope||(replacementScope==='scene'&&!targetSceneId))))return;
-  const only=selected.segmentIds.length>1&&replacementScope==='scene'?targetSceneId:undefined;
-  const next=replaceSceneResource({...project,assets,composition,speakers,shots,readyAssetIds},candidate,only);
-  setAssets(next.assets);if(only)setSelectedId(next.assets.find(a=>a.originAssetId===(selected.originAssetId||selected.id)&&a.segmentIds.length===1&&a.segmentIds[0]===only)?.id||selected.id);setComposition(next.composition);setShots(next.shots);setReadyAssetIds(next.readyAssetIds);
-  setAffectedSceneIds(ids=>[...new Set([...ids,...(only?[only]:selected.segmentIds)])]);
-  setChangedAssetIds(ids=>[...new Set([...ids,selected.id])]);setChanged(true);setCandidate(null);setReplacementScope(null);
- }
-
- const uses=(selected?.segmentIds||[]).map(id=>project.segments.find(s=>s.id===id)?.title).filter(Boolean);
- const complete=project.phase==='ready';
- const dependentVideoIds=project.shots?changedVideoIds({...project,assets,speakers}):assets.filter(a=>a.kind==='video'&&assets.some(changedAsset=>changedAsset.kind!=='video'&&changedAsset.videoDependency!==false&&!changedAsset.overlay&&changedAsset.audioUse!=='interaction'&&changedAssetIds.includes(changedAsset.id)&&changedAsset.segmentIds.some(id=>a.segmentIds.includes(id)))).map(a=>a.id);
- const referenceChoices=<><button className="vc-btn" onClick={()=>referenceFile.current?.click()}><Plus size={14}/>上传参考图</button><input ref={referenceFile} hidden type="file" accept="image/*" onChange={e=>uploadReference(e.target.files?.[0])}/><div className="vc-picker-grid">{assets.filter(a=>a.kind==='image'&&a.url&&readyAssetIds.includes(a.id)).map(a=><button className="vc-picker-asset" key={a.id} onClick={()=>{setReferenceUrl(a.url);setReferenceName(a.name);setReferencePicker(false);}}><img src={a.url} alt=""/><b>{a.name}</b></button>)}</div></>;
  const body=<>
-  <p className="vc-hint vc-edit-scope">{embeddedProject&&complete?'选择素材，预览修改效果后应用到场景。':saveToCourseDraft?'选择要调整的素材，保存到视频互动课件草稿后，可继续修改并统一生成。':'选择要调整的素材，保存后自动更新相关场景并生成新版本。'}</p>
-  <div className="vc-tabs" role="tablist" aria-label="资源类型">{(['image','audio',...(hasVideo?['video']:[])] as Array<typeof tab>).map(kind=><button key={kind} role="tab" aria-selected={tab===kind} className={tab===kind?'active':''} onClick={()=>switchTab(kind)}>{kind==='image'?<ImageIcon size={16}/>:kind==='audio'?<Volume2 size={16}/>:<Film size={16}/ >}{kind==='image'?'图片':kind==='audio'?'旁白与角色配音':'视频'}</button>)}</div>
-  <div className="vc-editor-columns">
-   <aside className="vc-resource-list">{assets.filter(a=>a.kind===tab&&(!sceneId||a.segmentIds.includes(sceneId))).map(a=><button key={a.id} disabled={!readyAssetIds.includes(a.id)} className={selected?.id===a.id?'active':''} onClick={()=>pick(a)}>{a.kind==='audio'?<Volume2 size={19}/>:readyAssetIds.includes(a.id)?<img src={a.poster||a.url} alt=""/>:<Loader2 size={19} className="vc-spin"/>}<span><b>{a.name}</b><small>{a.kind==='audio'?project.speakers.find(s=>s.id===a.speakerId)?.name:a.kind==='video'?a.seconds+' 秒':a.role}</small></span></button>)}</aside>
-   <main>{selected&&<>
-    <h3>{selected.name}</h3>
-    <div className="vc-resource-workbench">
-     <div className="vc-resource-preview"><>{selected.kind==='audio'?<ResourceAudioPlayer key={(candidate||selected).url} url={(candidate||selected).url} seconds={(candidate||selected).seconds}/>:<AssetPreview asset={candidate||selected} ready={readyAssetIds.includes(selected.id)} showAudioText={false}/>}</><p className="vc-hint">使用位置：{uses.join('、')}</p></div>
-     <div className="vc-resource-compose">
-      {selected.kind==='image'&&<><div className="vc-options" role="group" aria-label="图片生成方式"><button className={imageMode==='image-to-image'?'selected':''} disabled={generating} onClick={()=>setImageMode('image-to-image')}>图生图</button><button className={imageMode==='text-to-image'?'selected':''} disabled={generating} onClick={()=>setImageMode('text-to-image')}>文生图</button><button className={imageMode==='upload'?'selected':''} disabled={generating} onClick={()=>setImageMode('upload')}>本地上传</button></div><p className="vc-hint">{imageMode==='image-to-image'?'基于参考图片，描述要保留和修改的部分。':imageMode==='upload'?'上传本地图片（不超过 2 MB），预览后替换。':'根据文字描述生成一张新图片。'}</p>{imageMode==='image-to-image'&&<div className="vc-image-input">{referenceUrl?<img src={referenceUrl} alt={referenceName}/>:<ImageIcon size={26}/ >}<span>{referenceUrl?referenceName:'请选择参考图片'}</span><button className="vc-text-btn" disabled={generating} onClick={()=>setReferencePicker(true)}>{referenceUrl?'更换参考图':'选择参考图'}</button>{referenceUrl&&<button className="vc-icon" disabled={generating} aria-label="移除参考图" onClick={()=>setReferenceUrl(undefined)}><X size={14}/></button>}</div>}</>}
-      {selected.kind==='audio'&&selected.speakerId&&<><p className="vc-hint">说话人：{speakers.find(s=>s.id===selected.speakerId)?.name}</p>{project.workflowVersion===5&&<GenerationPreferencePicker controls="voice" voiceLabel="说话人音色" showMode={false} value={{voiceMode:'manual',voiceName:displayVoiceName(speakers.find(s=>s.id===selected.speakerId)?.voiceName),voiceId:speakers.find(s=>s.id===selected.speakerId)?.voiceId,voiceLanguage:speakers.find(s=>s.id===selected.speakerId)?.voiceLanguage||'中文'}} onChange={v=>{setSpeakers(speakers.map(s=>s.id===selected.speakerId?{...s,voiceName:v.voiceName||'智能匹配',voiceId:v.voiceId,voiceLanguage:v.voiceLanguage}:s));setChanged(true);setAffectedSceneIds(ids=>[...new Set([...ids,...assets.filter(a=>a.kind==='audio'&&a.speakerId===selected.speakerId).flatMap(a=>a.segmentIds)])]);setChangedAssetIds(ids=>[...new Set([...ids,...assets.filter(a=>a.kind==='audio'&&a.speakerId===selected.speakerId).map(a=>a.id)])]);}}/>}<p className="vc-hint">{embeddedProject&&complete?'修改音色先应用到本场，该说话人的其他配音可在生成前选择同步。':<>修改音色会同步应用到本课该说话人的 {assets.filter(a=>a.kind==='audio'&&a.speakerId===selected.speakerId).length} 条配音。</>}</p></>}
-      {selected.kind==='image'&&imageMode==='upload'?<button className="vc-local-upload" onClick={()=>fileRef.current?.click()}><Upload size={24}/><b>点击上传本地图片</b><span>支持 PNG、JPG、WebP，最大 2 MB</span></button>:<><div className="vc-form"><label>{selected.kind==='audio'?'配音文本':selected.kind==='image'&&imageMode==='image-to-image'?'修改描述':'生成描述'}<textarea aria-label="资源生成描述" value={prompt} placeholder={(selected.originAssetId||selected.id)==='cover-voice'?'原录音逐字台词未留存。保留试听；重新生成时填写新台词。':'输入新的生成描述'} onChange={e=>setPrompt(e.target.value)}/></label></div>
-      <div className="vc-resource-actions"><button className="vc-btn primary" disabled={generating||!prompt.trim()||!readyAssetIds.includes(selected.id)||(selected.kind==='image'&&imageMode==='image-to-image'&&!referenceUrl)} onClick={generate}>{generating?<Loader2 className="vc-spin" size={14}/>:<RefreshCw size={14}/ >}{generating?'正在生成…':selected.kind==='image'?(imageMode==='image-to-image'?'按参考图生成':'按文字生成'):'重新生成'}</button>{selected.kind!=='image'&&<button className="vc-btn" disabled={generating} onClick={()=>fileRef.current?.click()}><Upload size={14}/>本地上传</button>}</div></>}
-     </div>
-    </div>
-    <input hidden ref={fileRef} type="file" accept={selected.kind==='image'?'image/*':selected.kind==='audio'?'audio/*':'video/*'} onChange={e=>fileSelected(e.target.files?.[0])}/>
-    {candidate&&<div className="vc-candidate">
-     {uses.length>1?<><strong>这份素材用于 {uses.length} 个场景，要替换哪些？</strong>
-      <div className="vc-options vc-resource-scope" role="group" aria-label="素材替换范围">
-       <button className={replacementScope==='scene'?'selected':''} aria-pressed={replacementScope==='scene'} onClick={()=>setReplacementScope('scene')}>{sceneId?'仅当前场景':'只替换一个场景'}</button>
-       <button className={replacementScope==='all'?'selected':''} aria-pressed={replacementScope==='all'} onClick={()=>setReplacementScope('all')}>所有使用它的场景（{uses.length}）</button>
-      </div>
-      {replacementScope==='scene'&&!sceneId&&<div className="vc-resource-scope-scenes" role="group" aria-label="选择替换场景">{project.segments.filter(scene=>selected.segmentIds.includes(scene.id)).map(scene=><button key={scene.id} className={targetSceneId===scene.id?'selected':''} aria-pressed={targetSceneId===scene.id} onClick={()=>setTargetSceneId(scene.id)}>{scene.title}</button>)}</div>}
-     </>:<p><Check size={15}/>确认预览效果后替换。</p>}
-     <div className="vc-actions"><button className="vc-btn" onClick={()=>setCandidate(null)}>放弃本次修改</button><button className="vc-btn primary" disabled={uses.length>1&&(!replacementScope||(replacementScope==='scene'&&!targetSceneId))} onClick={useCandidate}>{selected.kind==='image'?'使用这张图片':selected.kind==='audio'?'使用这段配音':'使用这段视频'}</button></div>
-    </div>}
-
-   </>}</main>
+  <div className="vre-toolbar">
+   {!focused&&<div className="vre-tabs" role="tablist" aria-label="资源类型">{(['image','audio',...(hasVideo?['video']:[])] as Array<typeof tab>).map(kind=><button key={kind} role="tab" aria-selected={tab===kind} className={tab===kind?'active':''} onClick={()=>switchTab(kind)}>{kind==='image'?<ImageIcon size={15}/>:kind==='audio'?<Volume2 size={15}/>:<Film size={15}/ >}{kind==='image'?'图片资源':kind==='audio'?'音频资源':'视频资源'}<small>{draft.assets.filter(a=>a.kind===kind&&(!sceneId||a.segmentIds.includes(sceneId))).length}</small></button>)}</div>}
   </div>
-  {referencePicker&&!embeddedProject&&<VideoModal title="选择图生图参考图片" onClose={()=>setReferencePicker(false)}>{referenceChoices}</VideoModal>}
-  <footer className="vc-editor-footer"><button className="vc-btn" onClick={close}><ArrowLeft size={14}/>取消</button><span>{embeddedProject?'应用后返回场景，场景和素材修改统一保存。':saveToCourseDraft?'保存后在课件卡片点击「全部生成」，更新完整视频互动课件。':complete?'保存后自动更新相关场景并生成新版本，旧版本保留。':'素材修改随场景方案一起保存。'}</span><button className="vc-btn primary" disabled={!changed||generating||Boolean(candidate)} onClick={()=>{
- const patch={assets,composition,speakers,shots,readyAssetIds};
- if(onSave){onSave(patch);onClose();return;}
- if(saveToCourseDraft){
-  if(!saveCourseResourceDraft(openingProject.current,{...openingProject.current,...patch},affectedSceneIds)){toast('当前版本或草稿已变化，请重新打开资源编辑后再试');return;}
-  toast('资源修改已保存到视频互动课件草稿');onClose();return;
- }
- if(complete){
-  const error=startResourceUpdate(project.id,{...project,...patch},affectedSceneIds);
-  if(error){toast(error);return;}
-  onClose();return;
- }
- const store=useVideoCoursewareStore.getState();store.update(project.id,patch);
- if(dependentVideoIds.length)returnToMaterials(project.id);
- onClose();toast('素材修改已保存');
-}}>{embeddedProject?'应用到场景':saveToCourseDraft?'保存修改':complete?'保存修改，生成新版本':'保存素材修改'}</button></footer></>;
-
- return embeddedProject?<div className="se-resource-editor">{referencePicker?<><button className="vc-text-btn" onClick={()=>setReferencePicker(false)}><ArrowLeft size={14}/>返回资源编辑</button><h3>选择图生图参考图片</h3>{referenceChoices}</>:body}</div>:<VideoModal title="编辑资源" onClose={close}>{body}</VideoModal>;
+  <div ref={cardsRef} className={'vre-cards'+(focused?' vre-focused':'')}>
+   {draft.assets.filter(a=>focused?a.id===focusedId:(!sceneId||a.segmentIds.includes(sceneId))).map(asset=><div key={`${asset.id}:${asset.revision||0}`} hidden={!focused&&asset.kind!==tab}><ResourceEditCard asset={asset} speaker={draft.speakers.find(s=>s.id===asset.speakerId)} ready={draft.readyAssetIds.includes(asset.id)} sceneId={sceneId} showModeTip={!modeTipDismissed&&(focused||asset.id===draft.assets.find(a=>a.kind==='image')?.id)} onDismissModeTip={()=>setModeTipDismissed(true)} onApply={apply} onPending={onPending}/></div>)}
+  </div>
+  <footer className="vc-editor-footer vre-footer">{discarding&&<div className="vre-cancel-popover" role="alertdialog" aria-label="确认取消资源修改"><p>取消后当前改动将不会生效，确认取消吗？</p><div><button className="vc-btn" onClick={()=>setDiscarding(false)}>取消</button><button className="vc-btn danger" onClick={onClose}>确认</button></div></div>}<button className="vc-btn" onClick={close}>取消</button><button className="vc-btn primary" disabled={!changedIds.length||Boolean(pendingIds.length)} onClick={save}>{embeddedProject?'确认替换，返回场景':'确认全部替换'}</button></footer>
+ </>;
+ return embeddedProject?<div className="se-resource-editor vre-editor">{body}</div>:<VideoModal className="vre-modal" title="编辑资源" onClose={close}>{body}</VideoModal>;
 }

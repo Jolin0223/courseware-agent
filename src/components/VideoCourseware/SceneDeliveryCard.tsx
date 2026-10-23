@@ -7,6 +7,7 @@ import { VideoModal } from './Shared';
 import { runtimeURL, sendRuntimeSettings } from './runtime';
 import { handoffNestedScroll } from './nestedScroll';
 import SceneEditor from './SceneEditor';
+import SceneKindBadge from './SceneKindBadge';
 import { courseDraftProject, discardCourseDraft, saveCourseSceneDraft, startCourseDraft } from './courseDraftActions';
 import toast from '../../utils/toast';
 
@@ -26,7 +27,7 @@ function CourseDraftBar({project}:{project:VideoProject}){
   <div className="vc-course-draft-actions">
    <span role="status">{busy?'完成后可预览，当前仍可查看上一版':'草稿已保存，当前预览为上一版'}</span>
    <button className="vc-text-btn" disabled={busy} onClick={()=>setDiscarding(true)}>放弃草稿</button>
-   <button className="vc-btn primary" disabled={busy} onClick={()=>startCourseDraft(project.id)}>{busy?<><Loader2 size={14} className="vc-spin"/>生成中…</>:draft.status==='failed'?'重新生成视频互动课件':'全部生成'}</button>
+   <button className="vc-btn primary" disabled={busy||Object.values(project.sceneRevisions||{}).some(r=>r.status==='generating')} onClick={()=>startCourseDraft(project.id)}>{busy?<><Loader2 size={14} className="vc-spin"/>生成中…</>:draft.status==='failed'?'重新生成视频互动课件':'全部生成'}</button>
   </div>
   {discarding&&<div className="vc-draft-discard" role="dialog" aria-label="放弃视频互动课件草稿"><strong>放弃这次已保存的全部修改？</strong><div><button className="vc-btn" onClick={()=>setDiscarding(false)}>取消</button><button className="vc-btn danger" onClick={()=>discardCourseDraft(project.id)}>放弃草稿</button></div></div>}
  </section>;
@@ -46,11 +47,11 @@ export function SceneDeliveryList({project,complete=false,version=project.revisi
   <div className="vc-delivery-types" aria-label="场景类型">{kinds.map(({kind,label,Icon})=><span key={kind} className={'vc-kind vc-kind-'+kind}><Icon size={13}/>{label}<b>{project.segments.filter(s=>s.kind===kind).length}</b></span>)}</div>
   <div className="vc-result-scene-list vc-delivery-list" role="region" aria-label="按教学顺序排列的场景" tabIndex={0} onWheel={handoffNestedScroll}>{project.segments.map((scene,i)=><div className="vc-result-scene" data-delivery-scene={scene.id} key={scene.id}>
    <span className="vc-order">{i+1}</span>
-   <span className="vc-result-scene-copy"><b>{scene.title}</b><small>{kinds.find(k=>k.kind===scene.kind)!.label}</small></span>
+   <span className="vc-result-scene-copy"><b>{scene.title}</b><SceneKindBadge kind={scene.kind}/></span>
    <div className="vc-scene-row-actions">{complete&&<><button className="vc-text-btn" onClick={()=>setSelected(scene.id)}><Play size={13}/>预览</button><button className="vc-text-btn" disabled={latest&&busy} onClick={()=>setEditing(scene.id)}><PencilLine size={13}/>{latest?'修改':'查看方案'}</button></>}{latest&&current?.courseDraft?.sceneIds.includes(scene.id)&&<small className="vc-draft-marker">已保存修改</small>}</div>
   </div>)}</div>
   {complete&&latest&&current&&<CourseDraftBar project={current}/>}
-  {editing&&<SceneEditor key={editing} project={editorProject} sceneId={editing} readOnly={!latest} onClose={()=>setEditing(null)} onSaveDraft={draft=>{const saved=saveCourseSceneDraft(editorProject,draft,editing);toast(saved?'已保存到视频互动课件草稿':'当前无法保存，请重新打开场景后再试');return saved;}}/>}
+  {editing&&<SceneEditor key={editing} project={editorProject} sceneId={editing} readOnly={!latest} onClose={()=>setEditing(null)} onSaveDraft={(draft,scope)=>{const saved=saveCourseSceneDraft(editorProject,draft,editing,scope);toast(saved?'已保存到视频互动课件草稿':'当前无法保存，请重新打开场景后再试');return saved;}}/>}
   {selected&&<VideoModal title={'场景预览 · '+project.segments.find(s=>s.id===selected)?.title} onClose={()=>setSelected(null)}><iframe ref={frame} className="vc-lesson" title="场景课件预览" src={url+'&previewOnly=1'} onLoad={()=>sendRuntimeSettings(frame.current?.contentWindow,previewProject,project.composition)} allow="autoplay; fullscreen"/><p className="vc-hint">正在预览第 {version} 版中的这一场景；完整课件可在右侧查看。</p></VideoModal>}
  </>;
 }

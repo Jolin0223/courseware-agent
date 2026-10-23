@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ConfirmationDockContext } from './ConfirmationDockContext';
-import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Film, Gamepad2, Layers, ListOrdered, Loader2, PencilLine, Plus, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Film, ListOrdered, Loader2, PencilLine, Plus, X } from 'lucide-react';
 import type { MediaAsset, OutlineChapter, VideoProject, VideoSegment, WorkflowStage } from '../../data/videoCourseware/model';
 import { outlineIssues } from '../../data/videoCourseware/outline';
 import { sceneGenerationIssues } from '../../data/videoCourseware/sceneJobs';
@@ -15,10 +15,10 @@ import RequirementCard from '../Generator/RequirementCard';
 import ImageGenerationPanelV2 from '../Generator/ImageGenerationPanelV2';
 import AudioGenerationPanel from '../Generator/AudioGenerationPanel';
 import SceneDeliveryCard from './SceneDeliveryCard';
+import Kind from './SceneKindBadge';
 import { handoffNestedScroll } from './nestedScroll';
 import './outlineSceneFlow.css';
 
-function Kind({kind}:{kind:VideoSegment['kind']}){return <span className={'vc-kind vc-kind-'+kind}>{kind==='h5'?<Gamepad2 size={13}/>:kind==='mixed'?<Layers size={13}/>:<Film size={13}/ >}{kind==='video'?'视频页面':kind==='mixed'?'视频＋互动页面':'互动页面'}</span>;}
 function Controls({project}:{project:VideoProject}){
  const store=useVideoCoursewareStore();
  if(!project.job)return null;
@@ -127,7 +127,7 @@ function SceneCard({project,scene,index,readOnly}:{project:VideoProject;scene:Vi
  const issues=sceneGenerationIssues(project,scene.id);
  const review=project.sceneReviews?.[scene.id];
  return <article className="of-scene" data-scene-id={scene.id}>
-  <div className="of-scene-summary"><img className="of-scene-type-art" src={`/video-courseware/scene-types/${scene.kind==='h5'?'interactive':scene.kind}.png`} alt="" data-scene-type={scene.kind}/><div className="of-scene-copy"><div className="of-scene-title-line"><span className="of-scene-index">场景 {index+1}</span><h4>{scene.title}</h4></div><div className="of-scene-meta-line"><Kind kind={scene.kind}/>{review?.status==='edited'&&<span className="of-scene-review is-edited">已编辑保存</span>}</div></div><button className="vc-text-btn" onClick={()=>setEditing(true)}><PencilLine size={14}/>{readOnly?'查看':'编辑'}</button></div>
+  <div className="of-scene-summary"><span className="vc-order">{index+1}</span><div className="of-scene-copy"><div className="of-scene-title-line"><h4>{scene.title}</h4></div><div className="of-scene-meta-line"><Kind kind={scene.kind}/>{review?.status==='edited'&&<span className="of-scene-review is-edited">已编辑保存</span>}</div></div><button className="vc-text-btn" onClick={()=>setEditing(true)}><PencilLine size={14}/>{readOnly?'查看':'编辑'}</button></div>
   {!readOnly&&issues.map(issue=><p className="vc-error" key={issue}>{issue}</p>)}
   {editing&&<SceneEditor project={project} sceneId={scene.id} readOnly={readOnly} onClose={()=>setEditing(false)}/>}
  </article>;

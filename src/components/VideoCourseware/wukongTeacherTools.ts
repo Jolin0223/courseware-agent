@@ -4,8 +4,9 @@ export const wukongTeacherToolsCSS = `
 /* All dimensions use the same 1920×1080 coordinates as the lesson canvas. */
 #teacher-tools{position:absolute;inset:0;width:1920px;height:1080px;pointer-events:none;color:#284e3b;font-family:TeacherRound,'PingFang SC',sans-serif}
 #teacher-tools [hidden]{display:none!important}
-#tools-trigger{position:absolute;left:32px;bottom:32px;display:flex;align-items:center;justify-content:center;gap:8px;width:184px;height:56px;padding:8px 14px;border:2px solid #edcf8f;border-radius:14px;background:linear-gradient(135deg,#315f49,#1c4939);color:#fff1c6;box-shadow:0 4px 0 #153b2bb3,0 6px 20px #183e3333;pointer-events:auto;cursor:pointer;font:inherit;font-size:26px;line-height:1.2}
+#tools-trigger{position:absolute;left:32px;bottom:32px;display:flex;align-items:center;justify-content:center;gap:8px;width:184px;height:56px;padding:8px 14px;border:2px solid #edcf8f;border-radius:14px;background:linear-gradient(135deg,#315f49,#1c4939);color:#fff1c6;box-shadow:0 4px 0 #153b2bb3,0 6px 20px #183e3333;pointer-events:auto;cursor:grab;touch-action:none;user-select:none;font:inherit;font-size:26px;line-height:1.2}
 #tools-trigger svg{width:28px;height:28px;flex-shrink:0;color:#ebc676}
+#tools-trigger:active{cursor:grabbing}
 #tools-trigger:hover{background:#386d50}
 #tools-trigger:focus-visible,#tools-close:focus-visible,#tools-list button:focus-visible{outline:3px solid #dea93b;outline-offset:-3px}
 #tools-shade{position:absolute;inset:0;pointer-events:none}

@@ -39,7 +39,26 @@ export function buildCoursewareShellHTML(
       };
       for(const chapter of nav.chapters||[])addGroup(chapter.title,chapter.sceneIds);
       addGroup('其他教学环节',nav.scenes.map(scene=>scene.id));sync();
-      trigger.onclick=()=>{trigger.hidden=true;shade.hidden=false;trigger.setAttribute('aria-expanded','true');const selected=list.querySelector('[aria-current="step"]');selected?.scrollIntoView({block:'nearest'});(selected||document.getElementById('tools-close')).focus()};
+      let drag=null,suppressClick=false;
+      trigger.addEventListener('pointerdown',event=>{
+        if(event.button!==0)return;
+        const canvas=document.getElementById('canvas').getBoundingClientRect();
+        drag={id:event.pointerId,x:event.clientX,y:event.clientY,left:trigger.offsetLeft,top:trigger.offsetTop,scale:canvas.width/1920,moved:false};
+        suppressClick=false;trigger.setPointerCapture(event.pointerId);
+      });
+      trigger.addEventListener('pointermove',event=>{
+        if(!drag||event.pointerId!==drag.id)return;
+        const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
+        if(!drag.moved&&Math.hypot(dx,dy)<5)return;
+        drag.moved=true;event.preventDefault();
+        trigger.style.left=Math.max(8,Math.min(1920-trigger.offsetWidth-8,drag.left+dx/drag.scale))+'px';
+        trigger.style.top=Math.max(8,Math.min(1080-trigger.offsetHeight-8,drag.top+dy/drag.scale))+'px';trigger.style.bottom='auto';
+      });
+      const finishDrag=event=>{if(!drag||event.pointerId!==drag.id)return;suppressClick=drag.moved;drag=null;if(trigger.hasPointerCapture(event.pointerId))trigger.releasePointerCapture(event.pointerId)};
+      trigger.addEventListener('pointerup',finishDrag);trigger.addEventListener('pointercancel',finishDrag);
+      trigger.addEventListener('lostpointercapture',()=>{if(drag){suppressClick=drag.moved;drag=null}});
+      trigger.onclick=(event)=>{if(suppressClick&&event.detail!==0){suppressClick=false;return;}suppressClick=false;
+        const panel=document.getElementById('tools-panel');panel.style.left=Math.max(16,Math.min(1920-960-16,trigger.offsetLeft))+'px';panel.style.top=Math.max(16,Math.min(1080-540-16,trigger.offsetTop-540-12))+'px';panel.style.bottom='auto';trigger.hidden=true;shade.hidden=false;trigger.setAttribute('aria-expanded','true');const selected=list.querySelector('[aria-current="step"]');selected?.scrollIntoView({block:'nearest'});(selected||document.getElementById('tools-close')).focus()};
       document.getElementById('tools-close').onclick=closeTools;
       document.addEventListener('keydown',event=>{
         if(shade.hidden)return;

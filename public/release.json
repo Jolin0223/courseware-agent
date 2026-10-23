@@ -1,5 +1,5 @@
 {
-  "release": "20261023-scene-resource-editing",
-  "date": "2026-10-23",
-  "scope": "整课生成、场景方案、资源替换、素材引用与教师工具交互"
+  "release": "20261024-resource-voice-picker",
+  "date": "2026-10-24",
+  "scope": "视频互动课件编辑资源：中英音色筛选、分类图标与两列音色下拉"
 }

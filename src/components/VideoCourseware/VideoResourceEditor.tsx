@@ -9,8 +9,7 @@ import { startResourceUpdate } from './sceneRevisionActions';
 import { replaceSceneResource } from '../../data/videoCourseware/resourceReplacement';
 import { VideoModal, AssetPreview } from './Shared';
 import ResourceAudioPlayer from './ResourceAudioPlayer';
-import { demoVoiceOptions } from '../../data/augustDemoData';
-import { VoiceRegenerateDropdown } from '../Generator/ResourceEditModal';
+import VideoVoicePicker from './VideoVoicePicker';
 import ImageModeTip, { dismissImageModeTip } from '../Generator/ImageModeTip';
 import toast from '../../utils/toast';
 
@@ -98,7 +97,7 @@ function ResourceEditCard({asset,speaker,ready,sceneId,showModeTip,onDismissMode
      {mode==='upload'?<button className="vre-upload" onClick={()=>fileInput.current?.click()}><Upload size={20}/>点击或粘贴上传图片</button>:mode==='transparent'?<div className="vre-transparent"><span>点击下方按钮去除当前图片背景</span><button className="vc-btn primary" disabled={!ready} onClick={()=>generate()}><Globe size={13}/>开始透明化</button></div>:<><textarea className="vre-input" aria-label={mode==='image-to-image'?'图片修改要求':'新图片描述'} value={prompt} placeholder={mode==='image-to-image'?'描述要如何修改…':'描述你想要的图片…'} onChange={e=>setInputs({...inputs,[mode==='image-to-image'?'image':'text']:e.target.value})}/><button className="vc-btn primary vre-generate" disabled={!ready||(mode==='text-to-image'&&!prompt.trim())} onClick={()=>generate()}>生成</button></>}
     </>:asset.kind==='audio'?<div className="vre-audio-controls">
      <button className="vc-btn" disabled={!ready} onClick={()=>fileInput.current?.click()}><Upload size={13}/>本地上传</button>
-     <VoiceRegenerateDropdown voices={demoVoiceOptions.filter(v=>!v.dedicated).map(v=>({id:v.id,name:v.name,description:v.language,gender:v.gender==='男生'||v.gender==='男孩'?'male':'female'}))} selectedVoice={speaker?.voiceId||''} disabled={!ready} onRegenerate={id=>{const v=demoVoiceOptions.find(v=>v.id===id)!;generate({...speaker,id:speaker?.id||'voice-'+asset.id,name:speaker?.name||asset.name,role:speaker?.role||'narrator',voiceId:v.id,voiceName:v.name,voiceLanguage:v.language});}}/>
+     <VideoVoicePicker selectedVoice={speaker?.voiceId} assetName={asset.name} disabled={!ready} onRegenerate={v=>generate({...speaker,id:speaker?.id||'voice-'+asset.id,name:speaker?.name||asset.name,role:speaker?.role||'narrator',voiceId:v.id,voiceName:v.name,voiceLanguage:v.language})}/>
 
     </div>:<>
      <p className="vre-instruction">填写视频修改要求，或上传本地视频替换。</p><textarea className="vre-input" aria-label="视频修改要求" placeholder="描述要如何修改视频…" value={inputs.video} onChange={e=>setInputs({...inputs,video:e.target.value})}/><div className="vre-video-actions"><button className="vc-btn primary" disabled={!ready||!inputs.video.trim()} onClick={()=>generate()}>生成</button><button className="vc-btn" onClick={()=>fileInput.current?.click()}><Upload size={13}/>本地上传</button></div>

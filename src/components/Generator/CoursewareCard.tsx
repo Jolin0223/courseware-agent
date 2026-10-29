@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette } from 'lucide-react';
+import { Copy, Download, CheckCircle2, Edit3, MessageSquareWarning, BarChart3, Palette, X } from 'lucide-react';
 import type { Courseware, GenerationPreferences, LearningDataRecoveryItem, LearningDataRecoveryRequest, LearningDataReportCapability, VisualStyleRegenerationRequest, VoiceOption } from '../../types';
 import { useUIStore } from '../../store/uiStore';
 import { openCloneWindow } from '../../utils/cloneWindow';
@@ -13,6 +13,12 @@ import HtmlTypeBadge from '../common/HtmlTypeBadge';
 import VideoTypeBadge from '../common/VideoTypeBadge';
 import { demoVoiceOptions, generationModeOptions, getGenerationModeByModels, imageModelOptions } from '../../data/augustDemoData';
 import { getVisualStyleSelection } from '../../data/visualStylePresets';
+
+// Demo activation is stored locally; production should use the actual release time and account state.
+const STYLE_GUIDE_KEY = 'style-update-guide-v2';
+const styleGuideActivation = (() => {
+  try { const existing = localStorage.getItem(`${STYLE_GUIDE_KEY}-activated`); if (existing) return Number(existing); const now = Date.now(); localStorage.setItem(`${STYLE_GUIDE_KEY}-activated`, String(now)); return now; } catch { return Date.now(); }
+})();
 
 // 默认音色选项
 const RESOURCE_VOICES: VoiceOption[] = demoVoiceOptions.map((voice, index) => ({
@@ -52,8 +58,12 @@ export default function CoursewareCard({
   generationPreferences,
   learningDataReportCapability,
   sceneContent,
+  resultTimestamp,
+  resultId,
 }: {
   sceneContent?: React.ReactNode;
+  resultTimestamp?: Date | string;
+  resultId?: string;
   courseware: Courseware;
   version?: string;
   isLatest?: boolean;
@@ -71,6 +81,21 @@ export default function CoursewareCard({
   const [audios, setAudios] = useState(MOCK_AUDIOS);
   const [editDisabledTooltip, setEditDisabledTooltip] = useState(false);
   const [styleDisabledTooltip, setStyleDisabledTooltip] = useState(false);
+  const [showStyleUpdateTip, setShowStyleUpdateTip] = useState(false);
+  useEffect(() => {
+    if (!isLatestProp || videoProjectId || !resultId || !resultTimestamp || new Date(resultTimestamp).getTime() <= styleGuideActivation) return;
+    try {
+      if (localStorage.getItem(`${STYLE_GUIDE_KEY}-dismissed`)) return;
+      const first = localStorage.getItem(`${STYLE_GUIDE_KEY}-result`);
+      if (first && first !== resultId) return;
+      if (!first) localStorage.setItem(`${STYLE_GUIDE_KEY}-result`, resultId);
+      setShowStyleUpdateTip(true);
+    } catch { setShowStyleUpdateTip(true); }
+  }, [isLatestProp, videoProjectId, resultId, resultTimestamp]);
+  const dismissStyleUpdateTip = () => {
+    setShowStyleUpdateTip(false);
+    try { localStorage.setItem(`${STYLE_GUIDE_KEY}-dismissed`, '1'); } catch { /* storage may be unavailable */ }
+  };
   const [reportDisabledTooltip, setReportDisabledTooltip] = useState(false);
   const [isLatest, setIsLatest] = useState(isLatestProp);
   const [currentVersion, setCurrentVersion] = useState(version);
@@ -448,6 +473,7 @@ export default function CoursewareCard({
                 const inheritedMode = generationModeOptions.find(mode => mode.id === generationPreferences?.generationModeId)
                   || getGenerationModeByModels(generationPreferences?.htmlModelId, generationPreferences?.imageModelId);
                 setStyleGenerationModeId(inheritedMode.id);
+                dismissStyleUpdateTip();
                 setShowVisualStyleModal(true);
               }}
               disabled={Boolean(videoProjectId)}
@@ -461,6 +487,12 @@ export default function CoursewareCard({
               调整风格
             </button>
             {videoProjectId&&<span className="cw-coming-soon-tip" role="tooltip">敬请期待</span>}
+            {isLatest && !videoProjectId && showStyleUpdateTip && (
+              <div className="style-update-guide" role="note">
+                <span>画面风格效果更好啦，试试吧，不满意可撤回</span>
+                <button type="button" aria-label="关闭风格更新提示" onClick={dismissStyleUpdateTip}><X size={14} /></button>
+              </div>
+            )}
             {styleDisabledTooltip && !isLatest && (
               <div style={{
                 position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',

@@ -1075,3 +1075,11 @@
 .aug-voice-clone-mask{z-index:32010}
 
 .ci-scene-image-hint { grid-column:1 / -1; display:block; margin:0; font-size:12px; line-height:1.6; color:var(--agent-primary); font-weight:500; }
+
+/* One-line release hint floats outside the card without changing its height. */
+.style-update-guide { position:absolute; left:50%; bottom:calc(100% + 9px); transform:translateX(-50%); display:flex; align-items:center; gap:6px; padding:7px 8px 7px 11px; border-radius:7px; background:#1e293b; color:#fff; box-shadow:0 4px 12px rgba(15,23,42,.2); white-space:nowrap; font-size:12px; line-height:18px; z-index:50; animation:style-guide-flash .6s ease-in-out 2; }
+.style-update-guide::after { content:''; position:absolute; bottom:-5px; left:calc(50% - 5px); width:10px; height:10px; transform:rotate(45deg); background:#1e293b; }
+.style-update-guide button { flex:none; display:grid; place-items:center; width:18px; height:18px; padding:0; border:0; border-radius:4px; color:#cbd5e1; background:transparent; cursor:pointer; }
+.style-update-guide button:hover, .style-update-guide button:focus-visible { background:#475569; color:white; }
+@keyframes style-guide-flash { 0%, 100% { transform:translate(-50%, 0); } 50% { transform:translate(-50%, -5px); } }
+@media (prefers-reduced-motion:reduce) { .style-update-guide { animation:none; } }

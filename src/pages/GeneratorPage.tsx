@@ -2171,6 +2171,8 @@ function AssistantMessage({
             version={`第${versionNum}版`}
             sceneContent={result.videoProjectId ? <VideoResultScenes projectId={result.videoProjectId} version={versionNum}/> : undefined}
             isLatest={isLatestVersion}
+            resultTimestamp={message.timestamp}
+            resultId={message.id}
             onOpenPreview={onOpenPreview}
             onLearningDataRecoveryRequest={onLearningDataRecoveryRequest}
             onVisualStyleRegenerate={onVisualStyleRegenerate}

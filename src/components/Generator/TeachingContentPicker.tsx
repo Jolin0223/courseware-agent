@@ -29,6 +29,10 @@ import toast from '../../utils/toast';
 import './augustDemo.css';
 import './TeachingContentPicker.css';
 
+function CloudFolderIcon({size=18}:{size?:number}) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7a3 3 0 0 1 3-3h4l3 3h5a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3Z"/><path d="M9 16a2 2 0 0 1-.3-4 3 3 0 0 1 5.6 0A2 2 0 0 1 14 16Z"/></svg>;
+}
+
 type PickerMode = 'question-bank' | 'word-book' | 'cloud-pages' | null;
 type DemoQuestion = TeachingQuestionItem;
 type DemoWord = TeachingWordItem & { unit: string };
@@ -110,7 +114,7 @@ const cloudFiles = [
 ];
 
 const menuItems = [
-  { id: 'cloud-pages', icon: Cloud, title: '从云盘课件选页面', description: '提取指定页面的内容、风格或玩法' },
+  { id: 'cloud-pages', icon: CloudFolderIcon, title: '从云盘课件选页面', description: '提取指定页面的内容、风格或玩法' },
   { id: 'question-bank', icon: Database, title: '从学科题库选题', description: '将所选题目做成互动练习、闯关或讲评' },
   { id: 'word-book', icon: BookOpen, title: '从英语词书选词', description: '围绕所选单词生成认读、听音、拼写或口语练习' },
 ] as const;
@@ -307,11 +311,6 @@ export default function TeachingContentPicker({
           )}
           {validationMessage && <span className="iteach-word-limit-message" role="alert">{validationMessage}</span>}
         </div>
-      ) : mode === 'cloud-pages' ? (
-        <button className="iteach-footer-select-all" onClick={() => {
-          setValidationMessage('');
-          setSelectedPages(selectedPages.size === selectedCloudFile.pages ? new Set() : new Set(Array.from({ length: selectedCloudFile.pages }, (_, index) => index + 1)));
-        }}><span className={selectedPages.size === selectedCloudFile.pages ? 'is-checked' : ''}>{selectedPages.size === selectedCloudFile.pages && <Check size={13} />}</span>全选</button>
       ) : null}
       {mode !== 'word-book' && <div className="iteach-footer-status">
         <span className={countOverLimit ? 'is-over-limit' : ''}>已选：<b>{selectedCount}</b>{countUnit} / 最多{currentLimit}{countUnit}</span>
@@ -421,6 +420,10 @@ export default function TeachingContentPicker({
                 <div className="iteach-cloud-pagination"><span>共 50 条</span><button disabled>‹</button>{[1, 2, 3, 4, 5].map(page => <button key={page} className={page === 1 ? 'is-active' : ''}>{page}</button>)}<button>›</button><button>10条/页<ChevronDown size={12} /></button></div>
               </main>
               <aside className="iteach-cloud-pages">
+                <div className="iteach-cloud-pages-selection"><button className="iteach-footer-select-all" aria-label="全选当前课件页面" aria-pressed={selectedPages.size === selectedCloudFile.pages} onClick={() => {
+          setValidationMessage('');
+          setSelectedPages(selectedPages.size === selectedCloudFile.pages ? new Set() : new Set(Array.from({ length: selectedCloudFile.pages }, (_, index) => index + 1)));
+        }}><span className={selectedPages.size === selectedCloudFile.pages ? 'is-checked' : ''}>{selectedPages.size === selectedCloudFile.pages && <Check size={13} />}</span>全选</button></div>
                 <div className="iteach-cloud-page-grid">{visibleCloudPages.map(page => <button key={page} className={selectedPages.has(page) ? 'is-selected' : ''} onClick={() => toggleInSet(setSelectedPages, page)}><span className="iteach-cloud-page-check">{selectedPages.has(page) && <Check size={12} />}</span><span className={`iteach-cloud-thumb theme-${(page % 3) + 1}`}><i>Go Starters!</i><b>{page === 1 ? 'Unit 1 Colours' : page % 3 === 0 ? 'Grammar Focus' : 'Word Focus'}</b><small>{page % 2 === 0 ? 'listen · choose' : 'look · match'}</small></span><span>{page}.页面{page + 1}</span></button>)}</div>
                 {selectedCloudFile.pages > 12 && <div className="iteach-cloud-page-pagination"><button disabled={cloudPageBatch === 0} onClick={() => setCloudPageBatch(previous => Math.max(0, previous - 1))}>上一页</button><span>{cloudPageBatch + 1} / {Math.ceil(selectedCloudFile.pages / 12)}</span><button disabled={(cloudPageBatch + 1) * 12 >= selectedCloudFile.pages} onClick={() => setCloudPageBatch(previous => previous + 1)}>下一页</button></div>}
               </aside>

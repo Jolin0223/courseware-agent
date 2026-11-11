@@ -458,7 +458,7 @@ export default function CoursewareCard({
               onBlur={e => handleActionLeave(e, 'secondary', isLatest)}
             ><Edit3 size={15} />编辑资源</button>
             {editDisabledTooltip && !isLatest && (
-              <div style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff', fontSize: 11, whiteSpace: 'nowrap', zIndex: 40 }}>
+              <div style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff', fontSize: 12, whiteSpace: 'nowrap', zIndex: 40 }}>
                 当前为旧版，不支持编辑，请在最新版互动游戏上编辑资源哦~
               </div>
             )}
@@ -497,7 +497,7 @@ export default function CoursewareCard({
               <div style={{
                 position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
                 marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff',
-                fontSize: 11, whiteSpace: 'nowrap', zIndex: 40, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                fontSize: 12, whiteSpace: 'nowrap', zIndex: 40, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}>
                 当前为旧版，请在最新版课件上调整风格
               </div>
@@ -524,7 +524,7 @@ export default function CoursewareCard({
               <div style={{
                 position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
                 marginBottom: 6, padding: '6px 10px', borderRadius: UI_RADIUS, background: '#1E293B', color: '#fff',
-                fontSize: 11, whiteSpace: 'nowrap', zIndex: 40, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                fontSize: 12, whiteSpace: 'nowrap', zIndex: 40, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}>
                 {reportDisabledText}
               </div>

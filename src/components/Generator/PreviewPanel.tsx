@@ -1416,7 +1416,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     minWidth: 0,
   },
   subTitle: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#64748B',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -1434,7 +1434,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 400,
     cursor: 'pointer',
     flexShrink: 0,
@@ -1519,7 +1519,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
   styleGroupTitle: {
     margin: '10px 2px 7px',
     color: '#94A3B8',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 850,
   },
   styleOption: {
@@ -1590,7 +1590,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     border: '2px solid #FFFFFF',
     background: '#0274FC',
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: 900,
     lineHeight: '12px',
     boxSizing: 'border-box',
@@ -1906,7 +1906,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     gap: 5,
     margin: '-2px 0 8px',
     color: '#52708E',
-    fontSize: 11,
+    fontSize: 12,
     lineHeight: 1.35,
   },
   annotationDetail: {
@@ -1950,7 +1950,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
   annotationDetailMeta: {
     marginTop: 7,
     color: '#7B8EA3',
-    fontSize: 11,
+    fontSize: 12,
   },
   annotationDraftActions: {
     display: 'flex',
@@ -2176,7 +2176,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
   },
   annotationInlineCount: {
     color: '#52708E',
-    fontSize: 11,
+    fontSize: 12,
     whiteSpace: 'nowrap',
   },
   annotationInlineCancel: {
@@ -2398,7 +2398,7 @@ const panelStyle: Record<string, React.CSSProperties> = {
     lineHeight: 1.2,
   },
   versionBadge: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 600,
     maxWidth: 150,
     overflow: 'hidden',

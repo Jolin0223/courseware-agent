@@ -117,17 +117,17 @@ const CompactAudioCard: React.FC<{ audio: AudioItem; onPreview?: (audio: AudioIt
       {/* 文字信息 */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: 11, fontWeight: 500, color: '#1E293B',
+          fontSize: 12, fontWeight: 500, color: '#1E293B',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {audio.label}
         </div>
-        <div style={{ fontSize: 9, color: '#94A3B8', marginTop: 1 }}>
+        <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 1 }}>
           {error ? '播放失败，请重试' : <>{isBgm ? 'BGM · ' : ''}{durationText}</>}
         </div>
       </div>
 
-      {onPreview && <button aria-label={`查看${audio.label}配音文本`} onClick={() => onPreview(audio)} style={{border:0,background:'transparent',color:'var(--agent-primary)',fontSize:11,cursor:'pointer'}}>文本</button>}
+      {onPreview && <button aria-label={`查看${audio.label}配音文本`} onClick={() => onPreview(audio)} style={{border:0,background:'transparent',color:'var(--agent-primary)',fontSize:12,cursor:'pointer'}}>文本</button>}
       {/* Mini 波形 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 1, height: 16, flexShrink: 0 }}>
         {[0, 1, 2, 3].map(i => (
@@ -251,19 +251,19 @@ const AudioGenerationPanel: React.FC<AudioGenerationPanelProps> = ({ stage, item
 
           {stage.detail && <p style={{fontSize:12,color:'#64748B',margin:'0 0 10px'}}>{stage.detail}</p>}
           {stage.status === 'completed' && (
-            <p style={{ fontSize: 11, color: 'var(--agent-primary)', margin: '0 0 10px' }}>
+            <p style={{ fontSize: 12, color: 'var(--agent-primary)', margin: '0 0 10px' }}>
               ✅ 已完成，可在编辑阶段替换音色或上传本地音频
             </p>
           )}
           {stage.status === 'failed' && (
             <div style={{ margin: '0 0 10px' }}>
-              <p style={{ fontSize: 11, color: '#EF4444', margin: '0 0 8px' }}>
+              <p style={{ fontSize: 12, color: '#EF4444', margin: '0 0 8px' }}>
                 ❌ {stage.error || '音频生成失败'}
               </p>
               <button onClick={onRetry} style={{
                 display: 'flex', alignItems: 'center', gap: 4,
                 padding: '5px 12px', borderRadius: 5, border: '1px solid #FCA5A5',
-                background: '#FEF2F2', color: '#EF4444', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                background: '#FEF2F2', color: '#EF4444', fontSize: 12, fontWeight: 600, cursor: 'pointer',
               }}>
                 <RotateCcw size={12} /> 重试
               </button>

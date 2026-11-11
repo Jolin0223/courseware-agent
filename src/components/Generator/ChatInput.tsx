@@ -524,7 +524,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       return '请描述文档要怎么使用，例如：提取题目、作为知识内容、生成脚本或参考结构';
     }
     if (annotationBatch?.annotations.length || selectedSceneIds.length > 0) return '可补充整体修改要求，也可以直接发送以上分场意见';
-    if (centered && effectiveFormat === 'video') return '例如：先用故事视频引入，再设计互动练习';
+    if (centered && effectiveFormat === 'video') return '请告诉我：给哪个年级、学习什么、用什么故事或情境，以及希望学生怎样互动。\n例如：给一年级做雨字头识字课，先看悟空找线索的故事，再让学生点选汉字、描写“雨”字；答错提示，答对继续闯关。';
     return placeholder;
   })();
 
@@ -1059,7 +1059,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 position: 'absolute', top: 2, right: 2,
                 width: 16, height: 16, borderRadius: '50%',
                 background: 'rgba(0,0,0,0.5)', border: 'none',
-                color: '#fff', fontSize: 10, cursor: 'pointer',
+                color: '#fff', fontSize: 12, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 lineHeight: 1,
               }}
@@ -1806,7 +1806,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   annotationContextMeta: {
     color: '#71879D',
-    fontSize: 11,
+    fontSize: 12,
     whiteSpace: 'nowrap',
   },
   annotationContextClose: {
@@ -1842,7 +1842,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #D6E9FA',
     background: '#FFFFFF',
     color: '#49647E',
-    fontSize: 11,
+    fontSize: 12,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
@@ -1857,7 +1857,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   annotationContextMore: {
     color: '#0759C9',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 800,
     flexShrink: 0,
   },
@@ -1886,14 +1886,14 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'block',
     marginTop: 2,
     color: '#73859A',
-    fontSize: 11,
+    fontSize: 12,
   },
   scenePickerCount: {
     padding: '3px 8px',
     borderRadius: 999,
     background: '#EAF4FF',
     color: '#0759C9',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 800,
     whiteSpace: 'nowrap',
   },
@@ -1941,7 +1941,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   scenePickerNumber: {
     color: '#8A9BAD',
-    fontSize: 11,
+    fontSize: 12,
     fontVariantNumeric: 'tabular-nums',
   },
   scenePickerName: {
@@ -1990,7 +1990,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     background: 'transparent',
     color: '#0274FC',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 750,
     cursor: 'pointer',
   },
@@ -2023,7 +2023,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     background: '#EAF4FF',
     color: '#0759C9',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 850,
   },
   sceneEditName: {
@@ -2032,7 +2032,7 @@ const styles: Record<string, React.CSSProperties> = {
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     color: '#405B75',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 750,
   },
   sceneEditInput: {
@@ -2074,7 +2074,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px dashed #AFC8E1',
     background: '#FFFFFF',
     color: '#28689D',
-    fontSize: 11,
+    fontSize: 12,
     cursor: 'pointer',
   },
   sceneEditRemove: {
@@ -2121,7 +2121,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     background: '#0274FC',
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 12,
   },
   attachmentGroups: {
     display: 'flex',
@@ -2187,7 +2187,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#FFFFFF',
     color: 'var(--agent-secondary-text)',
     border: '1px solid var(--agent-border)',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 850,
     lineHeight: '24px',
   },
@@ -2203,7 +2203,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 999,
     background: '#F1F5F9',
     color: '#64748B',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
     lineHeight: '22px',
     whiteSpace: 'nowrap',
@@ -2226,7 +2226,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 800,
     letterSpacing: 0,
     flexShrink: 0,
@@ -2254,7 +2254,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 999,
     background: 'rgba(15, 23, 42, 0.62)',
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 700,
     lineHeight: '16px',
     textAlign: 'center',
@@ -2361,7 +2361,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 8,
     background: 'var(--agent-action-soft)',
     color: 'var(--agent-action-text)',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 850,
   },
   teachingContentTextarea: {
@@ -2474,7 +2474,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   promptPreviewMeta: {
     color: '#94A3B8',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 650,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -2558,7 +2558,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#E2E8F0',
     overflowX: 'auto' as const,
     whiteSpace: 'pre-wrap' as const,
-    fontSize: 11,
+    fontSize: 12,
     lineHeight: 1.55,
     fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace',
   },
@@ -2567,7 +2567,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 5,
     background: '#F1F5F9',
     color: '#0F766E',
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace',
   },
   markdownHr: {
@@ -2585,7 +2585,7 @@ const styles: Record<string, React.CSSProperties> = {
   markdownTable: {
     width: '100%',
     borderCollapse: 'collapse' as const,
-    fontSize: 11,
+    fontSize: 12,
     lineHeight: 1.45,
   },
   markdownTh: {

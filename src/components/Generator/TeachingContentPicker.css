@@ -97,7 +97,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-question-header .iteach-close-button {
@@ -315,7 +315,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-question-meta span {
@@ -360,7 +360,7 @@
   color: #858c94;
   display: grid;
   place-items: center;
-  font-size: 11px;
+  font-size: 12px;
   font-style: normal;
 }
 
@@ -379,7 +379,7 @@
   color: #7a6252;
   display: flex;
   gap: 12px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-question-row-footer {
@@ -390,7 +390,7 @@
   display: flex;
   align-items: end;
   gap: 13px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-question-row-footer > span {
@@ -413,7 +413,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -483,7 +483,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 7px;
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -504,7 +504,7 @@
   color: #3f4750;
   flex: 1;
   font: inherit;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .iteach-word-header .iteach-close-button,
@@ -561,7 +561,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -597,7 +597,7 @@
   background: #fafafa;
   color: #393f46;
   overflow: hidden;
-  font-size: 11px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
@@ -820,7 +820,7 @@
 }
 
 .iteach-cloud-file-list small {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-cloud-file-list > button > svg:first-of-type {
@@ -860,7 +860,7 @@
 .iteach-cloud-pagination > span {
   margin-right: 8px;
   color: #5f6872;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-cloud-pagination button {
@@ -875,7 +875,7 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-cloud-pagination button.is-active {
@@ -962,21 +962,21 @@
 
 .iteach-cloud-thumb i {
   color: #f28c16;
-  font-size: 9px;
+  font-size: 12px;
   font-style: normal;
 }
 
 .iteach-cloud-thumb b {
   overflow: hidden;
   color: #d15e1d;
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .iteach-cloud-thumb small {
   color: #747d86;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .iteach-cloud-page-pagination {
@@ -997,7 +997,7 @@
   border-radius: 4px;
   background: #fff;
   color: #56606a;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-cloud-page-pagination button:disabled {
@@ -1006,7 +1006,7 @@
 
 .iteach-cloud-page-pagination span {
   color: #727b85;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .iteach-picker-footer {
@@ -1021,7 +1021,7 @@
   align-items: center;
   gap: 12px;
   color: #606a75;
-  font-size: 10px;
+  font-size: 12px;
   overflow: visible;
 }
 
@@ -1050,7 +1050,7 @@
 
 .iteach-word-footer-selection > strong {
   color: #59626d;
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -1072,7 +1072,7 @@
   color: #252a30;
   display: inline-flex;
   align-items: center;
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -1107,7 +1107,7 @@
   color: #565f69;
   display: grid;
   place-items: center;
-  font-size: 9px;
+  font-size: 12px;
   font-style: normal;
 }
 
@@ -1162,7 +1162,7 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -1180,7 +1180,7 @@
   min-width: 0;
   margin-left: auto;
   color: #d94c55;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -1193,7 +1193,7 @@
   align-items: center;
   gap: 6px;
   justify-self: start;
-  font-size: 10px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -1243,7 +1243,7 @@
   padding: 0 14px;
   border-radius: 6px;
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1505,7 +1505,7 @@
 
   .iteach-word-body > aside button {
     height: 34px;
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .iteach-word-body > main {
@@ -1561,3 +1561,9 @@
     padding: 0 10px;
   }
 }
+
+.iteach-cloud-pages-selection{display:flex;align-items:center;min-height:32px;margin-bottom:12px;}
+.iteach-picker-footer-cloud-pages{display:flex;justify-content:flex-end;gap:16px;flex-wrap:wrap;}
+.iteach-picker-footer-cloud-pages .iteach-footer-status,.iteach-picker-footer-cloud-pages button{font-size:14px;}
+
+.iteach-cloud-pages-selection .iteach-footer-select-all{font-size:14px;}

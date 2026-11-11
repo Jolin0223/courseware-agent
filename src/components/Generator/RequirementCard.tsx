@@ -688,7 +688,7 @@ const markdownStyles: Record<string, React.CSSProperties> = {
     color: '#E2E8F0',
     overflowX: 'auto',
     whiteSpace: 'pre-wrap',
-    fontSize: 11,
+    fontSize: 12,
     lineHeight: 1.55,
     fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace',
   },
@@ -697,7 +697,7 @@ const markdownStyles: Record<string, React.CSSProperties> = {
     borderRadius: 5,
     background: '#F1F5F9',
     color: '#0F766E',
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace',
   },
   hr: {

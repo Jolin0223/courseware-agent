@@ -228,7 +228,7 @@ const ProgressPanel: React.FC<ProgressPanelProps> = ({ progress, onRetry }) => {
 const failedBtnStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 4,
   padding: '5px 12px', borderRadius: 5, border: '1px solid #FCA5A5',
-  background: '#FEF2F2', color: '#EF4444', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+  background: '#FEF2F2', color: '#EF4444', fontSize: 12, fontWeight: 600, cursor: 'pointer',
 };
 
 const panelStyles: Record<string, React.CSSProperties> = {

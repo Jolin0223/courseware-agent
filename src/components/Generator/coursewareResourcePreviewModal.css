@@ -291,5 +291,5 @@
   .courseware-resource-preview-body { padding: 10px; gap: 10px; }
   .courseware-resource-preview-details { padding: 9px; }
   .courseware-resource-preview-footer { padding: 10px; gap: 5px; }
-  .courseware-resource-preview-footer button { min-width: 0; padding: 0 6px; gap: 4px; flex: 1; font-size: 11px; white-space: nowrap; }
+  .courseware-resource-preview-footer button { min-width: 0; padding: 0 6px; gap: 4px; flex: 1; font-size: 12px; white-space: nowrap; }
 }

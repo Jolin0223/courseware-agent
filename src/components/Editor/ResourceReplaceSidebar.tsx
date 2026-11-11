@@ -78,7 +78,7 @@ const ImageResourceCard: React.FC<{
             {image.label}
           </span>
           <span style={{
-            fontSize: 11,
+            fontSize: 12,
             padding: '2px 6px',
             borderRadius: 4,
             display: 'inline-block',
@@ -180,7 +180,7 @@ const ImageResourceCard: React.FC<{
                 paddingTop: 8,
                 borderTop: '1px solid #E2E8F0',
               }}>
-                <span style={{ fontSize: 11, color: '#94A3B8' }}>高级：</span>
+                <span style={{ fontSize: 12, color: '#94A3B8' }}>高级：</span>
                 <button onClick={() => { /* 图生图 */ }} style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -190,7 +190,7 @@ const ImageResourceCard: React.FC<{
                   border: '1px solid #E2E8F0',
                   background: '#fff',
                   color: '#64748B',
-                  fontSize: 11,
+                  fontSize: 12,
                   cursor: 'pointer',
                 }}><Image size={12} /> 图生图</button>
                 <button onClick={() => { /* 抠图 */ }} style={{
@@ -202,7 +202,7 @@ const ImageResourceCard: React.FC<{
                   border: '1px solid #E2E8F0',
                   background: '#fff',
                   color: '#64748B',
-                  fontSize: 11,
+                  fontSize: 12,
                   cursor: 'pointer',
                 }}><Scissors size={12} /> 抠图</button>
                 <button onClick={() => { /* 裁剪 */ }} style={{
@@ -214,7 +214,7 @@ const ImageResourceCard: React.FC<{
                   border: '1px solid #E2E8F0',
                   background: '#fff',
                   color: '#64748B',
-                  fontSize: 11,
+                  fontSize: 12,
                   cursor: 'pointer',
                 }}><Crop size={12} /> 裁剪</button>
               </div>
@@ -235,7 +235,7 @@ const ImageResourceCard: React.FC<{
             }} onClick={handleUploadClick}>
               <Upload size={24} color="var(--agent-primary)" />
               <span style={{ fontSize: 13, color: '#64748B' }}>点击上传图片</span>
-              <span style={{ fontSize: 11, color: '#94A3B8' }}>支持 JPG、PNG、WebP</span>
+              <span style={{ fontSize: 12, color: '#94A3B8' }}>支持 JPG、PNG、WebP</span>
             </div>
           )}
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
@@ -297,7 +297,7 @@ const AudioResourceCard: React.FC<{
             {audio.label}
           </span>
           <span style={{
-            fontSize: 11,
+            fontSize: 12,
             padding: '2px 6px',
             borderRadius: 4,
             display: 'inline-block',
@@ -379,7 +379,7 @@ const AudioResourceCard: React.FC<{
             <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileChange} style={{ display: 'none' }} />
           </div>
           {isUploaded && audio.uploadFileName && (
-            <div style={{ marginTop: 8, fontSize: 11, color: 'var(--agent-primary)' }}>
+            <div style={{ marginTop: 8, fontSize: 12, color: 'var(--agent-primary)' }}>
               当前文件: {audio.uploadFileName}
             </div>
           )}

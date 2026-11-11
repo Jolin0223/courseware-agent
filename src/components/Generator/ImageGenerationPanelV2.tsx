@@ -69,7 +69,7 @@ const ImageCard: React.FC<{ image: EnhancedImageItem; onPreview?: (image: Enhanc
                   right: 6,
                   background: 'rgba(0,201,167,0.9)',
                   color: '#fff',
-                  fontSize: 10,
+                  fontSize: 12,
                   padding: '2px 6px',
                   borderRadius: 4,
                 }}>
@@ -89,7 +89,7 @@ const ImageCard: React.FC<{ image: EnhancedImageItem; onPreview?: (image: Enhanc
             <StatusIcon status={image.status} />
           </div>
           {image.prompt && (
-            <div style={{ fontSize: 11, color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: 12, color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {image.prompt.slice(0, 20)}...
             </div>
           )}
@@ -203,7 +203,7 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
               <button onClick={onRetry} style={{
                 display: 'flex', alignItems: 'center', gap: 4,
                 padding: '5px 12px', borderRadius: 5, border: '1px solid #FCA5A5',
-                background: '#FEF2F2', color: '#EF4444', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                background: '#FEF2F2', color: '#EF4444', fontSize: 12, fontWeight: 600, cursor: 'pointer',
               }}>
                 <RotateCcw size={12} /> 重试
               </button>
@@ -278,7 +278,7 @@ const ImageGenerationPanelV2: React.FC<ImageGenerationPanelV2Props> = ({ stage, 
                           borderTopColor: 'var(--agent-primary)',
                           animation: 'spin 1s linear infinite',
                         }} />
-                        <span style={{ fontSize: 10, color: '#94A3B8' }}>{stage.status === 'paused' ? '已暂停' : '生成中'}</span>
+                        <span style={{ fontSize: 12, color: '#94A3B8' }}>{stage.status === 'paused' ? '已暂停' : '生成中'}</span>
                       </div>
                     </div>
                     <div style={{ padding: 10 }}>

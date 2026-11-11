@@ -1,3 +1,4 @@
+import AutoGrowPlanTextarea from './AutoGrowPlanTextarea';
 import { useEffect, useRef, useState } from 'react';
 import { Check, ArrowLeft, ArrowUp, ArrowDown, GripVertical, Palette, ListOrdered, PencilLine, Film, Loader2, Gamepad2, Layers, Volume2, RefreshCw, Play, Pause } from 'lucide-react';
 import RequirementCard from '../Generator/RequirementCard';
@@ -24,7 +25,7 @@ function PlanContents({project,readOnly}:{project:VideoProject;readOnly:boolean}
  const update=useVideoCoursewareStore(s=>s.update);
  function reorder(from:string,to:string){update(project.id,reorderSegments(project,from,to));setDragged(null);setOver(null);}
  return <div className="vc-plan-body">
-  <label className="vc-plan-goal">教学目标<textarea readOnly={readOnly} aria-label="教学目标" value={project.framework.userRequirement} onChange={e=>update(project.id,{framework:{...project.framework,userRequirement:e.target.value},approvedPlanKey:undefined})}/></label>
+  <label className="vc-plan-goal">教学目标<AutoGrowPlanTextarea readOnly={readOnly} aria-label="教学目标" value={project.framework.userRequirement} onChange={e=>update(project.id,{framework:{...project.framework,userRequirement:e.target.value},approvedPlanKey:undefined})}/></label>
   <div className="vc-tabs vc-plan-tabs" role="tablist" aria-label="教学方案内容">{[['flow','教学流程'],['presentation','画面与配音']].map(([id,label])=><button role="tab" aria-selected={tab===id} className={tab===id?'active':''} key={id} onClick={()=>setTab(id)}>{id==='flow'?<ListOrdered size={16}/>:<Palette size={16}/ >}{label}</button>)}</div>
   {tab==='flow'&&<div role="tabpanel"><div className="vc-plan-summary"><span>{project.segments.length} 个教学场景</span><span>{project.segments.filter(s=>s.kind!=='h5').length} 个场景含视频</span>{!readOnly&&<span>拖动左侧手柄调整顺序</span>}</div>
    <div className="vc-segments vc-segments-compact" role="region" aria-label="教学场景列表，可滚动" tabIndex={0}>{project.segments.map((scene,i)=><div className={'vc-segment '+(dragged===scene.id?'is-dragging ':'')+(over===scene.id?'is-drop-target':'')} data-scene-id={scene.id} key={scene.id} onDragOver={e=>{if(readOnly)return;e.preventDefault();setOver(scene.id);}} onDrop={e=>{e.preventDefault();if(!readOnly&&dragged)reorder(dragged,scene.id);}}>

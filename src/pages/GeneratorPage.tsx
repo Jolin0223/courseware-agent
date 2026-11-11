@@ -60,7 +60,7 @@ import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
 import type { PreviewAnnotationBatch } from '../types/previewAnnotation';
 
 type GenerationPhase = 'input' | 'analyzing' | 'recommendation' | 'loading-framework' | 'framework' | 'generating' | 'completed';
-const GENERIC_AI_WAITING_TEXT = '正在处理，请稍候…';
+const GENERIC_AI_WAITING_TEXT = '已收到您的消息，正在处理中～';
 
 const buildCloneReferenceHtml = (item: GameplayInspiration) => {
   const previewUrl = item.examplePreviewUrl || item.coverUrl || '';
@@ -1047,7 +1047,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     borderRadius: 999,
     background: 'var(--agent-soft)',
     color: 'var(--agent-primary-text)',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 850,
     whiteSpace: 'nowrap',
   },
@@ -1212,7 +1212,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 900,
     flexShrink: 0,
     boxShadow: '0 8px 16px rgba(255, 138, 0, 0.18)',
@@ -2013,6 +2013,7 @@ function AssistantMessage({
   }
 
   if (message.type === 'video-courseware-workflow') {
+    if(workflowMessage?.stage==='plan' && workflowProject?.phase==='planning') return <AIWaitingMessage/>;
     if(workflowMessage?.stage==='resource-update'){
       const event=workflowProject?.workflowEvents?.find(e=>e.runId===workflowMessage.runId);
       const pending=event?.status==='generating';

@@ -1342,7 +1342,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
   },
   aiTag: {
-    fontSize: 11,
+    fontSize: 12,
     color: 'var(--agent-primary)',
     background: '#ECFDF5',
     padding: '1px 6px',
@@ -1775,7 +1775,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 6,
     background: '#E2E8F0',
     color: '#64748B',
-    fontSize: 11,
+    fontSize: 12,
     lineHeight: '18px',
     fontWeight: 700,
   },
@@ -2153,7 +2153,7 @@ function TreeNode({
 
         <span style={{ flex: 1, userSelect: 'none' }}>{node.label}</span>
         {hasChildren && (
-          <span style={{ fontSize: 11, color: '#94A3B8' }}>{selectedLeafCount}/{leafIds.length}</span>
+          <span style={{ fontSize: 12, color: '#94A3B8' }}>{selectedLeafCount}/{leafIds.length}</span>
         )}
       </div>
 

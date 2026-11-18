@@ -65,9 +65,12 @@ export function buildCoursewareShellHTML(
         if(event.key==='Escape'){event.preventDefault();closeTools()}
       });
     }
-    frame.addEventListener('load',()=>frame.contentWindow?.postMessage(config.setupMessage,origin));
+    let setupBeforeLoad=false;
+    const sendSetup=()=>frame.contentWindow?.postMessage(config.setupMessage,origin);
+    frame.addEventListener('load',()=>{if(!setupBeforeLoad)sendSetup();setupBeforeLoad=false});
     window.addEventListener('message',event=>{
       if(event.origin!==origin)return;
+      if(event.source===frame.contentWindow&&event.data?.type==='courseware-runtime-ready'){setupBeforeLoad=true;sendSetup();return}
       if(nav&&event.source===frame.contentWindow&&event.data?.type===nav.activeMessageType&&nav.scenes.some(scene=>scene.id===event.data.sceneId)){activeId=event.data.sceneId;sync();return}
       if(event.source===parent&&event.data?.type==='pause-video-courseware')frame.contentWindow?.postMessage({type:config.pauseMessageType},origin);
     });

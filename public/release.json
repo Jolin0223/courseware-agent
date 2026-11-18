@@ -1,6 +1,6 @@
 {
-  "release": "20261118-scene-revision-feedback",
+  "release": "20261118-scene-revision-ready",
   "date": "2026-11-18",
-  "description": "场景修改回显文字与图片，发送后生成新版，刷新保留修改消息",
+  "description": "场景修改回显文字与图片，发送后生成新版，刷新保留修改消息；预览就绪后立即应用新版场景",
   "demoOnly": true
 }

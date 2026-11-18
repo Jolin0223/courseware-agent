@@ -33,6 +33,10 @@ try{
   await expect(row.locator('img')).toHaveCount(1);
  }
  await shell.locator('textarea').last().fill('整体保持现在的画风');
+ const held=[];
+ await page.route('**/wukong/**',route=>{
+  if(route.request().resourceType()==='image')held.push(route);else route.continue();
+ });
  await page.getByRole('button',{name:/发送，/}).last().click();
  const submitted=page.getByLabel('已发送的场景修改');
  await expect(submitted).toHaveCount(1);
@@ -53,7 +57,7 @@ try{
   const value=await new Promise(resolve=>{const r=db.transaction('state').objectStore('state').get('video-courseware-platform-v2');r.onsuccess=()=>resolve(r.result);});db.close();
   return JSON.parse(value).state.projects[id].submittedEdits?.length;
  },id)).toBe(1);
- await page.reload();
+ await page.reload({waitUntil:'domcontentloaded'});
  await page.evaluate(async id=>{
   const url=p=>performance.getEntriesByType('resource').find(e=>new URL(e.name).pathname===p)?.name||p;
   const {useVideoCoursewareStore:s}=await import(url('/src/store/videoCoursewareStore.ts'));
@@ -65,6 +69,10 @@ try{
  await expect(page.getByLabel('已发送的场景修改').locator('img')).toHaveCount(2);
  check('刷新后保留逐场景原话和图片',true);
  await expect.poll(async()=>(await project()).revision,{timeout:16000}).toBe(2);
+ const runtime=page.frameLocator('iframe').frameLocator('#lesson');
+ await expect(runtime.getByText('场景内容预览',{exact:true})).toBeVisible({timeout:5000});
+ check('媒体未完成加载时新版场景仍能初始化',held.length>0);
+ await Promise.all(held.splice(0).map(route=>route.continue().catch(()=>{})));await page.unroute('**/wukong/**');
  let p=await project();check('第2版生成完成且旧版快照未被修改',p.resultMessages.length===2&&JSON.stringify(p.resultMessages[0])===JSON.stringify(before.resultMessages[0])&&!p.courseDraft);
  await expect(page.getByRole('button',{name:'第1版 未发布草稿',exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'第2版 未发布草稿',exact:true})).toBeVisible();

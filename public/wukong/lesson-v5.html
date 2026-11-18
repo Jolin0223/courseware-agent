@@ -688,6 +688,9 @@ if(studioParams.get('studio')==='1'&&studioPhases[studioScene]){
 }
 
 if(state.phase==='cover'){startCoverEntrance();playCoverVoice('open');}
+// The scene bridge is ready before slow images/videos finish loading.
+// Let the host apply the submitted scene snapshot without waiting for window.load.
+if(parent!==window)parent.postMessage({type:'courseware-runtime-ready'},location.origin);
 })();
 </script>
 <script src="buttons-v28.js?v=28"></script></body>

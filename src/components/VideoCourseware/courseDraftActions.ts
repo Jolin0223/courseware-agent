@@ -65,7 +65,7 @@ export function advanceCourseDraft(projectId:string,now:number){
  const error=draft.baseVersion!==p.revision?'视频互动课件版本已变化，修改草稿已保留。':candidate.assets.some(a=>a.segmentIds.length&&!a.url)?'部分素材尚未就绪，请补全后重新生成。':!buildVideoLessonHTML(candidate)?'当前演示未接入本课的页面生成服务，修改草稿已保留。':undefined;
  if(error){store.update(projectId,{courseDraft:{...draft,status:'failed',error}});return;}
  store.update(projectId,{...sceneSnapshot(candidate),composition:candidate.composition,readySceneIds:candidate.segments.map(s=>s.id),readyPageIds:candidate.segments.filter(s=>s.kind!=='video').map(s=>s.id),readyAssetIds:candidate.assets.filter(a=>a.url).map(a=>a.id),courseDraft:undefined});
- finishVideoProject(projectId,undefined,'全部修改已确认，生成新的视频互动课件版本。');
+ finishVideoProject(projectId);
 }
 
 export function discardCourseDraft(projectId:string){

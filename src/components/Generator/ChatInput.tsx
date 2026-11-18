@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 import { useConversationStore } from '../../store/conversationStore';
-import type { GenerationPreferences, UploadedAttachment } from '../../types';
+import type { EditMessageDisplay, GenerationPreferences, UploadedAttachment } from '../../types';
 import { buildPreviewAnnotationPrompt, type PreviewAnnotationBatch } from '../../types/previewAnnotation';
 import HtmlTypeBadge from '../common/HtmlTypeBadge';
 import TeachingContentPicker from './TeachingContentPicker';
@@ -39,7 +39,7 @@ interface ChatInputProps {
     text: string,
     attachments?: UploadedAttachment[],
     preferences?: GenerationPreferences,
-    displayMeta?: { displayText?: string; annotationCount?: number; sceneEditCount?: number; sceneEditIds?: string[]; sceneEditRequests?: Record<string, string>; sceneEditReferences?: Record<string, string[]> },
+    displayMeta?: EditMessageDisplay,
   ) => void;
   disabled?: boolean;
   isGenerating?: boolean;
@@ -628,6 +628,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
       annotationPrompt || sceneEditLines.length
         ? {
             displayText: trimmed || undefined,
+            sceneEdits: (currentVideo?.segments || []).flatMap((scene, index) => selectedSceneIds.includes(scene.id) ? [{
+              sceneId: scene.id,
+              sceneNumber: index + 1,
+              sceneTitle: scene.title,
+              instruction: sceneEdits[scene.id]?.trim() || '请结合参考图片调整本场',
+              attachmentIds: (sceneEditImages[scene.id] || []).filter(file => file.url && !file.loading).map(file => `scene-reference-${scene.id}-${file.id}`),
+            }] : []),
             annotationCount: annotationBatch?.annotations.length || undefined,
             sceneEditCount: sceneEditLines.length || undefined,
             sceneEditIds: selectedSceneIds,

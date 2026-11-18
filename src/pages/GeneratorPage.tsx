@@ -33,6 +33,7 @@ import type {
   MaterialIntentOption,
   MaterialIntentResolution,
   UserMaterialMessage,
+  EditMessageDisplay,
   VoiceCapabilityConfirmation,
   VoiceCapabilityIntent,
   VoiceCapabilitySelection,
@@ -53,7 +54,7 @@ import VideoResultScenes from '../components/VideoCourseware/VideoResultScenes';
 import VideoWorkflowCard from '../components/VideoCourseware/VideoWorkflowCard';
 import { ConfirmationDockContext } from '../components/VideoCourseware/ConfirmationDockContext';
 import { confirmOutline, startVideoProject, useVideoJobs } from '../components/VideoCourseware/workflow';
-import { saveCourseChatDraft } from '../components/VideoCourseware/courseDraftActions';
+import { saveCourseChatDraft, startCourseDraft } from '../components/VideoCourseware/courseDraftActions';
 import { useVideoCoursewareStore, videoProjectForConversation } from '../store/videoCoursewareStore';
 import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
 import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
@@ -1293,7 +1294,9 @@ function UserMessage({
   const message = typeof content === 'string' ? { text: content } : content;
   const images = message.attachments?.filter(file => file.type === 'image') || [];
   const annotationImages = images.filter(file => file.id.startsWith('annotation-'));
-  const regularImages = images.filter(file => !file.id.startsWith('annotation-'));
+  const sceneEdits = message.sceneEdits || [];
+  const sceneAttachmentIds = new Set(sceneEdits.flatMap(edit => edit.attachmentIds));
+  const regularImages = images.filter(file => !file.id.startsWith('annotation-') && !sceneAttachmentIds.has(file.id));
   const documents = message.attachments?.filter(file => file.type === 'document') || [];
   const htmlAttachments = message.attachments?.filter(file => file.type === 'html') || [];
   const teachingAttachments = message.attachments?.filter(file => Boolean(file.teachingSource)) || [];
@@ -1313,7 +1316,7 @@ function UserMessage({
       : null,
   ].filter((item): item is string => Boolean(item));
   const hasStructuredEditSummary = Boolean(message.annotationCount || message.sceneEditCount);
-  const visibleText = hasStructuredEditSummary ? message.displayText?.trim() || '' : message.text;
+  const visibleText = sceneEdits.length ? message.displayText?.trim() || '' : hasStructuredEditSummary ? message.displayText?.trim() || message.text : message.text;
   const appliedPlaywayMessage = visibleText ? parseAppliedPlaywayMessage(visibleText) : null;
   const hasAttachments = images.length > 0 || documents.length > 0 || htmlAttachments.length > 0 || teachingAttachments.length > 0 || selectedPreferences.length > 0;
   const isLongText = Boolean(
@@ -1357,6 +1360,26 @@ function UserMessage({
                   </span>
                 )}
               </div>
+            </div>
+          )}
+
+          {sceneEdits.length > 0 && (
+            <div className="agent-scene-edit-message" aria-label="已发送的场景修改">
+              {sceneEdits.map(edit => (
+                <section key={edit.sceneId} className="agent-scene-edit-message-item">
+                  <strong>场景 {edit.sceneNumber} · {edit.sceneTitle}</strong>
+                  <p>{edit.instruction}</p>
+                  {edit.attachmentIds.length > 0 && (
+                    <div className="agent-user-message-image-grid" style={{ ...userMessageStyles.imageGrid, justifyContent: 'flex-start' }}>
+                      {images.filter(file => edit.attachmentIds.includes(file.id)).map(file => (
+                        <button key={file.id} onClick={() => setPreviewImage(file)} style={userMessageStyles.imageCard} title={`查看场景参考图：${file.name}`}>
+                          <img src={file.url} alt={file.name} style={userMessageStyles.image} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              ))}
             </div>
           )}
 
@@ -1512,7 +1535,7 @@ function UserMessage({
 
       {previewImage?.url && (
         <div style={userMessageStyles.previewMask} onClick={() => setPreviewImage(null)}>
-          <div style={userMessageStyles.previewDialog} onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label="图片预览" style={userMessageStyles.previewDialog} onClick={e => e.stopPropagation()}>
             <img src={previewImage.url} alt={previewImage.name} style={userMessageStyles.previewImage} />
             <div style={userMessageStyles.previewFooter}>
               <span>{previewImage.name}</span>
@@ -2744,7 +2767,7 @@ export default function GeneratorPage() {
     text: string,
     attachments: UploadedAttachment[] = [],
     generationPreferences: GenerationPreferences = {},
-    displayMeta?: { displayText?: string; annotationCount?: number; sceneEditCount?: number; sceneEditIds?: string[]; sceneEditRequests?: Record<string, string>; sceneEditReferences?: Record<string, string[]> },
+    displayMeta?: EditMessageDisplay,
   ) => {
     const videoProject = videoProjectForConversation(activeConversationId);
     if (videoProject) {
@@ -2757,6 +2780,12 @@ export default function GeneratorPage() {
       });
       const directSceneIds = displayMeta?.sceneEditIds?.filter(id => videoProject.segments.some(scene => scene.id === id)) || [];
       if (videoProject.workflowVersion === 5 && videoProject.phase === 'ready') {
+        const submitted = useConversationStore.getState().conversations.find(c => c.id === videoProject.conversationId)?.messages.at(-1);
+        if (submitted?.role === 'user') {
+          useVideoCoursewareStore.getState().update(videoProject.id, {
+            submittedEdits: [...videoProject.submittedEdits || [], { baseVersion: videoProject.revision, message: structuredClone(submitted) }],
+          });
+        }
         const saved = saveCourseChatDraft(videoProject.id, text, directSceneIds.map(sceneId => ({
           sceneId,
           instruction: displayMeta?.sceneEditRequests?.[sceneId] || text,
@@ -2767,8 +2796,12 @@ export default function GeneratorPage() {
             pendingEdit: text,
             pendingEditAttachments: [...videoProject.pendingEditAttachments || [], ...attachments],
           });
-          addAssistantMessage(videoProject.conversationId, '修改意见已保存到视频互动课件草稿。可继续修改其他场景，完成后在课件卡片点击「全部生成」。', 'text');
-          setWaitingForUserAction(videoProject.conversationId, true);
+          const started = startCourseDraft(videoProject.id);
+          const error = useVideoCoursewareStore.getState().projects[videoProject.id].courseDraft?.error;
+          addAssistantMessage(videoProject.conversationId, started
+            ? `已收到修改，正在生成第${videoProject.revision + 1}版。完成前可继续查看第${videoProject.revision}版。`
+            : `修改已保存，暂未开始生成：${error || '请检查修改草稿后重试。'} 可在课件卡片中重新生成。`, 'text');
+          setWaitingForUserAction(videoProject.conversationId, !started);
         }
         return;
       }
@@ -3894,7 +3927,7 @@ export default function GeneratorPage() {
           <div style={{ width: '100%', maxWidth: chatContentMaxWidth }}>
             <ChatInput 
               key={activeConversationId || 'bottom-input'}
-              placeholder={videoProject ? '输入修改意见，保存后可统一生成新版本' : undefined}
+              placeholder={videoProject ? '输入修改意见，发送后生成新版本' : undefined}
               onSend={handleSend} 
               disabled={Boolean(videoProject && isVideoChatLocked(videoProject)) || (!videoProject && phase !== 'input' && phase !== 'completed')}
               isGenerating={Boolean(videoProject ? ['planning','scene-planning','images-loading','audio-loading','assets-loading','video-planning','video-loading','scenes-loading','assembling'].includes(videoProject.phase) : phase !== 'input' && phase !== 'completed')}

@@ -135,6 +135,18 @@ export function restoreVideoConversations(){
   timeline.sort((a,b)=>{const x=sequence.get(a.id),y=sequence.get(b.id);return x!==undefined&&y!==undefined?x-y:a.timestamp.getTime()-b.timestamp.getTime();});
   conversation.messages=[...conversation.messages.slice(0,2),...timeline];
  }
+ // Reinsert submitted edits before their resulting version, including failed/pending edits.
+ // Conversation UI itself is transient; the video project persists these snapshots.
+ for(const conversation of restored){
+  const p=projects.find(p=>p.conversationId===conversation.id)!;
+  for(const edit of p.submittedEdits||[]){
+   if(conversation.messages.some(m=>m.id===edit.message.id))continue;
+   const next=p.resultMessages.find(r=>r.version>edit.baseVersion);
+   const index=next?conversation.messages.findIndex(m=>m.id===next.id):-1;
+   const message={...edit.message,timestamp:new Date(edit.message.timestamp)};
+   if(index>=0)conversation.messages.splice(index,0,message);else conversation.messages.push(message);
+  }
+ }
  useConversationStore.setState(s=>({conversations:[...restored,...s.conversations]}));
  for(const p of missing){const r=p.resultMessages.at(-1);if(r&&!useCoursewareStore.getState().coursewares.some(c=>c.id===p.coursewareId))useCoursewareStore.getState().addCourseware(coursewareFor(p,r.html));}
 }

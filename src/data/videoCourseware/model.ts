@@ -1,4 +1,4 @@
-import type { GenerationPreferences, RequirementFramework, UploadedAttachment } from '../../types';
+import type { ConversationMessage, GenerationPreferences, RequirementFramework, UploadedAttachment } from '../../types';
 
 export type SegmentKind = 'video' | 'mixed' | 'h5';
 export type AssetKind = 'image' | 'audio' | 'video';
@@ -45,6 +45,7 @@ export interface VideoProject {
  workflowRuns?:Partial<Record<WorkflowStage,string>>; workflowSnapshots?:Record<string,WorkflowSnapshot>;
  workflowEvents?:Array<{runId:string;stage:WorkflowStage;time:string;order?:number;confirmation:string;sceneCount?:number;status?:'generating'|'completed'|'failed';error?:string}>;
  publishedTargets?:VideoPublicationTarget[]; publishedVersions?:Record<string,VideoPublicationStatus>;
+ submittedEdits?:Array<{baseVersion:number;message:ConversationMessage}>;
  composition:PlaybackSettings; revision:number; pendingEdit?:string; pendingEditAttachments?:UploadedAttachment[]; resultMessages:Array<{id:string;html:string;version:number;time:string;order?:number;snapshot?:WorkflowSnapshot;composition?:PlaybackSettings}>;
 }
 export const segmentLabels:Record<SegmentKind,string>={video:'视频',mixed:'视频＋互动',h5:'互动页面'};

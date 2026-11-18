@@ -413,13 +413,26 @@ export interface VoiceCapabilitySelection {
   englishOralAssessment: boolean;
 }
 
-export interface UserMaterialMessage {
-  text: string;
+export interface SceneEditMessage {
+  sceneId: string;
+  sceneNumber: number;
+  sceneTitle: string;
+  instruction: string;
+  attachmentIds: string[];
+}
+
+export interface EditMessageDisplay {
   displayText?: string;
   annotationCount?: number;
   sceneEditCount?: number;
   sceneEditIds?: string[];
   sceneEditRequests?: Record<string, string>;
+  sceneEditReferences?: Record<string, string[]>;
+  sceneEdits?: SceneEditMessage[];
+}
+
+export interface UserMaterialMessage extends EditMessageDisplay {
+  text: string;
   attachments?: UploadedAttachment[];
   resolvedIntents?: MaterialIntentResolution[];
   generationPreferences?: GenerationPreferences;

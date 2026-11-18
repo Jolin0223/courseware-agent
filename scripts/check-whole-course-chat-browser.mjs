@@ -23,10 +23,10 @@ try{
  await shell.getByPlaceholder('填写这个场景的修改意见',{exact:true}).fill('雨字的提示字号放大一些');
  await page.getByRole('button',{name:/发送，/}).last().click();
  await expect(page.locator('.vc-course-draft')).toBeAttached();
- let p=await project();check('聊天场景修改进入草稿且不自动生成',p.revision===1&&p.courseDraft.sceneIds.length===1&&p.courseDraft.status==='draft');
+ let p=await project();check('聊天场景修改发送后直接开始生成',p.revision===1&&p.courseDraft.sceneIds.length===1&&p.courseDraft.status==='generating');
  await page.locator('.vc-course-draft').scrollIntoViewIfNeeded();
  await page.screenshot({path:'docs/reviews/20261012-whole-course/06-chat-draft-1135.png'});
- await page.getByRole('button',{name:'全部生成',exact:true}).click();
+
  await expect.poll(async()=>(await project()).revision,{timeout:16000}).toBe(2);
  check('聊天修改统一生成整课成功',!(await project()).courseDraft);
  await page.getByRole('button',{name:'一键同款',exact:true}).last().scrollIntoViewIfNeeded();

@@ -19,7 +19,7 @@ function CourseDraftBar({project}:{project:VideoProject}){
  const busy=draft?.status==='generating';
  if(!draft)return null;
  return <section className="vc-course-draft" aria-label="视频互动课件修改草稿">
-  <div className="vc-course-draft-heading"><strong>{busy?'正在生成新的视频互动课件版本':`${draft.sceneIds.length} 个场景有待生成修改`}</strong><span>基于第 {draft.baseVersion} 版</span></div>
+  <div className="vc-course-draft-heading"><strong>{busy?`正在生成第 ${project.revision + 1} 版`:`${draft.sceneIds.length} 个场景有待生成修改`}</strong><span>基于第 {draft.baseVersion} 版</span></div>
   <p>{busy?'整体视频互动课件生成预计约 30–60 分钟，可离开当前会话，完成后回来查看。':'可继续逐场景修改；全部生成后，更新为一个新的视频互动课件版本。'}</p>
   <div className="vc-draft-scenes">{draft.sceneIds.map(id=><span key={id}>{draft.snapshot.segments.find(s=>s.id===id)?.title}</span>)}</div>
   {draft.instruction&&<details className="vc-draft-instruction"><summary>查看修改意见</summary><p>{draft.instruction}</p></details>}

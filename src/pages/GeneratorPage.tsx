@@ -1,3 +1,5 @@
+import MessageExpandButton from '../components/Generator/MessageExpandButton';
+import SceneEditMessage from '../components/Generator/SceneEditMessage';
 import ChatLoadingDots from '../components/Generator/ChatLoadingDots';
 import { isVideoChatLocked } from '../components/VideoCourseware/chatAvailability';
 import { useState, useCallback, useRef, useEffect, type UIEvent } from 'react';
@@ -999,19 +1001,6 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     background: 'linear-gradient(180deg, rgba(234, 246, 255, 0), #EAF6FF 78%)',
     pointerEvents: 'none',
   },
-  expandButton: {
-    marginTop: 6,
-    height: 26,
-    padding: '0 10px',
-    borderRadius: 10,
-    border: '1px solid #CFEAF7',
-    background: 'rgba(255, 255, 255, 0.92)',
-    color: 'var(--agent-primary-text)',
-    fontSize: 12,
-    fontWeight: 850,
-    cursor: 'pointer',
-    boxShadow: '0 6px 16px rgba(15, 23, 42, 0.08)',
-  },
   appliedPromptCard: {
     width: '100%',
     maxWidth: '100%',
@@ -1364,7 +1353,7 @@ function UserMessage({
           )}
 
           {sceneEdits.length > 0 && (
-            <div className="agent-scene-edit-message" aria-label="已发送的场景修改">
+            <SceneEditMessage>
               {sceneEdits.map(edit => (
                 <section key={edit.sceneId} className="agent-scene-edit-message-item">
                   <strong>场景 {edit.sceneNumber} · {edit.sceneTitle}</strong>
@@ -1380,7 +1369,7 @@ function UserMessage({
                   )}
                 </section>
               ))}
-            </div>
+            </SceneEditMessage>
           )}
 
           {regularImages.length > 0 && (
@@ -1507,13 +1496,7 @@ function UserMessage({
                 {isLongText && !longTextExpanded && <div style={userMessageStyles.fadeMask} />}
               </div>
               {isLongText && (
-                <button
-                  type="button"
-                  style={userMessageStyles.expandButton}
-                  onClick={() => setLongTextExpanded(prev => !prev)}
-                >
-                  {longTextExpanded ? '收起内容' : '展开全部'}
-                </button>
+                <MessageExpandButton expanded={longTextExpanded} onClick={() => setLongTextExpanded(prev => !prev)}/>
               )}
             </div>
           )}
@@ -2008,7 +1991,7 @@ function AssistantMessage({
   onVisualStyleRegenerate?: (request: VisualStyleRegenerationRequest) => void;
   onTeachingVideoConfirm?: (messageId: string) => void;
 }) {
-  const workflowMessage=message.type==='video-courseware-workflow'?message.content as {videoProjectId:string;stage?:string;runId?:string}:undefined;
+  const workflowMessage=message.type==='video-courseware-workflow'?message.content as {videoProjectId:string;stage?:string;runId?:string;baseVersion?:number}:undefined;
   const workflowProject=useVideoCoursewareStore(s=>workflowMessage?s.projects[workflowMessage.videoProjectId]:undefined);
   const savedCoursewares = useCoursewareStore(s => s.coursewares);
   const conversations = useConversationStore(s => s.conversations);
@@ -2036,6 +2019,18 @@ function AssistantMessage({
   }
 
   if (message.type === 'video-courseware-workflow') {
+    if (workflowMessage?.stage === 'revision-progress') {
+      const baseVersion = workflowMessage.baseVersion ?? 1;
+      const draft = workflowProject?.courseDraft;
+      const currentRun = String(draft?.startedAt) === workflowMessage.runId;
+      const pending = currentRun && draft?.status === 'generating';
+      const completed = Boolean(workflowProject && workflowProject.revision > baseVersion);
+      const text = pending
+        ? `已收到修改，正在生成第${baseVersion + 1}版。完成前可继续查看第${baseVersion}版。`
+        : completed ? `第${baseVersion + 1}版已生成，可查看新版结果。`
+        : `本次生成已停止，修改已保留。${currentRun && draft?.error ? draft.error : '请查看课件卡片中的状态。'}`;
+      return <div style={styles.messageAssistant} data-revision-progress={workflowMessage.runId}><AIAvatar/><div><div style={styles.assistantBubble}>{text}</div>{pending && <ChatLoadingDots/>}</div></div>;
+    }
     if(workflowMessage?.stage==='plan' && workflowProject?.phase==='planning') return <AIWaitingMessage/>;
     if(workflowMessage?.stage==='resource-update'){
       const event=workflowProject?.workflowEvents?.find(e=>e.runId===workflowMessage.runId);
@@ -2790,7 +2785,7 @@ export default function GeneratorPage() {
           sceneId,
           instruction: displayMeta?.sceneEditRequests?.[sceneId] || text,
           referenceNames: displayMeta?.sceneEditReferences?.[sceneId] || [],
-        })));
+        })), Boolean(displayMeta?.displayText?.trim() || attachments.some(file => !file.id.startsWith('scene-reference-'))));
         if (saved) {
           useVideoCoursewareStore.getState().update(videoProject.id, {
             pendingEdit: text,
@@ -2798,9 +2793,9 @@ export default function GeneratorPage() {
           });
           const started = startCourseDraft(videoProject.id);
           const error = useVideoCoursewareStore.getState().projects[videoProject.id].courseDraft?.error;
-          addAssistantMessage(videoProject.conversationId, started
-            ? `已收到修改，正在生成第${videoProject.revision + 1}版。完成前可继续查看第${videoProject.revision}版。`
-            : `修改已保存，暂未开始生成：${error || '请检查修改草稿后重试。'} 可在课件卡片中重新生成。`, 'text');
+          if (!started) {
+            addAssistantMessage(videoProject.conversationId, `修改已保存，暂未开始生成：${error || '请检查修改草稿后重试。'} 可在课件卡片中重新生成。`, 'text');
+          }
           setWaitingForUserAction(videoProject.conversationId, !started);
         }
         return;

@@ -1,3 +1,4 @@
+import RevisionHelp from './RevisionHelp';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -497,8 +498,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const currentVideo = useVideoCoursewareStore(s => centered ? undefined : Object.values(s.projects).find(p => p.conversationId === currentConversationId));
   const selectedSceneIds = currentVideo?.segments.filter(scene => Object.hasOwn(sceneEdits, scene.id)).map(scene => scene.id) || [];
   const hasSceneEditContent = selectedSceneIds.some(id => sceneEdits[id]?.trim() || sceneEditImages[id]?.length);
-  const hasIncompleteSceneEdits = selectedSceneIds.some(id => !sceneEdits[id]?.trim() && !sceneEditImages[id]?.length);
-  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0 || Boolean(annotationBatch?.annotations.length) || hasSceneEditContent) && !disabled && !hasIncompleteSceneEdits && !selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading));
+  const submittedSceneIds = selectedSceneIds.filter(id => sceneEdits[id]?.trim() || sceneEditImages[id]?.length);
+  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0 || Boolean(annotationBatch?.annotations.length) || hasSceneEditContent) && !disabled && !selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading));
   const homepagePromptChips = effectiveFormat === 'video'
     ? VIDEO_HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % VIDEO_HOMEPAGE_PROMPT_GROUPS.length]
     : HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length].map(prompt => ({ label: prompt, prompt }));
@@ -523,7 +524,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     if (documentFiles.length > 0) {
       return '请描述文档要怎么使用，例如：提取题目、作为知识内容、生成脚本或参考结构';
     }
-    if (annotationBatch?.annotations.length || selectedSceneIds.length > 0) return '可补充整体修改要求，也可以直接发送以上分场意见';
+    if (annotationBatch?.annotations.length || selectedSceneIds.length > 0) return '可直接描述整体或指定场景的修改，也可以只发送以上分场意见';
     if (centered && effectiveFormat === 'video') return '请告诉我：给哪个年级、学习什么、用什么故事或情境，以及希望学生怎样互动。\n例如：给一年级做雨字头识字课，先看悟空找线索的故事，再让学生点选汉字、描写“雨”字；答错提示，答对继续闯关。';
     return placeholder;
   })();
@@ -578,7 +579,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }, [injectedText, injectedTextVersion, onTextChange, resizeTextarea]);
 
   const handleSend = useCallback(() => {
-    if (hasIncompleteSceneEdits || selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading))) return;
+    if (selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading))) return;
     const trimmed = text.trim();
     const readyFiles = attachedFiles.filter(f => !f.loading);
     const annotationAttachments: UploadedAttachment[] = annotationBatch?.annotations
@@ -592,10 +593,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
       })) || [];
     const readyAttachments: UploadedAttachment[] = [
       ...lockedAttachments,
-      ...readyFiles.map(({ id, type, name, url }) => ({ id, type, name, url })),
+      ...readyFiles.map(({ id, type, name, url }) => ({ id, type, name, url, ...(currentVideo ? {sourceTitle:'本次修改参考材料（用途以修改意见为准）'} : {}) })),
       ...teachingAttachments,
       ...annotationAttachments,
-      ...((currentVideo?.segments || []).filter(scene => selectedSceneIds.includes(scene.id)).flatMap(scene => (sceneEditImages[scene.id] || []).filter(file => file.url && !file.loading).map(file => ({
+      ...((currentVideo?.segments || []).filter(scene => submittedSceneIds.includes(scene.id)).flatMap(scene => (sceneEditImages[scene.id] || []).filter(file => file.url && !file.loading).map(file => ({
         id: `scene-reference-${scene.id}-${file.id}`,
         type: 'image' as const,
         name: file.name,
@@ -607,18 +608,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
       ? buildPreviewAnnotationPrompt(annotationBatch)
       : '';
     const sceneEditLines = currentVideo?.segments
-      .filter(scene => selectedSceneIds.includes(scene.id) && (sceneEdits[scene.id]?.trim() || sceneEditImages[scene.id]?.length))
+      .filter(scene => submittedSceneIds.includes(scene.id) && (sceneEdits[scene.id]?.trim() || sceneEditImages[scene.id]?.length))
       .map((scene, index) => {
         const refs = sceneEditImages[scene.id]?.map(file => file.name).join('、');
         return `${index + 1}. 场景「${scene.title}」：${sceneEdits[scene.id]?.trim() || '请结合参考图片调整本场'}${refs ? `（参考图片：${refs}）` : ''}`;
       }) || [];
     const sceneEditPrompt = sceneEditLines.length
-      ? ['请按以下清单分别修改场景，未列出的场景保持不变：', ...sceneEditLines].join('\n')
+      ? [trimmed || readyFiles.length ? '以下为按场景填写的修改意见；下方直接描述的修改及附件，请按其明确指向的场景或整体范围处理：' : '请按以下清单分别修改场景，未列出的场景保持不变：', ...sceneEditLines].join('\n')
       : '';
     const requestText = [
       annotationPrompt,
       sceneEditPrompt,
-      trimmed ? (annotationPrompt || sceneEditPrompt ? `补充整体修改要求：${trimmed}` : trimmed) : '',
+      trimmed ? (annotationPrompt || sceneEditPrompt ? `直接描述的修改要求：${trimmed}` : trimmed) : '',
     ].filter(Boolean).join('\n\n');
     if ((!requestText && readyAttachments.length === 0) || disabled) return;
     onSend(
@@ -628,7 +629,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       annotationPrompt || sceneEditLines.length
         ? {
             displayText: trimmed || undefined,
-            sceneEdits: (currentVideo?.segments || []).flatMap((scene, index) => selectedSceneIds.includes(scene.id) ? [{
+            sceneEdits: (currentVideo?.segments || []).flatMap((scene, index) => submittedSceneIds.includes(scene.id) ? [{
               sceneId: scene.id,
               sceneNumber: index + 1,
               sceneTitle: scene.title,
@@ -637,9 +638,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
             }] : []),
             annotationCount: annotationBatch?.annotations.length || undefined,
             sceneEditCount: sceneEditLines.length || undefined,
-            sceneEditIds: selectedSceneIds,
-            sceneEditRequests: Object.fromEntries(selectedSceneIds.map(id => [id, sceneEdits[id]?.trim() || ''])),
-            sceneEditReferences: Object.fromEntries(selectedSceneIds.map(id => [id, (sceneEditImages[id] || []).map(file => file.name)])),
+            sceneEditIds: submittedSceneIds,
+            sceneEditRequests: Object.fromEntries(submittedSceneIds.map(id => [id, sceneEdits[id]?.trim() || ''])),
+            sceneEditReferences: Object.fromEntries(submittedSceneIds.map(id => [id, (sceneEditImages[id] || []).map(file => file.name)])),
           }
         : undefined,
     );
@@ -660,7 +661,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       htmlModelId: 'gemini-3.1-pro',
       imageModelId: 'jimeng-5.0',
     });
-  }, [text, attachedFiles, teachingAttachments, lockedAttachments, annotationBatch, sceneEdits, sceneEditImages, selectedSceneIds, currentVideo, generationPreferences, effectiveFormat, hasIncompleteSceneEdits, disabled, onSend, onTextChange, onClearAnnotationBatch]);
+  }, [text, attachedFiles, teachingAttachments, lockedAttachments, annotationBatch, sceneEdits, sceneEditImages, selectedSceneIds, submittedSceneIds, currentVideo, generationPreferences, effectiveFormat, disabled, onSend, onTextChange, onClearAnnotationBatch]);
 
   const applyHomepagePromptChip = useCallback((prompt: string) => {
     const example = prompt === VIDEO_EXAMPLE_PROMPT;
@@ -1079,6 +1080,31 @@ const ChatInput: React.FC<ChatInputProps> = ({
     })()
   );
 
+  const attachmentPreview = (attachedFiles.length > 0 && (
+            <div style={styles.attachmentGroups}>
+              {imageFiles.length > 0 && (
+                <div style={styles.attachmentGroup}>
+                  {documentFiles.length > 0 && (
+                    <div style={styles.attachmentGroupLabel}>图片素材</div>
+                  )}
+                  <div style={styles.attachmentTray}>
+                    {imageFiles.map((file, index) => renderAttachmentItem(file, index))}
+                  </div>
+                </div>
+              )}
+              {documentFiles.length > 0 && (
+                <div style={styles.attachmentGroup}>
+                  {imageFiles.length > 0 && (
+                    <div style={styles.attachmentGroupLabel}>文档材料</div>
+                  )}
+                  <div style={styles.attachmentTray}>
+                    {documentFiles.map((file, index) => renderAttachmentItem(file, index))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ));
+
   return (
     <>
       <style>{HOVER_CSS}</style>
@@ -1152,31 +1178,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               ))}
             </div>
           )}
-          {/* 已上传文件预览区 */}
-          {attachedFiles.length > 0 && (
-            <div style={styles.attachmentGroups}>
-              {imageFiles.length > 0 && (
-                <div style={styles.attachmentGroup}>
-                  {documentFiles.length > 0 && (
-                    <div style={styles.attachmentGroupLabel}>图片素材</div>
-                  )}
-                  <div style={styles.attachmentTray}>
-                    {imageFiles.map((file, index) => renderAttachmentItem(file, index))}
-                  </div>
-                </div>
-              )}
-              {documentFiles.length > 0 && (
-                <div style={styles.attachmentGroup}>
-                  {imageFiles.length > 0 && (
-                    <div style={styles.attachmentGroupLabel}>文档材料</div>
-                  )}
-                  <div style={styles.attachmentTray}>
-                    {documentFiles.map((file, index) => renderAttachmentItem(file, index))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          {(centered || !currentVideo) && attachmentPreview}
 
           {teachingAttachments.length > 0 && (
             <div className="aug-teaching-attachment-list">
@@ -1269,14 +1271,34 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </div>
           )}
 
-          {(scenePickerOpen || selectedSceneIds.length > 0) && currentVideo && (
+              {!centered && currentVideo && (
+                <div className="ci-scene-controls"><div className="ci-scene-controls-start"><button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => setScenePickerOpen(previous => !previous)}
+                  className={'ci-scene-scope'+(scenePickerOpen || selectedSceneIds.length ? ' active' : '')}
+                  aria-expanded={scenePickerOpen}
+                  aria-label="选择场景修改"
+                  title="修改指定场景时，选择场景可更准确地关联意见和图片；也可直接在输入框描述"
+                >
+                  <ListChecks size={15}/>
+                  <span>按场景修改</span>
+                  {selectedSceneIds.length > 0 && <strong>已选 {selectedSceneIds.length} 场</strong>}
+                  <ChevronDown size={14} style={{transform:scenePickerOpen?'rotate(180deg)':undefined}}/>
+                </button>
+                {currentVideo.phase === 'ready' && <RevisionHelp/>}
+                </div>
+                {(scenePickerOpen || selectedSceneIds.length > 0) && <button type="button" className="ci-scene-collapse" onClick={() => setScenePickerOpen(previous => !previous)} aria-expanded={scenePickerOpen}>{scenePickerOpen ? '收起场景' : '展开场景'}</button>}
+                </div>
+              )}
+
+          {scenePickerOpen && currentVideo && (
             <div style={styles.scenePickerPanel}>
               <div style={styles.scenePickerHeader}>
                 <div>
                   <strong style={styles.scenePickerTitle}>按场景填写修改意见</strong>
                   <span style={styles.scenePickerHint}>可选多场，每场单独填写</span>
                 </div>
-                <button type="button" onClick={() => setScenePickerOpen(previous => !previous)} style={styles.sceneEditChange}>{scenePickerOpen ? '收起场景' : '添加场景'}</button>
               </div>
               {scenePickerOpen && <div style={styles.scenePickerList}>
                 {currentVideo.segments.map((scene, index) => {
@@ -1349,7 +1371,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   </div>
                 ))}
               </div>}
-              {hasIncompleteSceneEdits && <span style={styles.scenePickerHint}>请为每个所选场景填写意见或添加图片后发送</span>}
             </div>
           )}
 
@@ -1383,22 +1404,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
           )}
 
           {!appliedInspirationDraft && (
-            <div className="agent-chat-input-textarea-wrap" style={styles.textareaWrap}>
-              {!centered && currentVideo && (
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => setScenePickerOpen(previous => !previous)}
-                  className={'ci-scene-scope'+(scenePickerOpen || selectedSceneIds.length ? ' active' : '')}
-                  aria-expanded={scenePickerOpen}
-                  aria-label="选择场景修改"
-                >
-                  <ListChecks size={15}/>
-                  <span>修改范围：</span>
-                  <strong>{selectedSceneIds.length ? `已选 ${selectedSceneIds.length} 场` : '整体视频互动课件'}</strong>
-                  <ChevronDown size={14}/>
-                </button>
-              )}
+            <div className={'agent-chat-input-textarea-wrap'+(!centered && currentVideo && scenePickerOpen ? ' ci-freeform-after-scenes' : '')} style={styles.textareaWrap}>
+              {!centered && currentVideo && attachmentPreview}
               {shouldShowHomepageExamples && (
                 <div style={styles.rotatingPlaceholder} aria-hidden="true">
                   <div
@@ -1425,7 +1432,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 onPaste={handlePaste}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                placeholder={materialUsagePlaceholder}
+                aria-label={!centered && currentVideo ? '直接描述修改' : undefined}
+                placeholder={!centered && currentVideo ? '补充修改意见。例如：所有场景画面更明亮一点' : materialUsagePlaceholder}
                 disabled={disabled}
                 rows={3}
                 style={{

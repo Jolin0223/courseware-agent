@@ -1,6 +1,6 @@
 {
-  "release": "20261118-scene-revision-ready",
-  "date": "2026-11-18",
-  "description": "场景修改回显文字与图片，发送后生成新版，刷新保留修改消息；预览就绪后立即应用新版场景",
+  "release": "20261120-scene-revision-interaction",
+  "date": "2026-11-20",
+  "description": "按场景修改与自由输入并行，修改明细统一折叠，生成进度在会话展示；仅保留手动修改说明，不含发布标签",
   "demoOnly": true
 }

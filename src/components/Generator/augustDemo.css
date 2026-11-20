@@ -1083,3 +1083,38 @@
 .style-update-guide button:hover, .style-update-guide button:focus-visible { background:#475569; color:white; }
 @keyframes style-guide-flash { 0%, 100% { transform:translate(-50%, 0); } 50% { transform:translate(-50%, -5px); } }
 @media (prefers-reduced-motion:reduce) { .style-update-guide { animation:none; } }
+
+/* Separate the optional scene assistant only while it is visible. */
+.ci-freeform-after-scenes{border-top:1px solid #e2e8f0;padding-top:12px}
+
+.ci-scene-controls{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ci-scene-collapse{border:0;background:transparent;color:var(--agent-primary);font-size:12px;cursor:pointer;padding:6px 0}
+
+/* Align the scope and collapse controls by their boxes, without the legacy chip margin. */
+.ci-scene-controls{position:relative;margin-bottom:10px;min-height:30px;}
+.ci-scene-controls-start{display:flex;align-items:center;gap:6px;min-width:0;}
+.ci-scene-controls .ci-scene-scope{margin:0;min-height:30px;box-sizing:border-box;}
+.ci-scene-controls .ci-scene-collapse{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0;line-height:18px;white-space:nowrap;}
+.ci-revision-help{display:flex;align-items:center;flex-shrink:0;}
+.ci-revision-help-trigger{display:grid;place-items:center;flex:none;box-sizing:border-box;width:28px;height:28px;padding:0;border:1px solid transparent;border-radius:7px;background:transparent;color:#7a899c;cursor:pointer;line-height:0;}
+.ci-revision-help-trigger:hover,.ci-revision-help-trigger[aria-expanded="true"]{color:var(--agent-primary);background:#eff8ff;border-color:#d5e9fc;}
+.ci-revision-help-trigger>svg{display:block;position:static;width:16px;height:16px;margin:0;transform:none;}
+.ci-revision-help-trigger:focus-visible{outline:2px solid var(--agent-primary);outline-offset:2px;}
+.ci-revision-help-tip{position:fixed;z-index:22020;box-sizing:border-box;border:1px solid #dce6ef;border-radius:12px;background:#fff;color:#334155;box-shadow:0 12px 36px #1939561a,0 2px 6px #1939560a;font-size:12px;line-height:1.65;}
+.ci-revision-help-tip:after{content:'';position:absolute;left:var(--revision-help-arrow);width:9px;height:9px;background:#fff;transform:translateX(-50%) rotate(45deg);}
+.ci-revision-help-tip.is-above:after{bottom:-5px;border-right:1px solid #dce6ef;border-bottom:1px solid #dce6ef;}
+.ci-revision-help-tip.is-below:after{top:-5px;border-left:1px solid #dce6ef;border-top:1px solid #dce6ef;}
+.ci-revision-help-content{padding:16px 18px 18px;max-height:inherit;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;}
+.ci-revision-help-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
+.ci-revision-help-header>strong{font-size:14px;font-weight:600;color:#1e293b;}
+.ci-revision-help-close{display:grid;place-items:center;flex:none;width:24px;height:24px;border:0;border-radius:6px;padding:0;background:transparent;color:#94a3b8;cursor:pointer;}
+.ci-revision-help-close:hover{background:#f1f5f9;color:#475569;}
+.ci-revision-help-close>svg{display:block;}
+.ci-revision-help-method{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;align-items:start;}
+.ci-revision-help-method+.ci-revision-help-method{margin-top:17px;}
+.ci-revision-help-icon{display:grid;place-items:center;width:32px;height:32px;background:#eff8ff;border-radius:8px;color:#2087ed;}
+.ci-revision-help-method-title{display:flex;align-items:center;gap:8px;min-height:22px;}
+.ci-revision-help-method-title>strong{font-size:13px;font-weight:600;color:#334155;}
+.ci-revision-help-method-title>span{padding:0 5px;border-radius:4px;background:#eff8ff;color:#2883cf;font-size:11px;line-height:18px;white-space:nowrap;}
+.ci-revision-help-tip p{margin:4px 0 0;color:#64748b;line-height:1.7;}
+.ci-revision-help-tip button:focus-visible{outline:2px solid #1687ff;outline-offset:2px;}

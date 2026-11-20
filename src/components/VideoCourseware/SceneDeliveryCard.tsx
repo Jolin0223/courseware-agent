@@ -1,7 +1,7 @@
 import { useVideoCoursewareStore } from '../../store/videoCoursewareStore';
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Film, Gamepad2, Layers, Loader2, Play, PencilLine } from 'lucide-react';
+import { Film, Gamepad2, Layers, Play, PencilLine } from 'lucide-react';
 import type { VideoProject } from '../../data/videoCourseware/model';
 import { VideoModal } from './Shared';
 import { runtimeURL, sendRuntimeSettings } from './runtime';
@@ -19,15 +19,15 @@ function CourseDraftBar({project}:{project:VideoProject}){
  const busy=draft?.status==='generating';
  if(!draft)return null;
  return <section className="vc-course-draft" aria-label="视频互动课件修改草稿">
-  <div className="vc-course-draft-heading"><strong>{busy?`正在生成第 ${project.revision + 1} 版`:`${draft.sceneIds.length} 个场景有待生成修改`}</strong><span>基于第 {draft.baseVersion} 版</span></div>
-  <p>{busy?'整体视频互动课件生成预计约 30–60 分钟，可离开当前会话，完成后回来查看。':'可继续逐场景修改；全部生成后，更新为一个新的视频互动课件版本。'}</p>
+  <div className="vc-course-draft-heading"><strong>{busy?'修改已提交':`${draft.sceneIds.length} 个场景有待生成修改`}</strong><span>基于第 {draft.baseVersion} 版</span></div>
+  <p>{busy?'生成进度见下方对话，当前仍可查看上一版。':'可继续逐场景修改；全部生成后，更新为一个新的视频互动课件版本。'}</p>
   <div className="vc-draft-scenes">{draft.sceneIds.map(id=><span key={id}>{draft.snapshot.segments.find(s=>s.id===id)?.title}</span>)}</div>
   {draft.instruction&&<details className="vc-draft-instruction"><summary>查看修改意见</summary><p>{draft.instruction}</p></details>}
   {draft.error&&<p className="vc-error" role="alert">{draft.error} 上一版仍可预览。</p>}
   <div className="vc-course-draft-actions">
    <span role="status">{busy?'完成后可预览，当前仍可查看上一版':'草稿已保存，当前预览为上一版'}</span>
    <button className="vc-text-btn" disabled={busy} onClick={()=>setDiscarding(true)}>放弃草稿</button>
-   <button className="vc-btn primary" disabled={busy||Object.values(project.sceneRevisions||{}).some(r=>r.status==='generating')} onClick={()=>startCourseDraft(project.id)}>{busy?<><Loader2 size={14} className="vc-spin"/>生成中…</>:draft.status==='failed'?'重新生成视频互动课件':'全部生成'}</button>
+   <button className="vc-btn primary" disabled={busy||Object.values(project.sceneRevisions||{}).some(r=>r.status==='generating')} onClick={()=>startCourseDraft(project.id)}>{busy?'已提交':draft.status==='failed'?'重新生成视频互动课件':'全部生成'}</button>
   </div>
   {discarding&&<div className="vc-draft-discard" role="dialog" aria-label="放弃视频互动课件草稿"><strong>放弃这次已保存的全部修改？</strong><div><button className="vc-btn" onClick={()=>setDiscarding(false)}>取消</button><button className="vc-btn danger" onClick={()=>discardCourseDraft(project.id)}>放弃草稿</button></div></div>}
  </section>;

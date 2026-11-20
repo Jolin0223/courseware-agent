@@ -1,3 +1,4 @@
+import { useConversationStore } from '../../store/conversationStore';
 import type { VideoProject } from '../../data/videoCourseware/model';
 import { buildSceneCandidate, rebaseSceneDraft, revisionProject, sceneSnapshot } from '../../data/videoCourseware/sceneRevision';
 import { videoPlanIssues } from '../../data/videoCourseware/planning';
@@ -23,7 +24,7 @@ export function saveCourseSceneDraft(original:VideoProject,edited:VideoProject,s
  return true;
 }
 
-export function saveCourseChatDraft(projectId:string,instruction:string,edits:Array<{sceneId:string;instruction:string;referenceNames?:string[]}>=[]):boolean {
+export function saveCourseChatDraft(projectId:string,instruction:string,edits:Array<{sceneId:string;instruction:string;referenceNames?:string[]}>=[],includeUnscopedRequest=false):boolean {
  const store=useVideoCoursewareStore.getState(),p=store.projects[projectId];
  if(p.phase!=='ready'||p.courseDraft?.status==='generating')return false;
  const base=courseDraftProject(p);
@@ -32,7 +33,7 @@ export function saveCourseChatDraft(projectId:string,instruction:string,edits:Ar
   draft.segments=draft.segments.map(scene=>scene.id===edit.sceneId?{...scene,content:[scene.content||scene.purpose,`本次修改要求：${edit.instruction}`,edit.referenceNames?.length?`参考图片：${edit.referenceNames.join('、')}`:''].filter(Boolean).join('\n\n')}:scene);
  }
  if(edits.length)draft={...draft,...prepareSceneEdit(base,draft,edits[0].sceneId)};
- const ids=edits.length?edits.map(e=>e.sceneId):draft.segments.map(s=>s.id);
+ const ids=edits.length&&!includeUnscopedRequest?edits.map(e=>e.sceneId):draft.segments.map(s=>s.id);
  store.update(projectId,{courseDraft:{baseVersion:p.revision,snapshot:sceneSnapshot(draft),composition:draft.composition,sceneIds:[...new Set([...p.courseDraft?.sceneIds||[],...ids])],instruction:[p.courseDraft?.instruction,instruction].filter(Boolean).join('\n'),status:'draft'}});
  return true;
 }
@@ -53,6 +54,11 @@ export function startCourseDraft(projectId:string,now=Date.now()):boolean {
  const issues=videoPlanIssues(courseDraftProject(p));
  const error=draft.baseVersion!==p.revision?'视频互动课件版本已变化，请重新核对修改。':issues.length?[...new Set(issues)].join(' '):undefined;
  store.update(projectId,{courseDraft:{...draft,status:error?'failed':'generating',error,startedAt:error?undefined:now}});
+ if(!error){
+  const chat=useConversationStore.getState();
+  chat.addAssistantMessage(p.conversationId,{videoProjectId:projectId,stage:'revision-progress',runId:String(now),baseVersion:p.revision},'video-courseware-workflow');
+  chat.setWaitingForUserAction(p.conversationId,false);
+ }
  return !error;
 }
 

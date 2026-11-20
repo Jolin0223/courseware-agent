@@ -441,7 +441,7 @@ export interface UserMaterialMessage extends EditMessageDisplay {
 export interface ConversationMessage {
   id: string;
   role: MessageRole;
-  content: { videoProjectId: string; stage?: 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly' | 'resource-update'; runId?: string } | string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | TeachingVideoPlan | TeachingVideoProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
+  content: { videoProjectId: string; stage?: 'plan' | 'assets' | 'video-plan' | 'production' | 'assembly' | 'resource-update' | 'revision-progress'; runId?: string; baseVersion?: number } | string | UserMaterialMessage | CoursewareRecommendationMessage | RequirementFramework | AugustGenerationPlan | GenerationProgress | TeachingVideoPlan | TeachingVideoProgress | CoursewareResult | MaterialIntentConfirmation | VoiceCapabilityConfirmation;
   type?: MessageType;
   timestamp: Date;
 }

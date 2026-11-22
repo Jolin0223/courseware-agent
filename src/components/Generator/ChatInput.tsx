@@ -1296,8 +1296,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <div style={styles.scenePickerPanel}>
               <div style={styles.scenePickerHeader}>
                 <div>
-                  <strong style={styles.scenePickerTitle}>按场景填写修改意见</strong>
-                  <span style={styles.scenePickerHint}>可选多场，每场单独填写</span>
+                  <strong style={styles.scenePickerTitle}>选择要修改的场景（可多选）</strong>
+                  <span style={styles.scenePickerHint}>在右侧「教师工具」切换场景，查看后在这里填写修改意见，可附截图。</span>
                 </div>
               </div>
               {scenePickerOpen && <div style={styles.scenePickerList}>

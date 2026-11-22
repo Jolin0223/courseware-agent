@@ -33,7 +33,7 @@ function CourseDraftBar({project}:{project:VideoProject}){
  </section>;
 }
 
-export function SceneDeliveryList({project,complete=false,version=project.revision}:{project:VideoProject;complete?:boolean;version?:number}){
+export function SceneDeliveryList({project,complete=false,version=project.revision,expanded=true,sceneListId}:{project:VideoProject;complete?:boolean;version?:number;expanded?:boolean;sceneListId?:string}){
  const [selected,setSelected]=useState<string|null>(null),[editing,setEditing]=useState<string|null>(null);
  const current=useVideoCoursewareStore(s=>s.projects[project.id]);
  const frame=useRef<HTMLIFrameElement>(null);
@@ -44,12 +44,14 @@ export function SceneDeliveryList({project,complete=false,version=project.revisi
  const url=selected?runtimeURL(previewProject,project.composition,selected):undefined;
  const editorProject=current&&latest?courseDraftProject(current):project;
  return <>
+  <div id={sceneListId} hidden={!expanded}>
   <div className="vc-delivery-types" aria-label="场景类型">{kinds.map(({kind,label,Icon})=><span key={kind} className={'vc-kind vc-kind-'+kind}><Icon size={13}/>{label}<b>{project.segments.filter(s=>s.kind===kind).length}</b></span>)}</div>
   <div className="vc-result-scene-list vc-delivery-list" role="region" aria-label="按教学顺序排列的场景" tabIndex={0} onWheel={handoffNestedScroll}>{project.segments.map((scene,i)=><div className="vc-result-scene" data-delivery-scene={scene.id} key={scene.id}>
    <span className="vc-order">{i+1}</span>
    <span className="vc-result-scene-copy"><b>{scene.title}</b><SceneKindBadge kind={scene.kind}/></span>
    <div className="vc-scene-row-actions">{complete&&<><button className="vc-text-btn" onClick={()=>setSelected(scene.id)}><Play size={13}/>预览</button><button className="vc-text-btn" disabled={latest&&busy} onClick={()=>setEditing(scene.id)}><PencilLine size={13}/>{latest?'修改':'查看方案'}</button></>}{latest&&current?.courseDraft?.sceneIds.includes(scene.id)&&<small className="vc-draft-marker">已保存修改</small>}</div>
   </div>)}</div>
+  </div>
   {complete&&latest&&current&&<CourseDraftBar project={current}/>}
   {editing&&<SceneEditor key={editing} project={editorProject} sceneId={editing} readOnly={!latest} onClose={()=>setEditing(null)} onSaveDraft={(draft,scope)=>{const saved=saveCourseSceneDraft(editorProject,draft,editing,scope);toast(saved?'已保存到视频互动课件草稿':'当前无法保存，请重新打开场景后再试');return saved;}}/>}
   {selected&&<VideoModal title={'场景预览 · '+project.segments.find(s=>s.id===selected)?.title} onClose={()=>setSelected(null)}><iframe ref={frame} className="vc-lesson" title="场景课件预览" src={url+'&previewOnly=1'} onLoad={()=>sendRuntimeSettings(frame.current?.contentWindow,previewProject,project.composition)} allow="autoplay; fullscreen"/><p className="vc-hint">正在预览第 {version} 版中的这一场景；完整课件可在右侧查看。</p></VideoModal>}

@@ -1,6 +1,6 @@
 import { SceneDeliveryList } from './SceneDeliveryCard';
-import { useEffect, useRef, useState } from 'react';
-import { Film, Gamepad2, Layers, Play } from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { ChevronDown, Film, Gamepad2, Layers, Play } from 'lucide-react';
 import { useVideoCoursewareStore } from '../../store/videoCoursewareStore';
 import { scenePreviewURL } from '../../data/videoCourseware/scenePreview';
 import { segmentLabels } from '../../data/videoCourseware/model';
@@ -11,6 +11,7 @@ export default function VideoResultScenes({projectId,version}:{projectId:string;
  const current=useVideoCoursewareStore(s=>s.projects[projectId]);
  const [selected,setSelected]=useState<string|null>(null),[expanded,setExpanded]=useState(false);
  const [displayed,setDisplayed]=useState<string|null>(null);
+ const sceneListId=useId();
  const frame=useRef<HTMLIFrameElement>(null);
  useEffect(()=>{
   const receive=(e:MessageEvent)=>{if(e.origin!==location.origin||e.source!==frame.current?.contentWindow||e.data?.type!=='wukong-phase')return;const phase=e.data.phase;setDisplayed(phase==='intro'?'opening':phase==='cave'?'move':phase);};
@@ -20,7 +21,7 @@ export default function VideoResultScenes({projectId,version}:{projectId:string;
  if(!current)return null;
  const result=current.resultMessages.find(r=>r.version===version);
  const project=result?.snapshot?{...current,...result.snapshot,composition:result.composition||current.composition}:current;
- if(project.workflowVersion===5)return <div className="vc-result-scenes"><div className="vc-field-heading"><b>视频互动课件 · {project.segments.length} 个场景</b><span>视频互动课件已完成</span></div><SceneDeliveryList project={project} version={version} complete/></div>;
+ if(project.workflowVersion===5)return <div className="vc-result-scenes"><div className="vc-field-heading"><button className="vc-result-scenes-toggle" aria-expanded={expanded} aria-controls={sceneListId} onClick={()=>setExpanded(!expanded)}><b>视频互动课件 · {project.segments.length} 个场景</b><ChevronDown size={16} aria-hidden="true"/></button><span>视频互动课件已完成</span></div><SceneDeliveryList project={project} version={version} complete expanded={expanded} sceneListId={sceneListId}/></div>;
  const shown=expanded?project.segments:project.segments.slice(0,4);
  const activeScene=displayed||selected,activeIndex=project.segments.findIndex(s=>s.id===activeScene);
  return <div className="vc-result-scenes"><div className="vc-field-heading"><b>视频互动课件 · {project.segments.length} 个场景</b><span>按场景检查内容</span></div><div className="vc-result-scene-list">{shown.map((s,i)=>{

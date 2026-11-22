@@ -1,0 +1,32 @@
+.agent-conversation-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 32000;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  cursor: wait;
+  outline: none;
+}
+.agent-conversation-loading-dots {
+  display: grid;
+  grid-template-columns: repeat(2, 11px);
+  gap: 6px;
+}
+.agent-conversation-loading-dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fff;
+  animation: conversation-dot-pulse 1s ease-in-out infinite;
+}
+.agent-conversation-loading-dots i:nth-child(2) { animation-delay: -0.75s; }
+.agent-conversation-loading-dots i:nth-child(3) { animation-delay: -0.25s; }
+.agent-conversation-loading-dots i:nth-child(4) { animation-delay: -0.5s; }
+@keyframes conversation-dot-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-conversation-loading-dots i { animation: none; }
+}

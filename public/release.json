@@ -1,6 +1,6 @@
 {
-  "release": "20261120-scene-revision-interaction",
-  "date": "2026-11-20",
-  "description": "按场景修改与自由输入并行，修改明细统一折叠，生成进度在会话展示；仅保留手动修改说明，不含发布标签",
+  "release": "20261122-history-loading-message-layout",
+  "date": "2026-11-22",
+  "description": "历史会话2秒四点loading；短消息靠右收缩，长文和场景图文随可用宽度适配",
   "demoOnly": true
 }

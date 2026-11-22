@@ -1,0 +1,9 @@
+{
+  "Id": "3452ba8f-0984-42f3-a069-57df93eddf37",
+  "Environment": "Production",
+  "Branch": "main",
+  "Source": "19a52b6",
+  "Deployment": "https://3452ba8f.courseware-agent.pages.dev",
+  "Status": "2 days ago",
+  "Build": "https://dash.cloudflare.com/d74dc7c5e79ad3c75d043e1122441e83/pages/view/courseware-agent/3452ba8f-0984-42f3-a069-57df93eddf37"
+}

@@ -124,12 +124,12 @@
 .vc-plan-goal textarea{font-size:14px;line-height:24px;min-height:0;max-height:none;resize:none;}
 
 /* Keep each submitted scene request together with its own reference images. */
-.agent-scene-edit-message{width:100%;max-width:640px;box-sizing:border-box;border:1px solid #c8e7f5;border-radius:14px;background:#eaf8ff;padding:16px;color:#24445e;text-align:left;}
+.agent-scene-edit-message{width:100%;max-width:100%;box-sizing:border-box;border:1px solid #c8e7f5;border-radius:14px;background:#eaf8ff;padding:16px;color:#24445e;text-align:left;}
 .agent-scene-edit-message-item+ .agent-scene-edit-message-item{border-top:1px solid #cee6ef;margin-top:14px;padding-top:14px;}
 .agent-scene-edit-message-item strong{font-size:14px;line-height:1.6;}
 .agent-scene-edit-message-item p{margin:8px 0 12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.7;}
 .agent-scene-edit-message-item .agent-user-message-image-grid{justify-content:flex-start;}
-.agent-scene-edit-message-wrap{display:flex;flex-direction:column;align-items:flex-end;width:100%;max-width:640px;}
+.agent-scene-edit-message-wrap{display:flex;flex-direction:column;align-items:flex-end;width:fit-content;max-width:100%;min-width:0;}
 .agent-scene-edit-message{position:relative;overflow:hidden;}
 .agent-scene-edit-viewport{max-height:260px;overflow:hidden;overflow-wrap:anywhere;}
 .agent-scene-edit-viewport.is-expanded{max-height:min(480px,55vh);overflow-y:auto;overscroll-behavior:contain;}

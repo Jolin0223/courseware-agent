@@ -5,6 +5,7 @@ import { Search, Pin, Trash2, Edit3, MoreHorizontal, Loader2, History, ChevronDo
 import { useConversationStore } from '../../store/conversationStore';
 import { useUIStore } from '../../store/uiStore';
 import type { Conversation } from '../../types';
+import ConversationLoadingOverlay from '../common/ConversationLoadingOverlay';
 
 type StickySection = 'pinned' | 'history';
 
@@ -19,6 +20,13 @@ const ChatHistory: React.FC = () => {
     togglePinConversation,
   } = useConversationStore();
   const openPreview = useUIStore((s) => s.openPreview);
+  const closePreview = useUIStore((s) => s.closePreview);
+  const [isOpeningConversation, setIsOpeningConversation] = useState(false);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (openTimerRef.current !== null) clearTimeout(openTimerRef.current);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -109,11 +117,18 @@ const ChatHistory: React.FC = () => {
   };
 
   const handleConversationClick = (conversationId: string, coursewareId?: number) => {
+    if (openTimerRef.current !== null) return;
+    setIsOpeningConversation(true);
     setActiveConversation(conversationId);
-    if (coursewareId) {
-      openPreview(coursewareId);
-    }
+    if (coursewareId) openPreview(coursewareId);
+    else closePreview();
     navigate('/');
+    // Demo-only latency: independent of the accelerated generation timing.
+    // The target is selected immediately; no delayed callback can restore an old conversation.
+    openTimerRef.current = setTimeout(() => {
+      openTimerRef.current = null;
+      setIsOpeningConversation(false);
+    }, 2000);
   };
 
   const handleConfirmDelete = () => {
@@ -324,6 +339,7 @@ const ChatHistory: React.FC = () => {
 
   return (
     <>
+    {isOpeningConversation && <ConversationLoadingOverlay />}
     <div
       className="chat-history-shell"
       style={{

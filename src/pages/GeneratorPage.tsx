@@ -980,10 +980,6 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
     alignItems: 'flex-end',
     width: '100%',
   },
-  fullWidthBubble: {
-    width: '100%',
-    boxSizing: 'border-box',
-  },
   collapsibleBubble: {
     position: 'relative',
     overflow: 'hidden',
@@ -1135,7 +1131,7 @@ const userMessageStyles: Record<string, React.CSSProperties> = {
   image: {
     width: '100%',
     height: '100%',
-    objectFit: 'cover',
+    objectFit: 'contain',
     display: 'block',
   },
   documentList: {
@@ -1307,13 +1303,11 @@ function UserMessage({
   const hasStructuredEditSummary = Boolean(message.annotationCount || message.sceneEditCount);
   const visibleText = sceneEdits.length ? message.displayText?.trim() || '' : hasStructuredEditSummary ? message.displayText?.trim() || message.text : message.text;
   const appliedPlaywayMessage = visibleText ? parseAppliedPlaywayMessage(visibleText) : null;
-  const hasAttachments = images.length > 0 || documents.length > 0 || htmlAttachments.length > 0 || teachingAttachments.length > 0 || selectedPreferences.length > 0;
   const isLongText = Boolean(
     visibleText
     && !appliedPlaywayMessage
     && (visibleText.length > 260 || visibleText.split('\n').length > 8)
   );
-  const shouldUseFullWidthBubble = Boolean(isLongText || hasAttachments || appliedPlaywayMessage);
 
   return (
     <>
@@ -1436,10 +1430,9 @@ function UserMessage({
           {appliedPlaywayMessage && (
             <div className="agent-user-message-text-wrap" style={userMessageStyles.textWrap}>
               <div
-                className={`agent-user-message-bubble ${shouldUseFullWidthBubble ? 'is-full-width' : ''}`}
+                className="agent-user-message-bubble"
                 style={{
                   ...styles.userBubble,
-                  ...(shouldUseFullWidthBubble ? userMessageStyles.fullWidthBubble : {}),
                   whiteSpace: 'pre-wrap',
                 }}
               >
@@ -1483,11 +1476,10 @@ function UserMessage({
           {visibleText && !appliedPlaywayMessage && (
             <div className="agent-user-message-text-wrap" style={userMessageStyles.textWrap}>
               <div
-                className={`agent-user-message-bubble ${shouldUseFullWidthBubble ? 'is-full-width' : ''}`}
+                className="agent-user-message-bubble"
                 style={{
                   ...styles.userBubble,
                   ...userMessageStyles.collapsibleBubble,
-                  ...(shouldUseFullWidthBubble ? userMessageStyles.fullWidthBubble : {}),
                   ...(isLongText && !longTextExpanded ? userMessageStyles.collapsedBubble : {}),
                   whiteSpace: 'pre-wrap',
                 }}

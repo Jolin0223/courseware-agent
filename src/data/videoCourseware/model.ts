@@ -33,7 +33,7 @@ export interface SceneGenerationJob { id:string; key:string; status:'queued'|'ge
 export interface VideoProject {
  // 'reviewed' is retained for old local drafts; only 'edited' is displayed.
  sceneReviews?:Record<string,{status:'reviewed'|'edited';savedAt:string}>;
- courseDraft?:{baseVersion:number;snapshot:WorkflowSnapshot;composition:PlaybackSettings;sceneIds:string[];instruction?:string;status:'draft'|'generating'|'failed';startedAt?:number;error?:string};
+ courseDraft?:{messageId?:string;baseVersion:number;snapshot:WorkflowSnapshot;composition:PlaybackSettings;sceneIds:string[];instruction?:string;status:'draft'|'generating'|'failed';startedAt?:number;error?:string};
  sceneVersionHistory?:Record<string,SceneVersion[]>;
  sceneJobs?:Record<string,SceneGenerationJob>;
  id:string; conversationId:string; coursewareId:number; fixtureId:string;
@@ -46,7 +46,7 @@ export interface VideoProject {
  workflowEvents?:Array<{runId:string;stage:WorkflowStage;time:string;order?:number;confirmation:string;sceneCount?:number;status?:'generating'|'completed'|'failed';error?:string}>;
  publishedTargets?:VideoPublicationTarget[]; publishedVersions?:Record<string,VideoPublicationStatus>;
  submittedEdits?:Array<{baseVersion:number;message:ConversationMessage}>;
- composition:PlaybackSettings; revision:number; pendingEdit?:string; pendingEditAttachments?:UploadedAttachment[]; resultMessages:Array<{id:string;html:string;version:number;time:string;order?:number;snapshot?:WorkflowSnapshot;composition?:PlaybackSettings}>;
+ composition:PlaybackSettings; revision:number; pendingEdit?:string; pendingEditAttachments?:UploadedAttachment[]; resultMessages:Array<{sourceMessageId?:string;id:string;html:string;version:number;time:string;order?:number;snapshot?:WorkflowSnapshot;composition?:PlaybackSettings}>;
 }
 export const segmentLabels:Record<SegmentKind,string>={video:'视频',mixed:'视频＋互动',h5:'互动页面'};
 export const defaultPlayback:PlaybackSettings={subtitles:true,soundEffects:true,overlays:{},assetOverrides:{}};

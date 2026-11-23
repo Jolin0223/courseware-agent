@@ -103,12 +103,12 @@ export function buildVideoLessonHTML(project:VideoProject,composition:PlaybackSe
  return buildCoursewareShellHTML(project.workflowVersion===5?`${url}&hostNav=1`:url,{type:'wukong-studio-config',composition:runtimeSettings(project,composition)},navigation,'wukong-studio-pause');
 }
 function coursewareFor(p:VideoProject,html:string):Courseware{return {id:p.coursewareId,title:p.title,subject:p.subject,grade:p.grade,type:'视频互动课件',author:'我',publishTime:new Date().toLocaleString('sv-SE'),views:0,favorites:0,likes:0,isOwn:true,isPublished:false,resourceScope:'personal',videoProjectId:p.id,thumbnail:p.assets.find(a=>a.id==='cover')?.url,htmlContent:html};}
-export function finishVideoProject(id:string,composition?:PlaybackSettings,note?:string){
+export function finishVideoProject(id:string,composition?:PlaybackSettings,note?:string,sourceMessageId?:string){
  const store=useVideoCoursewareStore.getState(),p=store.projects[id],next={...p,composition:composition||p.composition};
  const html=buildVideoLessonHTML(next);if(!html){store.update(id,{phase:'failed',error:'场景方案已保存。当前演示尚未接入本课的页面生成服务，无法交付完整课件。'});return;}
  const version=p.revision+1,time=new Date().toISOString(),messageId=`${id}-result-${version}`;
  const result:CoursewareResult={coursewareId:p.coursewareId,title:p.title,version:`v${version}`,htmlContent:html,thumbnail:p.assets.find(a=>a.id==='cover')?.url,generationPreferences:p.preferences,videoProjectId:p.id};
- store.update(id,{phase:'ready',job:undefined,composition:next.composition,revision:version,resultMessages:[...p.resultMessages,{id:messageId,html,version,time,snapshot:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds},composition:next.composition,order:(p.workflowEvents?.length||0)+p.resultMessages.length}],pendingEdit:undefined,pendingEditAttachments:undefined});
+ store.update(id,{phase:'ready',job:undefined,composition:next.composition,revision:version,resultMessages:[...p.resultMessages,{sourceMessageId,id:messageId,html,version,time,snapshot:{assets:p.assets,segments:p.segments,speakers:p.speakers,shots:p.shots,readyAssetIds:p.readyAssetIds,chapters:p.chapters,readySceneIds:p.readySceneIds,readyPageIds:p.readyPageIds},composition:next.composition,order:(p.workflowEvents?.length||0)+p.resultMessages.length}],pendingEdit:undefined,pendingEditAttachments:undefined});
  if(note)useConversationStore.getState().addUserMessage(p.conversationId,note);
  const cw=useCoursewareStore.getState();if(cw.coursewares.some(c=>c.id===p.coursewareId))cw.updateCourseware(p.coursewareId,coursewareFor(p,html));else cw.addCourseware(coursewareFor(p,html));
  useConversationStore.getState().addAssistantMessage(p.conversationId,result,'courseware-result');

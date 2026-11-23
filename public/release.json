@@ -1,6 +1,6 @@
 {
-  "release": "20261122-scene-collapse-review-hint",
-  "date": "2026-11-22",
-  "description": "第69条：结果卡场景默认收起；按场景修改增加教师工具对照提示；第70条保持现状",
+  "release": "20261123-scene-submission-undo",
+  "date": "2026-11-23",
+  "description": "第61条场景修改提交摘要与只读快照；第73条撤回最新修改并恢复上一版",
   "demoOnly": true
 }

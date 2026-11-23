@@ -433,6 +433,15 @@ export interface EditMessageDisplay {
 
 export interface UserMaterialMessage extends EditMessageDisplay {
   text: string;
+  sceneSubmission?: {
+    projectId: string;
+    baseVersion: number;
+    scenes: Array<{id:string;number:number;title:string}>;
+    before: import('../data/videoCourseware/model').WorkflowSnapshot;
+    snapshot: import('../data/videoCourseware/model').WorkflowSnapshot;
+    beforeComposition: import('../data/videoCourseware/model').PlaybackSettings;
+    composition: import('../data/videoCourseware/model').PlaybackSettings;
+  };
   attachments?: UploadedAttachment[];
   resolvedIntents?: MaterialIntentResolution[];
   generationPreferences?: GenerationPreferences;

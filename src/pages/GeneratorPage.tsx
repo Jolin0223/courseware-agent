@@ -57,6 +57,8 @@ import VideoWorkflowCard from '../components/VideoCourseware/VideoWorkflowCard';
 import { ConfirmationDockContext } from '../components/VideoCourseware/ConfirmationDockContext';
 import { confirmOutline, startVideoProject, useVideoJobs } from '../components/VideoCourseware/workflow';
 import { saveCourseChatDraft, startCourseDraft } from '../components/VideoCourseware/courseDraftActions';
+import { latestUndoMessage, undoCourseRevision } from '../components/VideoCourseware/undoCourseRevision';
+import SceneSubmissionMessage from '../components/VideoCourseware/SceneSubmissionMessage';
 import { useVideoCoursewareStore, videoProjectForConversation } from '../store/videoCoursewareStore';
 import { buildAugustGenerationPlan, getGenerationModeByModels } from '../data/augustDemoData';
 import { getLearningDataReportCapability } from '../utils/learningDataRecovery';
@@ -1301,7 +1303,7 @@ function UserMessage({
       : null,
   ].filter((item): item is string => Boolean(item));
   const hasStructuredEditSummary = Boolean(message.annotationCount || message.sceneEditCount);
-  const visibleText = sceneEdits.length ? message.displayText?.trim() || '' : hasStructuredEditSummary ? message.displayText?.trim() || message.text : message.text;
+  const visibleText = message.sceneSubmission ? '' : sceneEdits.length ? message.displayText?.trim() || '' : hasStructuredEditSummary ? message.displayText?.trim() || message.text : message.text;
   const appliedPlaywayMessage = visibleText ? parseAppliedPlaywayMessage(visibleText) : null;
   const isLongText = Boolean(
     visibleText
@@ -1313,6 +1315,7 @@ function UserMessage({
     <>
       <div className="agent-user-message" style={styles.messageUser}>
         <div className="agent-user-message-stack" style={userMessageStyles.stack}>
+          {message.sceneSubmission && <SceneSubmissionMessage message={message}/>}
           {(annotationImages.length > 0 || message.annotationCount || message.sceneEditCount) && (
             <div style={userMessageStyles.annotationGroup}>
               {annotationImages.length > 0 && (
@@ -3657,7 +3660,8 @@ export default function GeneratorPage() {
                       .slice(0, index + 2)
                       .filter(item => item.type === 'courseware-result').length - 1
                   : -1;
-                const canUndoNextResult = msg.role === 'user' && nextMessage?.type === 'courseware-result';
+                const canUndoVideo = msg.role === 'user' && latestUndoMessage(videoProject) === msg.id;
+                const canUndoNextResult = !videoProject && msg.role === 'user' && nextMessage?.type === 'courseware-result';
                 const nextResultPublished = canUndoNextResult
                   ? getCoursewarePublishState(nextMessage, nextCoursewareIndex)
                   : false;
@@ -3674,7 +3678,9 @@ export default function GeneratorPage() {
                       <UserMessage
                         content={msg.content as string | UserMaterialMessage}
                         onUndoNextResult={
-                          canUndoNextResult && nextMessage
+                          canUndoVideo && videoProject
+                            ? () => {const error=undoCourseRevision(videoProject.id,msg.id);toast(error||'已撤回，继续从上一版修改');}
+                            : canUndoNextResult && nextMessage
                             ? () => handleUndoCoursewareResult(msg.id, nextMessage.id, nextCoursewareIndex, nextResultPublished)
                             : undefined
                         }

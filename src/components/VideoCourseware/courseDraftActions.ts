@@ -1,4 +1,5 @@
 import { useConversationStore } from '../../store/conversationStore';
+import type { UserMaterialMessage } from '../../types';
 import type { VideoProject } from '../../data/videoCourseware/model';
 import { buildSceneCandidate, rebaseSceneDraft, revisionProject, sceneSnapshot } from '../../data/videoCourseware/sceneRevision';
 import { videoPlanIssues } from '../../data/videoCourseware/planning';
@@ -56,6 +57,21 @@ export function startCourseDraft(projectId:string,now=Date.now()):boolean {
  store.update(projectId,{courseDraft:{...draft,status:error?'failed':'generating',error,startedAt:error?undefined:now}});
  if(!error){
   const chat=useConversationStore.getState();
+  let submitted=p.submittedEdits?.at(-1);
+  const prior=typeof submitted?.message.content==='object'&&'sceneSubmission' in submitted.message.content?submitted.message.content.sceneSubmission:undefined;
+  const sameSubmission=prior&&JSON.stringify(prior.snapshot)===JSON.stringify(draft.snapshot)&&JSON.stringify(prior.composition)===JSON.stringify(draft.composition)&&JSON.stringify(prior.scenes.map(s=>s.id))===JSON.stringify(draft.snapshot.segments.filter(s=>draft.sceneIds.includes(s.id)).map(s=>s.id));
+  if(!submitted||submitted.baseVersion!==p.revision||(prior&&!sameSubmission)){
+   const scenes=draft.snapshot.segments.flatMap((scene,index)=>draft.sceneIds.includes(scene.id)?[{id:scene.id,number:index+1,title:scene.title}]:[]);
+   const content:UserMaterialMessage={
+    text:`请按我保存的修改，更新${scenes.map(s=>`场景${s.number}「${s.title}」`).join('、')}，生成新版课件。`,
+    sceneSubmission:{projectId:p.id,baseVersion:p.revision,scenes,before:sceneSnapshot(p),snapshot:structuredClone(draft.snapshot),beforeComposition:structuredClone(p.composition),composition:structuredClone(draft.composition)},
+   };
+   chat.addUserMessage(p.conversationId,content);
+   const message=useConversationStore.getState().conversations.find(c=>c.id===p.conversationId)!.messages.at(-1)!;
+   submitted={baseVersion:p.revision,message:structuredClone(message)};
+   store.update(projectId,{submittedEdits:[...p.submittedEdits||[],submitted]});
+  }
+  store.update(projectId,{courseDraft:{...draft,status:'generating',error:undefined,startedAt:now,messageId:submitted.message.id}});
   chat.addAssistantMessage(p.conversationId,{videoProjectId:projectId,stage:'revision-progress',runId:String(now),baseVersion:p.revision},'video-courseware-workflow');
   chat.setWaitingForUserAction(p.conversationId,false);
  }
@@ -71,7 +87,7 @@ export function advanceCourseDraft(projectId:string,now:number){
  const error=draft.baseVersion!==p.revision?'视频互动课件版本已变化，修改草稿已保留。':candidate.assets.some(a=>a.segmentIds.length&&!a.url)?'部分素材尚未就绪，请补全后重新生成。':!buildVideoLessonHTML(candidate)?'当前演示未接入本课的页面生成服务，修改草稿已保留。':undefined;
  if(error){store.update(projectId,{courseDraft:{...draft,status:'failed',error}});return;}
  store.update(projectId,{...sceneSnapshot(candidate),composition:candidate.composition,readySceneIds:candidate.segments.map(s=>s.id),readyPageIds:candidate.segments.filter(s=>s.kind!=='video').map(s=>s.id),readyAssetIds:candidate.assets.filter(a=>a.url).map(a=>a.id),courseDraft:undefined});
- finishVideoProject(projectId);
+ finishVideoProject(projectId,undefined,undefined,draft.messageId);
 }
 
 export function discardCourseDraft(projectId:string){

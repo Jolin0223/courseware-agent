@@ -465,6 +465,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
   });
   const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<AttachedFile | null>(null);
+  const previewDialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!previewImage?.url) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    previewDialogRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
+    return () => { if (previousFocus?.isConnected) previousFocus.focus(); };
+  }, [previewImage]);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [draggedSceneId, setDraggedSceneId] = useState<string | null>(null);
   const [isDraftPromptOpen, setIsDraftPromptOpen] = useState(false);
@@ -1351,7 +1358,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
                     <div style={styles.sceneEditReferenceRow}>
                       {(sceneEditImages[scene.id] || []).map(image => (
                         <span key={image.id} style={styles.sceneEditReferenceThumb} title={image.name}>
-                          {image.url && <img src={image.url} alt={image.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5 }} />}
+                          {image.url && <button type="button" onClick={() => setPreviewImage(image)} aria-label={`放大查看参考图 ${image.name}`} title="点击放大查看" style={{ width: '100%', height: '100%', padding: 0, border: 0, borderRadius: 5, background: 'transparent', cursor: 'zoom-in', display: 'block' }}>
+                            <img src={image.url} alt={image.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 5 }} />
+                          </button>}
                           <button type="button" onClick={() => removeSceneImage(scene.id, image.id)} aria-label={`移除参考图 ${image.name}`} style={{ position: 'absolute', top: -6, right: -6, width: 16, height: 16, border: '1px solid #FFFFFF', borderRadius: '50%', background: '#334155', color: '#FFFFFF', display: 'grid', placeItems: 'center', padding: 0, cursor: 'pointer' }}><X size={10} /></button>
                         </span>
                       ))}
@@ -1686,7 +1695,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
       {previewImage?.url && createPortal(
         <div style={styles.previewMask} onClick={() => setPreviewImage(null)}>
-          <div style={styles.previewDialog} onClick={e => e.stopPropagation()}>
+          <div ref={previewDialogRef} role="dialog" aria-modal="true" aria-label="图片预览" style={styles.previewDialog} onClick={e => e.stopPropagation()} onKeyDown={event => {
+            if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setPreviewImage(null); }
+            if (event.key === 'Tab') { event.preventDefault(); previewDialogRef.current?.querySelector<HTMLButtonElement>('button')?.focus(); }
+          }}>
             <img src={previewImage.url} alt={previewImage.name} style={styles.previewImage} />
             <div style={styles.previewFooter}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{previewImage.name}</span>

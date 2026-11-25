@@ -1,6 +1,6 @@
 {
-  "release": "20261123-scene-submission-undo",
-  "date": "2026-11-23",
-  "description": "第61条场景修改提交摘要与只读快照；第73条撤回最新修改并恢复上一版",
+  "release": "20261125-scene-image-preview-scroll",
+  "date": "2026-11-25",
+  "description": "场景修改参考图点击放大、键盘关闭与焦点恢复；展开的场景消息到边界后接续外层滚动",
   "demoOnly": true
 }

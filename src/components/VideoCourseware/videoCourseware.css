@@ -137,3 +137,36 @@
 .agent-scene-edit-viewport.is-expanded{max-height:min(480px,55vh);overflow-y:auto;overscroll-behavior-y:auto;}
 
 .agent-scene-edit-fade{position:absolute;left:0;right:0;bottom:0;height:54px;border-radius:0 0 10px 10px;background:linear-gradient(180deg,rgba(234,246,255,0),#EAF6FF 78%);pointer-events:none;}
+
+/* The entry row keeps the same space for a video toggle or a plain capability
+   description. The robot remains anchored to the input edge in every state. */
+.agent-permission-home{flex-shrink:0;--agent-skeleton-soft:rgba(195,218,229,.32)}
+.agent-permission-home .agent-chat-input-shell{border-width:2px!important}
+.agent-home-access-status{display:flex;flex-direction:column;align-items:center;gap:20px;color:#64748b;font-size:14px}
+.agent-home-access-status button{border:1px solid var(--agent-primary);border-radius:8px;background:#fff;color:var(--agent-primary);font:inherit;padding:8px 20px;cursor:pointer}
+.agent-home-access-status button:focus-visible{outline:2px solid var(--agent-primary);outline-offset:3px}
+.is-access-pending .agent-chat-input-shell{background:rgba(255,255,255,.72)!important;border-color:rgba(166,195,213,.36)!important;box-shadow:none!important}
+.is-access-pending .agent-chat-input-shell > :not(.agent-welcome-robot-anchor):not(.agent-create-skeleton-input){visibility:hidden}
+.agent-create-skeleton-input{position:absolute;inset:0;padding:24px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.agent-create-skeleton-line{height:10px;width:56%;max-width:360px;border-radius:5px;background:#e3edf2}
+.agent-create-skeleton-tools{display:flex;align-items:center;gap:12px}
+.agent-create-skeleton-tools span{width:22px;height:22px;border-radius:6px;background:#e3edf2}
+.agent-create-skeleton-tools i{margin-left:auto;width:75px;height:10px;border-radius:5px;background:#e3edf2}
+.agent-create-skeleton-tools b{width:34px;height:34px;border-radius:10px;background:#e3edf2}
+.is-access-pending .agent-home-prompt-row{position:relative;visibility:hidden}
+.is-access-pending .agent-home-prompt-row::after{content:"";position:absolute;left:0;right:0;top:5px;height:26px;visibility:visible;background:linear-gradient(90deg,var(--agent-skeleton-soft) 0 25%,transparent 25% 27%,var(--agent-skeleton-soft) 27% 52%,transparent 52% 54%,var(--agent-skeleton-soft) 54% 79%,transparent 79%);border-radius:14px}
+.agent-create-loading-status{position:absolute;width:0;height:0;overflow:hidden}
+.agent-create-error{position:absolute;inset:46px 0 0;justify-content:center}
+.is-access-error .agent-create-skeleton-input,.is-access-error .agent-home-prompt-row::after{visibility:hidden}
+
+.vc-format-description{display:inline-flex;align-items:center;gap:8px;color:#64748b;font-size:12px;line-height:17px;cursor:default}
+.vc-courseware-icon{flex-shrink:0}
+.vc-format-skeleton{display:block;width:min(390px,100%);height:22px;border-radius:6px;background:var(--agent-skeleton-soft)}
+.vc-format-description-label{color:#49627c;font-weight:500}
+@keyframes agent-creation-loading{0%,100%{opacity:.45}50%{opacity:1}}
+.is-access-pending:not(.is-access-error) .vc-format-skeleton,
+.is-access-pending:not(.is-access-error) .agent-create-skeleton-input,
+.is-access-pending:not(.is-access-error) .agent-home-prompt-row::after{animation:agent-creation-loading 1.5s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){
+ .is-access-pending .vc-format-skeleton,.is-access-pending .agent-create-skeleton-input,.is-access-pending .agent-home-prompt-row::after{animation:none!important}
+}

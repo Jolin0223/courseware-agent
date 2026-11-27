@@ -32,7 +32,7 @@ import { VIDEO_EXAMPLE_PROMPT, exampleAttachments } from '../../data/videoCourse
 import { VIDEO_HOMEPAGE_PROMPT_GROUPS } from '../../data/videoCourseware/homepagePrompts';
 import '../VideoCourseware/videoCourseware.css';
 import { generationModeOptions } from '../../data/augustDemoData';
-import { hasVideoCoursewareAccess } from '../../utils/videoCoursewareAccess';
+import { loadVideoCoursewareAccess, useVideoAccess } from '../../utils/videoCoursewareAccess';
 
 interface ChatInputProps {
   welcomeRobotUrl?: string;
@@ -493,7 +493,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [stopTooltip, setStopTooltip] = useState(false);
   const isInputHighlighted = isFocused || forceHighlight;
 
-  const videoAccess = hasVideoCoursewareAccess();
+  const { status: videoAccessStatus } = useVideoAccess();
+  const videoAccess = videoAccessStatus === 'allowed';
+  useEffect(() => { void loadVideoCoursewareAccess(); }, []);
+  // Preserve a selected video draft while entitlement is unresolved; never silently send it as H5.
+  const awaitingVideoAccess = format === 'video' && (videoAccessStatus === 'loading' || videoAccessStatus === 'error');
   const effectiveFormat = videoAccess ? format : 'h5';
   const imageFiles = attachedFiles.filter(file => file.type === 'image');
   const documentFiles = attachedFiles.filter(file => file.type === 'document');
@@ -506,7 +510,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const selectedSceneIds = currentVideo?.segments.filter(scene => Object.hasOwn(sceneEdits, scene.id)).map(scene => scene.id) || [];
   const hasSceneEditContent = selectedSceneIds.some(id => sceneEdits[id]?.trim() || sceneEditImages[id]?.length);
   const submittedSceneIds = selectedSceneIds.filter(id => sceneEdits[id]?.trim() || sceneEditImages[id]?.length);
-  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0 || Boolean(annotationBatch?.annotations.length) || hasSceneEditContent) && !disabled && !selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading));
+  const canSend = (text.trim().length > 0 || attachedFiles.some(f => !f.loading) || teachingAttachments.length > 0 || lockedAttachments.length > 0 || Boolean(annotationBatch?.annotations.length) || hasSceneEditContent) && !disabled && !awaitingVideoAccess && !selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading));
   const homepagePromptChips = effectiveFormat === 'video'
     ? VIDEO_HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % VIDEO_HOMEPAGE_PROMPT_GROUPS.length]
     : HOMEPAGE_PROMPT_GROUPS[homepagePromptGroupIndex % HOMEPAGE_PROMPT_GROUPS.length].map(prompt => ({ label: prompt, prompt }));
@@ -586,6 +590,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }, [injectedText, injectedTextVersion, onTextChange, resizeTextarea]);
 
   const handleSend = useCallback(() => {
+    if (awaitingVideoAccess) return;
     if (selectedSceneIds.some(id => sceneEditImages[id]?.some(image => image.loading))) return;
     const trimmed = text.trim();
     const readyFiles = attachedFiles.filter(f => !f.loading);
@@ -668,7 +673,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       htmlModelId: 'gemini-3.1-pro',
       imageModelId: 'jimeng-5.0',
     });
-  }, [text, attachedFiles, teachingAttachments, lockedAttachments, annotationBatch, sceneEdits, sceneEditImages, selectedSceneIds, submittedSceneIds, currentVideo, generationPreferences, effectiveFormat, disabled, onSend, onTextChange, onClearAnnotationBatch]);
+  }, [awaitingVideoAccess, text, attachedFiles, teachingAttachments, lockedAttachments, annotationBatch, sceneEdits, sceneEditImages, selectedSceneIds, submittedSceneIds, currentVideo, generationPreferences, effectiveFormat, disabled, onSend, onTextChange, onClearAnnotationBatch]);
 
   const applyHomepagePromptChip = useCallback((prompt: string) => {
     const example = prompt === VIDEO_EXAMPLE_PROMPT;
@@ -1118,13 +1123,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
       <input ref={imageInputRef} type="file" accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" multiple hidden onChange={handleImageSelect} />
       <input ref={sceneImageInputRef} type="file" multiple accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif" hidden onChange={handleSceneImageSelect} />
       <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/plain" multiple hidden onChange={handleFileSelect} />
-      <div className={`agent-chat-input-wrapper ${centered ? 'is-centered' : 'is-bottom'}`} style={centered ? styles.wrapperCentered : styles.wrapperBottom}>
-        {centered && videoAccess && (
-          <div className="vc-format-choice">
+      <div inert={Boolean(centered && (videoAccessStatus === 'loading' || videoAccessStatus === 'error'))} aria-hidden={centered && (videoAccessStatus === 'loading' || videoAccessStatus === 'error') ? true : undefined} className={`agent-chat-input-wrapper ${centered ? 'is-centered' : 'is-bottom'}`} style={centered ? styles.wrapperCentered : styles.wrapperBottom}>
+        {centered && (
+          <div className="vc-format-choice" aria-hidden={videoAccessStatus === 'loading' || videoAccessStatus === 'error' || undefined}>
+            {videoAccess && <>
             <button type="button" className={'vc-format-toggle'+(effectiveFormat === 'video' ? ' active' : '')} aria-pressed={effectiveFormat === 'video'} onClick={() => setFormat(effectiveFormat === 'video' ? 'h5' : 'video')}>
               <Film size={16}/><span>视频互动课件</span>{effectiveFormat === 'video' && <Check size={13}/>}
             </button>
             <span className="vc-format-choice-hint">{effectiveFormat === 'video' ? '先用视频讲故事，再穿插互动练习' : '默认生成互动课件；选中后加入视频场景'}</span>
+            </>}
+            {videoAccessStatus === 'loading' && <span className="vc-format-skeleton" aria-hidden="true" />}
+            {videoAccessStatus === 'denied' && <span className="vc-format-description"><svg className="vc-courseware-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="5" width="15" height="17" rx="3" transform="rotate(-8 2 5)" fill="#CEDBE5" /><rect x="7" y="2" width="15" height="18" rx="3.5" fill="#9AAFC1" /><path d="M11 7h7M11 10h5" stroke="white" strokeWidth="1.4" strokeLinecap="round" /><rect x="11" y="13" width="3" height="3" rx=".8" fill="white" fillOpacity=".95" /><rect x="16" y="13" width="3" height="3" rx=".8" fill="white" fillOpacity=".55" /></svg><span><span className="vc-format-description-label">互动课件：</span>知识点游戏、知识讲解、演示教具、空间展示、课堂气氛...</span></span>}
           </div>
         )}
         <div
@@ -1169,6 +1178,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           }}
         >
           {centered && welcomeRobotUrl && <span className="agent-welcome-robot-anchor"><img className="agent-welcome-robot" src={welcomeRobotUrl} alt="" /></span>}
+          {centered && (videoAccessStatus === 'loading' || videoAccessStatus === 'error') && <div className="agent-create-skeleton-input" aria-hidden="true"><span className="agent-create-skeleton-line" /><div className="agent-create-skeleton-tools"><span /><span /><i /><b /></div></div>}
           {isDraggingFiles && (
             <div style={styles.dragHint}>松开即可上传图片、PDF、Word 或 MD 材料</div>
           )}

@@ -2,11 +2,11 @@ import MessageExpandButton from '../components/Generator/MessageExpandButton';
 import SceneEditMessage from '../components/Generator/SceneEditMessage';
 import ChatLoadingDots from '../components/Generator/ChatLoadingDots';
 import { isVideoChatLocked } from '../components/VideoCourseware/chatAvailability';
-import { useState, useCallback, useRef, useEffect, type UIEvent } from 'react';
+import { useState, useCallback, useRef, useEffect, useLayoutEffect, type UIEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp, ChevronDown, ChevronUp, Headphones, Info, ListChecks, MessageSquare, Mic, RotateCcw, Sparkles } from 'lucide-react';
 import ChatInput from '../components/Generator/ChatInput';
-import { hasVideoCoursewareAccess } from '../utils/videoCoursewareAccess';
+import { hasVideoCoursewareAccess, loadVideoCoursewareAccess, useVideoAccess } from '../utils/videoCoursewareAccess';
 // ChatHistory moved to Sidebar
 import RequirementCard from '../components/Generator/RequirementCard';
 import CoursewareRecommendationCard from '../components/Generator/CoursewareRecommendationCard';
@@ -2270,6 +2270,8 @@ export default function GeneratorPage() {
   
   const videoProject = useVideoCoursewareStore(s => Object.values(s.projects).find(p => p.conversationId === activeConversationId));
   const [phase, setPhase] = useState<GenerationPhase>('input');
+  const accessStatus = useVideoAccess(s => s.status);
+  useEffect(() => { void loadVideoCoursewareAccess(); }, []);
   const [chatWidth, setChatWidth] = useState(DEFAULT_CHAT_WIDTH_WITH_PREVIEW);
   const [isDragging, setIsDragging] = useState(false);
   const [frameworkDone, setFrameworkDone] = useState(false);
@@ -2492,7 +2494,7 @@ export default function GeneratorPage() {
     window.setTimeout(() => setShowBackToInput(false), 260);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (hasMessages || phase !== 'input') {
       setWelcomeHeroMinHeight(386);
       return;
@@ -2506,7 +2508,7 @@ export default function GeneratorPage() {
       const panelRect = panel.getBoundingClientRect();
       const inputRect = inputAnchor.getBoundingClientRect();
       const nextHeight = Math.max(386, Math.ceil(inputRect.bottom - panelRect.top + 24));
-      setWelcomeHeroMinHeight(prev => (Math.abs(prev - nextHeight) > 1 ? nextHeight : prev));
+      setWelcomeHeroMinHeight(prev => (prev !== nextHeight ? nextHeight : prev));
     };
 
     measureHeroHeight();
@@ -2518,7 +2520,7 @@ export default function GeneratorPage() {
       resizeObserver.disconnect();
       window.removeEventListener('resize', measureHeroHeight);
     };
-  }, [hasMessages, phase]);
+  }, [hasMessages, phase, accessStatus]);
 
   const injectPromptWithApplyMotion = useCallback((
     item: GameplayInspiration,
@@ -3584,7 +3586,7 @@ export default function GeneratorPage() {
           style={styles.welcomeSection}
         >
           <div
-            className="agent-welcome-hero"
+            className="agent-welcome-hero agent-permission-home"
             ref={welcomeHeroPanelRef}
             style={{
               ...styles.welcomeHeroPanel,
@@ -3596,7 +3598,7 @@ export default function GeneratorPage() {
                 <h1 style={styles.welcomeTitle}>生成一节会 <span style={{ background: 'var(--agent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>互动</span> 的课</h1>
                 <p style={styles.welcomeSubtitle}>AI智能生成多种互动游戏、互动讲解与教学活动，快速插入课件，提升课堂参与度与教学效果。</p>
               </div>
-              <div className="agent-welcome-input" ref={centeredInputAnchorRef} style={{ width: '100%', maxWidth: 980 }}>
+              <div className={`agent-welcome-input${accessStatus === 'loading' || accessStatus === 'error' ? ' is-access-pending' : ''}${accessStatus === 'error' ? ' is-access-error' : ''}`} ref={centeredInputAnchorRef} style={{ position: 'relative', width: '100%', maxWidth: 980 }}>
                 <ChatInput
                   onSend={handleSend}
                   welcomeRobotUrl={HOMEPAGE_ROBOT_URL}
@@ -3609,14 +3611,17 @@ export default function GeneratorPage() {
                   lockedAttachments={activeCloneDraft ? [activeCloneDraft.attachment] : []}
                   forceHighlight={isCloneDemandInput}
                 />
+                {accessStatus === 'loading' && <span className="agent-create-loading-status" data-access-state="loading" role="status" aria-label="正在加载创建区域" aria-busy="true" />}
+                {accessStatus === 'error' && <div className="agent-home-access-status agent-create-error" role="status" data-access-state="error"><span>加载失败，请重试</span><button type="button" onClick={() => void loadVideoCoursewareAccess()}>重新加载</button></div>}
               </div>
             </div>
           </div>
-          <div style={{ width: '100%', marginTop: 24 }}>
+          <div data-inspiration-region style={{ width: '100%', marginTop: 24 }}>
             <InspirationSection
               selectedInspirationId={selectedInspiration?.id}
               onApplyInspiration={handleApplyInspiration}
               onCloneInspiration={handleCloneInspiration}
+              creationDisabled={accessStatus === 'loading' || accessStatus === 'error'}
             />
           </div>
           {showBackToInput && (

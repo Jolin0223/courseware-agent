@@ -40,6 +40,7 @@ export interface GameplayInspiration {
 }
 
 interface InspirationSectionProps {
+  creationDisabled?: boolean;
   selectedInspirationId?: string | null;
   onApplyInspiration?: (item: GameplayInspiration, sourceElement?: HTMLElement | null) => void;
   onCloneInspiration?: (item: GameplayInspiration, sourceElement?: HTMLElement | null) => void;
@@ -171,6 +172,7 @@ ${item.promptEnhancement}
 };
 
 export default function InspirationSection({
+  creationDisabled = false,
   selectedInspirationId,
   onApplyInspiration,
   onCloneInspiration,
@@ -330,10 +332,12 @@ export default function InspirationSection({
   }, [currentHasMorePlayways, currentVisiblePlayways.length]);
 
   const handleApply = (playway: InspirationPlayway, sourceElement?: HTMLElement | null) => {
+    if (creationDisabled) return;
     onApplyInspiration?.(toGameplayInspiration(playway), sourceElement);
   };
 
   const handleClone = (playway: InspirationPlayway, sourceElement?: HTMLElement | null) => {
+    if (creationDisabled) return;
     onCloneInspiration?.(toGameplayInspiration(playway), sourceElement);
   };
 
@@ -580,7 +584,8 @@ export default function InspirationSection({
                     试玩一下
                   </button>
                   <button
-                    style={styles.primaryBtn}
+                    disabled={creationDisabled}
+                    style={{ ...styles.primaryBtn, ...(creationDisabled ? { opacity: 0.45, cursor: 'not-allowed' } : {}) }}
                     onPointerUp={(event) => runOnce(`${recommendationMode}-${playway.id}`, () => {
                       if (recommendationMode === 'clone') {
                         handleClone(playway, event.currentTarget);
@@ -626,7 +631,9 @@ export default function InspirationSection({
           key={clonePreviewResource.id}
           resource={clonePreviewResource}
           onClose={() => setClonePreviewPlaywayId(null)}
+          cloneDisabled={creationDisabled}
           onClone={() => {
+            if (creationDisabled) return;
             handleClone(clonePreviewPlayway);
             setClonePreviewPlaywayId(null);
           }}
@@ -706,8 +713,10 @@ export default function InspirationSection({
                   {renderAdaptationText(examplePlayway.adaptationText)}
                 </div>
                 <button
-                  style={styles.exampleApplyBtn}
+                  disabled={creationDisabled}
+                  style={{ ...styles.exampleApplyBtn, ...(creationDisabled ? { opacity: 0.45, cursor: 'not-allowed' } : {}) }}
                   onClick={(event) => {
+                    if (creationDisabled) return;
                     handleApply(examplePlayway, event.currentTarget);
                     setExamplePlaywayId(null);
                   }}

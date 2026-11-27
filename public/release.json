@@ -1,6 +1,6 @@
 {
-  "release": "20261125-scene-image-preview-scroll",
-  "date": "2026-11-25",
-  "description": "场景修改参考图点击放大、键盘关闭与焦点恢复；展开的场景消息到边界后接续外层滚动",
+  "release": "20261127-home-permission-loading",
+  "date": "2026-11-27",
+  "description": "首页权限等待骨架；有无视频权限保持稳定布局；无权限展示轻量互动课件说明",
   "demoOnly": true
 }
